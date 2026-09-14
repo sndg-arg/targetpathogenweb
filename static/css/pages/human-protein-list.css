@@ -25,6 +25,10 @@
     margin: 0;
 }
 
+.human-dashboard-caveat {
+    margin: 0;
+}
+
 .human-protein-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));

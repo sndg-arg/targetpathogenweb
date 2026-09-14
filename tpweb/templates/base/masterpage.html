@@ -2325,6 +2325,10 @@
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span>
                 <span>{% trans "Genomes" %}</span>
             </a>
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'human_protein_list' or request.resolver_match.url_name == 'human_protein' %}active{% endif %}" aria-label="{% trans 'Human Targets' %}" href="{% url 'human_target:human_protein_list' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
+                <span>{% trans "Human Targets" %}</span>
+            </a>
             <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genome_upload' or request.resolver_match.url_name == 'customparam' %}active{% endif %}" aria-label="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
                 <span>{% trans "Upload" %}</span>
@@ -2422,6 +2426,9 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' or url_name == 'formula_form' or url_name == 'customparam' %} is-active{% endif %}" {% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{% if url_name == 'human_protein_list' or url_name == 'human_protein' %} is-active{% endif %}" {% if url_name == 'human_protein_list' or url_name == 'human_protein' %}aria-current="page"{% endif %} href="{% url 'human_target:human_protein_list' %}">{% trans "Human Targets" %}</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'genome_upload' %} is-active{% endif %}" {% if url_name == 'genome_upload' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genome_upload' %}">{% trans "Upload" %}</a>

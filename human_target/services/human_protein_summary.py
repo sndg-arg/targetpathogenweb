@@ -2,7 +2,7 @@
 
 Reads the `HumanProtein` JSON content parsed at ingest time
 (`import_human_curated_proteins`) and shapes it for
-`tpweb/templates/human/human_protein.html`. Mirrors the "build one context
+`human_target/templates/human/human_protein.html`. Mirrors the "build one context
 dict, delegate the shaping" style of `protein_summary.py`, but has no
 pipeline/genome-workspace/druggability inputs -- those are bacteria-pipeline
 concepts that don't apply here (see CLAUDE.md "Human Targets").

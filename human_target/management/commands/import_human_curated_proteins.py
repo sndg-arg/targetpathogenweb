@@ -3,7 +3,7 @@
 Reads a local `new_data/` tree (already downloaded from the target-human-web
 Zenodo archive -- see ../target-human-web/README.md) and populates:
   - one `Biodatabase` row (the internal storage container, never surfaced
-    via the Genomes list -- see tpweb/services/human_targets.py)
+    via the Genomes list -- see human_target/services/human_targets.py)
   - one `Bioentry` + `HumanProtein` row per accession, parsed from
     `<ACC>_full.json`
   - `Binders` rows via the existing `load_ligq_2_results` command, unmodified
@@ -27,7 +27,9 @@ trusting this in production, per CLAUDE.md's "no local execution
 environment" note.
 """
 
+import csv
 import json
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from django.core.management import call_command
@@ -36,13 +38,15 @@ from django.core.management.base import BaseCommand, CommandError
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Ontology import Ontology
 
-from tpweb.models.HumanProtein import HumanProtein
-from tpweb.models.BioentryStructure import ExperimentalStructureXref
-from tpweb.services.functional_annotations import persist_ec_go_annotations
-from tpweb.services.human_targets import (
+from human_target.models.HumanPathway import HumanPathway
+from human_target.models.HumanProtein import HumanProtein
+from human_target.models.HumanProteinPathway import HumanProteinPathway
+from human_target.services.human_targets import (
     DEMO_ACCESSIONS,
     get_or_create_human_biodatabase,
 )
+from tpweb.models.BioentryStructure import ExperimentalStructureXref
+from tpweb.services.functional_annotations import persist_ec_go_annotations
 
 DEFAULT_DATADIR = "/app/targetpathogenweb/data"
 
@@ -210,6 +214,56 @@ def _extract_publications(entry):
     return publications
 
 
+def _parse_kgml(kgml_path):
+    """Parse one KEGG KGML pathway file into a pruned node/edge graph:
+    gene/ortholog entries only (compound/map entries dropped, matching the
+    reference app's own pruning rule), and only nodes that participate in at
+    least one relation (isolated nodes dropped). Pure function -- takes a
+    path, returns plain dicts/lists, no DB access -- so it's reusable
+    unchanged by a future live-KEGG-fetch ingest command."""
+    tree = ET.parse(kgml_path)
+    root = tree.getroot()
+
+    nodes = {}
+    for entry in root.findall("entry"):
+        if entry.get("type") not in ("gene", "ortholog"):
+            continue
+        entry_id = entry.get("id", "")
+        if not entry_id:
+            continue
+        kegg_ids = (entry.get("name", "") or "").split()
+        graphics = entry.find("graphics")
+        label = ""
+        if graphics is not None:
+            label = (graphics.get("name", "") or "").split(",")[0].strip()
+        nodes[entry_id] = {
+            "id": entry_id,
+            "label": label or (kegg_ids[0] if kegg_ids else entry_id),
+            "kegg_ids": kegg_ids,
+        }
+
+    edges = []
+    connected_ids = set()
+    for relation in root.findall("relation"):
+        entry1 = relation.get("entry1", "")
+        entry2 = relation.get("entry2", "")
+        if entry1 not in nodes or entry2 not in nodes:
+            continue
+        subtypes = [
+            subtype.get("name", "")
+            for subtype in relation.findall("subtype")
+            if subtype.get("name")
+        ]
+        edges.append({"source": entry1, "target": entry2, "subtypes": subtypes})
+        connected_ids.add(entry1)
+        connected_ids.add(entry2)
+
+    return {
+        "nodes": [node for node_id, node in nodes.items() if node_id in connected_ids],
+        "edges": edges,
+    }
+
+
 def _build_human_protein_fields(entry):
     comments, diseases = _extract_comments(entry)
     protein_desc = entry.get("proteinDescription", {}) or {}
@@ -268,6 +322,8 @@ class Command(BaseCommand):
         parser.add_argument("--dry-run", action="store_true")
         parser.add_argument("--skip-ligands", action="store_true")
         parser.add_argument("--skip-structures", action="store_true")
+        parser.add_argument("--skip-expression", action="store_true")
+        parser.add_argument("--skip-pathways", action="store_true")
         parser.add_argument("--datadir", default=DEFAULT_DATADIR)
 
     def handle(self, *args, **options):
@@ -327,10 +383,11 @@ class Command(BaseCommand):
                 accession=accession,
                 defaults={"name": accession, "identifier": accession},
             )
-            HumanProtein.objects.update_or_create(
+            human_protein, _ = HumanProtein.objects.update_or_create(
                 bioentry=bioentry,
                 defaults={"uniprot_accession": accession, **fields},
             )
+            self._write_uniprot_dbxref(bioentry, accession, fields["is_reviewed"])
 
             ec_created = persist_ec_go_annotations(
                 bioentry, _extract_ec_numbers(entry), "ec", ec_ontology
@@ -347,6 +404,121 @@ class Command(BaseCommand):
                 self._load_structures(
                     protein_dir, accession, bioentry, options["datadir"], overwrite
                 )
+
+            if not options["skip_expression"]:
+                self._load_expression(protein_dir, accession, human_protein)
+
+            if not options["skip_pathways"]:
+                self._load_pathways(protein_dir, accession, human_protein)
+
+    def _write_uniprot_dbxref(self, bioentry, accession, is_reviewed):
+        """Human `Bioentry.accession` already *is* the UniProt accession, but
+        `load_ligq_2_results`'s `is_direct` classification only checks for a
+        `UnipSp`/`UnipTr` `BioentryDbxref` pointing at it (same lookup bacteria
+        get from `gbk2uniprot_map`) -- without this, every human ligand match
+        silently falls back to "homolog"."""
+        from bioseq.models.BioentryDbxref import BioentryDbxref
+        from bioseq.models.Dbxref import Dbxref
+
+        db = "UnipSp" if is_reviewed else "UnipTr"
+        dbxref, _ = Dbxref.objects.get_or_create(dbname=db, accession=accession)
+        BioentryDbxref.objects.get_or_create(dbxref=dbxref, bioentry=bioentry)
+
+    def _load_expression(self, protein_dir, accession, human_protein):
+        """Bgee's per-(tissue, cell type) expression export. Anatomical-system
+        bucketing happens at render time (`human_expression_summary.py`), not
+        here -- this just keeps the fields the UI needs, coerced to the right
+        types, with blank/unscored rows dropped."""
+        tsv_path = protein_dir / "Bgee-genex-heatmap.tsv"
+        if not tsv_path.exists():
+            self.stdout.write(f"  no Bgee-genex-heatmap.tsv for {accession}, skipping expression")
+            return
+
+        rows = []
+        with tsv_path.open(encoding="utf-8", newline="") as handle:
+            for row in csv.DictReader(handle, delimiter="\t"):
+                score_raw = (row.get("expression_score") or "").strip()
+                try:
+                    score = float(score_raw)
+                except ValueError:
+                    continue
+                rows.append(
+                    {
+                        "tissue": (row.get("anat_entity_name") or "").strip(),
+                        "cell_type": (row.get("cell_type_name") or "").strip(),
+                        "score": score,
+                        "confidence": (row.get("expression_score_confidence") or "").strip(),
+                        "quality": (row.get("expression_quality") or "").strip(),
+                        "fdr": (row.get("fdr") or "").strip(),
+                        "data_types": (row.get("data_types_with_data") or "").strip(),
+                        "state": (row.get("expression_state") or "").strip(),
+                        "cluster": (row.get("cluster_index") or "").strip(),
+                    }
+                )
+
+        human_protein.expression_json = rows
+        human_protein.save(update_fields=["expression_json"])
+        self.stdout.write(f"  expression rows loaded: {len(rows)}")
+
+    def _load_pathways(self, protein_dir, accession, human_protein):
+        """KEGG pathway membership, via the same `kegg_kgml/` tree target-
+        human-web's own pipeline produced. `HumanPathway` rows are shared
+        reference data across proteins (get_or_create by kegg_id, so a
+        pathway shared by two curated proteins is stored once), while
+        `HumanProteinPathway` is the per-protein link, carrying which of the
+        pathway's own graph nodes is *this* protein (matched via its NCBI
+        GeneID cross-reference)."""
+        kegg_dir = protein_dir / "kegg_kgml"
+        index_path = kegg_dir / "index.json"
+        if not index_path.exists():
+            self.stdout.write(f"  no kegg_kgml/index.json for {accession}, skipping pathways")
+            return
+
+        index = _load_json(index_path) or []
+        gene_id = ""
+        for xref in human_protein.cross_references_raw or []:
+            if xref.get("database") == "GeneID":
+                gene_id = (xref.get("id") or "").strip()
+                break
+        target_kegg_gene = f"hsa:{gene_id}" if gene_id else ""
+
+        linked = 0
+        for item in index:
+            kegg_id = (item.get("id") or "").strip()
+            kgml_path = kegg_dir / (item.get("file") or f"{kegg_id}.kgml")
+            if not kegg_id or not kgml_path.exists():
+                continue
+            try:
+                graph = _parse_kgml(kgml_path)
+            except ET.ParseError as exc:
+                self.stderr.write(f"  failed to parse {kgml_path}: {exc}")
+                continue
+
+            pathway, _ = HumanPathway.objects.update_or_create(
+                kegg_id=kegg_id,
+                defaults={
+                    "title": item.get("title", ""),
+                    "entry_count": item.get("entries") or 0,
+                    "relation_count": item.get("relations") or 0,
+                    "graph_json": graph,
+                },
+            )
+
+            highlighted_node_id = ""
+            if target_kegg_gene:
+                for node in graph["nodes"]:
+                    if target_kegg_gene in node["kegg_ids"]:
+                        highlighted_node_id = node["id"]
+                        break
+
+            HumanProteinPathway.objects.update_or_create(
+                human_protein=human_protein,
+                pathway=pathway,
+                defaults={"highlighted_node_id": highlighted_node_id},
+            )
+            linked += 1
+
+        self.stdout.write(f"  pathways linked: {linked}")
 
     def _load_ligands(self, protein_dir, accession):
         ligq_dir = protein_dir / "ligq"

@@ -218,7 +218,7 @@ class StaticContentViewTests(LoggedInTestCase):
 
 class HumanProteinListViewTests(LoggedInTestCase):
     def test_renders_with_empty_dataset(self):
-        response = self.client.get(reverse("tpwebapp:human_protein_list"))
+        response = self.client.get(reverse("human_target:human_protein_list"))
         self.assertEqual(response.status_code, 200)
 
 
@@ -420,7 +420,7 @@ class StructureExportViewTests(LoggedInTestCase):
 class HumanProteinViewTests(LoggedInTestCase):
     def test_unknown_accession_is_not_found(self):
         response = self.client.get(
-            reverse("tpwebapp:human_protein", kwargs={"accession": "DOES-NOT-EXIST"})
+            reverse("human_target:human_protein", kwargs={"accession": "DOES-NOT-EXIST"})
         )
         self.assertEqual(response.status_code, 404)
 

@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.views import View
 
-from tpweb.services.human_targets import human_bioentries_queryset
+from human_target.services.human_dashboard_summary import build_human_dashboard_context
+from human_target.services.human_targets import human_bioentries_queryset
 
 
 class HumanProteinListView(View):
@@ -35,5 +36,6 @@ class HumanProteinListView(View):
                 "proteins": proteins,
                 "total_count": len(proteins),
                 "query": query,
+                "dashboard": build_human_dashboard_context(),
             },
         )

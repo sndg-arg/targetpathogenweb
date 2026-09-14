@@ -45,8 +45,6 @@ from .views.AboutUsView import AboutUsView
 from .views.AgentChatView import AgentChatSessionDetailView, AgentChatSessionsView, AgentChatView
 from .views.RobotsView import RobotsView
 from .views.SitemapView import SitemapView
-from .views.HumanProteinListView import HumanProteinListView
-from .views.HumanProteinView import HumanProteinView
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -135,8 +133,6 @@ urlpatterns = [
     path("genomes", view=GenomesView.as_view(), name="genomes_list"),
     path("genomes/upload", view=GenomeUploadView.as_view(), name="genome_upload"),
     path("genomes/upload-file", view=DataFileUploadView.as_view(), name="data_file_upload"),
-    path("human/proteins", view=HumanProteinListView.as_view(), name="human_protein_list"),
-    path("human/protein/<str:accession>", view=HumanProteinView.as_view(), name="human_protein"),
     path("agent-chat", view=AgentChatView.as_view(), name="agent_chat"),
     path("agent-chat/sessions", view=AgentChatSessionsView.as_view(), name="agent_chat_sessions"),
     path(

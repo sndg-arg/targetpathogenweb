@@ -10,9 +10,17 @@ import json
 import tempfile
 from pathlib import Path
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
-from tpweb.management.commands.import_human_curated_proteins import (
+from bioseq.models.Biodatabase import Biodatabase
+from bioseq.models.Bioentry import Bioentry
+from bioseq.models.BioentryDbxref import BioentryDbxref
+
+from human_target.models.HumanPathway import HumanPathway
+from human_target.models.HumanProtein import HumanProtein
+from human_target.models.HumanProteinPathway import HumanProteinPathway
+from human_target.management.commands.import_human_curated_proteins import (
+    Command,
     _build_human_protein_fields,
     _extract_comments,
     _extract_catalytic_activity,
@@ -24,6 +32,7 @@ from tpweb.management.commands.import_human_curated_proteins import (
     _extract_publications,
     _extract_subcellular_locations,
     _load_json,
+    _parse_kgml,
     _texts_for_comment,
 )
 
@@ -278,3 +287,192 @@ class BuildHumanProteinFieldsTests(SimpleTestCase):
         self.assertEqual(fields["organism_name"], "Homo sapiens")
         self.assertFalse(fields["is_reviewed"])
         self.assertEqual(fields["gene_symbol"], "")
+
+
+class WriteUniprotDbxrefTests(TestCase):
+    """`load_ligq_2_results`'s `_uniprot_map()` classifies ligand evidence as
+    "direct" only when a `UnipSp`/`UnipTr` BioentryDbxref points from a
+    Bioentry back at its own UniProt accession -- for human proteins the
+    Bioentry.accession already *is* the UniProt accession, so this dbxref is
+    the only signal that connects the two."""
+
+    def _make_bioentry(self, accession):
+        biodatabase = Biodatabase.objects.create(name="human_curated_prots")
+        return Bioentry.objects.create(
+            biodatabase=biodatabase, name=accession, accession=accession, identifier=accession
+        )
+
+    def test_writes_unip_sp_dbxref_for_reviewed_entry(self):
+        bioentry = self._make_bioentry("P10721")
+        Command()._write_uniprot_dbxref(bioentry, "P10721", is_reviewed=True)
+
+        dbxref = BioentryDbxref.objects.get(bioentry=bioentry)
+        self.assertEqual(dbxref.dbxref.dbname, "UnipSp")
+        self.assertEqual(dbxref.dbxref.accession, "P10721")
+
+    def test_writes_unip_tr_dbxref_for_unreviewed_entry(self):
+        bioentry = self._make_bioentry("A0A075B6I6")
+        Command()._write_uniprot_dbxref(bioentry, "A0A075B6I6", is_reviewed=False)
+
+        dbxref = BioentryDbxref.objects.get(bioentry=bioentry)
+        self.assertEqual(dbxref.dbxref.dbname, "UnipTr")
+
+    def test_idempotent_on_rerun(self):
+        bioentry = self._make_bioentry("P10721")
+        Command()._write_uniprot_dbxref(bioentry, "P10721", is_reviewed=True)
+        Command()._write_uniprot_dbxref(bioentry, "P10721", is_reviewed=True)
+
+        self.assertEqual(BioentryDbxref.objects.filter(bioentry=bioentry).count(), 1)
+
+
+class LoadExpressionTests(TestCase):
+    def _make_human_protein(self, accession):
+        biodatabase = Biodatabase.objects.create(name="human_curated_prots")
+        bioentry = Bioentry.objects.create(
+            biodatabase=biodatabase, name=accession, accession=accession, identifier=accession
+        )
+        return HumanProtein.objects.create(bioentry=bioentry, uniprot_accession=accession)
+
+    def test_parses_rows_and_drops_unscored_ones(self):
+        human_protein = self._make_human_protein("P10721")
+        with tempfile.TemporaryDirectory() as tmp:
+            protein_dir = Path(tmp)
+            tsv_path = protein_dir / "Bgee-genex-heatmap.tsv"
+            tsv_path.write_text(
+                "gene_id\tgene_name\tanat_entity_name\tcell_type_name\texpression_score\t"
+                "expression_score_confidence\tfdr\tdata_types_with_data\texpression_state\t"
+                "expression_quality\tcluster_index\n"
+                "ENSG1\tKIT\theart\t\t90.0\thigh\t0.002\tAffymetrix\texpressed\tgold\t0\n"
+                "ENSG1\tKIT\tkidney\t\t\thigh\t0.002\tAffymetrix\texpressed\tsilver\t1\n",
+                encoding="utf-8",
+            )
+            Command()._load_expression(protein_dir, "P10721", human_protein)
+
+        human_protein.refresh_from_db()
+        self.assertEqual(len(human_protein.expression_json), 1)
+        row = human_protein.expression_json[0]
+        self.assertEqual(row["tissue"], "heart")
+        self.assertEqual(row["score"], 90.0)
+        self.assertEqual(row["quality"], "gold")
+
+    def test_missing_file_is_skipped_without_error(self):
+        human_protein = self._make_human_protein("P10721")
+        with tempfile.TemporaryDirectory() as tmp:
+            Command()._load_expression(Path(tmp), "P10721", human_protein)
+
+        human_protein.refresh_from_db()
+        self.assertEqual(human_protein.expression_json, [])
+
+
+_SAMPLE_KGML = """<?xml version="1.0"?>
+<pathway name="path:hsa04010" org="hsa" number="04010" title="MAPK signaling pathway">
+  <entry id="1" name="hsa:5594" type="gene">
+    <graphics name="MAPK1, ERK2" type="rectangle"/>
+  </entry>
+  <entry id="2" name="hsa:5595" type="gene">
+    <graphics name="MAPK3, ERK1" type="rectangle"/>
+  </entry>
+  <entry id="3" name="cpd:C00000" type="compound">
+    <graphics name="a compound"/>
+  </entry>
+  <entry id="4" name="hsa:9999" type="gene">
+    <graphics name="ISOLATED" type="rectangle"/>
+  </entry>
+  <relation entry1="1" entry2="2" type="PPrel">
+    <subtype name="activation"/>
+  </relation>
+</pathway>
+"""
+
+
+class ParseKgmlTests(SimpleTestCase):
+    def test_keeps_only_gene_ortholog_nodes_that_participate_in_a_relation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kgml_path = Path(tmp) / "hsa04010.kgml"
+            kgml_path.write_text(_SAMPLE_KGML, encoding="utf-8")
+
+            graph = _parse_kgml(kgml_path)
+
+        node_ids = {node["id"] for node in graph["nodes"]}
+        self.assertEqual(node_ids, {"1", "2"})
+        self.assertEqual(
+            graph["edges"], [{"source": "1", "target": "2", "subtypes": ["activation"]}]
+        )
+        labels = {node["id"]: node["label"] for node in graph["nodes"]}
+        self.assertEqual(labels["1"], "MAPK1")
+
+    def test_isolated_and_compound_entries_are_dropped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kgml_path = Path(tmp) / "hsa04010.kgml"
+            kgml_path.write_text(_SAMPLE_KGML, encoding="utf-8")
+
+            graph = _parse_kgml(kgml_path)
+
+        node_ids = {node["id"] for node in graph["nodes"]}
+        self.assertNotIn("3", node_ids)
+        self.assertNotIn("4", node_ids)
+
+
+class LoadPathwaysTests(TestCase):
+    def _make_human_protein(self, accession, gene_id=""):
+        biodatabase = Biodatabase.objects.create(name="human_curated_prots")
+        bioentry = Bioentry.objects.create(
+            biodatabase=biodatabase, name=accession, accession=accession, identifier=accession
+        )
+        cross_refs = [{"database": "GeneID", "id": gene_id}] if gene_id else []
+        return HumanProtein.objects.create(
+            bioentry=bioentry,
+            uniprot_accession=accession,
+            cross_references_raw=cross_refs,
+        )
+
+    def _write_kgml_tree(self, protein_dir):
+        kegg_dir = protein_dir / "kegg_kgml"
+        kegg_dir.mkdir()
+        (kegg_dir / "index.json").write_text(
+            json.dumps(
+                [
+                    {
+                        "id": "hsa04010",
+                        "file": "hsa04010.kgml",
+                        "title": "MAPK signaling pathway",
+                        "entries": 2,
+                        "relations": 1,
+                    }
+                ]
+            ),
+            encoding="utf-8",
+        )
+        (kegg_dir / "hsa04010.kgml").write_text(_SAMPLE_KGML, encoding="utf-8")
+
+    def test_creates_pathway_and_link_with_highlighted_node(self):
+        human_protein = self._make_human_protein("P10721", gene_id="5594")
+        with tempfile.TemporaryDirectory() as tmp:
+            protein_dir = Path(tmp)
+            self._write_kgml_tree(protein_dir)
+            Command()._load_pathways(protein_dir, "P10721", human_protein)
+
+        pathway = HumanPathway.objects.get(kegg_id="hsa04010")
+        self.assertEqual(pathway.title, "MAPK signaling pathway")
+        link = HumanProteinPathway.objects.get(human_protein=human_protein, pathway=pathway)
+        self.assertEqual(link.highlighted_node_id, "1")
+
+    def test_missing_index_is_skipped_without_error(self):
+        human_protein = self._make_human_protein("P10721")
+        with tempfile.TemporaryDirectory() as tmp:
+            Command()._load_pathways(Path(tmp), "P10721", human_protein)
+
+        self.assertEqual(HumanProteinPathway.objects.filter(human_protein=human_protein).count(), 0)
+
+    def test_sharing_a_pathway_reuses_the_same_pathway_row(self):
+        first_protein = self._make_human_protein("P10721", gene_id="5594")
+        second_protein = self._make_human_protein("P10722", gene_id="5595")
+        with tempfile.TemporaryDirectory() as tmp:
+            protein_dir = Path(tmp)
+            self._write_kgml_tree(protein_dir)
+            Command()._load_pathways(protein_dir, "P10721", first_protein)
+            Command()._load_pathways(protein_dir, "P10722", second_protein)
+
+        self.assertEqual(HumanPathway.objects.filter(kegg_id="hsa04010").count(), 1)
+        second_link = HumanProteinPathway.objects.get(human_protein=second_protein)
+        self.assertEqual(second_link.highlighted_node_id, "2")

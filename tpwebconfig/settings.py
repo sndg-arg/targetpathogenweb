@@ -74,6 +74,7 @@ LOCAL_APPS = [
     "sndgjobs",
     "tpweb.apps.TPappConfig",
     "bioseq",
+    "human_target.apps.HumanTargetConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS + ALLAUTHAPPS

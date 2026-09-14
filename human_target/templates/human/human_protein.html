@@ -1,4 +1,4 @@
-{% extends '../base/masterpage.html' %}
+{% extends "base/masterpage.html" %}
 {% load i18n %}
 {% load static %}
 
@@ -10,7 +10,7 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260907-gates-priority">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20260729-humantargets2">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20260909-pathways">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -85,9 +85,12 @@
         <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
             <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
             <a href="#section-function" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Function" %}</a>
+            {% if diseases.has_diseases %}<a href="#section-diseases" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Diseases" %}</a>{% endif %}
             <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
             {% if structure.has_structure %}<a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "3D structure" %}</a>{% endif %}
             {% if binders.total %}<a href="#section-binders" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Ligands" %}</a>{% endif %}
+            {% if expression.has_expression %}<a href="#section-expression" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Expression" %}</a>{% endif %}
+            {% if pathways.has_pathways %}<a href="#section-pathways" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Pathways" %}</a>{% endif %}
             <a href="#section-xrefs" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Cross-refs" %}</a>
         </nav>
 
@@ -210,6 +213,37 @@
                 {% endif %}
             </section>
 
+            {% if diseases.has_diseases %}
+            <section class="protein-card" id="section-diseases">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Diseases" %}</h2>
+                        <p class="section-subtitle">{% trans "Disease associations annotated on this protein's UniProt record." %}</p>
+                    </div>
+                    <div class="section-tools">
+                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ diseases.diseases|length }}</span>
+                    </div>
+                </div>
+                <div class="human-disease-grid">
+                    {% for disease in diseases.diseases %}
+                    <div class="human-disease-card">
+                        <div class="human-disease-card__head">
+                            <h3>{{ disease.name|default:"—" }}</h3>
+                            {% if disease.acronym %}<span class="tp-chip tp-chip--sm tp-chip--meta">{{ disease.acronym }}</span>{% endif %}
+                        </div>
+                        {% if disease.description %}<p>{{ disease.description }}</p>{% endif %}
+                        {% if disease.mim %}
+                        <a class="tp-chip tp-chip--sm tp-chip--link" href="https://omim.org/entry/{{ disease.mim|cut:"MIM:" }}" target="_blank" rel="noopener" title="{% trans 'View on OMIM' %}">
+                            <span class="tp-chip-db">{{ disease.mim }}</span>
+                            <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
             <section class="protein-card" id="section-sequence">
                 <div class="section-head tp-ui-panel-head">
                     <div>
@@ -274,6 +308,8 @@
                                 <strong>{{ entry.title|default:entry.code }}</strong>
                                 {% if entry.resolution %}<span>{{ entry.resolution|floatformat:2 }} Å</span>{% endif %}
                                 {% if entry.method %}<span>{{ entry.method }}</span>{% endif %}
+                                {% if entry.mean_plddt %}<span title="{% trans 'Mean pLDDT (AlphaFold confidence)' %}">pLDDT {{ entry.mean_plddt|floatformat:0 }}</span>{% endif %}
+                                {% if entry.ligands %}<span title="{% for lig in entry.ligands %}{{ lig.comp }}{% if not forloop.last %}, {% endif %}{% endfor %}">{{ entry.ligands|length }} {% trans "ligand" %}{{ entry.ligands|length|pluralize }}</span>{% endif %}
                             </button>
                             {% endfor %}
                         </div>
@@ -397,6 +433,138 @@
             </section>
             {% endif %}
 
+            {% if expression.has_expression %}
+            <section class="protein-card" id="section-expression">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Expression" %}</h2>
+                        <p class="section-subtitle">{% trans "Tissue and cell-type expression, from Bgee." %}</p>
+                    </div>
+                    <div class="section-tools">
+                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ expression.total_count }} {% trans "records" %}</span>
+                    </div>
+                </div>
+
+                <div class="human-expression-summary">
+                    {% if expression.peak %}
+                    <div class="metric-pill">
+                        <span class="metric-label">{% trans "Peak expression" %}</span>
+                        <span class="metric-value">{{ expression.peak.tissue|default:expression.peak.cell_type }} ({{ expression.peak.score|floatformat:0 }})</span>
+                    </div>
+                    {% endif %}
+                    <div class="metric-pill">
+                        <span class="metric-label">{% trans "Gold-quality calls" %}</span>
+                        <span class="metric-value">{{ expression.gold_count }}</span>
+                    </div>
+                </div>
+
+                <div class="human-expression-tabs" role="tablist" data-expression-tabs>
+                    <button type="button" class="human-expression-tab is-active" role="tab" aria-selected="true" data-expression-tab="system">{% trans "By system" %}</button>
+                    <button type="button" class="human-expression-tab" role="tab" aria-selected="false" data-expression-tab="rank">{% trans "By rank" %}</button>
+                </div>
+
+                <div class="human-expression-panel" data-expression-panel="system" role="tabpanel">
+                    {% for group in expression.system_groups %}
+                    <div class="human-expression-system-card">
+                        <h3>{{ group.system }} <span class="tp-chip tp-chip--sm tp-chip--count">{{ group.rows|length }}</span></h3>
+                        <div class="human-expression-bars">
+                            {% for row in group.rows|slice:":15" %}
+                            <div class="human-expression-bar-row">
+                                <span class="human-expression-bar-row__label" title="{{ row.tissue }}{% if row.cell_type %} · {{ row.cell_type }}{% endif %}">{{ row.tissue|default:row.cell_type }}</span>
+                                <span class="human-expression-bar-track"><span class="human-expression-bar-fill" style="width: {{ row.score }}%"></span></span>
+                                <span class="human-expression-bar-row__score">{{ row.score|floatformat:0 }}</span>
+                                {% if row.quality == "gold" %}<span class="human-expression-bar-row__gold" title="{% trans 'Gold quality' %}">●</span>{% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="human-expression-panel is-hidden" data-expression-panel="rank" role="tabpanel">
+                    <table class="human-expression-rank-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>{% trans "Tissue / cell type" %}</th>
+                                <th>{% trans "Score" %}</th>
+                                <th>{% trans "Quality" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in expression.ranked_page %}
+                            <tr>
+                                <td>{{ expression.ranked_page.start_index|add:forloop.counter0 }}</td>
+                                <td>{{ row.tissue|default:"—" }}{% if row.cell_type %} <span class="human-expression-rank-table__celltype">· {{ row.cell_type }}</span>{% endif %}</td>
+                                <td>{{ row.score|floatformat:1 }}</td>
+                                <td>{% if row.quality %}<span class="tp-chip tp-chip--sm">{{ row.quality }}</span>{% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if expression.ranked_page.paginator.num_pages > 1 %}
+                    <nav class="human-expression-pagination" aria-label="{% trans 'Expression rank pagination' %}">
+                        {% if expression.ranked_page.has_previous %}<a href="?expr_page={{ expression.ranked_page.previous_page_number }}#section-expression" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Previous" %}</a>{% endif %}
+                        <span>{% blocktrans with current=expression.ranked_page.number total=expression.ranked_page.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktrans %}</span>
+                        {% if expression.ranked_page.has_next %}<a href="?expr_page={{ expression.ranked_page.next_page_number }}#section-expression" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Next" %}</a>{% endif %}
+                    </nav>
+                    {% endif %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if pathways.has_pathways %}
+            <section class="protein-card" id="section-pathways">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Pathways" %}</h2>
+                        <p class="section-subtitle">{% trans "KEGG pathways this protein participates in." %}</p>
+                    </div>
+                    <div class="section-tools">
+                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ pathways.pathways|length }}</span>
+                    </div>
+                </div>
+
+                <div class="human-pathway-tabs" role="tablist" data-pathway-tabs>
+                    {% for pw in pathways.pathways %}
+                    <button type="button" class="human-pathway-tab {% if pw.kegg_id == pathways.default_kegg_id %}is-active{% endif %}" role="tab" data-pathway-tab="{{ pw.kegg_id }}">
+                        <span>{{ pw.title|default:pw.kegg_id }}</span>
+                    </button>
+                    {% endfor %}
+                </div>
+
+                <div class="human-pathway-body">
+                    <div class="human-pathway-graph-wrap">
+                        <div id="human-pathway-graph"></div>
+                        <div class="human-pathway-legend">
+                            <span class="human-pathway-legend-item"><span class="human-pathway-legend-dot human-pathway-legend-dot--focal"></span>{% trans "This protein" %}</span>
+                            <span class="human-pathway-legend-item"><span class="human-pathway-legend-dot"></span>{% trans "Other gene/ortholog" %}</span>
+                            <span class="human-pathway-legend-item"><span class="human-pathway-legend-line human-pathway-legend-line--activation"></span>{% trans "Activation" %}</span>
+                            <span class="human-pathway-legend-item"><span class="human-pathway-legend-line human-pathway-legend-line--inhibition"></span>{% trans "Inhibition" %}</span>
+                            <span class="human-pathway-legend-item"><span class="human-pathway-legend-line human-pathway-legend-line--other"></span>{% trans "Other relation" %}</span>
+                        </div>
+                    </div>
+                    <aside class="human-pathway-meta">
+                        {% for pw in pathways.pathways %}
+                        <div class="human-pathway-meta-panel {% if pw.kegg_id != pathways.default_kegg_id %}is-hidden{% endif %}" data-pathway-meta="{{ pw.kegg_id }}">
+                            <h3>{{ pw.title|default:pw.kegg_id }}</h3>
+                            <dl class="human-kv-list">
+                                <dt>{% trans "KEGG ID" %}</dt><dd>{{ pw.kegg_id }}</dd>
+                                <dt>{% trans "Genes" %}</dt><dd>{{ pw.entry_count }}</dd>
+                                <dt>{% trans "Relations" %}</dt><dd>{{ pw.relation_count }}</dd>
+                            </dl>
+                            <a class="tp-chip tp-chip--sm tp-chip--link" href="https://www.kegg.jp/pathway/{{ pw.kegg_id }}" target="_blank" rel="noopener">
+                                <span class="tp-chip-db">KEGG</span>
+                                <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </aside>
+                </div>
+                {{ pathways.pathways|json_script:"human-pathway-data" }}
+            </section>
+            {% endif %}
+
             <section class="protein-card" id="section-xrefs">
                 <div class="section-head tp-ui-panel-head">
                     <div>
@@ -439,5 +607,6 @@
 {% endblock %}
 
 {% block jsloaded %}
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20260729-humantargets2"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20260909-expression"></script>
+    <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20260909-pathways"></script>
 {% endblock %}

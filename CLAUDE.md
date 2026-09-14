@@ -10,6 +10,7 @@ pipeline/           # Pipeline orchestrator (run_pipeline_direct.py) and command
 tpweb/services/     # Business logic — pipeline_status.py, genome_uploads.py
 tpweb/views/        # Thin views, delegate to services
 tpweb/models/       # ORM models (GenomeUpload, PipelineRun, PipelineStageEvent, etc.)
+human_target/       # Separate Django app: Target Human (see "Human Targets" below)
 tpwebconfig/        # Django settings, urls
 static/css/         # Design system — tokens only, no hardcoded hex
 ```
@@ -184,6 +185,58 @@ detail page.
 - **Cleanup**: `genome_uploads._delete_workspace_biodatabases` deletes `MetabolicReaction` rows
   scoped by `genome_accession` (a string, not a FK to `Biodatabase`) alongside the genome's
   `Biodatabase` rows.
+
+## Human Targets (Target Human)
+Sister feature to the bacterial-genome side of this app, deliberately in a **separate Django
+app** (`human_target/`, not inside `tpweb/`) rather than a genome-upload/pipeline entity: one
+small, fixed, already-known human protein set (UniProt-keyed) with several different analyses
+layered on top over time, rather than "upload a genome, run the same pipeline, repeat." Shares
+only the visual design system with Target Pathogen (`base/masterpage.html`, `--tp-*` tokens,
+shared components) — zero data/functionality crossover.
+- **Storage**: reuses `bioseq.Bioentry`/`Biodatabase` as a generic storage primitive (a synthetic
+  `Biodatabase` named `human_curated_prots`, see `human_target/services/human_targets.py`) since
+  `Binders`, `BioentryStructure`, `PDB`, and the EC/GO dbxref infra already key off `Bioentry` —
+  this `Biodatabase` is purely an internal storage container, never surfaced via `GenomesView`/the
+  Genomes list/upload flow. `HumanProtein` (`human_target/models/HumanProtein.py`) holds the
+  parsed UniProt content, JSON-favoring at this pilot scale (10 curated proteins) rather than
+  fully normalized, same pattern as `CuratedImportJob.summary_json`/`PipelineRun.payload`.
+- **Reused unmodified from the bacterial side** (both already generic over any `Bioentry`, no
+  genome coupling): `load_af_model` (structures), `load_ligq_2_results` (ligand evidence →
+  `Binders`), `binder_summary.create_binders_dict`, `functional_annotations.persist_ec_go_annotations`.
+- **Pilot ingest**: `python manage.py import_human_curated_proteins /path/to/new_data` reads a
+  local `new_data/<ACC>/` tree (from the `target-human-web` reference repo's Zenodo archive — a
+  sibling directory, front-end-only, used only to understand data shapes, never to be copied as
+  code) for the 10 accessions in `DEMO_ACCESSIONS`. Writes a `UnipSp`/`UnipTr` `BioentryDbxref`
+  pointing the `Bioentry` at its own accession (human `Bioentry.accession` already *is* the UniProt
+  accession) — without this, `load_ligq_2_results`'s `is_direct` ligand classification silently
+  defaults every match to "homolog."
+- **Tabs**: Overview, Function, Sequence, Structure, Ligands, Cross-refs are built
+  (`human_target/services/human_protein_summary.py` + `human_structure_summary.py`,
+  `human_target/templates/human/human_protein.html`). Diseases, Expression, Pathways are not yet
+  built — `HumanProtein.disease_comments` is captured at ingest but unused by any template.
+- **URLs**: `/human/proteins` (`human_target:human_protein_list`), `/human/protein/<accession>`
+  (`human_target:human_protein`) — routed via `human_target/urls.py`, included from
+  `tpwebconfig/urls.py`. Visible in the nav (top-bar "Human Targets" link + mobile nav item in
+  `masterpage.html`).
+- **Deploy**: no separate Docker service — `human_target` is just another entry in
+  `LOCAL_APPS`, loaded by the existing `web`/`queue` containers, same as `bioseq`.
+- **Scaling past the 10-protein pilot** (not yet built): AlphaFold DB already publishes
+  precomputed per-UniProt-accession models at a stable public URL
+  (`https://alphafold.ebi.ac.uk/files/AF-{accession}-F1-model_v4.cif`) and AlphaFill has a similar
+  public per-accession API — for human proteins (near-total AlphaFold DB coverage), direct
+  download is simpler than running the bacterial AlphaFold/ColabFold *prediction* pipeline, which
+  is genome-shaped and not a good fit here. Ligand evidence at scale would reuse
+  `pipeline/ligq_remote.py`'s SLURM steps unchanged, swapping only its genome-scoped FASTA dump
+  for one keyed off `human_target`'s own `Bioentry` queryset.
+- **Cross-app template gotcha**: Django's `{% extends "../base/masterpage.html" %}` (relative
+  path, used throughout `tpweb/templates/*`) resolves relative to the *rendering template's own
+  file location*, not to a fixed app root — it only works because every one of those templates
+  lives one directory under `tpweb/templates/`, alongside `tpweb/templates/base/`. A template
+  living in a different app (like `human_target/templates/human/*.html`) must use the absolute,
+  non-relative form `{% extends "base/masterpage.html" %}` instead — Django's `app_directories`
+  loader then finds it by searching every installed app's `templates/` dir for that name, landing
+  correctly on `tpweb/templates/base/masterpage.html` regardless of which app the calling template
+  belongs to.
 
 ## PSORTb
 Runs via Docker-in-Docker (`/var/run/docker.sock` mounted). Has fallback to `tpweb_psort_fallback` management command when Docker is unavailable.

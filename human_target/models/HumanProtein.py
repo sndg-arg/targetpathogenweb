@@ -42,8 +42,6 @@ class HumanProtein(models.Model):
     caution_text = models.TextField(blank=True, default="")
     subunit_text = models.TextField(blank=True, default="")
     polymorphism_text = models.TextField(blank=True, default="")
-    # Captured at ingest for future use; the Diseases tab itself is out of
-    # scope for this pass (see CLAUDE.md "Human Targets" non-goals).
     disease_comments = models.JSONField(default=list, blank=True)
     catalytic_activity = models.JSONField(default=list, blank=True)
     go_terms = models.JSONField(default=list, blank=True)
@@ -51,6 +49,11 @@ class HumanProtein(models.Model):
     features_raw = models.JSONField(default=list, blank=True)
     cross_references_raw = models.JSONField(default=list, blank=True)
     sequence = models.TextField(blank=True, default="")
+    # One row per (tissue, cell type) pair from Bgee's expression-heatmap
+    # export -- see `import_human_curated_proteins._load_expression`. Kept
+    # as JSON rather than a child table: nothing needs to query expression
+    # across proteins, only render one protein's ~200 rows at a time.
+    expression_json = models.JSONField(default=list, blank=True)
 
     # Full original record, kept as a fallback/audit trail.
     uniprot_raw = models.JSONField(default=dict, blank=True)
