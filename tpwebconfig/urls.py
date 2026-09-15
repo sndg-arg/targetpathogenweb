@@ -35,6 +35,7 @@ urlpatterns = (
         path(settings.ADMIN_URL, admin.site.urls),
         path("~redirect/", view=user_redirect_view, name="redirect"),
         path("", include("tpweb.urls")),
+        path("human/", include("human_target.urls")),
         # Self-service password reset is disabled. These shadow allauth's own
         # password-reset URLs (same paths/names) before its include() below, so
         # every other allauth URL (login, logout, signup, email management)

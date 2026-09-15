@@ -1,10 +1,8 @@
-from pathlib import Path
-
 from django.db.models import Q
 from django.utils import timezone
 
-from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models import GenomeUpload, PipelineRun
+from tpweb.services.genome_uploads import _dataset_ready, _extract_error_message
 from tpweb.services.pipeline_runs import (
     latest_pipeline_run_for_accession,
     latest_pipeline_run_for_upload,
@@ -40,36 +38,6 @@ def format_upload_timestamp(value):
         return ""
     localized = timezone.localtime(value, ARGENTINA_UPLOAD_TZ)
     return localized.strftime("%Y-%m-%d %H:%M")
-
-
-def _dataset_ready(internal_accession):
-    if not internal_accession:
-        return False
-    return Biodatabase.objects.filter(name=internal_accession).exists()
-
-
-def _read_log_tail(log_path, max_lines=80):
-    path = Path(str(log_path or "").strip())
-    if not path.exists() or not path.is_file():
-        return []
-    try:
-        lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
-    except Exception:
-        return []
-    return lines[-max_lines:]
-
-
-def _extract_error_message(job):
-    for line in reversed(_read_log_tail(job.run_log_path)):
-        text = str(line or "").strip()
-        lower = text.lower()
-        if not text:
-            continue
-        if "traceback" in lower:
-            continue
-        if "error" in lower or "exception" in lower or "dependencyerror" in lower:
-            return text[:1000]
-    return "Pipeline stopped before completion."
 
 
 def _latest_run_for_upload(job):
@@ -176,10 +144,12 @@ def reconcile_genome_uploads(pipeline_status=None, owner=None):
                     next_error = ""
                 else:
                     next_status = GenomeUpload.STATUS_FAILED
-                    next_error = _extract_error_message(job)
+                    next_error = _extract_error_message(job.run_log_path)
             elif pipeline_run.status in {pipeline_run.STATUS_FAILED, pipeline_run.STATUS_CANCELLED}:
                 next_status = GenomeUpload.STATUS_FAILED
-                next_error = str(pipeline_run.error_message or _extract_error_message(job))[:1000]
+                next_error = str(
+                    pipeline_run.error_message or _extract_error_message(job.run_log_path)
+                )[:1000]
         else:
             # No PipelineRun (yet). Trust the current state. Only escalate
             # to FINISHED/FAILED with positive evidence.
@@ -192,7 +162,7 @@ def reconcile_genome_uploads(pipeline_status=None, owner=None):
                 if age > STALE_RUNNING_GRACE_SECONDS:
                     next_status = GenomeUpload.STATUS_FAILED
                     next_error = (
-                        _extract_error_message(job)
+                        _extract_error_message(job.run_log_path)
                         or "Pipeline orchestrator never registered a run."
                     )
             # SUBMITTED jobs with no PipelineRun stay SUBMITTED — the queue

@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from tpweb.models.AgentChatSession import AgentChatSession
-from tpweb.views.AgentChatView import HISTORY_TTL
+from tpweb.services.agent_chat_sessions import HISTORY_RETENTION
 
 
 class Command(BaseCommand):
@@ -25,8 +25,8 @@ class Command(BaseCommand):
         parser.add_argument(
             "--days",
             type=int,
-            default=HISTORY_TTL.days,
-            help="Retention window in days (default: matches AgentChatView's own TTL).",
+            default=HISTORY_RETENTION.days,
+            help="Retention window in days (default: matches agent_chat_sessions' own retention).",
         )
         parser.add_argument(
             "--dry-run",
@@ -41,9 +41,9 @@ class Command(BaseCommand):
 
         if options["dry_run"]:
             self.stdout.write(
-                f"[dry-run] Would delete {count} chat session(s) older than {options['days']} day(s)"
+                f"[dry-run] Would delete {count} conversation(s) older than {options['days']} day(s)"
             )
             return
 
         deleted, _details = qs.delete()
-        self.stdout.write(f"Deleted {deleted} chat session(s) older than {options['days']} day(s)")
+        self.stdout.write(f"Deleted {deleted} conversation(s) older than {options['days']} day(s)")

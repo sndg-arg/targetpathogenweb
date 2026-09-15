@@ -235,6 +235,17 @@ Investigacion + fix de por que `/genome/<slug>` y `/protein/<id>` tardaban en ab
 - Proteina sin estructura (96 features): 0.42-0.50s, estable.
 - Indice en `ScoreParamValue.value` (considerado, no implementado): con estos tiempos no parece necesario. Queda en To Do por si vuelve a aparecer lentitud puntual en filtros de localizacion/druggability.
 
+### Memoria del asistente (chatbot), por sesion de navegador
+
+Persistencia server-side del historial del drawer, dividida en conversaciones multiples por sesion en vez de un solo hilo continuo de 7 dias sin cortes.
+
+**Incluye.**
+
+- Retencion fisica de 7 dias (`HISTORY_RETENTION`), corte automatico a conversacion nueva tras 45 min de inactividad o boton manual "Nueva conversacion".
+- Selector de conversaciones previas en el drawer: reabrir, renombrar, borrar (confirmacion inline, sin popup nativo).
+- Limpieza fisica via management command `clear_old_agent_chats` (sin Celery beat -- agendar por cron externo).
+- Resolucion de contexto (que genoma/proteina esta en foco) corregida para las vistas de estructura 3D y de binder, que antes nunca resolvian scope y dejaban al asistente sin poder responder preguntas de genoma/target ahi. Sugerencias del chat (Explain target, Audit evidence, Clear filters, Find selective targets) ahora se muestran solo en las paginas donde tienen sentido.
+
 ## En progreso
 
 ### Batch de pedidos de las biologas (6/08 + reporte previo)
@@ -290,12 +301,6 @@ Django/browser local en la sesion donde se implemento) y quedan 2-3 puntos sin a
 - Busqueda por secuencia de aminoacidos (blastp) embebida en la tabla de proteinas, reusando el
   indice proteico que el pipeline ya genera por genoma (stage 9) -- falta correr una busqueda
   real contra un genoma cargado.
-- Chatbot: persistencia de 7 dias por sesion de navegador (antes 0 persistencia real pese al
-  docstring "stateless"), modelo `AgentChatSession` nuevo keyeado por session key de Django (no
-  por usuario autenticado, ya que la app comparte una cuenta "public"). Cleanup via management
-  command `clear_old_agent_chats` (sin Celery beat -- agendar por cron externo). Falta correr
-  `python manage.py migrate` (migracion `0071_agentchatsession`) y probar en dos sesiones de
-  navegador distintas que no se mezclen los mensajes.
 - Boton "Open full pathway map" del grafo genome-wide: investigado a fondo, el codigo esta
   correctamente conectado para el tap sobre un nodo de pathway/cluster (para nodos de
   reaccion/metabolito el detalle es solo hover por diseño actual, sin boton ahi) -- no se

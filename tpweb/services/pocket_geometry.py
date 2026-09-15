@@ -1,6 +1,6 @@
 """Shared pocket-geometry helpers.
 
-Used by both the 3D viewer (StructureView.py, per-request, one structure at a
+Used by both the 3D viewer (structure_summary.py, per-request, one structure at a
 time) and the genome-wide pocket-size-outlier indexer (offline management
 command) so the outlier definition never drifts between the two.
 """

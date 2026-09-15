@@ -162,6 +162,25 @@
         }
     }
 
+    function initExpressionView() {
+        var tabs = document.querySelectorAll("[data-expression-tab]");
+        var panels = document.querySelectorAll("[data-expression-panel]");
+        if (!tabs.length || !panels.length) return;
+        tabs.forEach(function (tab) {
+            tab.addEventListener("click", function () {
+                var target = tab.getAttribute("data-expression-tab");
+                tabs.forEach(function (t) {
+                    var isActive = t === tab;
+                    t.classList.toggle("is-active", isActive);
+                    t.setAttribute("aria-selected", isActive ? "true" : "false");
+                });
+                panels.forEach(function (panel) {
+                    panel.classList.toggle("is-hidden", panel.getAttribute("data-expression-panel") !== target);
+                });
+            });
+        });
+    }
+
     function initBindersTabs() {
         var tabs = document.querySelectorAll("[data-binders-tab]");
         var panels = document.querySelectorAll("[data-binders-panel]");
@@ -315,5 +334,6 @@
         initBinderRowNavigation();
         initBinderMoleculeModal();
         initBinderFilters();
+        initExpressionView();
     });
 })();

@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.management import CommandError, call_command
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
@@ -23,6 +24,7 @@ from tpweb.services.genome_upload_status import (
     reconcile_genome_uploads,
 )
 from tpweb.services.genome_workspace import (
+    WORKSPACE_GENOME_DELIMITER,
     build_workspace_genome_name,
     display_genome_name,
     genome_url_slug,
@@ -38,12 +40,17 @@ from tpweb.services.external_import import (
 from tpweb.services.pipeline_status import get_pipeline_status
 from tpweb.services.pipeline_status import sanitize_pipeline_status_for_user
 from tpweb.services.slurm_messages import classify_slurm_resource_message
-from tpweb.services.workspace import resolve_workspace_user
+from tpweb.services.workspace import (
+    PUBLIC_WORKSPACE_USERNAME,
+    get_public_workspace_user,
+    resolve_workspace_user,
+)
 
 
 class GenomeUploadView(LoginRequiredMixin, View):
     template_name = "user/upload_data.html"
     ACTION_CLEAR_HISTORY = "clear_history"
+    ACTION_CLEAR_FAILED_HISTORY = "clear_failed_history"
     ACTION_USE_TEST_GENOME = "use_test_genome"
     ACTION_VALIDATE_EXTERNAL_IMPORT = "validate_external_import"
     ACTION_RUN_EXTERNAL_IMPORT = "run_external_import"
@@ -113,9 +120,25 @@ class GenomeUploadView(LoginRequiredMixin, View):
         workspace_user = resolve_workspace_user(request.user)
         pipeline_status = sanitize_pipeline_status_for_user(get_pipeline_status(), request.user)
         reconcile_genome_uploads(pipeline_status, owner=workspace_user)
+        if request.user.is_superuser:
+            # Also sync status for any upload this superuser tagged to the
+            # public workspace -- reconcile_genome_uploads only touches rows
+            # owned by whoever it's called with, so a public-scoped upload
+            # would otherwise never move past "Queued" in this superuser's
+            # own view even once it's actually running or finished.
+            reconcile_genome_uploads(pipeline_status, owner=get_public_workspace_user())
         queue_positions = build_queue_position_map()
+        # A superuser can tag an upload to the public workspace instead of
+        # their own (the "Make this genome public" checkbox below) -- without
+        # this, that upload would be correctly queued and processed (the
+        # worker dequeues globally, not per-owner) but silently invisible in
+        # this superuser's own history list, since its owner is the shared
+        # public user, not them.
+        jobs_owner_filter = Q(owner=workspace_user)
+        if request.user.is_superuser:
+            jobs_owner_filter |= Q(owner=get_public_workspace_user())
         jobs = list(
-            GenomeUpload.objects.filter(owner=workspace_user).order_by("-created_at", "-id")[:8]
+            GenomeUpload.objects.filter(jobs_owner_filter).order_by("-created_at", "-id")[:8]
         )
 
         # When the pipeline is active, only the most recently submitted job for
@@ -161,8 +184,10 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 }
             )
 
+        has_failed_jobs = any(job["state_class"] == "failed" for job in jobs_dto)
+
         curated_import_jobs = []
-        if request.user.is_staff:
+        if request.user.has_perm("tpweb.can_curated_import"):
             curated_import_jobs = [
                 self._curated_job_dto(job)
                 for job in CuratedImportJob.objects.filter(owner=workspace_user)[:8]
@@ -181,8 +206,14 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 workspace_user.username if request.user.is_authenticated else "public"
             ),
             "pipeline_status": pipeline_status,
-            "has_active_jobs": owner_has_active_uploads(workspace_user),
+            "has_active_jobs": owner_has_active_uploads(workspace_user)
+            or (
+                request.user.is_superuser and owner_has_active_uploads(get_public_workspace_user())
+            ),
+            "has_failed_jobs": has_failed_jobs,
             "running_genome_label": display_genome_name(running_genome),
+            "can_upload_genome": request.user.has_perm("tpweb.can_upload_genome"),
+            "can_make_public": request.user.is_superuser,
         }
 
     def get(self, request, *args, **kwargs):
@@ -195,8 +226,8 @@ class GenomeUploadView(LoginRequiredMixin, View):
         action = request.POST.get("action")
 
         if action == self.ACTION_RETRY_CURATED_IMPORT:
-            if not request.user.is_staff:
-                messages.error(request, "Staff access is required for curated external imports.")
+            if not request.user.has_perm("tpweb.can_curated_import"):
+                messages.error(request, "You don't have permission for curated external imports.")
                 return redirect(upload_url)
 
             job_id = request.POST.get("curated_import_job_id")
@@ -223,8 +254,8 @@ class GenomeUploadView(LoginRequiredMixin, View):
             self.ACTION_RUN_EXTERNAL_IMPORT,
             self.ACTION_RUN_CURATED_FILE_PIPELINE,
         }:
-            if not request.user.is_staff:
-                messages.error(request, "Staff access is required for curated external imports.")
+            if not request.user.has_perm("tpweb.can_curated_import"):
+                messages.error(request, "You don't have permission for curated external imports.")
                 return redirect(upload_url)
 
             external_form = ExternalImportForm(request.POST)
@@ -345,18 +376,48 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 ),
             )
         if action == self.ACTION_CLEAR_HISTORY:
-            if owner_has_active_uploads(workspace_user):
+            # A superuser's "Recent submissions" list also shows public-workspace
+            # uploads (see _build_context above) -- clear those too, or the button
+            # silently leaves them behind since they're owned by the shared
+            # "public" user, not this request's own workspace_user.
+            clear_owners = [workspace_user]
+            if request.user.is_superuser:
+                clear_owners.append(get_public_workspace_user())
+
+            if any(owner_has_active_uploads(owner) for owner in clear_owners):
                 messages.error(
                     request,
                     "Remove or finish queued/running uploads before clearing this history.",
                 )
                 return redirect(upload_url)
 
-            deleted_count = clear_genome_upload_history(workspace_user)
+            deleted_count = sum(clear_genome_upload_history(owner) for owner in clear_owners)
             if deleted_count:
                 messages.success(request, "Genome upload history was cleared.")
             else:
                 messages.info(request, "There was no genome upload history to clear.")
+            return redirect(upload_url)
+
+        if action == self.ACTION_CLEAR_FAILED_HISTORY:
+            # Only touches STATUS_FAILED rows, so unlike ACTION_CLEAR_HISTORY
+            # there's no active-upload guard needed -- a queued/running job is
+            # never in this set, so it can never be cancelled by this action.
+            clear_owners = [workspace_user]
+            if request.user.is_superuser:
+                clear_owners.append(get_public_workspace_user())
+
+            deleted_count = sum(
+                clear_genome_upload_history(owner, statuses=[GenomeUpload.STATUS_FAILED])
+                for owner in clear_owners
+            )
+            if deleted_count:
+                messages.success(request, "Failed genome uploads were cleared.")
+            else:
+                messages.info(request, "There were no failed genome uploads to clear.")
+            return redirect(upload_url)
+
+        if not request.user.has_perm("tpweb.can_upload_genome"):
+            messages.error(request, "You don't have permission to upload genomes.")
             return redirect(upload_url)
 
         if action == self.ACTION_USE_TEST_GENOME:
@@ -403,7 +464,20 @@ class GenomeUploadView(LoginRequiredMixin, View):
             return render(request, self.template_name, self._build_context(request, form=form))
 
         display_accession = form.cleaned_data["accession"]
-        internal_accession = build_workspace_genome_name(display_accession, request.user)
+
+        # Only a superuser's own checked box counts -- anyone else POSTing
+        # make_public=on gets silently ignored, not an error, since it's a
+        # convenience toggle, not something worth failing the whole upload
+        # over.
+        upload_as_public = bool(form.cleaned_data.get("make_public")) and request.user.is_superuser
+        if upload_as_public:
+            upload_owner = get_public_workspace_user()
+            internal_accession = (
+                f"{PUBLIC_WORKSPACE_USERNAME}{WORKSPACE_GENOME_DELIMITER}{display_accession}"
+            )
+        else:
+            upload_owner = workspace_user
+            internal_accession = build_workspace_genome_name(display_accession, request.user)
 
         if Biodatabase.objects.filter(name=internal_accession).exists():
             messages.info(
@@ -416,7 +490,7 @@ class GenomeUploadView(LoginRequiredMixin, View):
             if (
                 GenomeUpload.objects.select_for_update()
                 .filter(
-                    owner=workspace_user,
+                    owner=upload_owner,
                     internal_accession=internal_accession,
                     status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING],
                 )
@@ -429,7 +503,7 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 return redirect(upload_url)
 
             GenomeUpload.objects.create(
-                owner=workspace_user,
+                owner=upload_owner,
                 display_accession=display_accession,
                 internal_accession=internal_accession,
                 gram=form.cleaned_data["gram"],
