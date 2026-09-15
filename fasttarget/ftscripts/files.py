@@ -206,12 +206,14 @@ def read_blast_output(file_path, len=False):
         # TypeError. Coerce the numeric columns and drop any row that
         # doesn't parse cleanly rather than letting one malformed line (out
         # of what's typically tens of thousands) take down the whole run.
+        # NOTE: this function's own `len` parameter (above) shadows the
+        # builtin -- use .shape[0], not len(...), for the rest of this scope.
         numeric_columns = [c for c in blast_columns if c not in ("qseqid", "sseqid")]
-        before = len(blast_output_df)
+        before = blast_output_df.shape[0]
         for col in numeric_columns:
             blast_output_df[col] = pd.to_numeric(blast_output_df[col], errors="coerce")
         blast_output_df = blast_output_df.dropna(subset=numeric_columns)
-        dropped = before - len(blast_output_df)
+        dropped = before - blast_output_df.shape[0]
         if dropped:
             logging.warning(
                 f"Dropped {dropped} malformed row(s) from {file_path} "
