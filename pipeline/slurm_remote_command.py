@@ -167,6 +167,13 @@ def _open_remote_session(config):
         look_for_keys=True,
         key_filename=config.ssh_key_filename,
     )
+    # These sessions can sit open for hours across a remote SLURM job's
+    # runtime -- without a keepalive, a dead peer/NAT-dropped connection
+    # isn't noticed until whatever the OS-level TCP timeout happens to be
+    # (observed: paramiko.SSHException: Unable to open channel, hours into
+    # a poll loop), killing the whole remote stage instead of just this
+    # one connection.
+    ssh.get_transport().set_keepalive(30)
     scp_client = SCPClient(ssh.get_transport())
     sftp = ssh.open_sftp()
     return ssh, scp_client, sftp
