@@ -634,13 +634,17 @@ class AgentChatViewTests(LoggedInTestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_anonymous_user_is_denied_not_served(self):
-        # raise_exception=True on PermissionRequiredMixin means even an
-        # anonymous request gets a flat 403, not a login redirect.
+        # agent_chat isn't in LoginRequiredMiddleware's PUBLIC_URL_NAMES, so
+        # an anonymous request never reaches the view at all -- the
+        # middleware redirects to login first, same as any other gated
+        # route. (JsonPermissionRequiredMixin's own anonymous-gets-401-JSON
+        # branch still matters for a direct API call in front of a
+        # middleware misconfiguration, but isn't what a normal request hits.)
         self.client.logout()
 
         response = self.client.get(reverse("tpwebapp:agent_chat"))
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 302)
 
 
 class AgentChatSessionsViewTests(LoggedInTestCase):

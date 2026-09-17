@@ -1,6 +1,7 @@
-"""Signup -> pending approval -> approve pipeline: adapters forcing new
-accounts inactive, the notification emails, the owner-only admin action and
-in-app screen, and the allauth login-blocking behavior for inactive users.
+"""Signup -> instant activation -> optional role elevation pipeline: the
+adapter activating new accounts immediately, the collaborator-access-request
+notification, the owner-only admin action and in-app screen, and the allauth
+login-blocking behavior for a revoked (inactive) account.
 """
 
 from unittest.mock import patch
@@ -12,8 +13,8 @@ from django.urls import reverse
 
 from tpweb.adapters.AccountAdapters import SocialAccountAdapter
 from tpweb.services.user_approval import (
-    approve_user,
-    mark_pending_approval,
+    activate_new_signup,
+    reactivate_user,
     reject_signup,
     revoke_access,
 )
@@ -22,7 +23,22 @@ User = get_user_model()
 
 
 class UserApprovalServiceTests(TestCase):
-    def test_mark_pending_approval_deactivates_and_notifies_superusers(self):
+    def test_activate_new_signup_activates_as_basic_with_no_email_by_default(self):
+        new_user = User.objects.create_user(
+            username="newbie", password="x", email="newbie@example.com"
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            activate_new_signup(new_user)
+
+        new_user.refresh_from_db()
+        self.assertTrue(new_user.is_active)
+        self.assertEqual(new_user.role, User.Role.BASIC)
+        self.assertFalse(new_user.wants_collaborator_access)
+        self.assertFalse(new_user.is_staff)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_activate_new_signup_with_collaborator_request_notifies_superusers(self):
         owner = User.objects.create_user(
             username="owner",
             password="x",
@@ -35,10 +51,11 @@ class UserApprovalServiceTests(TestCase):
         )
 
         with self.captureOnCommitCallbacks(execute=True):
-            mark_pending_approval(new_user)
+            activate_new_signup(new_user, wants_collaborator_access=True)
 
         new_user.refresh_from_db()
-        self.assertFalse(new_user.is_active)
+        self.assertTrue(new_user.is_active)
+        self.assertTrue(new_user.wants_collaborator_access)
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn(owner.email, mail.outbox[0].to)
         self.assertIn("newbie", mail.outbox[0].body)
@@ -46,26 +63,26 @@ class UserApprovalServiceTests(TestCase):
         self.assertEqual(mimetype, "text/html")
         self.assertIn("newbie@example.com", html_body)
 
-    def test_mark_pending_approval_with_no_superusers_does_not_crash(self):
+    def test_activate_new_signup_with_collaborator_request_and_no_superusers_does_not_crash(self):
         new_user = User.objects.create_user(username="newbie2", password="x")
 
         with self.captureOnCommitCallbacks(execute=True):
-            mark_pending_approval(new_user)
+            activate_new_signup(new_user, wants_collaborator_access=True)
 
-        self.assertFalse(User.objects.get(pk=new_user.pk).is_active)
+        self.assertTrue(User.objects.get(pk=new_user.pk).is_active)
         self.assertEqual(len(mail.outbox), 0)
 
-    def test_approve_user_grants_staff_and_notifies_user(self):
+    def test_reactivate_user_activates_and_notifies_user_but_does_not_grant_staff(self):
         user = User.objects.create_user(
             username="pending", password="x", is_active=False, email="pending@example.com"
         )
 
         with self.captureOnCommitCallbacks(execute=True):
-            approve_user(user)
+            reactivate_user(user)
 
         user.refresh_from_db()
         self.assertTrue(user.is_active)
-        self.assertTrue(user.is_staff)
+        self.assertFalse(user.is_staff)
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("pending@example.com", mail.outbox[0].to)
 
@@ -82,20 +99,22 @@ class UserApprovalServiceTests(TestCase):
             password="x",
             name="Ana Gutson",
             email="ana@example.com",
+            is_active=False,
         )
 
         with self.captureOnCommitCallbacks(execute=True):
-            mark_pending_approval(new_user)
+            activate_new_signup(new_user, wants_collaborator_access=True)
         self.assertIn("Ana Gutson", mail.outbox[0].body)
         self.assertNotIn("autouser123", mail.outbox[0].body)
         mail.outbox.clear()
 
+        revoke_access(new_user)
         with self.captureOnCommitCallbacks(execute=True):
-            approve_user(new_user)
+            reactivate_user(new_user)
         self.assertIn("Ana Gutson", mail.outbox[0].body)
         self.assertNotIn("autouser123", mail.outbox[0].body)
 
-    def test_approve_user_email_carries_a_styled_html_alternative(self):
+    def test_reactivate_user_email_carries_a_styled_html_alternative(self):
         user = User.objects.create_user(
             username="html-approved",
             password="x",
@@ -105,7 +124,7 @@ class UserApprovalServiceTests(TestCase):
         )
 
         with self.captureOnCommitCallbacks(execute=True):
-            approve_user(user)
+            reactivate_user(user)
 
         self.assertEqual(len(mail.outbox[0].alternatives), 1)
         html_body, mimetype = mail.outbox[0].alternatives[0]
@@ -114,13 +133,13 @@ class UserApprovalServiceTests(TestCase):
         self.assertIn("TARGET PATHOGEN", html_body)
 
     @override_settings(SITE_URL="https://targetpathogen.example.org")
-    def test_approve_user_email_includes_a_login_link_when_site_url_is_set(self):
+    def test_reactivate_user_email_includes_a_login_link_when_site_url_is_set(self):
         user = User.objects.create_user(
             username="linked-approved", password="x", is_active=False, email="linked@example.com"
         )
 
         with self.captureOnCommitCallbacks(execute=True):
-            approve_user(user)
+            reactivate_user(user)
 
         login_url = "https://targetpathogen.example.org" + reverse("account_login")
         self.assertIn(login_url, mail.outbox[0].body)
@@ -128,7 +147,7 @@ class UserApprovalServiceTests(TestCase):
         self.assertIn(login_url, html_body)
 
     @override_settings(SITE_URL="")
-    def test_approve_user_email_omits_login_link_when_site_url_is_unset(self):
+    def test_reactivate_user_email_omits_login_link_when_site_url_is_unset(self):
         user = User.objects.create_user(
             username="unlinked-approved",
             password="x",
@@ -137,17 +156,17 @@ class UserApprovalServiceTests(TestCase):
         )
 
         with self.captureOnCommitCallbacks(execute=True):
-            approve_user(user)
+            reactivate_user(user)
 
         self.assertNotIn("http", mail.outbox[0].body)
 
-    def test_approve_user_grants_the_baseline_permissions(self):
+    def test_activate_new_signup_grants_the_baseline_permissions(self):
         user = User.objects.create_user(
             username="pending2", password="x", is_active=False, email="pending2@example.com"
         )
 
         with self.captureOnCommitCallbacks(execute=True):
-            approve_user(user)
+            activate_new_signup(user)
 
         user.refresh_from_db()
         self.assertTrue(user.has_perm("tpweb.can_upload_genome"))
@@ -160,17 +179,19 @@ class UserApprovalServiceTests(TestCase):
         self.assertFalse(user.has_perm("tpweb.can_view_activity"))
         self.assertFalse(user.has_perm("tpweb.can_curated_import"))
 
-    def test_approve_user_is_idempotent_no_duplicate_email(self):
+    def test_reactivate_user_is_idempotent_no_duplicate_email(self):
         user = User.objects.create_user(
             username="already", password="x", is_active=True, is_staff=True, email="a@example.com"
         )
 
         with self.captureOnCommitCallbacks(execute=True):
-            approve_user(user)
+            reactivate_user(user)
 
         self.assertEqual(len(mail.outbox), 0)
 
-    def test_revoke_access_deactivates_and_unstaffs_a_regular_user(self):
+    def test_revoke_access_deactivates_a_regular_user_without_touching_is_staff(self):
+        # is_staff is a manual-only Django-admin toggle now -- neither
+        # granted nor revoked by any of this app-level access code.
         user = User.objects.create_user(
             username="onceapproved", password="x", is_active=True, is_staff=True
         )
@@ -179,7 +200,7 @@ class UserApprovalServiceTests(TestCase):
 
         user.refresh_from_db()
         self.assertFalse(user.is_active)
-        self.assertFalse(user.is_staff)
+        self.assertTrue(user.is_staff)
 
     def test_revoke_access_clears_granted_permissions(self):
         from django.contrib.auth.models import Permission
@@ -207,7 +228,7 @@ class UserApprovalServiceTests(TestCase):
         self.assertTrue(owner.is_active)
         self.assertTrue(owner.is_staff)
 
-    def test_reject_signup_deletes_a_pending_account(self):
+    def test_reject_signup_deletes_an_inactive_account(self):
         pending = User.objects.create_user(username="unwanted", password="x", is_active=False)
 
         result = reject_signup(pending)
@@ -215,7 +236,7 @@ class UserApprovalServiceTests(TestCase):
         self.assertTrue(result)
         self.assertFalse(User.objects.filter(pk=pending.pk).exists())
 
-    def test_reject_signup_refuses_an_already_approved_account(self):
+    def test_reject_signup_refuses_an_active_account(self):
         approved = User.objects.create_user(
             username="already-in", password="x", is_active=True, is_staff=True
         )
@@ -227,7 +248,7 @@ class UserApprovalServiceTests(TestCase):
 
 
 class InactiveUserLoginTests(TestCase):
-    def test_inactive_user_login_attempt_shows_awaiting_approval(self):
+    def test_inactive_user_login_attempt_shows_account_inactive(self):
         User.objects.create_user(username="blocked", password="correct-pass", is_active=False)
 
         response = self.client.post(
@@ -236,12 +257,12 @@ class InactiveUserLoginTests(TestCase):
             follow=True,
         )
 
-        self.assertContains(response, "Awaiting approval")
+        self.assertContains(response, "Account inactive")
 
 
 class SignupAdapterTests(TestCase):
     @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
-    def test_signup_creates_inactive_user(self):
+    def test_signup_activates_immediately_as_basic(self):
         # No "username" field -- ACCOUNT_USERNAME_REQUIRED=False, allauth
         # generates one from the email instead. first_name/last_name are
         # required and get joined into TPUser.name.
@@ -258,8 +279,40 @@ class SignupAdapterTests(TestCase):
             )
 
         user = User.objects.get(email="fresh@example.com")
-        self.assertFalse(user.is_active)
+        self.assertTrue(user.is_active)
+        self.assertEqual(user.role, User.Role.BASIC)
+        self.assertFalse(user.wants_collaborator_access)
+        self.assertFalse(user.is_staff)
         self.assertEqual(user.name, "Fresh Signup")
+        self.assertEqual(len(mail.outbox), 0)
+
+    @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
+    def test_signup_with_collaborator_checkbox_notifies_superusers(self):
+        User.objects.create_user(
+            username="notify-owner",
+            password="x",
+            is_superuser=True,
+            is_active=True,
+            email="notify-owner@example.com",
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            self.client.post(
+                reverse("account_signup"),
+                {
+                    "first_name": "Wants",
+                    "last_name": "Access",
+                    "email": "wants-access@example.com",
+                    "wants_collaborator_access": "on",
+                    "password1": "S0me-Strong-Pass!23",
+                    "password2": "S0me-Strong-Pass!23",
+                },
+            )
+
+        user = User.objects.get(email="wants-access@example.com")
+        self.assertTrue(user.is_active)
+        self.assertTrue(user.wants_collaborator_access)
+        self.assertEqual(len(mail.outbox), 1)
 
     @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
     def test_signup_capitalizes_the_name_regardless_of_input_casing(self):
@@ -280,15 +333,15 @@ class SignupAdapterTests(TestCase):
 
 
 class SocialSignupAdapterTests(TestCase):
-    def test_social_signup_without_form_still_requires_approval(self):
+    def test_social_signup_activates_immediately_without_a_collaborator_request(self):
         # SOCIALACCOUNT_AUTO_SIGNUP is unset (defaults True), so the live
         # path for orcid/google today is DefaultSocialAccountAdapter.save_user()
-        # with form=None -- it never calls AccountAdapter.save_user(), so the
-        # override here is the only thing standing between a social signup
-        # and bypassing approval entirely.
+        # with form=None -- there's no "solicitar acceso de colaborador"
+        # checkbox in that path, so it always activates as a plain Basic
+        # account.
         adapter = SocialAccountAdapter()
         user = User.objects.create_user(
-            username="social-user", password="x", email="social@example.com", is_active=True
+            username="social-user", password="x", email="social@example.com", is_active=False
         )
 
         with patch(
@@ -299,7 +352,8 @@ class SocialSignupAdapterTests(TestCase):
                 result = adapter.save_user(request=None, sociallogin=None, form=None)
 
         result.refresh_from_db()
-        self.assertFalse(result.is_active)
+        self.assertTrue(result.is_active)
+        self.assertFalse(result.wants_collaborator_access)
 
 
 class UserManagementViewTests(TestCase):
@@ -316,17 +370,17 @@ class UserManagementViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
-    def test_superuser_can_view_and_sees_pending_users(self):
+    def test_superuser_can_view_and_sees_revoked_accounts(self):
         owner = User.objects.create_user(
             username="mgmt-owner", password="x", is_staff=True, is_superuser=True
         )
-        User.objects.create_user(username="mgmt-pending", password="x", is_active=False)
+        User.objects.create_user(username="mgmt-revoked", password="x", is_active=False)
         self.client.force_login(owner)
 
         response = self.client.get(reverse("tpwebapp:user_management"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "mgmt-pending")
+        self.assertContains(response, "mgmt-revoked")
 
     def test_approved_row_carries_granted_permissions_for_the_edit_modal(self):
         from django.contrib.auth.models import Permission
@@ -355,7 +409,7 @@ class UserManagementViewTests(TestCase):
         self.assertContains(response, "can_manage_formulas")
         self.assertContains(response, "can_use_agent_chat")
 
-    def test_page_offers_profile_presets_and_a_revoke_confirmation_trigger(self):
+    def test_page_offers_profile_presets_role_select_and_a_revoke_confirmation_trigger(self):
         owner = User.objects.create_user(
             username="mgmt-owner11", password="x", is_staff=True, is_superuser=True
         )
@@ -373,10 +427,35 @@ class UserManagementViewTests(TestCase):
         self.assertIn('id="user-mgmt-profile-presets"', body)
         self.assertIn("Gates collaborator", body)
         self.assertIn("Alumnos / testers", body)
+        # The persisted-role select is separate from the profile-fill preset.
+        self.assertIn('id="user-permissions-role-select"', body)
+        self.assertIn(f'data-role="{approved.role}"', body)
         # Revoke is a modal trigger now, not a form with a native confirm().
         self.assertIn("user-mgmt-revoke-trigger", body)
         self.assertIn(f'data-user-id="{approved.pk}"', body)
         self.assertNotIn("Revoke this user's access?", body)
+
+    def test_wants_collaborator_access_shows_a_badge_and_sorts_first(self):
+        owner = User.objects.create_user(
+            username="mgmt-owner12", password="x", is_staff=True, is_superuser=True
+        )
+        # Created before mgmt-plain, so -date_joined ordering alone would
+        # put it *second* -- only the wants_collaborator_access-first sort
+        # moves it back to the top.
+        User.objects.create_user(
+            username="mgmt-requester",
+            password="x",
+            is_active=True,
+            wants_collaborator_access=True,
+        )
+        User.objects.create_user(username="mgmt-plain", password="x", is_active=True)
+        self.client.force_login(owner)
+
+        response = self.client.get(reverse("tpwebapp:user_management"))
+        body = response.content.decode()
+
+        self.assertContains(response, "Requested collaborator access")
+        self.assertLess(body.index("mgmt-requester"), body.index("mgmt-plain"))
 
     def test_superuser_row_has_no_edit_permissions_button(self):
         owner = User.objects.create_user(
@@ -390,41 +469,41 @@ class UserManagementViewTests(TestCase):
         self.assertContains(response, "mgmt-owner10")
         self.assertNotContains(response, f'data-user-id="{owner.pk}"')
 
-    def test_post_approve_activates_pending_user(self):
+    def test_post_reactivate_activates_revoked_user_without_granting_staff(self):
         owner = User.objects.create_user(
             username="mgmt-owner2", password="x", is_staff=True, is_superuser=True
         )
-        pending = User.objects.create_user(
-            username="mgmt-pending2", password="x", is_active=False, email="p2@example.com"
+        revoked = User.objects.create_user(
+            username="mgmt-revoked2", password="x", is_active=False, email="p2@example.com"
         )
         self.client.force_login(owner)
 
         with self.captureOnCommitCallbacks(execute=True):
             response = self.client.post(
-                reverse("tpwebapp:user_management"), {"user_id": pending.pk}
+                reverse("tpwebapp:user_management"), {"user_id": revoked.pk}
             )
 
         self.assertEqual(response.status_code, 302)
-        pending.refresh_from_db()
-        self.assertTrue(pending.is_active)
-        self.assertTrue(pending.is_staff)
+        revoked.refresh_from_db()
+        self.assertTrue(revoked.is_active)
+        self.assertFalse(revoked.is_staff)
 
-    def test_post_reject_deletes_pending_user(self):
+    def test_post_reject_deletes_revoked_user(self):
         owner = User.objects.create_user(
             username="mgmt-owner5", password="x", is_staff=True, is_superuser=True
         )
-        pending = User.objects.create_user(username="mgmt-pending5", password="x", is_active=False)
+        revoked = User.objects.create_user(username="mgmt-revoked5", password="x", is_active=False)
         self.client.force_login(owner)
 
         response = self.client.post(
             reverse("tpwebapp:user_management"),
-            {"user_id": pending.pk, "action": "reject"},
+            {"user_id": revoked.pk, "action": "reject"},
         )
 
         self.assertEqual(response.status_code, 302)
-        self.assertFalse(User.objects.filter(pk=pending.pk).exists())
+        self.assertFalse(User.objects.filter(pk=revoked.pk).exists())
 
-    def test_post_reject_refuses_an_approved_user(self):
+    def test_post_reject_refuses_an_active_user(self):
         owner = User.objects.create_user(
             username="mgmt-owner6", password="x", is_staff=True, is_superuser=True
         )
@@ -440,7 +519,7 @@ class UserManagementViewTests(TestCase):
 
         self.assertTrue(User.objects.filter(pk=approved.pk).exists())
 
-    def test_post_revoke_deactivates_approved_user(self):
+    def test_post_revoke_deactivates_approved_user_without_touching_is_staff(self):
         owner = User.objects.create_user(
             username="mgmt-owner3", password="x", is_staff=True, is_superuser=True
         )
@@ -457,7 +536,7 @@ class UserManagementViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         approved.refresh_from_db()
         self.assertFalse(approved.is_active)
-        self.assertFalse(approved.is_staff)
+        self.assertTrue(approved.is_staff)
 
     def test_post_revoke_refuses_a_superuser(self):
         owner = User.objects.create_user(
@@ -507,6 +586,33 @@ class UserManagementViewTests(TestCase):
         codenames = set(approved.user_permissions.values_list("codename", flat=True))
         self.assertEqual(codenames, {"can_view_activity", "can_manage_formulas"})
         self.assertNotIn("can_run_blast", codenames)
+
+    def test_post_update_permissions_sets_role_and_clears_the_collaborator_request(self):
+        owner = User.objects.create_user(
+            username="mgmt-owner13", password="x", is_staff=True, is_superuser=True
+        )
+        requester = User.objects.create_user(
+            username="mgmt-requester2",
+            password="x",
+            is_active=True,
+            wants_collaborator_access=True,
+        )
+        self.client.force_login(owner)
+
+        response = self.client.post(
+            reverse("tpwebapp:user_management"),
+            {
+                "user_id": requester.pk,
+                "action": "update_permissions",
+                "role": "gates_collaborator",
+                "permissions": [],
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        requester.refresh_from_db()
+        self.assertEqual(requester.role, "gates_collaborator")
+        self.assertFalse(requester.wants_collaborator_access)
 
     def test_post_update_permissions_refuses_for_superuser(self):
         owner = User.objects.create_user(
@@ -585,24 +691,24 @@ class ProfileViewTests(TestCase):
         self.assertEqual(user.email, "mine@example.com")
 
 
-class UserAdminApproveActionTests(TestCase):
-    def test_approve_selected_users_action(self):
+class UserAdminReactivateActionTests(TestCase):
+    def test_reactivate_selected_users_action(self):
         owner = User.objects.create_user(
             username="admin-owner", password="x", is_staff=True, is_superuser=True
         )
-        pending = User.objects.create_user(
-            username="admin-pending", password="x", is_active=False, email="ap@example.com"
+        revoked = User.objects.create_user(
+            username="admin-revoked", password="x", is_active=False, email="ap@example.com"
         )
         self.client.force_login(owner)
 
         with self.captureOnCommitCallbacks(execute=True):
             response = self.client.post(
                 reverse("admin:tpweb_tpuser_changelist"),
-                {"action": "approve_selected_users", "_selected_action": [pending.pk]},
+                {"action": "reactivate_selected_users", "_selected_action": [revoked.pk]},
                 follow=True,
             )
 
         self.assertEqual(response.status_code, 200)
-        pending.refresh_from_db()
-        self.assertTrue(pending.is_active)
-        self.assertTrue(pending.is_staff)
+        revoked.refresh_from_db()
+        self.assertTrue(revoked.is_active)
+        self.assertFalse(revoked.is_staff)

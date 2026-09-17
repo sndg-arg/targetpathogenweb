@@ -1,8 +1,9 @@
-"""New-account approval workflow: self-signups land inactive until the owner
-approves them (see tpweb/adapters/AccountAdapters.py for where signups are
-routed through mark_pending_approval, tpweb/admin/UserAdmin.py and
-tpweb/views/UserManagementView.py for the two places approve_user() is
-called from).
+"""Account activation/access workflow: self-signups activate immediately as
+a Basic account (no admin review needed) -- see tpweb/adapters/
+AccountAdapters.py for where signups are routed through
+activate_new_signup(). A superuser elevates someone's role from
+tpweb/views/UserManagementView.py's /users screen, and can revoke or
+reactivate access from there or tpweb/admin/UserAdmin.py.
 """
 
 import logging
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
-# Every approved user gets these automatically -- everything except the two
+# Every activated user gets these automatically -- everything except the two
 # sensitive ones (view Activity, which exposes visitor IP/security
 # telemetry, and curated import, which writes raw files into a shared
 # server directory) is now a baseline grant rather than something the owner
@@ -34,8 +35,8 @@ User = get_user_model()
 # either one individually, from the same modal, for tester/student accounts
 # that shouldn't see them.
 #
-# Only affects approvals from here on -- changing this list doesn't touch
-# any already-approved user's existing permissions (see _grant_default_permissions).
+# Only affects activations from here on -- changing this list doesn't touch
+# any already-active user's existing permissions (see _grant_default_permissions).
 DEFAULT_APPROVED_PERMISSION_CODENAMES = [
     "can_upload_genome",
     "can_manage_formulas",
@@ -58,44 +59,56 @@ def _grant_default_permissions(user):
     if missing:
         # Migration 0074 hasn't run yet on this database -- shouldn't
         # happen in normal operation, but don't let missing permission
-        # rows block approval itself.
+        # rows block activation itself.
         logger.warning("Permission(s) tpweb.%s not found -- was migration 0074 applied?", missing)
     if permissions:
         user.user_permissions.add(*permissions)
 
 
-def mark_pending_approval(user):
-    """Force a freshly-created account inactive until the owner approves it,
-    then notify the owner(s) there's someone to review. Called with a user
-    that may not be persisted yet (adapters call this instead of allauth's
-    own commit=True save), so this is the save that actually creates the
-    row -- plain save(), not update_fields, since update_fields is an
-    UPDATE-only optimization and this instance may still have no pk."""
-    user.is_active = False
+def activate_new_signup(user, wants_collaborator_access=False):
+    """Self-serve signup activates immediately as a Basic account -- no
+    admin approval wait. is_staff is deliberately left untouched (never
+    granted automatically by any of this): it only controls Django-admin
+    login, and self-serve accounts have no business there unless the owner
+    manually flips it in the admin.
+
+    If wants_collaborator_access is set, the account is still fully usable
+    right away -- only a heads-up email to the superusers changes, so they
+    can manually elevate the role from /users. Called with a user that may
+    not be persisted yet (adapters call this instead of allauth's own
+    commit=True save), so this is the save that actually creates the row --
+    plain save(), not update_fields, since update_fields is an UPDATE-only
+    optimization and this instance may still have no pk."""
+    user.is_active = True
+    user.role = User.Role.BASIC
+    user.wants_collaborator_access = wants_collaborator_access
     user.save()
-    transaction.on_commit(lambda: _notify_new_signup(user))
+    _grant_default_permissions(user)
+    if wants_collaborator_access:
+        transaction.on_commit(lambda: _notify_collaborator_access_requested(user))
     return user
 
 
-def approve_user(user):
-    """Grant an approved collaborator staff-level access. Idempotent -- a
-    bulk admin action can hit a mix of pending and already-approved rows,
-    and re-approving shouldn't re-send the "you're approved" email."""
-    already_approved = user.is_active and user.is_staff
+def reactivate_user(user):
+    """Restore a previously revoked account -- back to active with the
+    baseline permission grant, role untouched (stays whatever it was before
+    revocation). Idempotent -- a bulk admin action can hit a mix of
+    inactive and already-active rows, and reactivating an already-active
+    user shouldn't re-send the "restored" email."""
+    already_active = user.is_active
     user.is_active = True
-    user.is_staff = True
-    user.save(update_fields=["is_active", "is_staff"])
+    user.save(update_fields=["is_active"])
     _grant_default_permissions(user)
-    if not already_approved:
-        transaction.on_commit(lambda: _notify_user_approved(user))
+    if not already_active:
+        transaction.on_commit(lambda: _notify_access_restored(user))
     return user
 
 
 def reject_signup(user):
-    """Delete a pending signup outright -- distinct from revoke_access(),
-    which deactivates an *already-approved* user without deleting their
-    history. Only ever applies to a still-pending (is_active=False)
-    account; refuses to touch anyone already approved."""
+    """Delete an inactive account outright -- distinct from revoke_access(),
+    which deactivates an *already-active* user without deleting their
+    history. Only ever applies to a currently-inactive (is_active=False)
+    account; refuses to touch anyone active."""
     if user.is_active:
         return False
     user.delete()
@@ -103,23 +116,22 @@ def reject_signup(user):
 
 
 def revoke_access(user):
-    """Undo a prior approval -- back to inactive, no staff access, and
-    every individually-granted permission cleared (a later re-approval
-    starts clean with just the baseline again, rather than silently
-    keeping whatever extra permissions this user had before). Refuses to
-    touch a superuser (there's no UI path to re-grant superuser, so this
-    could otherwise lock the owner out with no way back in short of a
-    direct DB fix)."""
+    """Deactivate an active account -- back to inactive, and every
+    individually-granted permission cleared (a later reactivation starts
+    clean with just the baseline again, rather than silently keeping
+    whatever extra permissions this user had before). Refuses to touch a
+    superuser (there's no UI path to re-grant superuser, so this could
+    otherwise lock the owner out with no way back in short of a direct DB
+    fix)."""
     if user.is_superuser:
         return user
     user.is_active = False
-    user.is_staff = False
-    user.save(update_fields=["is_active", "is_staff"])
+    user.save(update_fields=["is_active"])
     user.user_permissions.clear()
     return user
 
 
-def _notify_new_signup(user):
+def _notify_collaborator_access_requested(user):
     recipients = list(
         User.objects.filter(is_superuser=True, is_active=True)
         .exclude(email="")
@@ -130,14 +142,14 @@ def _notify_new_signup(user):
     display_name = user.name or user.get_username()
     try:
         send_mail(
-            subject="Target Pathogen: new account pending approval",
+            subject=f"Target Pathogen: {display_name} requested collaborator access",
             message=(
-                f"{display_name} ({user.email}) just signed up "
-                "and is waiting for approval. Review pending accounts in the admin "
-                "panel or the Manage users screen."
+                f"{display_name} ({user.email}) signed up and is already using the site "
+                'as a Basic account. They checked "Solicitar acceso de colaborador" -- '
+                "review and assign a role from the Manage users screen if appropriate."
             ),
             html_message=render_to_string(
-                "email/new_signup_email.html",
+                "email/collaborator_access_requested_email.html",
                 {"display_name": display_name, "user_email": user.email},
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
@@ -145,10 +157,12 @@ def _notify_new_signup(user):
             fail_silently=False,
         )
     except Exception:
-        logger.exception("Failed to send new-signup notification for user %s", user.pk)
+        logger.exception(
+            "Failed to send collaborator-access-requested notification for user %s", user.pk
+        )
 
 
-def _notify_user_approved(user):
+def _notify_access_restored(user):
     if not user.email:
         return
     display_name = user.name or user.get_username()
@@ -159,10 +173,10 @@ def _notify_user_approved(user):
     login_url = f"{settings.SITE_URL}{reverse('account_login')}" if settings.SITE_URL else ""
     try:
         send_mail(
-            subject="Target Pathogen: your account has been approved",
+            subject="Target Pathogen: your account access has been restored",
             message=(
-                f"Hi {display_name}, your Target Pathogen account "
-                "has been approved. You can now sign in."
+                f"Hi {display_name}, your Target Pathogen account access "
+                "has been restored. You can now sign in."
                 + (f"\n\n{login_url}" if login_url else "")
             ),
             html_message=render_to_string(
@@ -174,4 +188,4 @@ def _notify_user_approved(user):
             fail_silently=False,
         )
     except Exception:
-        logger.exception("Failed to send approval notification for user %s", user.pk)
+        logger.exception("Failed to send access-restored notification for user %s", user.pk)

@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.views import redirect_to_login
 from django.views import View
 from django.shortcuts import render
 from django.db.models import Count, Exists, OuterRef, Prefetch, Q
@@ -1077,6 +1079,18 @@ class ProteinListView(View):
         )
 
         action = request.POST.get("action")
+        # Only the three actions below persist to the DB (FilterPreset, keyed
+        # off the shared "public" workspace account for anonymous requests --
+        # tpweb.services.workspace.resolve_workspace_user) -- every other
+        # action here only touches request.session, which is already
+        # per-browser-safe for an anonymous Visitor. Gating the whole view
+        # would needlessly block session-only filtering for someone just
+        # browsing without an account.
+        if (
+            action in {"save_filter_preset", "apply_filter_preset", "delete_filter_preset"}
+            and not request.user.is_authenticated
+        ):
+            return redirect_to_login(request.get_full_path(), login_url=settings.LOGIN_URL)
         applied_preset_id = None
         current_structure_source = request.GET.get("structure_source", "").strip().lower()
         target_structure_source = current_structure_source

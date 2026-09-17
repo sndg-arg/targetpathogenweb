@@ -3,7 +3,9 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
+from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.BlockedIP import BlockedIP
+from tpweb.models.FilterPreset import FilterPreset
 from tpweb.services.ip_blocking import block_ip
 
 
@@ -148,3 +150,82 @@ class AutoBlockBotTests(TestCase):
         )
 
         self.assertFalse(BlockedIP.objects.filter(ip="203.0.113.95").exists())
+
+
+class VisitorBrowsingTests(TestCase):
+    """LoginRequiredMiddleware's PUBLIC_URL_NAMES allow-list -- anonymous
+    "Visitor" browsing works for the listed routes, and everything else
+    (including routes that share a URL prefix with a public one, like
+    genome/<g> vs genome/<g>/proteins/blast) still redirects to login."""
+
+    def setUp(self):
+        Biodatabase.objects.create(name="VISITORTEST", description="Genome workspace")
+        Biodatabase.objects.create(name="VISITORTEST_prots")
+
+    def test_anonymous_can_browse_public_pages(self):
+        for name, kwargs in [
+            ("index", {}),
+            ("about_us", {}),
+            ("data_sources", {}),
+            ("genomes_list", {}),
+            ("assembly", {"genome": "VISITORTEST"}),
+            ("protein_list", {"genome": "VISITORTEST"}),
+        ]:
+            with self.subTest(name=name):
+                response = self.client.get(reverse(f"tpwebapp:{name}", kwargs=kwargs))
+                self.assertEqual(response.status_code, 200)
+
+    def test_anonymous_is_still_redirected_from_gated_routes_under_the_same_genome_prefix(self):
+        # The exact regression this test guards against: genome/<g> being
+        # public must not accidentally make genome/<g>/proteins/blast,
+        # genome/<g>/formula, or genome/<g>/custom-evidence public too via
+        # loose prefix matching.
+        for name, kwargs in [
+            ("protein_blast", {"genome": "VISITORTEST"}),
+            ("formula_form", {"genome": "VISITORTEST"}),
+            ("customparam", {"genome": "VISITORTEST"}),
+        ]:
+            with self.subTest(name=name):
+                response = self.client.get(reverse(f"tpwebapp:{name}", kwargs=kwargs))
+                self.assertEqual(response.status_code, 302)
+
+    def test_anonymous_is_still_redirected_from_upload_activity_users_profile_and_chat(self):
+        for name in ["genome_upload", "activity_dashboard", "user_management", "profile"]:
+            with self.subTest(name=name):
+                response = self.client.get(reverse(f"tpwebapp:{name}"))
+                self.assertEqual(response.status_code, 302)
+
+        response = self.client.post(reverse("tpwebapp:agent_chat"), content_type="application/json")
+        self.assertEqual(response.status_code, 302)
+
+
+class ProteinListPresetGuardTests(TestCase):
+    """protein_list is public (VisitorBrowsingTests), but the three actions
+    that write to the shared "public" workspace's FilterPreset rows must
+    still require a real login -- see ProteinListView.post's guard, added
+    once this view stopped being protected by the blanket login wall."""
+
+    def setUp(self):
+        Biodatabase.objects.create(name="VISITORTEST", description="Genome workspace")
+        Biodatabase.objects.create(name="VISITORTEST_prots")
+        self.url = reverse("tpwebapp:protein_list", kwargs={"genome": "VISITORTEST"})
+
+    def test_anonymous_preset_actions_are_rejected(self):
+        for action, extra in [
+            ("save_filter_preset", {"preset_name": "mine"}),
+            ("apply_filter_preset", {"preset_id": "1"}),
+            ("delete_filter_preset", {"preset_id": "1"}),
+        ]:
+            with self.subTest(action=action):
+                response = self.client.post(self.url, {"action": action, **extra})
+                self.assertEqual(response.status_code, 302)
+        self.assertFalse(FilterPreset.objects.exists())
+
+    def test_anonymous_session_only_actions_still_work(self):
+        response = self.client.post(self.url, {"action": "add_filter", "filter_option_id": "x"})
+        self.assertEqual(response.status_code, 302)  # redirects back to the list, not to login
+        self.assertNotIn(reverse("account_login"), response.url)
+
+        response = self.client.post(self.url, {"action": "update_columns"})
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn(reverse("account_login"), response.url)

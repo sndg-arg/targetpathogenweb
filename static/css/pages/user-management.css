@@ -91,7 +91,7 @@
 }
 
 .user-mgmt-list--approved .user-mgmt-list-row {
-    grid-template-columns: minmax(0, 1fr) 128px 128px 72px 210px;
+    grid-template-columns: minmax(0, 1fr) 128px 128px 168px 210px;
 }
 
 .user-mgmt-list-row + .user-mgmt-list-row {
@@ -112,6 +112,18 @@
 .user-mgmt-list-cell--role {
     color: var(--tp-color-text-secondary);
     font-size: 0.9rem;
+}
+
+.user-mgmt-list-cell--role {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.user-mgmt-request-badge {
+    color: var(--tp-color-warning-ink);
+    background: var(--tp-color-warning-bg);
+    border-color: var(--tp-color-warning-border);
 }
 
 .user-mgmt-list-cell--person {

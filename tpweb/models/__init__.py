@@ -1,5 +1,5 @@
 from django.contrib.auth.models import AbstractUser
-from django.db.models import CharField
+from django.db.models import BooleanField, CharField, TextChoices
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from .CelularLocalization import CelularLocalization
@@ -12,6 +12,7 @@ from .GenomeUpload import GenomeUpload
 from .PipelineRun import PipelineRun, PipelineStageEvent
 from .FilterPreset import FilterPreset
 from .AgentChatSession import AgentChatSession
+from .AgentChatMessageLog import AgentChatMessageLog
 from .RequestLog import RequestLog
 from .RestrictedGenome import RestrictedGenome
 from .Metabolism import (
@@ -25,6 +26,7 @@ from .Metabolism import (
 )
 
 __all__ = [
+    "AgentChatMessageLog",
     "AgentChatSession",
     "Binders",
     "BioentryStructure",
@@ -57,10 +59,28 @@ class TPUser(AbstractUser):
     check forms.SignupForm and forms.SocialSignupForms accordingly.
     """
 
+    class Role(TextChoices):
+        # Keys deliberately match tpweb.services.user_permissions.PROFILE_PRESETS'
+        # keys 1:1 -- picking a role in /users applies that preset's permission
+        # bundle and this label together. Admin ("puedo hacer todo") isn't a
+        # choice here -- that's is_superuser, which already bypasses every
+        # has_perm() check regardless of role.
+        BASIC = "basic", _("Basic")
+        GATES_COLLABORATOR = "gates_collaborator", _("Gates collaborator")
+        GATES_CONSUMER = "gates_consumer", _("Gates consumer")
+        STUDENT = "student", _("Alumnos / testers")
+
     #: First and last name do not cover name patterns around the globe
     name = CharField(_("Name of User"), blank=True, max_length=255)
     first_name = None  # type: ignore
     last_name = None  # type: ignore
+    role = CharField(_("Role"), max_length=32, choices=Role.choices, default=Role.BASIC)
+    # Set at signup by the "Solicitar acceso de colaborador" checkbox
+    # (tpweb.forms.UserSignupForm) -- surfaces a chip on /users so the owner
+    # can spot who's asking for a role upgrade among self-serve Basic
+    # signups. Cleared automatically once the owner moves role off BASIC
+    # (see UserManagementView.post's update_permissions branch).
+    wants_collaborator_access = BooleanField(_("Requested collaborator access"), default=False)
 
     class Meta:
         verbose_name = _("user")

@@ -1,0 +1,17 @@
+{% extends "email/base_email.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Collaborator access requested" %}{% endblock %}
+
+{% block eyebrow %}{% trans "Access request" %}{% endblock %}
+
+{% block heading %}{% trans "Someone's asking for collaborator access" %}{% endblock %}
+
+{% block body %}
+<p style="margin:0 0 16px;">
+    {% blocktrans %}<strong>{{ display_name }}</strong> ({{ user_email }}) signed up and is already using the site as a Basic account.{% endblocktrans %}
+</p>
+<p style="margin:0;">
+    {% trans "Review and assign a role from the Manage users screen if appropriate." %}
+</p>
+{% endblock %}

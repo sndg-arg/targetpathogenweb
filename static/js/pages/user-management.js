@@ -27,6 +27,7 @@
     var userIdInput = document.getElementById("user-permissions-modal-user-id");
     var form = document.getElementById("user-permissions-form");
     var profileSelect = document.getElementById("user-permissions-profile-select");
+    var roleSelect = document.getElementById("user-permissions-role-select");
 
     var profilePresets = [];
     var presetsEl = document.getElementById("user-mgmt-profile-presets");
@@ -86,6 +87,7 @@
 
             userIdInput.value = trigger.getAttribute("data-user-id") || "";
             if (nameEl) nameEl.textContent = trigger.getAttribute("data-user-name") || "";
+            if (roleSelect) roleSelect.value = trigger.getAttribute("data-role") || "";
             checkboxes.forEach(function (checkbox) {
                 checkbox.checked = granted.indexOf(checkbox.value) !== -1;
             });

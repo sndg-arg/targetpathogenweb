@@ -49,12 +49,34 @@ class UserSignupForm(SignupForm):
 
     first_name = forms.CharField(label=_("First name"), max_length=150)
     last_name = forms.CharField(label=_("Last name"), max_length=150)
+    wants_collaborator_access = forms.BooleanField(
+        label=_("Solicitar acceso de colaborador"),
+        required=False,
+        help_text=_(
+            "Tu cuenta ya queda activa. Marcá esto solo si trabajás en el desarrollo del "
+            "proyecto (subir genomas, editar fórmulas, etc.) — te vamos a contactar para "
+            "asignarte el rol."
+        ),
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.order_fields(["first_name", "last_name", "email", "password1", "password2"])
+        self.order_fields(
+            [
+                "first_name",
+                "last_name",
+                "email",
+                "wants_collaborator_access",
+                "password1",
+                "password2",
+            ]
+        )
 
     def custom_signup(self, request, user):
+        # wants_collaborator_access is read straight from this form's
+        # cleaned_data by AccountAdapter.save_user (tpweb/adapters/
+        # AccountAdapters.py) before this hook even runs -- not repeated
+        # here to avoid two code paths racing to set the same field.
         first = _capitalize_name_part(self.cleaned_data["first_name"])
         last = _capitalize_name_part(self.cleaned_data["last_name"])
         user.name = f"{first} {last}".strip()

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.views import redirect_to_login
 from django.http import HttpResponseForbidden
+from django.urls import Resolver404, resolve
 
 from tpweb.middleware.observability import _first_forwarded_ip
 from tpweb.services.bot_detection import AUTO_BLOCK_BOT_LABELS, classify_bot
@@ -19,11 +20,59 @@ EXEMPT_PATH_PREFIXES = (
     "/robots.txt",
 )
 
+# Routes an anonymous "Visitor" can browse with no account at all -- exact
+# url_name matches, not path prefixes: "genome/<genome>" (assembly, public)
+# is a literal string-prefix of "genome/<genome>/proteins/blast",
+# "genome/<genome>/formula", and "genome/<genome>/custom-evidence" (all
+# still gated), so prefix matching here would be ambiguous by construction.
+# Deliberately a separate list from EXEMPT_PATH_PREFIXES/_is_exempt_path --
+# that one also controls BlockedIPMiddleware's bot auto-block below, and a
+# bot hammering e.g. /protein/123 should still get auto-blocked exactly as
+# it does today. Only the login *redirect* relaxes for these, not the bot
+# defense.
+PUBLIC_URL_NAMES = frozenset(
+    {
+        "index",
+        "data_sources",
+        "about_us",
+        "assembly",
+        "genome_metabolism",
+        "genome_metabolism_network",
+        "genome_metabolism_network_data",
+        "genome_metabolism_network_expand",
+        "genome_metabolism_pathway",
+        "annotation_explorer",
+        "protein",
+        "protein_metabolic_network",
+        "protein_metabolic_network_page",
+        "protein_list",
+        "protein_search_suggestions",
+        "protein_advanced_filters",
+        "download",
+        "genomes_list",
+        "molecules",
+        "structure_raw",
+        "structure_export",
+        "load_options",
+        "structure",
+        "binder_detail",
+        "validate_expression",
+    }
+)
+
 
 def _is_exempt_path(path):
     if path.startswith(settings.STATIC_URL):
         return True
     return path.startswith(EXEMPT_PATH_PREFIXES)
+
+
+def _is_public_view(path):
+    try:
+        match = resolve(path)
+    except Resolver404:
+        return False
+    return match.url_name in PUBLIC_URL_NAMES
 
 
 def _resolve_client_ip(request):
@@ -40,15 +89,25 @@ def _resolve_client_ip(request):
 class LoginRequiredMiddleware:
     """Gate every request behind login by default.
 
-    New views are private unless explicitly added to EXEMPT_PATH_PREFIXES --
-    safer than decorating each view individually, which is easy to forget.
+    New views are private unless explicitly added to EXEMPT_PATH_PREFIXES or
+    PUBLIC_URL_NAMES -- safer than decorating each view individually, which
+    is easy to forget. PUBLIC_URL_NAMES is the "Visitor" browsing allow-list
+    (genomes/proteins/structures/etc.); every route that must stay gated
+    (upload, formulas, custom params, BLAST, the AI assistant, /users,
+    /activity, /profile) keeps its own view-level guard regardless of this
+    middleware, so a mistake here degrades to "a page is visible that
+    shouldn't be" rather than "a mutation endpoint is open to anyone."
     """
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.user.is_authenticated or _is_exempt_path(request.path):
+        if (
+            request.user.is_authenticated
+            or _is_exempt_path(request.path)
+            or _is_public_view(request.path)
+        ):
             return self.get_response(request)
         return redirect_to_login(request.get_full_path(), login_url=settings.LOGIN_URL)
 

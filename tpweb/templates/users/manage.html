@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260917-profile-presets">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260917-role-field">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -24,7 +24,7 @@
             <div class="tp-view-head-copy">
                 <p class="user-mgmt-eyebrow">{% trans "Owner only" %}</p>
                 <h1 class="user-mgmt-hero-title">{% trans "Manage users" %}</h1>
-                <p class="user-mgmt-hero-description">{% trans "Approve new signups and see who currently has access to the platform." %}</p>
+                <p class="user-mgmt-hero-description">{% trans "See who has access, assign roles, and manage requests for collaborator access." %}</p>
             </div>
         </div>
     </section>
@@ -32,15 +32,15 @@
     <section class="user-mgmt-section">
         <div class="section-head tp-ui-panel-head">
             <div>
-                <p class="tp-ui-field-label">{% trans "Awaiting review" %}</p>
-                <h2 class="user-mgmt-section-title">{% trans "Pending approval" %}</h2>
+                <p class="tp-ui-field-label">{% trans "Deactivated" %}</p>
+                <h2 class="user-mgmt-section-title">{% trans "Revoked accounts" %}</h2>
             </div>
             <span class="tp-chip tp-chip--count tp-chip--sm">{{ pending_users|length }}</span>
         </div>
         {% if pending_users %}
-        <div class="user-mgmt-list user-mgmt-list--pending" role="table" aria-label="{% trans 'Pending signups' %}">
+        <div class="user-mgmt-list user-mgmt-list--pending" role="table" aria-label="{% trans 'Revoked accounts' %}">
             <div class="user-mgmt-list-row user-mgmt-list-row--head" role="row">
-                <span class="user-mgmt-list-cell" role="columnheader">{% trans "Signup" %}</span>
+                <span class="user-mgmt-list-cell" role="columnheader">{% trans "Account" %}</span>
                 <span class="user-mgmt-list-cell user-mgmt-list-cell--meta" role="columnheader">{% trans "Signed up" %}</span>
                 <span class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="columnheader">{% trans "Actions" %}</span>
             </div>
@@ -54,24 +54,24 @@
                     {{ pending_user.date_joined|date:"Y-m-d H:i" }}
                 </div>
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="cell">
-                    <form method="post" action="{% url 'tpwebapp:user_management' %}" onsubmit="return confirm('{% trans "Reject and permanently delete this signup?" %}');">
+                    <form method="post" action="{% url 'tpwebapp:user_management' %}" onsubmit="return confirm('{% trans "Permanently delete this account?" %}');">
                         {% csrf_token %}
                         <input type="hidden" name="user_id" value="{{ pending_user.pk }}">
                         <input type="hidden" name="action" value="reject">
-                        <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--sm">{% trans "Reject" %}</button>
+                        <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--sm">{% trans "Delete" %}</button>
                     </form>
                     <form method="post" action="{% url 'tpwebapp:user_management' %}">
                         {% csrf_token %}
                         <input type="hidden" name="user_id" value="{{ pending_user.pk }}">
-                        <input type="hidden" name="action" value="approve">
-                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn--sm">{% trans "Approve" %}</button>
+                        <input type="hidden" name="action" value="reactivate">
+                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn--sm">{% trans "Reactivate" %}</button>
                     </form>
                 </div>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <p class="tp-state-note tp-state-note--empty">{% trans "No pending signups." %}</p>
+        <p class="tp-state-note tp-state-note--empty">{% trans "No revoked accounts." %}</p>
         {% endif %}
     </section>
 
@@ -108,7 +108,10 @@
                     {% if approved_user.is_superuser %}
                         <span class="tp-chip tp-chip--sm">{% trans "Owner" %}</span>
                     {% else %}
-                        <span class="tp-chip tp-chip--sm">{% trans "Staff" %}</span>
+                        <span class="tp-chip tp-chip--sm">{{ approved_user.get_role_display }}</span>
+                    {% endif %}
+                    {% if approved_user.wants_collaborator_access %}
+                        <span class="tp-chip tp-chip--sm user-mgmt-request-badge">{% trans "Requested collaborator access" %}</span>
                     {% endif %}
                 </div>
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="cell">
@@ -117,6 +120,7 @@
                             data-user-id="{{ approved_user.pk }}"
                             data-user-name="{{ approved_user.name|default:approved_user.get_username }}"
                             data-granted='{{ approved_user.granted_permissions_json }}'
+                            data-role="{{ approved_user.role }}"
                             aria-haspopup="dialog" aria-controls="user-permissions-modal">
                         {% trans "Edit" %}
                     </button>
@@ -155,6 +159,15 @@
                 <p class="user-mgmt-edit-subtitle">
                     {% blocktrans %}What <strong id="user-permissions-modal-name"></strong> can do on the platform.{% endblocktrans %}
                 </p>
+                <div class="user-mgmt-profile-field tp-ui-field">
+                    <label class="tp-ui-field-label" for="user-permissions-role-select">{% trans "Role" %}</label>
+                    <select class="form-control tp-ui-control" id="user-permissions-role-select" name="role">
+                        {% for value, label in role_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="user-mgmt-profile-help">{% trans "The persisted label shown on this person's row -- also clears their pending collaborator-access request once set to anything but Basic." %}</p>
+                </div>
                 <div class="user-mgmt-profile-field tp-ui-field">
                     <label class="tp-ui-field-label" for="user-permissions-profile-select">{% trans "Profile" %}</label>
                     <select class="form-control tp-ui-control" id="user-permissions-profile-select">
@@ -207,5 +220,5 @@
 </div>
 
 {{ profile_presets|json_script:"user-mgmt-profile-presets" }}
-<script src="{% static 'js/pages/user-management.js' %}?v=20260917-profiles-revoke-modal"></script>
+<script src="{% static 'js/pages/user-management.js' %}?v=20260917-role-field"></script>
 {% endblock %}

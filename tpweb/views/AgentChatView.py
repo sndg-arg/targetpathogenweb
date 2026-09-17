@@ -31,7 +31,6 @@ import time
 from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
-from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import JsonResponse
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
@@ -41,6 +40,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.Binders import Binders
 from tpweb.models.BioentryStructure import BioentryStructure
+from tpweb.services.agent_chat_quota import quota_exceeded, record_message
 from tpweb.services.agent_chat_sessions import (
     default_conversation,
     delete_conversation,
@@ -62,6 +62,7 @@ from tpweb.services.llm.prompts import (
     page_context_prompt,
 )
 from tpweb.services.llm.tool_registry import build_scoped_tools
+from tpweb.views.mixins import JsonPermissionRequiredMixin
 
 logger = logging.getLogger("tpweb.agent")
 
@@ -241,9 +242,8 @@ def _save_persisted_history(row, messages):
     row.save(update_fields=["history_json", "updated_at"])
 
 
-class AgentChatView(PermissionRequiredMixin, View):
+class AgentChatView(JsonPermissionRequiredMixin, View):
     permission_required = "tpweb.can_use_agent_chat"
-    raise_exception = True
 
     def get(self, request, *args, **kwargs):
         """Hydrates the drawer with a conversation's saved history on page
@@ -352,6 +352,18 @@ class AgentChatView(PermissionRequiredMixin, View):
                 response["redirect_url"] = self._reload_url_without_query(page_url or page_path)
             return JsonResponse(response)
 
+        if quota_exceeded(request.user):
+            return JsonResponse(
+                {
+                    "error": (
+                        "You've reached your daily AI assistant message limit. "
+                        "Ask the site owner to request more access."
+                    ),
+                    "quota_exceeded": True,
+                },
+                status=429,
+            )
+
         system = SYSTEM_PROMPT
         if biologist_mode:
             system += BIOLOGIST_MODE_NOTE
@@ -415,6 +427,7 @@ class AgentChatView(PermissionRequiredMixin, View):
 
         persisted_history = _compact_history(agent.last_messages, max_messages=12)
         _save_persisted_history(row, persisted_history)
+        record_message(request.user)
         response = {
             "reply": reply,
             "history": [_message_to_json(item) for item in persisted_history],
@@ -619,9 +632,8 @@ class AgentChatView(PermissionRequiredMixin, View):
         )
 
 
-class AgentChatSessionsView(PermissionRequiredMixin, View):
+class AgentChatSessionsView(JsonPermissionRequiredMixin, View):
     permission_required = "tpweb.can_use_agent_chat"
-    raise_exception = True
 
     def get(self, request, *args, **kwargs):
         """Lists this browser session's recent conversations for the
@@ -631,14 +643,13 @@ class AgentChatSessionsView(PermissionRequiredMixin, View):
         return JsonResponse({"sessions": list_conversations(session_key)})
 
 
-class AgentChatSessionDetailView(PermissionRequiredMixin, View):
+class AgentChatSessionDetailView(JsonPermissionRequiredMixin, View):
     """Rename/delete a single conversation -- always scoped to the
     requesting browser's own session_key (via rename_conversation/
     delete_conversation), so a conversation_id from another session can
     never be renamed or deleted, only 404."""
 
     permission_required = "tpweb.can_use_agent_chat"
-    raise_exception = True
 
     def patch(self, request, conversation_id, *args, **kwargs):
         session_key = _ensure_session_key(request)
