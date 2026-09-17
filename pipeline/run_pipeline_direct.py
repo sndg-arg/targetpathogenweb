@@ -104,7 +104,6 @@ def _run_python_stage(stage_number, app_name, fn, *args, **kwargs):
 HEAVY_LOCAL_STAGES = {
     4: "FastTarget",
     10: "InterProScan",
-    15: "AlphaFold",
     16: "ColabFold",
     17: "FPocket/P2Rank",
     22: "binders",
@@ -375,7 +374,6 @@ def run_genome(
     if not _skip(14) or not _skip(15):
         protein_list = _run_python_stage(14, "get_unipslst", _read_unips, folder_path, genome)
         if not _skip(15):
-            _assert_heavy_stage_allowed(15, "alphafold_unips", allow_local_heavy)
             lines = [line.strip() for line in protein_list.strip().split("\n") if line.strip()]
             if lines:
                 _run_alphafold_parallel(15, lines, folder_path, genome)

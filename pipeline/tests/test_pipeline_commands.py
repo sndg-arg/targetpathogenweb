@@ -187,6 +187,15 @@ class SimpleManageCommandBuildersTests(unittest.TestCase):
         self.assertIn("-o /app/tp/data/ABC/g1/alphafold", cmd)
         self.assertIn("-parsl locus_a -ltag P12345", cmd)
 
+    def test_alphafold_cmd_suppresses_p2rank_and_fpocket(self):
+        # Stage 15 is download-only (see docs/DATA_SOURCES.md) -- P2RANK/FPocket
+        # are stage 17's job. Without -np/-nf, TP.alphafold also runs both of
+        # those itself, redundant with stage 17 and heavy enough to violate the
+        # nodo0 no-local-compute policy.
+        cmd = pc.alphafold_cmd("locus_a P12345", "/app/tp/data/ABC/g1", "g1")
+        self.assertIn("-np", cmd.split())
+        self.assertIn("-nf", cmd.split())
+
     def test_colabfold_cmd(self):
         cmd = pc.colabfold_cmd("/app/tp", "NZ_AP023069.1")
         self.assertEqual(
