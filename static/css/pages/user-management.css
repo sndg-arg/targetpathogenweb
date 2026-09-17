@@ -213,6 +213,12 @@
 
 .user-mgmt-edit-body {
     flex: 1;
+    /* Without this, a flex child's default min-height:auto lets it grow to
+       fit all its content instead of shrinking to scroll -- with 8
+       permission rows that pushed .user-mgmt-edit-actions (the Save
+       button) past the panel's max-height, clipped by the panel's own
+       overflow:hidden. */
+    min-height: 0;
     overflow-y: auto;
     padding: 16px;
     display: grid;

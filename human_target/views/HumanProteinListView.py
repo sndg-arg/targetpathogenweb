@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render
 from django.views import View
 
@@ -5,8 +6,11 @@ from human_target.services.human_dashboard_summary import build_human_dashboard_
 from human_target.services.human_targets import human_bioentries_queryset
 
 
-class HumanProteinListView(View):
+class HumanProteinListView(LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = "human/human_protein_list.html"
+
+    def test_func(self):
+        return self.request.user.has_perm("tpweb.can_view_human_targets")
 
     def get(self, request, *args, **kwargs):
         query = request.GET.get("q", "").strip()

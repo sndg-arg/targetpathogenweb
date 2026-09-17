@@ -27,11 +27,12 @@ User = get_user_model()
 # individually granted from the /users "Edit" modal (tpweb/services/
 # user_permissions.py) or the Django admin.
 #
-# can_view_restricted_genomes is included here too -- restricted (curated/
-# research) genomes are the exception, not the rule (tpweb.models.
-# RestrictedGenome), so most approved users should see them by default. The
-# owner revokes this one individually, from the same modal, for tester/
-# student accounts that shouldn't see them.
+# can_view_restricted_genomes and can_view_human_targets are included here
+# too -- both gate content that's the exception, not the rule (restricted
+# genomes: tpweb.models.RestrictedGenome; Human Targets: human_target app),
+# so most approved users should see them by default. The owner revokes
+# either one individually, from the same modal, for tester/student accounts
+# that shouldn't see them.
 #
 # Only affects approvals from here on -- changing this list doesn't touch
 # any already-approved user's existing permissions (see _grant_default_permissions).
@@ -42,6 +43,7 @@ DEFAULT_APPROVED_PERMISSION_CODENAMES = [
     "can_manage_custom_params",
     "can_use_agent_chat",
     "can_view_restricted_genomes",
+    "can_view_human_targets",
 ]
 
 

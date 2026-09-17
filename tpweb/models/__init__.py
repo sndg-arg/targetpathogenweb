@@ -87,6 +87,7 @@ class TPUser(AbstractUser):
                 "can_view_restricted_genomes",
                 "Can view genomes marked as restricted (curated/research)",
             ),
+            ("can_view_human_targets", "Can view the Human Targets section"),
         ]
 
     def get_absolute_url(self):

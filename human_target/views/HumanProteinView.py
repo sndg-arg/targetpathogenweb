@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import Http404
 from django.shortcuts import render
@@ -21,8 +22,11 @@ from tpweb.services.protein_annotations import iter_protein_annotations
 EXPRESSION_PAGE_SIZE = 40
 
 
-class HumanProteinView(View):
+class HumanProteinView(LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = "human/human_protein.html"
+
+    def test_func(self):
+        return self.request.user.has_perm("tpweb.can_view_human_targets")
 
     def get(self, request, accession, *args, **kwargs):
         bioentry = get_human_bioentry(accession)

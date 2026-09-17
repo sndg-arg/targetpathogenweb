@@ -2355,10 +2355,12 @@
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
                             {% trans "My profile" %}
                         </a>
+                        {% if perms.tpweb.can_view_human_targets %}
                         <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'human_protein_list' or request.resolver_match.url_name == 'human_protein' %}active{% endif %}" href="{% url 'human_target:human_protein_list' %}">
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
                             {% trans "Human Targets" %}
                         </a>
+                        {% endif %}
                         {% if user.is_superuser %}
                         <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'activity_dashboard' %}active{% endif %}" href="{% url 'tpwebapp:activity_dashboard' %}">
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/eye.html" %}</span>
@@ -2454,7 +2456,9 @@
                         </a>
                         <div id="user_dropdown_menu" class="dropdown-menu">
                             <a class="dropdown-item" href="{% url 'tpwebapp:profile' %}">{% trans "My profile" %}</a>
+                            {% if perms.tpweb.can_view_human_targets %}
                             <a class="dropdown-item" href="{% url 'human_target:human_protein_list' %}">{% trans "Human Targets" %}</a>
+                            {% endif %}
                             {% if user.is_superuser %}
                                 <a class="dropdown-item" href="{% url 'tpwebapp:activity_dashboard' %}">{% trans "Activity" %}</a>
                                 <a class="dropdown-item" href="{% url 'tpwebapp:user_management' %}">{% trans "Manage users" %}</a>
