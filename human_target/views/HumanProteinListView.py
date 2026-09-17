@@ -1,13 +1,15 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render
 from django.views import View
 
 from human_target.services.human_dashboard_summary import build_human_dashboard_context
 from human_target.services.human_targets import human_bioentries_queryset
+from tpweb.views.mixins import PermissionLockedMixin
 
 
-class HumanProteinListView(LoginRequiredMixin, UserPassesTestMixin, View):
+class HumanProteinListView(PermissionLockedMixin, View):
     template_name = "human/human_protein_list.html"
+    page_title = "Human Targets"
+    locked_message = "Ask the site owner to grant Human Targets access."
 
     def test_func(self):
         return self.request.user.has_perm("tpweb.can_view_human_targets")

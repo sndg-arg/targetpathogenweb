@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260909-breadcrumb-align-2">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260917-access-locked">
     <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260811-fab-ring-loader">
     <style>
         :root {
@@ -1768,6 +1768,36 @@
                 .tp-main {
                     min-height: 100dvh;
                 }
+            }
+        }
+
+        /* Tightened spacing for the narrow "just barely desktop" range --
+           below this width the six nav links don't fit next to the brand
+           and account pill at the base spacing above, and the nav's own
+           flex-wrap (.tp-topbar-desktop-nav) silently drops the last link
+           onto a lonely second line. Comes after the min-width:992px block
+           above so it wins by source order within this narrower range. */
+        @media (min-width: 992px) and (max-width: 1240px) {
+            .tp-topbar-desktop-inner {
+                gap: 14px;
+                padding: 0 16px;
+            }
+
+            .tp-topbar-desktop-nav {
+                gap: 0;
+            }
+
+            .tp-topbar-desktop-link {
+                padding: 8px 9px;
+                font-size: 0.8rem;
+            }
+
+            .tp-topbar-desktop-utility {
+                gap: 8px;
+            }
+
+            .tp-topbar-desktop-user {
+                max-width: 90px;
             }
         }
 

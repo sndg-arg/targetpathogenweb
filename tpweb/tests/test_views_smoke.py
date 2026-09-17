@@ -954,12 +954,28 @@ class ProteinViewTests(LoggedInTestCase):
 
 class GenomeUploadViewTests(TestCase):
     def test_get_renders_for_authenticated_user_with_no_uploads(self):
+        from django.contrib.auth.models import Permission
+
         user = get_user_model().objects.create_user(username="upload-user", password="test-pass")
+        user.user_permissions.add(
+            Permission.objects.get(content_type__app_label="tpweb", codename="can_upload_genome")
+        )
         self.client.force_login(user)
 
         response = self.client.get(reverse("tpwebapp:genome_upload"))
 
         self.assertEqual(response.status_code, 200)
+
+    def test_get_shows_locked_page_without_upload_permission(self):
+        user = get_user_model().objects.create_user(
+            username="upload-user-locked", password="test-pass"
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("tpwebapp:genome_upload"))
+
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, "Add your own data", status_code=403)
 
     def test_use_test_genome_without_permission_is_blocked(self):
         # Approval no longer implies can_upload_genome by itself once the

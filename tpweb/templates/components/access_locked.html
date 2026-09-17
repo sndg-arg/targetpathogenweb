@@ -1,0 +1,16 @@
+{% extends "../base/masterpage.html" %}
+{% load i18n %}
+
+{% block body %}
+<div class="access-locked-page">
+    <div class="access-locked-panel">
+        <span class="access-locked-icon" aria-hidden="true">{% include "components/icons/key.html" %}</span>
+        <span class="access-locked-eyebrow">{% trans "Restricted" %}</span>
+        <h1>{{ page_title }}</h1>
+        <p>{{ locked_message }}</p>
+        <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'tpwebapp:index' %}">
+            <span>{% trans "Back to home" %}</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -206,54 +206,6 @@
     border-left-color: var(--tp-color-info-border);
 }
 
-/* Fills the card with a clear locked-state composition instead of one
-   thin note line floating over a lot of empty space below it (the rest
-   of the card's form is hidden entirely when can_upload_genome is
-   false) -- still no bordered/tinted box, same "no second card nested
-   inside the first" constraint as .genome-upload-form-state above. */
-.genome-upload-locked-state {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    padding: 8px 0 20px;
-}
-
-.genome-upload-locked-icon {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    border-radius: 999px;
-    background: var(--tp-color-warning-bg);
-    color: var(--tp-color-warning-ink);
-}
-
-.genome-upload-locked-icon svg {
-    display: block;
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.6;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-.genome-upload-locked-copy h3 {
-    margin: 0 0 4px;
-    font-size: var(--tp-font-size-md);
-    font-weight: var(--tp-font-weight-semibold);
-    color: var(--tp-color-text-primary);
-}
-
-.genome-upload-locked-copy p {
-    margin: 0;
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
-}
-
 .genome-upload-form-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(220px, 0.75fr);

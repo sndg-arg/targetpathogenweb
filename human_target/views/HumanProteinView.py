@@ -1,4 +1,3 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import Http404
 from django.shortcuts import render
@@ -18,12 +17,15 @@ from human_target.services.human_structure_summary import build_human_structure_
 from human_target.services.human_targets import get_human_bioentry
 from tpweb.services.binder_summary import create_binders_dict
 from tpweb.services.protein_annotations import iter_protein_annotations
+from tpweb.views.mixins import PermissionLockedMixin
 
 EXPRESSION_PAGE_SIZE = 40
 
 
-class HumanProteinView(LoginRequiredMixin, UserPassesTestMixin, View):
+class HumanProteinView(PermissionLockedMixin, View):
     template_name = "human/human_protein.html"
+    page_title = "Human Targets"
+    locked_message = "Ask the site owner to grant Human Targets access."
 
     def test_func(self):
         return self.request.user.has_perm("tpweb.can_view_human_targets")

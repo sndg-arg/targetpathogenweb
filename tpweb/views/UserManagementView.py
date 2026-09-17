@@ -2,7 +2,6 @@ import json
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
@@ -14,12 +13,15 @@ from tpweb.services.user_permissions import (
     set_user_permissions,
 )
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
+from tpweb.views.mixins import PermissionLockedMixin
 
 User = get_user_model()
 
 
-class UserManagementView(LoginRequiredMixin, UserPassesTestMixin, View):
+class UserManagementView(PermissionLockedMixin, View):
     template_name = "users/manage.html"
+    page_title = "Manage users"
+    locked_message = "Only the site owner can manage user accounts."
 
     def test_func(self):
         return self.request.user.is_superuser

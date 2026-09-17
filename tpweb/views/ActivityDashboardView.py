@@ -1,4 +1,3 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render
 from django.views import View
 
@@ -7,6 +6,7 @@ from tpweb.services.activity_dashboard import (
     DEFAULT_ACTIVITY_WINDOW_DAYS,
     build_activity_dashboard_data,
 )
+from tpweb.views.mixins import PermissionLockedMixin
 
 # Fixed set rather than an arbitrary ?days=N -- every query in
 # build_activity_dashboard_data() runs over the full window with no
@@ -15,12 +15,14 @@ from tpweb.services.activity_dashboard import (
 PERIOD_CHOICES_DAYS = (7, 14, 30, 90)
 
 
-class ActivityDashboardView(LoginRequiredMixin, UserPassesTestMixin, View):
+class ActivityDashboardView(PermissionLockedMixin, View):
     """Read-only -- IP blocking is fully automatic (see
     tpweb.middleware.access_control.BlockedIPMiddleware) and any manual
     block/unblock happens in the Django admin, not here."""
 
     template_name = "activity/dashboard.html"
+    page_title = "Activity"
+    locked_message = "Ask the site owner to grant Activity dashboard access."
 
     def test_func(self):
         return self.request.user.has_perm("tpweb.can_view_activity")

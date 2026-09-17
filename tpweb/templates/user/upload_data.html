@@ -55,15 +55,7 @@
         <section class="genome-upload-layout">
             <article class="genome-upload-card genome-upload-card--form">
                 <h2>{% trans "Submit a genome dataset" %}</h2>
-                {% if not can_upload_genome %}
-                    <div class="genome-upload-locked-state">
-                        <span class="genome-upload-locked-icon" aria-hidden="true">{% include "components/icons/key.html" %}</span>
-                        <div class="genome-upload-locked-copy">
-                            <h3>{% trans "Uploads are locked for your account" %}</h3>
-                            <p>{% trans "Ask the site owner to grant upload access from Manage users." %}</p>
-                        </div>
-                    </div>
-                {% elif pipeline_status.running %}
+                {% if pipeline_status.running %}
                     <p class="tp-state-note tp-state-note--loading genome-upload-form-state">
                         {% if pipeline_status.running_for_other_workspace %}
                             {% trans "Another genome submission is currently using the pipeline. New submissions will be queued automatically." %}

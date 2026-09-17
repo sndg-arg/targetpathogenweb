@@ -217,6 +217,16 @@ class GenomeUploadView(LoginRequiredMixin, View):
         }
 
     def get(self, request, *args, **kwargs):
+        if not request.user.has_perm("tpweb.can_upload_genome"):
+            return render(
+                request,
+                "components/access_locked.html",
+                {
+                    "page_title": "Add your own data",
+                    "locked_message": "Ask the site owner to grant upload access from Manage users.",
+                },
+                status=403,
+            )
         return render(request, self.template_name, self._build_context(request))
 
     def post(self, request, *args, **kwargs):
