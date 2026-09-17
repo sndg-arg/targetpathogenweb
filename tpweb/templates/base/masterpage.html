@@ -1771,13 +1771,15 @@
             }
         }
 
-        /* Tightened spacing for the narrow "just barely desktop" range --
-           below this width the six nav links don't fit next to the brand
-           and account pill at the base spacing above, and the nav's own
-           flex-wrap (.tp-topbar-desktop-nav) silently drops the last link
-           onto a lonely second line. Comes after the min-width:992px block
-           above so it wins by source order within this narrower range. */
-        @media (min-width: 992px) and (max-width: 1240px) {
+        /* Tightened spacing for the whole desktop-nav range (no upper
+           bound) -- the base spacing above was tuned for the >=1520px
+           .tp-topbar-desktop-inner max-width, and at any narrower desktop
+           width the six nav links don't fit next to the brand and account
+           pill, so the nav's own flex-wrap (.tp-topbar-desktop-nav)
+           silently drops the last link onto a lonely second line. Comes
+           after the min-width:992px block above so it always wins by
+           source order; harmless at wide widths too, just more compact. */
+        @media (min-width: 992px) {
             .tp-topbar-desktop-inner {
                 gap: 14px;
                 padding: 0 16px;
@@ -2386,7 +2388,7 @@
                 <div class="dropdown tp-topbar-desktop-account-wrap">
                     <button class="tp-topbar-desktop-account tp-topbar-desktop-account--menu" type="button" data-toggle="dropdown" aria-expanded="false">
                         <span class="tp-topbar-desktop-account-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
-                        <span class="tp-topbar-desktop-user">{{ user.name|default:user.get_username }}</span>
+                        <span class="tp-topbar-desktop-user" title="{{ user.name|default:user.get_username }}">{{ user.name|default:user.get_username }}</span>
                         <span class="tp-topbar-desktop-account-caret" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-right tp-topbar-desktop-account-menu">
