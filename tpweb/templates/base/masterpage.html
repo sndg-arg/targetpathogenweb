@@ -1468,15 +1468,15 @@
                 color: rgba(231, 244, 249, 0.92);
                 font-size: 0.82rem;
                 white-space: nowrap;
-                /* A long display name (e.g. a group account like "Alumnos
-                   Bioinformatica Estructural") must not grow the account
-                   pill without bound -- .tp-topbar-desktop-utility is
-                   flex: 0 0 auto (never shrinks), so an unbounded pill
-                   eats the row's width and pushes the nav links into
-                   wrapping onto a second line. */
+                /* Primary truncation is at the word level, in the template
+                   (|truncatewords:1 -- "Alumnos Bioinformatica Estructural"
+                   becomes "Alumnos …", not a mid-word cut), which already
+                   keeps the account pill from growing without bound. This
+                   is just a safety net for the rare single very-long word
+                   truncatewords:1 wouldn't shorten on its own. */
                 overflow: hidden;
                 text-overflow: ellipsis;
-                max-width: 160px;
+                max-width: 130px;
             }
 
             .tp-topbar-desktop-login-form {
@@ -1768,38 +1768,6 @@
                 .tp-main {
                     min-height: 100dvh;
                 }
-            }
-        }
-
-        /* Tightened spacing for the whole desktop-nav range (no upper
-           bound) -- the base spacing above was tuned for the >=1520px
-           .tp-topbar-desktop-inner max-width, and at any narrower desktop
-           width the six nav links don't fit next to the brand and account
-           pill, so the nav's own flex-wrap (.tp-topbar-desktop-nav)
-           silently drops the last link onto a lonely second line. Comes
-           after the min-width:992px block above so it always wins by
-           source order; harmless at wide widths too, just more compact. */
-        @media (min-width: 992px) {
-            .tp-topbar-desktop-inner {
-                gap: 14px;
-                padding: 0 16px;
-            }
-
-            .tp-topbar-desktop-nav {
-                gap: 0;
-            }
-
-            .tp-topbar-desktop-link {
-                padding: 8px 9px;
-                font-size: 0.8rem;
-            }
-
-            .tp-topbar-desktop-utility {
-                gap: 8px;
-            }
-
-            .tp-topbar-desktop-user {
-                max-width: 90px;
             }
         }
 
@@ -2388,7 +2356,7 @@
                 <div class="dropdown tp-topbar-desktop-account-wrap">
                     <button class="tp-topbar-desktop-account tp-topbar-desktop-account--menu" type="button" data-toggle="dropdown" aria-expanded="false">
                         <span class="tp-topbar-desktop-account-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
-                        <span class="tp-topbar-desktop-user" title="{{ user.name|default:user.get_username }}">{{ user.name|default:user.get_username }}</span>
+                        <span class="tp-topbar-desktop-user" title="{{ user.name|default:user.get_username }}">{{ user.name|default:user.get_username|truncatewords:1 }}</span>
                         <span class="tp-topbar-desktop-account-caret" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-right tp-topbar-desktop-account-menu">
