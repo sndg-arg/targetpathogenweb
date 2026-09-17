@@ -355,6 +355,29 @@ class UserManagementViewTests(TestCase):
         self.assertContains(response, "can_manage_formulas")
         self.assertContains(response, "can_use_agent_chat")
 
+    def test_page_offers_profile_presets_and_a_revoke_confirmation_trigger(self):
+        owner = User.objects.create_user(
+            username="mgmt-owner11", password="x", is_staff=True, is_superuser=True
+        )
+        approved = User.objects.create_user(
+            username="mgmt-approved5", password="x", is_active=True, is_staff=True
+        )
+        self.client.force_login(owner)
+
+        response = self.client.get(reverse("tpwebapp:user_management"))
+
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode()
+        # Profile presets ship as a json_script tag for the modal's <select>
+        # to read, not baked into inline JS.
+        self.assertIn('id="user-mgmt-profile-presets"', body)
+        self.assertIn("Gates collaborator", body)
+        self.assertIn("Alumnos / testers", body)
+        # Revoke is a modal trigger now, not a form with a native confirm().
+        self.assertIn("user-mgmt-revoke-trigger", body)
+        self.assertIn(f'data-user-id="{approved.pk}"', body)
+        self.assertNotIn("Revoke this user's access?", body)
+
     def test_superuser_row_has_no_edit_permissions_button(self):
         owner = User.objects.create_user(
             username="mgmt-owner10", password="x", is_staff=True, is_superuser=True

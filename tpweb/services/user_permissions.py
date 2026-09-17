@@ -20,6 +20,59 @@ PERMISSION_ORDER = [
     "can_view_human_targets",
 ]
 
+# Named presets for the /users edit-permissions modal's profile dropdown --
+# each just pre-fills the checkboxes below with a starting point for that
+# kind of collaborator; the owner can still hand-adjust before Save (that's
+# "advanced" mode, it isn't a separate code path). Superusers ("Admin: puedo
+# hacer todo") aren't a preset here since they bypass every has_perm() check
+# already and never see this modal (see manage.html: no Edit button on a
+# superuser row).
+PROFILE_PRESETS = [
+    {
+        # Bio-side collaborators on the Gates-Targets work itself (About us
+        # page) -- everything except curated import (writes raw files into
+        # a shared server directory, kept deliberately rare/manual).
+        "key": "gates_collaborator",
+        "label": "Gates collaborator",
+        "codenames": [
+            "can_upload_genome",
+            "can_view_activity",
+            "can_manage_formulas",
+            "can_run_blast",
+            "can_manage_custom_params",
+            "can_use_agent_chat",
+            "can_view_restricted_genomes",
+            "can_view_human_targets",
+        ],
+    },
+    {
+        # Gates-side people who only consume the site (read genomes/targets,
+        # run their own BLAST/formula work) -- no upload, no admin-ish
+        # capabilities, no Human Targets (that's this app's own pilot
+        # feature, not Gates-Targets output).
+        "key": "gates_consumer",
+        "label": "Gates consumer",
+        "codenames": [
+            "can_manage_formulas",
+            "can_run_blast",
+            "can_manage_custom_params",
+            "can_use_agent_chat",
+        ],
+    },
+    {
+        # A shared classroom account for a TP: no upload (avoids every
+        # student colliding in the same workspace) and no formulas/custom
+        # params (one student editing a shared formula would silently
+        # break the assignment for the whole class).
+        "key": "student",
+        "label": "Alumnos / testers",
+        "codenames": [
+            "can_run_blast",
+            "can_use_agent_chat",
+        ],
+    },
+]
+
 
 def _ordered_permissions():
     by_codename = {
@@ -36,6 +89,21 @@ def permission_choices():
     for every user regardless of what they're currently granted, used to
     render the modal's checkboxes once rather than per row."""
     return [(p.codename, p.name) for p in _ordered_permissions()]
+
+
+def profile_presets():
+    """[{key, label, codenames}, ...] for the modal's profile dropdown --
+    filters each preset's codenames against PERMISSION_ORDER so a future
+    permission rename/removal can't leave a stale codename checked."""
+    valid_codenames = set(PERMISSION_ORDER)
+    return [
+        {
+            "key": preset["key"],
+            "label": preset["label"],
+            "codenames": [c for c in preset["codenames"] if c in valid_codenames],
+        }
+        for preset in PROFILE_PRESETS
+    ]
 
 
 def granted_codenames(user):

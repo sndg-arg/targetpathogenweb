@@ -232,6 +232,19 @@
     line-height: 1.5;
 }
 
+.user-mgmt-profile-field {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.user-mgmt-profile-help {
+    margin: 4px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.4;
+}
+
 .user-mgmt-perm-row {
     display: flex;
     align-items: center;

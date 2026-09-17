@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260917-editmodal-scroll-fix">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260917-profile-presets">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -120,12 +120,12 @@
                             aria-haspopup="dialog" aria-controls="user-permissions-modal">
                         {% trans "Edit" %}
                     </button>
-                    <form method="post" action="{% url 'tpwebapp:user_management' %}" onsubmit="return confirm('{% trans "Revoke this user's access?" %}');">
-                        {% csrf_token %}
-                        <input type="hidden" name="user_id" value="{{ approved_user.pk }}">
-                        <input type="hidden" name="action" value="revoke">
-                        <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--sm">{% trans "Revoke access" %}</button>
-                    </form>
+                    <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm user-mgmt-revoke-trigger"
+                            data-user-id="{{ approved_user.pk }}"
+                            data-user-name="{{ approved_user.name|default:approved_user.get_username }}"
+                            aria-haspopup="dialog" aria-controls="user-revoke-modal">
+                        {% trans "Revoke access" %}
+                    </button>
                     {% endif %}
                 </div>
             </div>
@@ -155,6 +155,16 @@
                 <p class="user-mgmt-edit-subtitle">
                     {% blocktrans %}What <strong id="user-permissions-modal-name"></strong> can do on the platform.{% endblocktrans %}
                 </p>
+                <div class="user-mgmt-profile-field tp-ui-field">
+                    <label class="tp-ui-field-label" for="user-permissions-profile-select">{% trans "Profile" %}</label>
+                    <select class="form-control tp-ui-control" id="user-permissions-profile-select">
+                        <option value="">{% trans "Custom (manual selection)" %}</option>
+                        {% for preset in profile_presets %}
+                        <option value="{{ preset.key }}">{{ preset.label }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="user-mgmt-profile-help">{% trans "Picking a profile fills in the checkboxes below as a starting point -- adjust any of them by hand before saving." %}</p>
+                </div>
                 {% for codename, label in permission_choices %}
                 <label class="user-mgmt-perm-row">
                     <input type="checkbox" name="permissions" value="{{ codename }}">
@@ -170,5 +180,32 @@
     </div>
 </div>
 
-<script src="{% static 'js/pages/user-management.js' %}?v=20260904-permissions-modal"></script>
+<div class="user-mgmt-edit-modal-backdrop" id="user-revoke-modal" aria-hidden="true">
+    <div class="user-mgmt-edit-panel" role="dialog" aria-modal="true" aria-labelledby="user-revoke-modal-title">
+        <div class="user-mgmt-edit-head">
+            <h3 id="user-revoke-modal-title">{% trans "Revoke access?" %}</h3>
+            <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm user-mgmt-edit-close"
+                    id="user-revoke-modal-close" aria-label="{% trans 'Close' %}">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+            </button>
+        </div>
+        <div class="user-mgmt-edit-body">
+            <p class="user-mgmt-edit-subtitle">
+                {% blocktrans %}<strong id="user-revoke-modal-name"></strong> will be deactivated immediately and lose every individually-granted permission. A later re-approval starts clean with just the baseline again.{% endblocktrans %}
+            </p>
+        </div>
+        <form method="post" action="{% url 'tpwebapp:user_management' %}" id="user-revoke-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="revoke">
+            <input type="hidden" name="user_id" id="user-revoke-modal-user-id" value="">
+            <div class="user-mgmt-edit-actions">
+                <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm" id="user-revoke-modal-cancel">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn tp-btn tp-btn--danger tp-btn--sm">{% trans "Revoke access" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{ profile_presets|json_script:"user-mgmt-profile-presets" }}
+<script src="{% static 'js/pages/user-management.js' %}?v=20260917-profiles-revoke-modal"></script>
 {% endblock %}

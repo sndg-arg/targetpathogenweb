@@ -103,6 +103,11 @@ from tpweb.services.genome_workspace import (
     visible_genome_name_filter,
 )
 from tpweb.services.score_params import visible_score_params_queryset
+from tpweb.services.user_permissions import (
+    PERMISSION_ORDER,
+    PROFILE_PRESETS,
+    profile_presets,
+)
 from tpweb.services.workspace import (
     get_public_workspace_user,
     get_workspace_session_value,
@@ -1875,6 +1880,28 @@ class OpenAIProviderTranslationTests(SimpleTestCase):
 
         self.assertEqual(result.usage.input_tokens, 0)
         self.assertEqual(result.usage.output_tokens, 0)
+
+
+class UserPermissionProfilesTests(SimpleTestCase):
+    """profile_presets() feeds the /users edit-permissions modal's profile
+    <select> (static/js/pages/user-management.js) -- every preset's
+    codenames must be real, toggleable permissions, so a stale/renamed
+    codename can't silently check a box that doesn't exist."""
+
+    def test_every_preset_codename_is_a_real_toggleable_permission(self):
+        presets = profile_presets()
+        self.assertEqual(len(presets), len(PROFILE_PRESETS))
+        valid_codenames = set(PERMISSION_ORDER)
+        for preset in presets:
+            self.assertTrue(set(preset["codenames"]).issubset(valid_codenames))
+
+    def test_student_profile_excludes_upload_and_shared_editing_permissions(self):
+        student = next(p for p in profile_presets() if p["key"] == "student")
+        self.assertNotIn("can_upload_genome", student["codenames"])
+        self.assertNotIn("can_manage_formulas", student["codenames"])
+        self.assertNotIn("can_manage_custom_params", student["codenames"])
+        self.assertIn("can_run_blast", student["codenames"])
+        self.assertIn("can_use_agent_chat", student["codenames"])
 
 
 class AgentChatSessionsServiceTests(TestCase):

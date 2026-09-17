@@ -10,6 +10,7 @@ from tpweb.services.user_approval import approve_user, reject_signup, revoke_acc
 from tpweb.services.user_permissions import (
     granted_codenames,
     permission_choices,
+    profile_presets,
     set_user_permissions,
 )
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
@@ -72,4 +73,5 @@ class UserManagementView(PermissionLockedMixin, View):
             "pending_users": base_qs.filter(is_active=False).order_by("-date_joined"),
             "approved_users": approved_users,
             "permission_choices": permission_choices(),
+            "profile_presets": profile_presets(),
         }
