@@ -4,6 +4,7 @@ import tpweb.admin.BlockedIPAdmin as BlockedIPAdmin
 import tpweb.admin.PDBAdmin as PDBAdmin
 import tpweb.admin.PropertyAdmin as PropertyAdmin
 import tpweb.admin.RequestLogAdmin as RequestLogAdmin
+import tpweb.admin.RestrictedGenomeAdmin as RestrictedGenomeAdmin
 import tpweb.admin.ScoreFormulaAdmin as ScoreFormulaAdmin
 import tpweb.admin.ScoreParamAdmin as ScoreParamAdmin
 import tpweb.admin.TPPostAdmin as TPPostAdmin
@@ -15,6 +16,7 @@ __all__ = [
     "PDBAdmin",
     "PropertyAdmin",
     "RequestLogAdmin",
+    "RestrictedGenomeAdmin",
     "ScoreFormulaAdmin",
     "ScoreParamAdmin",
     "TPPostAdmin",

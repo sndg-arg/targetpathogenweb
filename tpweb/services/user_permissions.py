@@ -16,6 +16,7 @@ PERMISSION_ORDER = [
     "can_run_blast",
     "can_manage_custom_params",
     "can_use_agent_chat",
+    "can_view_restricted_genomes",
 ]
 
 

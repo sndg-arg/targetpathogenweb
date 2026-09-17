@@ -7,7 +7,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Permission
 from django.test import SimpleTestCase, TestCase
 from django.utils import timezone as django_timezone
 
@@ -18,6 +18,7 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.GenomeUpload import GenomeUpload
 from tpweb.models.pdb import PDB
 from tpweb.models.PipelineRun import PipelineRun
+from tpweb.models.RestrictedGenome import RestrictedGenome
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from tpweb.models.ScoreParamValue import ScoreParamValue
@@ -93,6 +94,7 @@ from tpweb.services.genome_workspace import (
     display_genome_name,
     user_can_access_genome_name,
     user_can_delete_genome_name,
+    visible_genome_name_filter,
 )
 from tpweb.services.score_params import visible_score_params_queryset
 from tpweb.services.workspace import (
@@ -1194,6 +1196,31 @@ class WorkspaceIsolationTests(TestCase):
         self.assertTrue(user_can_delete_genome_name(self.alice, alice_internal))
         self.assertFalse(user_can_delete_genome_name(self.bob, alice_internal))
         self.assertFalse(user_can_delete_genome_name(self.alice, public_internal))
+
+    def test_restricted_genome_hidden_unless_user_has_permission(self):
+        restricted_name = build_workspace_genome_name("NC_000001.1", AnonymousUser())
+        Biodatabase.objects.create(name=restricted_name)
+        RestrictedGenome.objects.create(genome_name=restricted_name)
+
+        self.assertFalse(user_can_access_genome_name(self.alice, restricted_name))
+        self.assertFalse(
+            Biodatabase.objects.filter(
+                visible_genome_name_filter(self.alice), name=restricted_name
+            ).exists()
+        )
+
+        permission = Permission.objects.get(
+            content_type__app_label="tpweb", codename="can_view_restricted_genomes"
+        )
+        self.alice.user_permissions.add(permission)
+        granted_alice = self.user_model.objects.get(pk=self.alice.pk)
+
+        self.assertTrue(user_can_access_genome_name(granted_alice, restricted_name))
+        self.assertTrue(
+            Biodatabase.objects.filter(
+                visible_genome_name_filter(granted_alice), name=restricted_name
+            ).exists()
+        )
 
 
 class GenomeUploadQueueTests(TestCase):

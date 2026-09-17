@@ -13,6 +13,7 @@ from .PipelineRun import PipelineRun, PipelineStageEvent
 from .FilterPreset import FilterPreset
 from .AgentChatSession import AgentChatSession
 from .RequestLog import RequestLog
+from .RestrictedGenome import RestrictedGenome
 from .Metabolism import (
     MetabolicPathway,
     MetabolicReaction,
@@ -44,6 +45,7 @@ __all__ = [
     "PipelineStageEvent",
     "ReactionParticipant",
     "RequestLog",
+    "RestrictedGenome",
     "TPUser",
 ]
 
@@ -81,6 +83,10 @@ class TPUser(AbstractUser):
             ("can_run_blast", "Can run BLAST searches"),
             ("can_manage_custom_params", "Can create and edit custom evidence parameters"),
             ("can_use_agent_chat", "Can use the AI assistant"),
+            (
+                "can_view_restricted_genomes",
+                "Can view genomes marked as restricted (curated/research)",
+            ),
         ]
 
     def get_absolute_url(self):
