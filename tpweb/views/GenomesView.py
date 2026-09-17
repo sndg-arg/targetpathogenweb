@@ -1,9 +1,14 @@
-from django.shortcuts import render
+from urllib.parse import urlencode
+
+from django.http import HttpResponseForbidden
+from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views import View
 from tpweb.services.genomes import (
     GENOME_TABLE_COLUMNS,
     build_genomes_dto,
     build_genomes_queryset,
+    set_genome_restricted,
     summarize_genomes,
 )
 from tpweb.services.csv_exports import (
@@ -22,6 +27,22 @@ from tpweb.services.pipeline_status import (
 class GenomesView(View):
     template_name = "search/genomes.html"
     tcolumns = GENOME_TABLE_COLUMNS
+
+    def post(self, request, *args, **kwargs):
+        # Superuser-only toggle for RestrictedGenome, so restricting a
+        # genome doesn't require hand-typing its internal (prefixed) name
+        # into the Django admin -- see tpweb.services.genomes.set_genome_restricted.
+        if not request.user.is_superuser:
+            return HttpResponseForbidden()
+        action = request.POST.get("action")
+        genome_name = request.POST.get("genome_name", "").strip()
+        if genome_name and action in {"restrict_genome", "unrestrict_genome"}:
+            set_genome_restricted(genome_name, action == "restrict_genome", request.user)
+        search_query = request.POST.get("search", "").strip()
+        redirect_url = reverse("tpwebapp:genomes_list")
+        if search_query:
+            redirect_url = f"{redirect_url}?{urlencode({'search': search_query})}"
+        return redirect(redirect_url)
 
     def get(self, request, *args, **kwargs):
         search_query = request.GET.get("search", "").strip()

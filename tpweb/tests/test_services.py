@@ -52,7 +52,13 @@ from tpweb.services.genome_uploads import (
 )
 from tpweb.services.genome_metadata import build_genome_metadata_rows, genome_metadata_label
 from tpweb.services.genome_upload_status import reconcile_genome_uploads
-from tpweb.services.genomes import build_genome_dto, safe_int, summarize_genomes
+from tpweb.services.genomes import (
+    build_genome_dto,
+    build_genomes_dto,
+    safe_int,
+    set_genome_restricted,
+    summarize_genomes,
+)
 from tpweb.services.go_ontology import expand_go_records, parse_go_obo
 from tpweb.services.protein_list import (
     add_selected_parameter,
@@ -1221,6 +1227,20 @@ class WorkspaceIsolationTests(TestCase):
                 visible_genome_name_filter(granted_alice), name=restricted_name
             ).exists()
         )
+
+    def test_set_genome_restricted_toggles_the_dto_flag(self):
+        genome_name = build_workspace_genome_name("NC_000002.1", AnonymousUser())
+        genome = Biodatabase.objects.create(name=genome_name)
+
+        set_genome_restricted(genome_name, True, self.alice)
+        [dto] = build_genomes_dto([genome], user=self.alice)
+        self.assertTrue(dto["is_restricted"])
+        self.assertTrue(RestrictedGenome.objects.filter(genome_name=genome_name).exists())
+
+        set_genome_restricted(genome_name, False, self.alice)
+        [dto] = build_genomes_dto([genome], user=self.alice)
+        self.assertFalse(dto["is_restricted"])
+        self.assertFalse(RestrictedGenome.objects.filter(genome_name=genome_name).exists())
 
 
 class GenomeUploadQueueTests(TestCase):

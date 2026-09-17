@@ -1468,6 +1468,15 @@
                 color: rgba(231, 244, 249, 0.92);
                 font-size: 0.82rem;
                 white-space: nowrap;
+                /* A long display name (e.g. a group account like "Alumnos
+                   Bioinformatica Estructural") must not grow the account
+                   pill without bound -- .tp-topbar-desktop-utility is
+                   flex: 0 0 auto (never shrinks), so an unbounded pill
+                   eats the row's width and pushes the nav links into
+                   wrapping onto a second line. */
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 160px;
             }
 
             .tp-topbar-desktop-login-form {

@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260909-merge-pipeline-note">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260917-restrict-toggle">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -137,6 +137,9 @@
                                             {% if genome.has_curated_data %}
                                                 <span class="tp-chip tp-chip--state finished tp-chip--sm genome-curated-badge">{% trans "Curated" %}</span>
                                             {% endif %}
+                                            {% if genome.is_restricted %}
+                                                <span class="tp-chip tp-chip--state tp-chip--sm genome-restricted-badge">{% trans "Restricted" %}</span>
+                                            {% endif %}
                                         </div>
                                         {% if genome.current_genome_status_note %}
                                             <p class="genome-status-note{% if genome.failed_for_current_genome %} genome-status-note--failed{% else %} genome-status-note--incomplete{% endif %}">{{ genome.current_genome_status_note }}</p>
@@ -154,6 +157,20 @@
                                     <td class="genome-actions-cell">
                                         <div class="genome-actions-inline">
                                             <a href="{% url 'tpwebapp:protein_list' genome.slug %}" class="btn tp-btn tp-btn--outline btn-sm">{% trans "Proteins" %}</a>
+                                            {% if user.is_superuser %}
+                                            <form method="post" class="genome-restrict-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="genome_name" value="{{ genome.internal_name }}">
+                                                <input type="hidden" name="search" value="{{ search_query }}">
+                                                {% if genome.is_restricted %}
+                                                    <input type="hidden" name="action" value="unrestrict_genome">
+                                                    <button type="submit" class="btn tp-btn tp-btn--outline btn-sm">{% trans "Unrestrict" %}</button>
+                                                {% else %}
+                                                    <input type="hidden" name="action" value="restrict_genome">
+                                                    <button type="submit" class="btn tp-btn tp-btn--outline btn-sm">{% trans "Restrict" %}</button>
+                                                {% endif %}
+                                            </form>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
@@ -222,7 +239,7 @@
 
             rows.forEach(function (row) {
                 row.addEventListener("click", function (event) {
-                    if (event.target.closest("a")) return;
+                    if (event.target.closest("a, button, form")) return;
                     if (row.dataset.assemblyUrl) {
                         if (window.TPPageLoader) window.TPPageLoader.show();
                         window.location.href = row.dataset.assemblyUrl;
