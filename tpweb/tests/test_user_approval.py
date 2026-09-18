@@ -169,13 +169,17 @@ class UserApprovalServiceTests(TestCase):
             activate_new_signup(user)
 
         user.refresh_from_db()
-        self.assertTrue(user.has_perm("tpweb.can_upload_genome"))
         self.assertTrue(user.has_perm("tpweb.can_manage_formulas"))
         self.assertTrue(user.has_perm("tpweb.can_run_blast"))
         self.assertTrue(user.has_perm("tpweb.can_manage_custom_params"))
         self.assertTrue(user.has_perm("tpweb.can_use_agent_chat"))
-        # The two sensitive ones stay individually-toggled, not part of the
-        # automatic baseline grant.
+        # A Basic self-serve signup gets none of the content-gating or
+        # resource-consuming permissions -- those are Gates-role-only now,
+        # granted manually from /users, same as the two always-individual
+        # ones below.
+        self.assertFalse(user.has_perm("tpweb.can_upload_genome"))
+        self.assertFalse(user.has_perm("tpweb.can_view_restricted_genomes"))
+        self.assertFalse(user.has_perm("tpweb.can_view_human_targets"))
         self.assertFalse(user.has_perm("tpweb.can_view_activity"))
         self.assertFalse(user.has_perm("tpweb.can_curated_import"))
 

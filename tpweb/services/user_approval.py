@@ -20,31 +20,31 @@ logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
-# Every activated user gets these automatically -- everything except the two
-# sensitive ones (view Activity, which exposes visitor IP/security
-# telemetry, and curated import, which writes raw files into a shared
-# server directory) is now a baseline grant rather than something the owner
-# has to toggle on per person. Those two (see TPUser.Meta.permissions) stay
-# individually granted from the /users "Edit" modal (tpweb/services/
-# user_permissions.py) or the Django admin.
-#
-# can_view_restricted_genomes and can_view_human_targets are included here
-# too -- both gate content that's the exception, not the rule (restricted
-# genomes: tpweb.models.RestrictedGenome; Human Targets: human_target app),
-# so most approved users should see them by default. The owner revokes
-# either one individually, from the same modal, for tester/student accounts
-# that shouldn't see them.
+# Every self-serve Basic signup gets these automatically -- deliberately a
+# SHORT list. Basic accounts activate instantly with zero human review now
+# (see activate_new_signup below), so nothing that exposes gated content or
+# consumes real resources belongs here by default:
+#   - can_view_restricted_genomes / can_view_human_targets: gate content
+#     that's meant to stay hidden from a rando who just signed up (curated
+#     research genomes, the Human Targets pilot) -- Gates-role-only, granted
+#     manually per user from /users, never automatic.
+#   - can_upload_genome: queues a real pipeline run (compute + storage) and
+#     writes into the shared "public" workspace naming scheme -- also
+#     Gates-role-only now.
+#   - can_view_activity / can_curated_import: unaffected, always were
+#     individually-granted only (see TPUser.Meta.permissions).
+# Basic keeps just enough to be useful without an elevated role: BLAST,
+# formulas, and custom params are all scoped to the user's own workspace
+# (no cross-account exposure), and the AI assistant is bounded by the daily
+# quota in tpweb.services.agent_chat_quota regardless of role.
 #
 # Only affects activations from here on -- changing this list doesn't touch
 # any already-active user's existing permissions (see _grant_default_permissions).
 DEFAULT_APPROVED_PERMISSION_CODENAMES = [
-    "can_upload_genome",
     "can_manage_formulas",
     "can_run_blast",
     "can_manage_custom_params",
     "can_use_agent_chat",
-    "can_view_restricted_genomes",
-    "can_view_human_targets",
 ]
 
 
