@@ -48,6 +48,22 @@ PROFILE_PRESETS = [
         ],
     },
     {
+        # Gates-side people who only consume the site (read genomes/targets,
+        # run their own BLAST/formula work) -- no upload, no admin-ish
+        # capabilities, no Human Targets (that's this app's own pilot
+        # feature, not Gates-Targets output). Every Gates-tier role and up
+        # can see restricted genomes.
+        "key": "gates_consumer",
+        "label": "Gates consumer",
+        "codenames": [
+            "can_manage_formulas",
+            "can_run_blast",
+            "can_manage_custom_params",
+            "can_use_agent_chat",
+            "can_view_restricted_genomes",
+        ],
+    },
+    {
         # Bio-side collaborators on the Gates-Targets work itself (About us
         # page) -- everything except curated import (writes raw files into
         # a shared server directory, kept deliberately rare/manual).
@@ -62,22 +78,6 @@ PROFILE_PRESETS = [
             "can_use_agent_chat",
             "can_view_restricted_genomes",
             "can_view_human_targets",
-        ],
-    },
-    {
-        # Gates-side people who only consume the site (read genomes/targets,
-        # run their own BLAST/formula work) -- no upload, no admin-ish
-        # capabilities, no Human Targets (that's this app's own pilot
-        # feature, not Gates-Targets output). Every Gates-tier role and up
-        # can see restricted genomes.
-        "key": "gates_consumer",
-        "label": "Gates consumer",
-        "codenames": [
-            "can_manage_formulas",
-            "can_run_blast",
-            "can_manage_custom_params",
-            "can_use_agent_chat",
-            "can_view_restricted_genomes",
         ],
     },
 ]
