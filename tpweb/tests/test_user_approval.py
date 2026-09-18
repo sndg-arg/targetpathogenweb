@@ -565,36 +565,44 @@ class UserManagementViewTests(TestCase):
         other_owner.refresh_from_db()
         self.assertTrue(other_owner.is_active)
 
-    def test_post_update_permissions_grants_and_revokes_selected(self):
-        from django.contrib.auth.models import Permission
-
+    def test_post_update_permissions_role_admin_grants_superuser_only(self):
         owner = User.objects.create_user(
             username="mgmt-owner7", password="x", is_staff=True, is_superuser=True
         )
         approved = User.objects.create_user(
-            username="mgmt-approved3", password="x", is_active=True, is_staff=True
-        )
-        approved.user_permissions.add(
-            Permission.objects.get(content_type__app_label="tpweb", codename="can_run_blast")
+            username="mgmt-approved3",
+            password="x",
+            is_active=True,
+            wants_collaborator_access=True,
         )
         self.client.force_login(owner)
 
         response = self.client.post(
             reverse("tpwebapp:user_management"),
-            {
-                "user_id": approved.pk,
-                "action": "update_permissions",
-                "role": "custom",
-                "permissions": ["can_view_activity", "can_manage_formulas"],
-            },
+            {"user_id": approved.pk, "action": "update_permissions", "role": "admin"},
         )
 
         self.assertEqual(response.status_code, 302)
-        codenames = set(approved.user_permissions.values_list("codename", flat=True))
-        self.assertEqual(codenames, {"can_view_activity", "can_manage_formulas"})
-        self.assertNotIn("can_run_blast", codenames)
         approved.refresh_from_db()
-        self.assertEqual(approved.role, "custom")
+        self.assertTrue(approved.is_superuser)
+        self.assertFalse(approved.is_staff)
+        self.assertFalse(approved.wants_collaborator_access)
+
+    def test_post_update_permissions_rejects_an_unknown_role(self):
+        owner = User.objects.create_user(
+            username="mgmt-owner15", password="x", is_staff=True, is_superuser=True
+        )
+        approved = User.objects.create_user(username="mgmt-approved7", password="x", is_active=True)
+        self.client.force_login(owner)
+
+        self.client.post(
+            reverse("tpwebapp:user_management"),
+            {"user_id": approved.pk, "action": "update_permissions", "role": "custom"},
+        )
+
+        approved.refresh_from_db()
+        self.assertFalse(approved.is_superuser)
+        self.assertEqual(approved.role, "basic")
 
     def test_post_update_permissions_with_a_named_role_ignores_submitted_checkboxes(self):
         # The server re-derives a named role's codenames itself -- a

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260918-role-locks-checkboxes">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260918-role-only-admin">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -119,7 +119,6 @@
                     <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm user-mgmt-edit-trigger"
                             data-user-id="{{ approved_user.pk }}"
                             data-user-name="{{ approved_user.name|default:approved_user.get_username }}"
-                            data-granted='{{ approved_user.granted_permissions_json }}'
                             data-role="{{ approved_user.role }}"
                             aria-haspopup="dialog" aria-controls="user-permissions-modal">
                         {% trans "Edit" %}
@@ -165,16 +164,10 @@
                         {% for preset in profile_presets %}
                         <option value="{{ preset.key }}">{{ preset.label }}</option>
                         {% endfor %}
-                        <option value="custom">{% trans "Custom" %}</option>
+                        <option value="{{ admin_role_value }}">{% trans "Admin" %}</option>
                     </select>
-                    <p class="user-mgmt-profile-help">{% trans "Choosing a role sets its exact permissions below and locks the checkboxes. Pick Custom to choose permissions by hand." %}</p>
+                    <p class="user-mgmt-profile-help">{% trans "Choosing a role sets everything that role can do on the platform. Admin gives full access, same as the site owner." %}</p>
                 </div>
-                {% for codename, label in permission_choices %}
-                <label class="user-mgmt-perm-row">
-                    <input type="checkbox" name="permissions" value="{{ codename }}">
-                    <span>{{ label }}</span>
-                </label>
-                {% endfor %}
             </div>
             <div class="user-mgmt-edit-actions">
                 <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm" id="user-permissions-modal-cancel">{% trans "Cancel" %}</button>
@@ -210,6 +203,5 @@
     </div>
 </div>
 
-{{ profile_presets|json_script:"user-mgmt-profile-presets" }}
-<script src="{% static 'js/pages/user-management.js' %}?v=20260918-role-locks-checkboxes"></script>
+<script src="{% static 'js/pages/user-management.js' %}?v=20260918-role-only-admin"></script>
 {% endblock %}

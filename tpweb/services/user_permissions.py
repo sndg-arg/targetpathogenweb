@@ -1,9 +1,10 @@
-"""Toggleable per-user permissions shown on the /users management screen's
-edit-permissions modal -- lets the owner grant/revoke a collaborator's
-individual permissions in-app, instead of sending them to Django admin's
-own user_permissions widget (see tpweb/models/__init__.py's TPUser.Meta for
+"""Named role -> permission bundle presets shown on the /users management
+screen's edit-permissions modal -- lets the owner assign one of a fixed set
+of roles in-app, instead of sending them to Django admin's own
+user_permissions widget (see tpweb/models/__init__.py's TPUser.Meta for
 where these permissions are declared, and tpweb/services/user_approval.py
-for can_upload_genome's automatic baseline grant on approval).
+for can_upload_genome's automatic baseline grant on approval). There is no
+per-permission hand-picking -- a role IS the permission set.
 """
 
 from django.contrib.auth.models import Permission
@@ -21,16 +22,15 @@ PERMISSION_ORDER = [
 ]
 
 # The single source of truth for what each named role grants -- keys match
-# TPUser.Role 1:1 (minus "custom", which has no preset by definition: it's
-# whatever's actually checked). Picking a role in the /users edit-permissions
-# modal applies its exact codenames AND disables the checkboxes (the role
-# IS the permission set, not a suggestion) -- see UserManagementView.post's
+# TPUser.Role 1:1. Picking a role in the /users edit-permissions modal
+# applies its exact codenames -- see UserManagementView.post's
 # update_permissions branch, which re-derives the codenames server-side from
-# the submitted role rather than trusting whatever the client posted for
-# "permissions", so a tampered request can't desync a named role from its
-# real set. Superusers ("Admin: puedo hacer todo") aren't a preset here
-# since they bypass every has_perm() check already and never see this modal
-# (see manage.html: no Edit button on a superuser row).
+# the submitted role rather than trusting anything from the client, so a
+# tampered request can't desync a named role from its real set. Superusers
+# ("Admin: puedo hacer todo") aren't a preset here -- that role is granted
+# as is_superuser instead (see UserManagementView.ADMIN_ROLE_VALUE), since
+# they bypass every has_perm() check already and never see this modal once
+# promoted (manage.html: no Edit button on a superuser row).
 PROFILE_PRESETS = [
     {
         # Self-serve signup baseline (tpweb.services.user_approval.
@@ -105,13 +105,6 @@ def _ordered_permissions():
     return [by_codename[codename] for codename in PERMISSION_ORDER if codename in by_codename]
 
 
-def permission_choices():
-    """[(codename, label), ...] in a stable display order -- the same list
-    for every user regardless of what they're currently granted, used to
-    render the modal's checkboxes once rather than per row."""
-    return [(p.codename, p.name) for p in _ordered_permissions()]
-
-
 def profile_presets():
     """[{key, label, codenames}, ...] for the modal's profile dropdown --
     filters each preset's codenames against PERMISSION_ORDER so a future
@@ -125,15 +118,6 @@ def profile_presets():
         }
         for preset in PROFILE_PRESETS
     ]
-
-
-def granted_codenames(user):
-    """Which of the toggleable permissions this user currently holds."""
-    return set(
-        user.user_permissions.filter(
-            content_type__app_label="tpweb", codename__in=PERMISSION_ORDER
-        ).values_list("codename", flat=True)
-    )
 
 
 def set_user_permissions(user, codenames):
