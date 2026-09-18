@@ -584,6 +584,7 @@ class UserManagementViewTests(TestCase):
             {
                 "user_id": approved.pk,
                 "action": "update_permissions",
+                "role": "custom",
                 "permissions": ["can_view_activity", "can_manage_formulas"],
             },
         )
@@ -592,6 +593,35 @@ class UserManagementViewTests(TestCase):
         codenames = set(approved.user_permissions.values_list("codename", flat=True))
         self.assertEqual(codenames, {"can_view_activity", "can_manage_formulas"})
         self.assertNotIn("can_run_blast", codenames)
+        approved.refresh_from_db()
+        self.assertEqual(approved.role, "custom")
+
+    def test_post_update_permissions_with_a_named_role_ignores_submitted_checkboxes(self):
+        # The server re-derives a named role's codenames itself -- a
+        # tampered/stale "permissions" list in the POST body must not be
+        # able to desync a role from its real permission set.
+        owner = User.objects.create_user(
+            username="mgmt-owner14", password="x", is_staff=True, is_superuser=True
+        )
+        approved = User.objects.create_user(
+            username="mgmt-approved6", password="x", is_active=True, is_staff=True
+        )
+        self.client.force_login(owner)
+
+        self.client.post(
+            reverse("tpwebapp:user_management"),
+            {
+                "user_id": approved.pk,
+                "action": "update_permissions",
+                "role": "student",
+                "permissions": ["can_upload_genome", "can_view_activity"],
+            },
+        )
+
+        approved.refresh_from_db()
+        self.assertEqual(approved.role, "student")
+        codenames = set(approved.user_permissions.values_list("codename", flat=True))
+        self.assertEqual(codenames, {"can_run_blast", "can_use_agent_chat"})
 
     def test_post_update_permissions_sets_role_and_clears_the_collaborator_request(self):
         owner = User.objects.create_user(
@@ -652,6 +682,30 @@ class ProfileViewTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertContains(response, "My profile", status_code=403)
         self.assertContains(response, "Log in", status_code=403)
+
+    def test_capability_list_reflects_actual_permissions_and_never_names_gated_features(self):
+        from django.contrib.auth.models import Permission
+
+        user = User.objects.create_user(
+            username="profile-capabilities", password="x", role=User.Role.BASIC
+        )
+        user.user_permissions.add(
+            Permission.objects.get(content_type__app_label="tpweb", codename="can_run_blast")
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("tpwebapp:profile"))
+        body = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Basic", body)
+        self.assertIn("Run BLAST searches", body)
+        self.assertIn("Upload your own genomes", body)
+        # Never revealed on this page regardless of role or permission
+        # state -- mentioning them at all would tip off that these gated
+        # features exist.
+        self.assertNotIn("Human Targets", body)
+        self.assertNotIn("restricted", body.lower())
 
     def test_logged_in_user_can_view_and_update_profile(self):
         user = User.objects.create_user(

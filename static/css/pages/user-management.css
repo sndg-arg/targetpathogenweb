@@ -278,6 +278,16 @@
     accent-color: var(--tp-color-brand-700);
 }
 
+.user-mgmt-perm-row.is-locked {
+    color: var(--tp-color-text-muted);
+    cursor: not-allowed;
+}
+
+.user-mgmt-perm-row.is-locked input[type="checkbox"] {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 .user-mgmt-edit-actions {
     padding: 10px 16px;
     border-top: 1px solid var(--tp-color-border);

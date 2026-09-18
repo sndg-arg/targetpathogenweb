@@ -16,14 +16,19 @@ from django.db import transaction
 from django.template.loader import render_to_string
 from django.urls import reverse
 
+from tpweb.services.user_permissions import PROFILE_PRESETS
+
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
 # Every self-serve Basic signup gets these automatically -- deliberately a
-# SHORT list. Basic accounts activate instantly with zero human review now
-# (see activate_new_signup below), so nothing that exposes gated content or
-# consumes real resources belongs here by default:
+# SHORT list, derived from PROFILE_PRESETS' "basic" entry (the single
+# source of truth for what that role grants, also used by /users' role
+# selector) rather than a second hand-maintained copy that could drift out
+# of sync with it. Basic accounts activate instantly with zero human review
+# now (see activate_new_signup below), so nothing that exposes gated
+# content or consumes real resources belongs in that preset:
 #   - can_view_restricted_genomes / can_view_human_targets: gate content
 #     that's meant to stay hidden from a rando who just signed up (curated
 #     research genomes, the Human Targets pilot) -- Gates-role-only, granted
@@ -40,12 +45,9 @@ User = get_user_model()
 #
 # Only affects activations from here on -- changing this list doesn't touch
 # any already-active user's existing permissions (see _grant_default_permissions).
-DEFAULT_APPROVED_PERMISSION_CODENAMES = [
-    "can_manage_formulas",
-    "can_run_blast",
-    "can_manage_custom_params",
-    "can_use_agent_chat",
-]
+DEFAULT_APPROVED_PERMISSION_CODENAMES = next(
+    preset["codenames"] for preset in PROFILE_PRESETS if preset["key"] == "basic"
+)
 
 
 def _grant_default_permissions(user):

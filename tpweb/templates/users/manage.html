@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260917-role-field">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260918-role-locks-checkboxes">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -162,21 +162,12 @@
                 <div class="user-mgmt-profile-field tp-ui-field">
                     <label class="tp-ui-field-label" for="user-permissions-role-select">{% trans "Role" %}</label>
                     <select class="form-control tp-ui-control" id="user-permissions-role-select" name="role">
-                        {% for value, label in role_choices %}
-                        <option value="{{ value }}">{{ label }}</option>
-                        {% endfor %}
-                    </select>
-                    <p class="user-mgmt-profile-help">{% trans "The persisted label shown on this person's row -- also clears their pending collaborator-access request once set to anything but Basic." %}</p>
-                </div>
-                <div class="user-mgmt-profile-field tp-ui-field">
-                    <label class="tp-ui-field-label" for="user-permissions-profile-select">{% trans "Profile" %}</label>
-                    <select class="form-control tp-ui-control" id="user-permissions-profile-select">
-                        <option value="">{% trans "Custom (manual selection)" %}</option>
                         {% for preset in profile_presets %}
                         <option value="{{ preset.key }}">{{ preset.label }}</option>
                         {% endfor %}
+                        <option value="custom">{% trans "Custom" %}</option>
                     </select>
-                    <p class="user-mgmt-profile-help">{% trans "Picking a profile fills in the checkboxes below as a starting point -- adjust any of them by hand before saving." %}</p>
+                    <p class="user-mgmt-profile-help">{% trans "Choosing a role sets its exact permissions below and locks the checkboxes. Pick Custom to choose permissions by hand." %}</p>
                 </div>
                 {% for codename, label in permission_choices %}
                 <label class="user-mgmt-perm-row">
@@ -220,5 +211,5 @@
 </div>
 
 {{ profile_presets|json_script:"user-mgmt-profile-presets" }}
-<script src="{% static 'js/pages/user-management.js' %}?v=20260917-role-field"></script>
+<script src="{% static 'js/pages/user-management.js' %}?v=20260918-role-locks-checkboxes"></script>
 {% endblock %}

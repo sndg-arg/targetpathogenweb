@@ -1,17 +1,19 @@
 /* /users "Manage users" screen -- the Edit button on each approved,
  * non-superuser row opens a shared modal (one dialog, reused per row) to
- * toggle that person's individual permissions in-app, instead of sending
- * the owner to Django admin's own user_permissions widget. The trigger
- * carries the user's id/name/currently-granted codenames as data
- * attributes; opening the modal just points the form at that user and
- * checks the right boxes -- the actual grant/revoke happens server-side
- * on submit (see UserManagementView.post, action=update_permissions).
+ * set that person's role and permissions in-app, instead of sending the
+ * owner to Django admin's own user_permissions widget. The trigger carries
+ * the user's id/name/current role/currently-granted codenames as data
+ * attributes; opening the modal points the form at that user and shows
+ * the matching state. The actual save happens server-side on submit (see
+ * UserManagementView.post, action=update_permissions), which re-derives a
+ * named role's codenames itself rather than trusting the submitted
+ * checkboxes -- the disabled state below is a UI nicety, not enforcement.
  *
- * The profile <select> is a pure client-side convenience on top of that
- * same checkbox list (tpweb.services.user_permissions.PROFILE_PRESETS,
- * embedded below as JSON) -- picking one just pre-checks/unchecks boxes,
- * it never becomes part of what's actually submitted. "Advanced" mode is
- * just not picking one, or hand-adjusting after.
+ * The Role <select> drives the checkboxes: picking a named role fills them
+ * to match that role's exact permission set (tpweb.services.
+ * user_permissions.PROFILE_PRESETS, embedded below as JSON) and disables
+ * them, since the role IS the permission set. Picking Custom unlocks them
+ * for hand-picked permissions that don't match any named role.
  *
  * Revoke access goes through its own confirm modal instead of a native
  * confirm() -- those are easy to click through by reflex without reading.
@@ -26,8 +28,8 @@
     var nameEl = document.getElementById("user-permissions-modal-name");
     var userIdInput = document.getElementById("user-permissions-modal-user-id");
     var form = document.getElementById("user-permissions-form");
-    var profileSelect = document.getElementById("user-permissions-profile-select");
     var roleSelect = document.getElementById("user-permissions-role-select");
+    var CUSTOM_ROLE = "custom";
 
     var profilePresets = [];
     var presetsEl = document.getElementById("user-mgmt-profile-presets");
@@ -46,16 +48,7 @@
         return null;
     }
 
-    function matchingPresetKey(checkedCodenames) {
-        var checkedSet = checkedCodenames.slice().sort().join(",");
-        for (var i = 0; i < profilePresets.length; i++) {
-            var presetSet = profilePresets[i].codenames.slice().sort().join(",");
-            if (presetSet === checkedSet) return profilePresets[i].key;
-        }
-        return "";
-    }
-
-    if (modal && panel && form && userIdInput) {
+    if (modal && panel && form && userIdInput && roleSelect) {
         var checkboxes = Array.prototype.slice.call(
             form.querySelectorAll('input[name="permissions"]')
         );
@@ -64,17 +57,25 @@
         );
         var lastTrigger = null;
 
-        function checkedCodenames() {
-            return checkboxes.filter(function (cb) {
-                return cb.checked;
-            }).map(function (cb) {
-                return cb.value;
+        function setCheckboxesLocked(locked) {
+            checkboxes.forEach(function (checkbox) {
+                checkbox.disabled = locked;
+                var row = checkbox.closest(".user-mgmt-perm-row");
+                if (row) row.classList.toggle("is-locked", locked);
             });
         }
 
-        function syncProfileSelectToCheckboxes() {
-            if (!profileSelect) return;
-            profileSelect.value = matchingPresetKey(checkedCodenames());
+        function applyRole(roleKey) {
+            if (roleKey === CUSTOM_ROLE) {
+                setCheckboxesLocked(false);
+                return;
+            }
+            var preset = presetByKey(roleKey);
+            var presetCodenames = preset ? preset.codenames : [];
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = presetCodenames.indexOf(checkbox.value) !== -1;
+            });
+            setCheckboxesLocked(true);
         }
 
         function openModal(trigger) {
@@ -87,11 +88,16 @@
 
             userIdInput.value = trigger.getAttribute("data-user-id") || "";
             if (nameEl) nameEl.textContent = trigger.getAttribute("data-user-name") || "";
-            if (roleSelect) roleSelect.value = trigger.getAttribute("data-role") || "";
             checkboxes.forEach(function (checkbox) {
                 checkbox.checked = granted.indexOf(checkbox.value) !== -1;
             });
-            syncProfileSelectToCheckboxes();
+
+            var currentRole = trigger.getAttribute("data-role") || "";
+            var hasRoleOption = Array.prototype.some.call(roleSelect.options, function (option) {
+                return option.value === currentRole;
+            });
+            roleSelect.value = hasRoleOption ? currentRole : CUSTOM_ROLE;
+            applyRole(roleSelect.value);
 
             modal.classList.add("is-open");
             modal.setAttribute("aria-hidden", "false");
@@ -122,18 +128,8 @@
             if (ev.key === "Escape" && modal.classList.contains("is-open")) closeModal();
         });
 
-        if (profileSelect) {
-            profileSelect.addEventListener("change", function () {
-                var preset = presetByKey(profileSelect.value);
-                var presetCodenames = preset ? preset.codenames : [];
-                checkboxes.forEach(function (checkbox) {
-                    checkbox.checked = presetCodenames.indexOf(checkbox.value) !== -1;
-                });
-            });
-        }
-
-        checkboxes.forEach(function (checkbox) {
-            checkbox.addEventListener("change", syncProfileSelectToCheckboxes);
+        roleSelect.addEventListener("change", function () {
+            applyRole(roleSelect.value);
         });
     }
 

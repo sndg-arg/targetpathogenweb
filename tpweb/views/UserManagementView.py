@@ -52,18 +52,35 @@ class UserManagementView(PermissionLockedMixin, View):
             if user.is_superuser:
                 messages.error(request, "Superusers already have every permission.")
             else:
-                set_user_permissions(user, request.POST.getlist("permissions"))
                 requested_role = request.POST.get("role")
-                if requested_role in User.Role.values:
-                    user.role = requested_role
-                    update_fields = ["role"]
-                    # A superuser assigning a real role is the resolution of
-                    # the collaborator-access request -- clear the flag so
-                    # the "requested" chip doesn't linger once granted.
+                presets_by_key = {preset["key"]: preset for preset in profile_presets()}
+                if requested_role == User.Role.CUSTOM:
+                    # The only case where the submitted checkboxes are
+                    # trusted -- every other role re-derives its codenames
+                    # from presets_by_key server-side instead, so a named
+                    # role can never silently drift from its real set (the
+                    # checkboxes are disabled client-side for exactly this
+                    # reason, but that's a UI nicety, not the enforcement).
+                    set_user_permissions(user, request.POST.getlist("permissions"))
+                elif requested_role in presets_by_key:
+                    set_user_permissions(user, presets_by_key[requested_role]["codenames"])
+                else:
+                    requested_role = None
+
+                if requested_role:
+                    update_fields = []
+                    if user.role != requested_role:
+                        user.role = requested_role
+                        update_fields.append("role")
+                    # A superuser assigning any real role or a hand-picked
+                    # custom set is the resolution of the collaborator-
+                    # access request -- clear the flag so the "requested"
+                    # chip doesn't linger once granted.
                     if requested_role != User.Role.BASIC and user.wants_collaborator_access:
                         user.wants_collaborator_access = False
                         update_fields.append("wants_collaborator_access")
-                    user.save(update_fields=update_fields)
+                    if update_fields:
+                        user.save(update_fields=update_fields)
                 messages.success(request, f"Updated permissions for {user.get_username()}.")
         else:
             reactivate_user(user)
@@ -91,5 +108,4 @@ class UserManagementView(PermissionLockedMixin, View):
             "approved_users": approved_users,
             "permission_choices": permission_choices(),
             "profile_presets": profile_presets(),
-            "role_choices": User.Role.choices,
         }

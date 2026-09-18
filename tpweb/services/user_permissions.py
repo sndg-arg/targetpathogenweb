@@ -20,14 +20,33 @@ PERMISSION_ORDER = [
     "can_view_human_targets",
 ]
 
-# Named presets for the /users edit-permissions modal's profile dropdown --
-# each just pre-fills the checkboxes below with a starting point for that
-# kind of collaborator; the owner can still hand-adjust before Save (that's
-# "advanced" mode, it isn't a separate code path). Superusers ("Admin: puedo
-# hacer todo") aren't a preset here since they bypass every has_perm() check
-# already and never see this modal (see manage.html: no Edit button on a
-# superuser row).
+# The single source of truth for what each named role grants -- keys match
+# TPUser.Role 1:1 (minus "custom", which has no preset by definition: it's
+# whatever's actually checked). Picking a role in the /users edit-permissions
+# modal applies its exact codenames AND disables the checkboxes (the role
+# IS the permission set, not a suggestion) -- see UserManagementView.post's
+# update_permissions branch, which re-derives the codenames server-side from
+# the submitted role rather than trusting whatever the client posted for
+# "permissions", so a tampered request can't desync a named role from its
+# real set. Superusers ("Admin: puedo hacer todo") aren't a preset here
+# since they bypass every has_perm() check already and never see this modal
+# (see manage.html: no Edit button on a superuser row).
 PROFILE_PRESETS = [
+    {
+        # Self-serve signup baseline (tpweb.services.user_approval.
+        # DEFAULT_APPROVED_PERMISSION_CODENAMES derives from this entry) --
+        # deliberately excludes anything that exposes gated content or
+        # queues real pipeline work, since Basic accounts activate with
+        # zero human review.
+        "key": "basic",
+        "label": "Basic",
+        "codenames": [
+            "can_manage_formulas",
+            "can_run_blast",
+            "can_manage_custom_params",
+            "can_use_agent_chat",
+        ],
+    },
     {
         # Bio-side collaborators on the Gates-Targets work itself (About us
         # page) -- everything except curated import (writes raw files into

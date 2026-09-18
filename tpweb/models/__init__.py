@@ -61,14 +61,21 @@ class TPUser(AbstractUser):
 
     class Role(TextChoices):
         # Keys deliberately match tpweb.services.user_permissions.PROFILE_PRESETS'
-        # keys 1:1 -- picking a role in /users applies that preset's permission
-        # bundle and this label together. Admin ("puedo hacer todo") isn't a
-        # choice here -- that's is_superuser, which already bypasses every
+        # keys 1:1 -- picking a role in /users applies that preset's exact
+        # permission bundle and this label together, and the checkboxes
+        # there are disabled while a named role is selected (the role IS
+        # the permission set). Admin ("puedo hacer todo") isn't a choice
+        # here -- that's is_superuser, which already bypasses every
         # has_perm() check regardless of role.
         BASIC = "basic", _("Basic")
         GATES_COLLABORATOR = "gates_collaborator", _("Gates collaborator")
         GATES_CONSUMER = "gates_consumer", _("Gates consumer")
         STUDENT = "student", _("Alumnos / testers")
+        # Not a PROFILE_PRESETS entry -- the escape hatch that unlocks the
+        # checkboxes for hand-picked permissions not matching any named
+        # role, instead of silently drifting a named role's set out of sync
+        # with what's actually granted.
+        CUSTOM = "custom", _("Custom")
 
     #: First and last name do not cover name patterns around the globe
     name = CharField(_("Name of User"), blank=True, max_length=255)

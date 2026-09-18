@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260904-slim">
-    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20260904-fused1">
+    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20260918-capabilities">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -65,6 +65,39 @@
                     </dd>
                 </div>
             </dl>
+        </section>
+
+        <section class="profile-section">
+            <div class="section-head tp-ui-panel-head">
+                <div>
+                    <p class="tp-ui-field-label">{% trans "Access" %}</p>
+                    <h2 class="profile-section-title">{% trans "What you can do" %}</h2>
+                </div>
+                <span class="tp-chip tp-chip--sm">{{ role_display }}</span>
+            </div>
+            <ul class="profile-capability-list">
+                <li class="profile-capability{% if not can_upload_genome %} profile-capability--off{% endif %}">
+                    <span class="profile-capability-icon" aria-hidden="true">{% if can_upload_genome %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
+                    <span>{% trans "Upload your own genomes" %}</span>
+                </li>
+                <li class="profile-capability{% if not can_run_blast %} profile-capability--off{% endif %}">
+                    <span class="profile-capability-icon" aria-hidden="true">{% if can_run_blast %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
+                    <span>{% trans "Run BLAST searches" %}</span>
+                </li>
+                <li class="profile-capability{% if not can_manage_formulas %} profile-capability--off{% endif %}">
+                    <span class="profile-capability-icon" aria-hidden="true">{% if can_manage_formulas %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
+                    <span>{% trans "Create and edit scoring formulas" %}</span>
+                </li>
+                <li class="profile-capability{% if not can_manage_custom_params %} profile-capability--off{% endif %}">
+                    <span class="profile-capability-icon" aria-hidden="true">{% if can_manage_custom_params %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
+                    <span>{% trans "Create and edit custom evidence parameters" %}</span>
+                </li>
+                <li class="profile-capability{% if not can_use_agent_chat %} profile-capability--off{% endif %}">
+                    <span class="profile-capability-icon" aria-hidden="true">{% if can_use_agent_chat %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
+                    <span>{% trans "Use the AI assistant" %}{% if chat_quota_label %} <span class="profile-capability-meta">({{ chat_quota_label }})</span>{% endif %}</span>
+                </li>
+            </ul>
+            <p class="profile-capability-note">{% trans "Want more access? Ask the site owner." %}</p>
         </section>
 
     </div>
