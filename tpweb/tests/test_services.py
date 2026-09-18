@@ -1895,13 +1895,13 @@ class UserPermissionProfilesTests(SimpleTestCase):
         for preset in presets:
             self.assertTrue(set(preset["codenames"]).issubset(valid_codenames))
 
-    def test_student_profile_excludes_upload_and_shared_editing_permissions(self):
-        student = next(p for p in profile_presets() if p["key"] == "student")
-        self.assertNotIn("can_upload_genome", student["codenames"])
-        self.assertNotIn("can_manage_formulas", student["codenames"])
-        self.assertNotIn("can_manage_custom_params", student["codenames"])
-        self.assertIn("can_run_blast", student["codenames"])
-        self.assertIn("can_use_agent_chat", student["codenames"])
+    def test_basic_profile_excludes_upload_and_gated_content_permissions(self):
+        basic = next(p for p in profile_presets() if p["key"] == "basic")
+        self.assertNotIn("can_upload_genome", basic["codenames"])
+        self.assertNotIn("can_view_restricted_genomes", basic["codenames"])
+        self.assertNotIn("can_view_human_targets", basic["codenames"])
+        self.assertIn("can_run_blast", basic["codenames"])
+        self.assertIn("can_use_agent_chat", basic["codenames"])
 
     def test_gates_tier_and_up_can_view_restricted_genomes(self):
         presets_by_key = {p["key"]: p for p in profile_presets()}
@@ -1910,7 +1910,6 @@ class UserPermissionProfilesTests(SimpleTestCase):
             "can_view_restricted_genomes", presets_by_key["gates_collaborator"]["codenames"]
         )
         self.assertNotIn("can_view_restricted_genomes", presets_by_key["basic"]["codenames"])
-        self.assertNotIn("can_view_restricted_genomes", presets_by_key["student"]["codenames"])
 
 
 class AgentChatSessionsServiceTests(TestCase):

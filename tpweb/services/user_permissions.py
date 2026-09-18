@@ -80,18 +80,6 @@ PROFILE_PRESETS = [
             "can_view_restricted_genomes",
         ],
     },
-    {
-        # A shared classroom account for a TP: no upload (avoids every
-        # student colliding in the same workspace) and no formulas/custom
-        # params (one student editing a shared formula would silently
-        # break the assignment for the whole class).
-        "key": "student",
-        "label": "Alumnos / testers",
-        "codenames": [
-            "can_run_blast",
-            "can_use_agent_chat",
-        ],
-    },
 ]
 
 

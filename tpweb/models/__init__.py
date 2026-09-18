@@ -72,7 +72,6 @@ class TPUser(AbstractUser):
         BASIC = "basic", _("Basic")
         GATES_COLLABORATOR = "gates_collaborator", _("Gates collaborator")
         GATES_CONSUMER = "gates_consumer", _("Gates consumer")
-        STUDENT = "student", _("Alumnos / testers")
 
     #: First and last name do not cover name patterns around the globe
     name = CharField(_("Name of User"), blank=True, max_length=255)

@@ -19,7 +19,6 @@ ROLLING_WINDOW = timedelta(days=1)
 # design constraint -- adjust freely once real usage data exists.
 ROLE_DAILY_QUOTAS = {
     TPUser.Role.BASIC: 15,
-    TPUser.Role.STUDENT: 15,
     TPUser.Role.GATES_CONSUMER: None,
     TPUser.Role.GATES_COLLABORATOR: None,
 }

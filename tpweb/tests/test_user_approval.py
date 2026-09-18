@@ -388,34 +388,25 @@ class UserManagementViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "mgmt-revoked")
 
-    def test_approved_row_carries_granted_permissions_for_the_edit_modal(self):
-        from django.contrib.auth.models import Permission
-
+    def test_approved_row_carries_its_current_role_for_the_edit_modal(self):
         owner = User.objects.create_user(
             username="mgmt-owner9", password="x", is_staff=True, is_superuser=True
         )
-        approved = User.objects.create_user(
-            username="mgmt-approved4", password="x", is_active=True, is_staff=True
-        )
-        approved.user_permissions.add(
-            Permission.objects.get(content_type__app_label="tpweb", codename="can_run_blast")
+        User.objects.create_user(
+            username="mgmt-approved4",
+            password="x",
+            is_active=True,
+            is_staff=True,
+            role=User.Role.GATES_CONSUMER,
         )
         self.client.force_login(owner)
 
         response = self.client.get(reverse("tpwebapp:user_management"))
 
         self.assertEqual(response.status_code, 200)
-        # Django auto-escapes the JSON's double quotes to &quot; in the
-        # rendered attribute -- browsers decode that back to a literal
-        # quote when JS reads the attribute, so this is still valid JSON
-        # by the time user-management.js calls JSON.parse() on it.
-        self.assertContains(response, "data-granted='[&quot;can_run_blast&quot;]'")
-        # The full toggleable set is offered in the modal's checkbox list,
-        # not just whatever this one user happens to have.
-        self.assertContains(response, "can_manage_formulas")
-        self.assertContains(response, "can_use_agent_chat")
+        self.assertContains(response, 'data-role="gates_consumer"')
 
-    def test_page_offers_profile_presets_role_select_and_a_revoke_confirmation_trigger(self):
+    def test_page_offers_a_role_select_with_admin_and_a_revoke_confirmation_trigger(self):
         owner = User.objects.create_user(
             username="mgmt-owner11", password="x", is_staff=True, is_superuser=True
         )
@@ -428,13 +419,14 @@ class UserManagementViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         body = response.content.decode()
-        # Profile presets ship as a json_script tag for the modal's <select>
-        # to read, not baked into inline JS.
-        self.assertIn('id="user-mgmt-profile-presets"', body)
-        self.assertIn("Gates collaborator", body)
-        self.assertIn("Alumnos / testers", body)
-        # The persisted-role select is separate from the profile-fill preset.
         self.assertIn('id="user-permissions-role-select"', body)
+        self.assertIn("Gates collaborator", body)
+        self.assertIn("Gates consumer", body)
+        # There's no hand-picked permission list anymore, just the roles
+        # (including Admin, which grants is_superuser -- see
+        # UserManagementView.ADMIN_ROLE_VALUE).
+        self.assertIn('<option value="admin">', body)
+        self.assertNotIn("Custom", body)
         self.assertIn(f'data-role="{approved.role}"', body)
         # Revoke is a modal trigger now, not a form with a native confirm().
         self.assertIn("user-mgmt-revoke-trigger", body)
@@ -621,15 +613,24 @@ class UserManagementViewTests(TestCase):
             {
                 "user_id": approved.pk,
                 "action": "update_permissions",
-                "role": "student",
+                "role": "gates_consumer",
                 "permissions": ["can_upload_genome", "can_view_activity"],
             },
         )
 
         approved.refresh_from_db()
-        self.assertEqual(approved.role, "student")
+        self.assertEqual(approved.role, "gates_consumer")
         codenames = set(approved.user_permissions.values_list("codename", flat=True))
-        self.assertEqual(codenames, {"can_run_blast", "can_use_agent_chat"})
+        self.assertEqual(
+            codenames,
+            {
+                "can_manage_formulas",
+                "can_run_blast",
+                "can_manage_custom_params",
+                "can_use_agent_chat",
+                "can_view_restricted_genomes",
+            },
+        )
 
     def test_post_update_permissions_sets_role_and_clears_the_collaborator_request(self):
         owner = User.objects.create_user(
