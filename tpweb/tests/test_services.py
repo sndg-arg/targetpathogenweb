@@ -1903,6 +1903,15 @@ class UserPermissionProfilesTests(SimpleTestCase):
         self.assertIn("can_run_blast", student["codenames"])
         self.assertIn("can_use_agent_chat", student["codenames"])
 
+    def test_gates_tier_and_up_can_view_restricted_genomes(self):
+        presets_by_key = {p["key"]: p for p in profile_presets()}
+        self.assertIn("can_view_restricted_genomes", presets_by_key["gates_consumer"]["codenames"])
+        self.assertIn(
+            "can_view_restricted_genomes", presets_by_key["gates_collaborator"]["codenames"]
+        )
+        self.assertNotIn("can_view_restricted_genomes", presets_by_key["basic"]["codenames"])
+        self.assertNotIn("can_view_restricted_genomes", presets_by_key["student"]["codenames"])
+
 
 class AgentChatSessionsServiceTests(TestCase):
     """resolve_active_conversation's idle-gap/force-new/explicit-id branches,
