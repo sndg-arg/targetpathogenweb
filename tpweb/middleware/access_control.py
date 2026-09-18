@@ -1,6 +1,6 @@
 from django.conf import settings
-from django.contrib.auth.views import redirect_to_login
 from django.http import HttpResponseForbidden
+from django.shortcuts import render
 from django.urls import Resolver404, resolve
 
 from tpweb.middleware.observability import _first_forwarded_ip
@@ -61,18 +61,51 @@ PUBLIC_URL_NAMES = frozenset(
 )
 
 
+# Endpoints only ever called via fetch() (the AI chat drawer), where the
+# client always calls response.json() on the response regardless of status.
+# A rendered HTML page here would break that parsing, so these bypass this
+# middleware's page-rendering and reach the view, whose own
+# JsonPermissionRequiredMixin (tpweb/views/mixins.py) returns 401 JSON for
+# an anonymous caller instead.
+API_URL_NAMES = frozenset({"agent_chat", "agent_chat_sessions", "agent_chat_session_detail"})
+
+# Friendly page titles for the "sign in to access this" panel
+# (components/access_locked.html) -- keyed by url_name so a single place
+# here can label every gated full-page route without touching each view.
+# Anything not listed falls back to a generic title.
+GATED_PAGE_TITLES = {
+    "genome_upload": "Add your own data",
+    "data_file_upload": "Add your own data",
+    "protein_blast": "BLAST search",
+    "form": "BLAST search",
+    "blast_res": "BLAST search",
+    "formula_form": "Scoring formulas",
+    "delete_formula": "Scoring formulas",
+    "customparam": "Custom evidence parameters",
+    "activity_dashboard": "Activity",
+    "user_management": "Manage users",
+    "profile": "My profile",
+    "human_protein_list": "Human Targets",
+    "human_protein": "Human Targets",
+}
+
+LOGIN_REQUIRED_MESSAGE = (
+    "Sign in to access this page. You can still browse genomes, proteins, "
+    "and structures without an account."
+)
+
+
 def _is_exempt_path(path):
     if path.startswith(settings.STATIC_URL):
         return True
     return path.startswith(EXEMPT_PATH_PREFIXES)
 
 
-def _is_public_view(path):
+def _resolved_url_name(path):
     try:
-        match = resolve(path)
+        return resolve(path).url_name
     except Resolver404:
-        return False
-    return match.url_name in PUBLIC_URL_NAMES
+        return None
 
 
 def _resolve_client_ip(request):
@@ -92,24 +125,39 @@ class LoginRequiredMiddleware:
     New views are private unless explicitly added to EXEMPT_PATH_PREFIXES or
     PUBLIC_URL_NAMES -- safer than decorating each view individually, which
     is easy to forget. PUBLIC_URL_NAMES is the "Visitor" browsing allow-list
-    (genomes/proteins/structures/etc.); every route that must stay gated
-    (upload, formulas, custom params, BLAST, the AI assistant, /users,
-    /activity, /profile) keeps its own view-level guard regardless of this
-    middleware, so a mistake here degrades to "a page is visible that
-    shouldn't be" rather than "a mutation endpoint is open to anyone."
+    (genomes/proteins/structures/etc.).
+
+    An anonymous hit on anything else renders components/access_locked.html
+    right here -- a plain redirect_to_login left someone landing on the
+    upload page with no explanation of why they were bounced or what they
+    could still do instead. API_URL_NAMES (fetch-only JSON endpoints) is the
+    one carve-out: those pass through to the view's own
+    JsonPermissionRequiredMixin so a fetch() caller gets JSON, not HTML.
+    Every gated view still keeps its own view-level guard too (has_perm
+    checks, PermissionLockedMixin) for the authenticated-but-unauthorized
+    case, which this middleware never touches -- so a mistake here degrades
+    to "the wrong locked-page copy shows" rather than "a mutation endpoint
+    is open to anyone."
     """
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if (
-            request.user.is_authenticated
-            or _is_exempt_path(request.path)
-            or _is_public_view(request.path)
-        ):
+        if request.user.is_authenticated or _is_exempt_path(request.path):
             return self.get_response(request)
-        return redirect_to_login(request.get_full_path(), login_url=settings.LOGIN_URL)
+        url_name = _resolved_url_name(request.path)
+        if url_name in PUBLIC_URL_NAMES or url_name in API_URL_NAMES:
+            return self.get_response(request)
+        return render(
+            request,
+            "components/access_locked.html",
+            {
+                "page_title": GATED_PAGE_TITLES.get(url_name, "Sign in required"),
+                "locked_message": LOGIN_REQUIRED_MESSAGE,
+            },
+            status=403,
+        )
 
 
 class BlockedIPMiddleware:

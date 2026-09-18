@@ -357,10 +357,12 @@ class SocialSignupAdapterTests(TestCase):
 
 
 class UserManagementViewTests(TestCase):
-    def test_anonymous_user_is_redirected_to_login(self):
+    def test_anonymous_user_sees_the_locked_page_with_a_login_cta(self):
         response = self.client.get(reverse("tpwebapp:user_management"))
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, "Manage users", status_code=403)
+        self.assertContains(response, "Log in", status_code=403)
 
     def test_staff_non_superuser_is_forbidden(self):
         staff_user = User.objects.create_user(username="mgmt-staff", password="x", is_staff=True)
@@ -640,10 +642,12 @@ class UserManagementViewTests(TestCase):
 
 
 class ProfileViewTests(TestCase):
-    def test_anonymous_user_is_redirected_to_login(self):
+    def test_anonymous_user_sees_the_locked_page_with_a_login_cta(self):
         response = self.client.get(reverse("tpwebapp:profile"))
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, "My profile", status_code=403)
+        self.assertContains(response, "Log in", status_code=403)
 
     def test_logged_in_user_can_view_and_update_profile(self):
         user = User.objects.create_user(

@@ -26,12 +26,13 @@ class BlockedIPMiddlewareTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
-    def test_unblocked_anonymous_request_still_gets_redirected_to_login(self):
+    def test_unblocked_anonymous_request_still_hits_the_login_wall(self):
         response = self.client.get(
             reverse("tpwebapp:activity_dashboard"), REMOTE_ADDR="203.0.113.55"
         )
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, "Log in", status_code=403)
 
     def test_blocked_ip_gets_403_even_on_exempt_paths(self):
         block_ip("203.0.113.51")
@@ -113,7 +114,9 @@ class AutoBlockBotTests(TestCase):
             HTTP_USER_AGENT="Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
         )
 
-        self.assertEqual(response.status_code, 302)
+        # Not auto-blocked, but still hits the ordinary login wall for a
+        # gated route (the locked page, not a redirect).
+        self.assertEqual(response.status_code, 403)
         self.assertFalse(BlockedIP.objects.filter(ip="203.0.113.92").exists())
 
     def test_http_client_is_not_auto_blocked(self):
@@ -123,7 +126,7 @@ class AutoBlockBotTests(TestCase):
             HTTP_USER_AGENT="python-requests/2.31",
         )
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 403)
         self.assertFalse(BlockedIP.objects.filter(ip="203.0.113.93").exists())
 
     def test_bot_requesting_only_robots_txt_is_left_alone(self):
@@ -154,9 +157,11 @@ class AutoBlockBotTests(TestCase):
 
 class VisitorBrowsingTests(TestCase):
     """LoginRequiredMiddleware's PUBLIC_URL_NAMES allow-list -- anonymous
-    "Visitor" browsing works for the listed routes, and everything else
-    (including routes that share a URL prefix with a public one, like
-    genome/<g> vs genome/<g>/proteins/blast) still redirects to login."""
+    "Visitor" browsing works for the listed routes. Everything else renders
+    the access-locked page with a login CTA right from the middleware
+    (components/access_locked.html, GATED_PAGE_TITLES/LOGIN_REQUIRED_MESSAGE)
+    instead of a bare redirect -- except API_URL_NAMES (fetch-only JSON
+    endpoints), which pass through to the view's own JSON-based guard."""
 
     def setUp(self):
         Biodatabase.objects.create(name="VISITORTEST", description="Genome workspace")
@@ -175,7 +180,7 @@ class VisitorBrowsingTests(TestCase):
                 response = self.client.get(reverse(f"tpwebapp:{name}", kwargs=kwargs))
                 self.assertEqual(response.status_code, 200)
 
-    def test_anonymous_is_still_redirected_from_gated_routes_under_the_same_genome_prefix(self):
+    def test_anonymous_sees_the_locked_page_for_gated_routes_under_the_same_genome_prefix(self):
         # The exact regression this test guards against: genome/<g> being
         # public must not accidentally make genome/<g>/proteins/blast,
         # genome/<g>/formula, or genome/<g>/custom-evidence public too via
@@ -187,16 +192,25 @@ class VisitorBrowsingTests(TestCase):
         ]:
             with self.subTest(name=name):
                 response = self.client.get(reverse(f"tpwebapp:{name}", kwargs=kwargs))
-                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response.status_code, 403)
+                self.assertContains(response, "Log in", status_code=403)
 
-    def test_anonymous_is_still_redirected_from_upload_activity_users_profile_and_chat(self):
+    def test_anonymous_sees_the_locked_page_for_upload_activity_users_and_profile(self):
         for name in ["genome_upload", "activity_dashboard", "user_management", "profile"]:
             with self.subTest(name=name):
                 response = self.client.get(reverse(f"tpwebapp:{name}"))
-                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response.status_code, 403)
+                self.assertContains(response, "Log in", status_code=403)
+                self.assertContains(
+                    response, "browse genomes, proteins, and structures", status_code=403
+                )
 
+    def test_agent_chat_bypasses_the_locked_page_and_gets_json_instead(self):
+        # API_URL_NAMES carve-out -- a fetch() caller needs JSON, not HTML.
         response = self.client.post(reverse("tpwebapp:agent_chat"), content_type="application/json")
-        self.assertEqual(response.status_code, 302)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"], "login_required")
 
 
 class ProteinListPresetGuardTests(TestCase):

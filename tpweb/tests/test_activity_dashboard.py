@@ -689,10 +689,11 @@ class ActivityDashboardViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
-    def test_anonymous_user_is_redirected_to_login(self):
+    def test_anonymous_user_sees_the_locked_page_with_a_login_cta(self):
         response = self.client.get(reverse("tpwebapp:activity_dashboard"))
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, "Log in", status_code=403)
 
     def test_user_with_explicit_permission_can_view_dashboard(self):
         from django.contrib.auth.models import Permission

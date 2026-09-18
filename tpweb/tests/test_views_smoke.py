@@ -280,8 +280,11 @@ class DownloadViewTests(LoggedInTestCase):
 
 class FormViewAuthTests(TestCase):
     def test_blast_form_requires_login(self):
+        # LoginRequiredMiddleware renders the access-locked page for an
+        # anonymous hit on a gated route now, not a bare redirect.
         response = self.client.get(reverse("tpwebapp:form"))
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, "Log in", status_code=403)
 
     def test_blast_form_renders_for_authenticated_user_with_no_genomes(self):
         user = get_user_model().objects.create_user(username="blast-user", password="test-pass")
@@ -402,24 +405,29 @@ class DeleteFormulaViewTests(LoggedInTestCase):
 
 
 class LoginRequiredRedirectTests(TestCase):
-    """These views are gated by LoginRequiredMixin -- an anonymous GET must
-    redirect to login rather than reach any DB/fixture-dependent code."""
+    """These routes are gated (not in access_control.PUBLIC_URL_NAMES) --
+    an anonymous GET must never reach any DB/fixture-dependent view code.
+    LoginRequiredMiddleware renders the access-locked page for these
+    itself, before the view runs, so this also never reaches Django's own
+    login-redirect machinery."""
 
     def test_blast_result_view_requires_login(self):
         response = self.client.get(
             reverse("tpwebapp:blast_res", kwargs={"result_id": "not-a-uuid"})
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 403)
 
     def test_protein_blast_view_requires_login(self):
         response = self.client.get(
             reverse("tpwebapp:protein_blast", kwargs={"genome": "NZ_AP023069.1"})
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 403)
 
     def test_genome_upload_view_requires_login(self):
         response = self.client.get(reverse("tpwebapp:genome_upload"))
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, "Add your own data", status_code=403)
+        self.assertContains(response, "Log in", status_code=403)
 
 
 class ProteinBlastViewTests(TestCase):
@@ -556,7 +564,7 @@ class CustomParamViewTests(TestCase):
         response = self.client.get(
             reverse("tpwebapp:customparam", kwargs={"genome": "NZ_AP023069.1"})
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 403)
 
 
 class CustomParamViewRenderTests(TestCase):
@@ -634,17 +642,17 @@ class AgentChatViewTests(LoggedInTestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_anonymous_user_is_denied_not_served(self):
-        # agent_chat isn't in LoginRequiredMiddleware's PUBLIC_URL_NAMES, so
-        # an anonymous request never reaches the view at all -- the
-        # middleware redirects to login first, same as any other gated
-        # route. (JsonPermissionRequiredMixin's own anonymous-gets-401-JSON
-        # branch still matters for a direct API call in front of a
-        # middleware misconfiguration, but isn't what a normal request hits.)
+        # agent_chat is in LoginRequiredMiddleware's API_URL_NAMES -- unlike
+        # every other gated route, this one bypasses the middleware's own
+        # HTML locked-page rendering (it's a fetch()-only JSON endpoint, and
+        # the drawer always calls response.json() regardless of status), so
+        # it's JsonPermissionRequiredMixin that handles anonymous here.
         self.client.logout()
 
         response = self.client.get(reverse("tpwebapp:agent_chat"))
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"], "login_required")
 
 
 class AgentChatSessionsViewTests(LoggedInTestCase):

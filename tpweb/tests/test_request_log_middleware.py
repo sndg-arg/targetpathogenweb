@@ -19,13 +19,13 @@ class RequestLogMiddlewareTests(TestCase):
         self.assertEqual(row.path, reverse("tpwebapp:about_us"))
         self.assertEqual(row.status_code, 200)
 
-    def test_anonymous_redirect_is_still_logged_without_a_user(self):
+    def test_anonymous_hit_on_a_gated_route_is_still_logged_without_a_user(self):
         self.client.get(reverse("tpwebapp:genome_upload"), REMOTE_ADDR="203.0.113.9")
 
         row = RequestLog.objects.latest("created_at")
         self.assertIsNone(row.user)
         self.assertEqual(row.ip, "203.0.113.9")
-        self.assertEqual(row.status_code, 302)
+        self.assertEqual(row.status_code, 403)
 
     def test_health_check_is_not_logged(self):
         before = RequestLog.objects.count()

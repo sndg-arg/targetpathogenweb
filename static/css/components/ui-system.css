@@ -477,6 +477,14 @@
     line-height: 1.5;
 }
 
+.access-locked-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
 .tp-select {
     position: relative;
     width: 100%;

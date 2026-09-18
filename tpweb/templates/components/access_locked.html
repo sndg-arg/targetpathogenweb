@@ -8,9 +8,20 @@
         <span class="access-locked-eyebrow">{% trans "Restricted" %}</span>
         <h1>{{ page_title }}</h1>
         <p>{{ locked_message }}</p>
-        <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'tpwebapp:index' %}">
-            <span>{% trans "Back to home" %}</span>
-        </a>
+        <div class="access-locked-actions">
+            {% if user.is_authenticated %}
+                <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'tpwebapp:index' %}">
+                    <span>{% trans "Back to home" %}</span>
+                </a>
+            {% else %}
+                <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'account_login' %}?next={{ request.path|urlencode }}">
+                    <span>{% trans "Log in" %}</span>
+                </a>
+                <a class="btn tp-btn tp-btn--outline" href="{% url 'tpwebapp:genomes_list' %}">
+                    <span>{% trans "Browse genomes without an account" %}</span>
+                </a>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}

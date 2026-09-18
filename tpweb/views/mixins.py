@@ -12,10 +12,13 @@ class PermissionLockedMixin(LoginRequiredMixin, UserPassesTestMixin):
     Django's bare 403 error page, or a page that silently renders with
     unrelated content while the one thing you came for is missing, every
     gated view shows the same unmissable "you don't have access to
-    <page>" panel (components/access_locked.html). Anonymous users still
-    get the normal login redirect (LoginRequiredMixin runs first, so
-    test_func never even sees them); only an authenticated-but-unauthorized
-    user reaches this.
+    <page>" panel (components/access_locked.html), with the page's own
+    copy either way. In normal traffic an anonymous hit never even reaches
+    this -- tpweb.middleware.access_control.LoginRequiredMiddleware
+    already renders this same template for any non-public route before
+    the view runs -- but this branch still renders it too (with a login
+    CTA instead of "back to home") as a defensive fallback and for tests
+    that call the view directly.
 
     Subclasses set `page_title` (shown as the heading) and, optionally,
     `locked_message` (defaults to the generic "ask the owner" copy), and
@@ -27,8 +30,6 @@ class PermissionLockedMixin(LoginRequiredMixin, UserPassesTestMixin):
     locked_message = "Ask the site owner to grant access."
 
     def handle_no_permission(self):
-        if not self.request.user.is_authenticated:
-            return super().handle_no_permission()
         return render(
             self.request,
             "components/access_locked.html",
