@@ -131,7 +131,13 @@
     flex-direction: column;
     gap: 2px;
     min-width: 0;
-    overflow-wrap: break-word;
+}
+
+.user-mgmt-person-name,
+.user-mgmt-person-email {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .user-mgmt-person-name {

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260918-role-only-admin">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260918-ellipsis-email">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -47,8 +47,8 @@
             {% for pending_user in pending_users %}
             <div class="user-mgmt-list-row" role="row">
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--person" role="cell">
-                    <span class="user-mgmt-person-name">{{ pending_user.name|default:pending_user.get_username }}</span>
-                    <span class="user-mgmt-person-email">{{ pending_user.email|default:"—" }}</span>
+                    <span class="user-mgmt-person-name" title="{{ pending_user.name|default:pending_user.get_username }}">{{ pending_user.name|default:pending_user.get_username }}</span>
+                    <span class="user-mgmt-person-email" title="{{ pending_user.email }}">{{ pending_user.email|default:"—" }}</span>
                 </div>
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--meta" role="cell" data-label="{% trans 'Signed up' %}">
                     {{ pending_user.date_joined|date:"Y-m-d H:i" }}
@@ -95,8 +95,8 @@
             {% for approved_user in approved_users %}
             <div class="user-mgmt-list-row" role="row">
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--person" role="cell">
-                    <span class="user-mgmt-person-name">{{ approved_user.name|default:approved_user.get_username }}</span>
-                    <span class="user-mgmt-person-email">{{ approved_user.email|default:"—" }}</span>
+                    <span class="user-mgmt-person-name" title="{{ approved_user.name|default:approved_user.get_username }}">{{ approved_user.name|default:approved_user.get_username }}</span>
+                    <span class="user-mgmt-person-email" title="{{ approved_user.email }}">{{ approved_user.email|default:"—" }}</span>
                 </div>
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--meta" role="cell" data-label="{% trans 'Signed up' %}">
                     {{ approved_user.date_joined|date:"Y-m-d H:i" }}
