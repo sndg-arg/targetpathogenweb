@@ -54,7 +54,7 @@ class UserSignupForm(SignupForm):
         required=False,
         help_text=_(
             "Tu cuenta ya queda activa. Marcá esto solo si trabajás en el desarrollo del "
-            "proyecto (subir genomas, editar fórmulas, etc.) — te vamos a contactar para "
+            "proyecto (subir genomas, editar fórmulas, etc.), te vamos a contactar para "
             "asignarte el rol."
         ),
     )
