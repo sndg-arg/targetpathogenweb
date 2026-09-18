@@ -123,6 +123,13 @@
     list-style: none;
 }
 
+.auth-approval-note {
+    margin: 4px 0 14px;
+    color: var(--tp-color-text-muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
 /* ── Actions ── */
 
 .auth-submit button,

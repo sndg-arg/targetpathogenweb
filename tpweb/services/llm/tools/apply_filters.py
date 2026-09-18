@@ -159,7 +159,7 @@ def build_apply_filters_entry(request, user):
             return "All filters cleared. The protein list currently shows every protein in this genome."
 
         grouped = grouped_selected_parameters(selected_parameters, humanize=True)
-        summary = "; ".join(f"{name}: {values}" for name, values in grouped.items())
+        summary = "; ".join(f"{name}: {values}" for name, values in grouped)
         return f"Filters applied. Active filters: {summary}"
 
     return ToolEntry(definition=APPLY_FILTERS, run=run)

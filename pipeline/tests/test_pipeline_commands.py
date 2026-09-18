@@ -55,6 +55,27 @@ class HostBindPathTests(unittest.TestCase):
             )
         self.assertEqual(result, "/somewhere/else/foo")
 
+    def test_exact_container_base_match_returns_host_base_unchanged(self):
+        with patch.dict(os.environ, {"TPW_DATA_DIR": "/mnt/host/data"}, clear=True):
+            result = pc._host_bind_path(
+                "/app/targetpathogenweb/data",
+                env_name="TPW_DATA_DIR",
+                container_base="/app/targetpathogenweb/data",
+            )
+        self.assertEqual(result, "/mnt/host/data")
+
+    def test_relative_host_base_resolved_against_cwd_env_var(self):
+        with patch.dict(
+            os.environ, {"TPW_DATA_DIR": "relhost", "CWD": "/home/user/project"}, clear=True
+        ):
+            result = pc._host_bind_path(
+                "/app/targetpathogenweb/data/ABC/genome1",
+                env_name="TPW_DATA_DIR",
+                container_base="/app/targetpathogenweb/data",
+            )
+        expected_host_base = os.path.abspath(os.path.join("/home/user/project", "relhost"))
+        self.assertEqual(result, os.path.join(expected_host_base, "ABC", "genome1"))
+
 
 class GenomeDownloadCommandTests(unittest.TestCase):
     def test_download_gbk_cmd_without_target_accession(self):
@@ -165,6 +186,15 @@ class SimpleManageCommandBuildersTests(unittest.TestCase):
         cmd = pc.alphafold_cmd("locus_a P12345 extra_ignored", "/app/tp/data/ABC/g1", "g1")
         self.assertIn("-o /app/tp/data/ABC/g1/alphafold", cmd)
         self.assertIn("-parsl locus_a -ltag P12345", cmd)
+
+    def test_alphafold_cmd_suppresses_p2rank_and_fpocket(self):
+        # Stage 15 is download-only (see docs/DATA_SOURCES.md) -- P2RANK/FPocket
+        # are stage 17's job. Without -np/-nf, TP.alphafold also runs both of
+        # those itself, redundant with stage 17 and heavy enough to violate the
+        # nodo0 no-local-compute policy.
+        cmd = pc.alphafold_cmd("locus_a P12345", "/app/tp/data/ABC/g1", "g1")
+        self.assertIn("-np", cmd.split())
+        self.assertIn("-nf", cmd.split())
 
     def test_colabfold_cmd(self):
         cmd = pc.colabfold_cmd("/app/tp", "NZ_AP023069.1")

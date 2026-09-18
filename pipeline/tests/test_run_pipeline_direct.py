@@ -5,6 +5,8 @@ despite being the part of the app most likely to silently drop a failed
 stage as a success (or vice versa) if the event bookkeeping regresses.
 """
 
+import configparser
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -121,6 +123,43 @@ class ComputeFolderPathTests(unittest.TestCase):
         # "NZ_AP023069.1" is 13 chars; floor(13/2-1):floor(13/2+2) == [5:8] == "023".
         folder_path = rpd._compute_folder_path("/app/tp", "NZ_AP023069.1")
         self.assertEqual(folder_path, "/app/tp/data/023/NZ_AP023069.1")
+
+
+class ResolveWorkingDirTests(unittest.TestCase):
+    """The queue worker deliberately launches this script with cwd set to
+    pipeline/ itself (_build_pipeline_runtime in tpweb/services/genome_uploads.py),
+    so os.getcwd() is never a safe fallback here -- it silently produced
+    .../pipeline/manage.py instead of .../manage.py in production
+    (custom_gbk failed (rc=2): can't open file '.../pipeline/manage.py')."""
+
+    def setUp(self):
+        self._env_patch = patch.dict(os.environ, {}, clear=False)
+        self._env_patch.start()
+        os.environ.pop("TPW_PIPELINE_WORKING_DIR", None)
+        self.addCleanup(self._env_patch.stop)
+
+    def test_env_var_wins_over_everything(self):
+        os.environ["TPW_PIPELINE_WORKING_DIR"] = "/from/env"
+        cfg = configparser.ConfigParser()
+        cfg.read_string("[GENERAL]\nWorkingDir=/from/ini\n")
+
+        self.assertEqual(rpd._resolve_working_dir(cfg), "/from/env")
+
+    def test_ini_wins_when_env_var_missing(self):
+        cfg = configparser.ConfigParser()
+        cfg.read_string("[GENERAL]\nWorkingDir=/from/ini\n")
+
+        self.assertEqual(rpd._resolve_working_dir(cfg), "/from/ini")
+
+    def test_falls_back_to_repo_root_not_cwd(self):
+        # An empty config (e.g. settings.ini has only [SSH], no [GENERAL])
+        # must still resolve to the actual project root -- the parent of
+        # pipeline/ -- regardless of the process's current working directory.
+        cfg = configparser.ConfigParser()
+
+        resolved = rpd._resolve_working_dir(cfg)
+
+        self.assertEqual(Path(resolved), _PIPELINE_DIR.parent)
 
 
 if __name__ == "__main__":

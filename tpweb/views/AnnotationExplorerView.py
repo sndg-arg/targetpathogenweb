@@ -4,7 +4,12 @@ from django.views import View
 
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
-from tpweb.services.csv_exports import build_view_export_url, csv_response, xlsx_sections_response
+from tpweb.services.csv_exports import (
+    build_export_url,
+    build_view_export_url,
+    csv_response,
+    xlsx_sections_response,
+)
 from tpweb.services.genome_workspace import (
     display_genome_name,
     genome_url_slug,
@@ -16,13 +21,6 @@ from tpweb.services.protein_annotations import build_annotation_explorer, normal
 
 class AnnotationExplorerView(View):
     template_name = "genomic/annotation_explorer.html"
-
-    @staticmethod
-    def _build_export_url(request):
-        params = request.GET.copy()
-        params["export"] = "csv"
-        encoded = params.urlencode()
-        return f"?{encoded}" if encoded else "?export=csv"
 
     def get(self, request, genome, annotation_kind, *args, **kwargs):
         assembly_name = resolve_genome_from_slug(request.user, genome)
@@ -85,7 +83,7 @@ class AnnotationExplorerView(View):
                 "annotation_kind": normalized_kind,
                 "explorer": explorer,
                 "pipeline_status": pipeline_status,
-                "export_url": self._build_export_url(request),
+                "export_url": build_export_url(request),
                 "view_export_url": build_view_export_url(request),
             },
         )
