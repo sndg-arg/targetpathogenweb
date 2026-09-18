@@ -105,7 +105,7 @@
                     {{ approved_user.last_login|date:"Y-m-d H:i"|default:"—" }}
                 </div>
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--role" role="cell" data-label="{% trans 'Role' %}">
-                    {% if approved_user.is_superuser and approved_user.is_staff %}
+                    {% if approved_user.pk == user.pk %}
                         <span class="tp-chip tp-chip--sm">{% trans "Owner" %}</span>
                     {% elif approved_user.is_superuser %}
                         <span class="tp-chip tp-chip--sm">{% trans "Admin" %}</span>
@@ -117,7 +117,7 @@
                     {% endif %}
                 </div>
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="cell">
-                    {% if not approved_user.is_staff or not approved_user.is_superuser %}
+                    {% if approved_user.pk != user.pk %}
                     <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm user-mgmt-edit-trigger"
                             data-user-id="{{ approved_user.pk }}"
                             data-user-name="{{ approved_user.name|default:approved_user.get_username }}"

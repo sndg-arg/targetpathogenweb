@@ -45,12 +45,16 @@ class UserManagementView(PermissionLockedMixin, View):
                 revoke_access(user)
                 messages.success(request, f"Revoked access for {user.get_username()}.")
         elif action == "update_permissions":
-            if user.is_superuser and user.is_staff:
-                # The true site owner (is_staff too, set via Django admin
-                # only) can't be edited here -- an Admin promoted from this
-                # page (is_superuser but not is_staff) can still be picked
-                # up below and moved to a real role.
-                messages.error(request, "Superusers already have every permission.")
+            if user.pk == request.user.pk:
+                # Can't edit your own row here -- is_staff isn't a reliable
+                # "this is the untouchable owner" signal (plenty of
+                # ordinary accounts picked it up under the old approval
+                # flow, before it stopped granting is_staff automatically),
+                # so self-protection is the one rule that actually holds:
+                # nobody can accidentally strip their own superuser access
+                # from this screen. Any *other* superuser -- promoted Admin
+                # or not -- is still editable below.
+                messages.error(request, "You can't edit your own account here.")
             else:
                 requested_role = request.POST.get("role")
                 if requested_role == self.ADMIN_ROLE_VALUE:

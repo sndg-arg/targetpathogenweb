@@ -434,10 +434,10 @@ class UserManagementViewTests(TestCase):
         self.assertNotIn("Revoke this user's access?", body)
 
     def test_promoted_admin_shows_an_admin_chip_and_a_still_editable_row(self):
-        # A promoted Admin (is_superuser, not is_staff) isn't the true site
-        # owner -- the roster should say so (not "Owner"), still offer Edit
-        # so they can be moved to a real role, but not Revoke (revoke_access
-        # refuses any superuser regardless of is_staff).
+        # A promoted Admin isn't the acting admin's own account -- the
+        # roster should say so (not "Owner"), still offer Edit so they can
+        # be moved to a real role, but not Revoke (revoke_access refuses
+        # any superuser outright).
         owner = User.objects.create_user(
             username="mgmt-owner17", password="x", is_staff=True, is_superuser=True
         )
@@ -450,11 +450,37 @@ class UserManagementViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, ">Admin<")
-        # Neither the true owner nor a promoted (non-staff) Admin gets a
+        # Neither the acting admin's own row nor a promoted Admin's gets a
         # Revoke trigger -- revoke_access refuses any superuser outright.
         self.assertNotContains(response, "user-mgmt-revoke-trigger")
         self.assertContains(response, f'data-user-id="{promoted.pk}"')
         self.assertContains(response, 'data-role="admin"')
+
+    def test_promoted_admin_with_legacy_staff_flag_still_shows_admin_not_owner(self):
+        # Regression guard: an account approved under the old flow (which
+        # granted is_staff to everyone) and later promoted to Admin from
+        # /users must not be mistaken for the acting admin's own "Owner"
+        # row just because it also happens to carry is_staff=True.
+        owner = User.objects.create_user(
+            username="mgmt-owner18", password="x", is_staff=True, is_superuser=True
+        )
+        User.objects.create_user(
+            username="mgmt-legacy-staff-admin",
+            password="x",
+            is_active=True,
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.client.force_login(owner)
+
+        response = self.client.get(reverse("tpwebapp:user_management"))
+
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode()
+        # Exactly one "Owner" row (the acting admin's own) and at least one
+        # "Admin" row (the legacy-staff promoted account).
+        self.assertEqual(body.count(">Owner<"), 1)
+        self.assertIn(">Admin<", body)
 
     def test_wants_collaborator_access_shows_a_badge_and_sorts_first(self):
         owner = User.objects.create_user(
@@ -705,11 +731,31 @@ class UserManagementViewTests(TestCase):
         self.assertEqual(requester.role, "gates_collaborator")
         self.assertFalse(requester.wants_collaborator_access)
 
-    def test_post_update_permissions_refuses_for_superuser(self):
+    def test_post_update_permissions_refuses_to_edit_your_own_row(self):
         owner = User.objects.create_user(
             username="mgmt-owner8", password="x", is_staff=True, is_superuser=True
         )
-        other_owner = User.objects.create_user(
+        self.client.force_login(owner)
+
+        self.client.post(
+            reverse("tpwebapp:user_management"),
+            {"user_id": owner.pk, "action": "update_permissions", "role": "gates_consumer"},
+        )
+
+        owner.refresh_from_db()
+        self.assertTrue(owner.is_superuser)
+        self.assertEqual(owner.role, User.Role.BASIC)
+
+    def test_post_update_permissions_can_demote_another_superuser_even_with_legacy_staff(self):
+        # is_staff isn't a reliable "protect this account" signal -- under
+        # the old approval flow it was granted to every ordinary approved
+        # user, so a superuser promoted from /users can easily also carry
+        # is_staff=True from before. Only the acting admin's own row is
+        # off-limits; any other superuser must stay editable.
+        owner = User.objects.create_user(
+            username="mgmt-owner8", password="x", is_staff=True, is_superuser=True
+        )
+        other_superuser = User.objects.create_user(
             username="mgmt-other-owner2",
             password="x",
             is_active=True,
@@ -721,13 +767,15 @@ class UserManagementViewTests(TestCase):
         self.client.post(
             reverse("tpwebapp:user_management"),
             {
-                "user_id": other_owner.pk,
+                "user_id": other_superuser.pk,
                 "action": "update_permissions",
-                "permissions": ["can_view_activity"],
+                "role": "gates_consumer",
             },
         )
 
-        self.assertEqual(other_owner.user_permissions.count(), 0)
+        other_superuser.refresh_from_db()
+        self.assertFalse(other_superuser.is_superuser)
+        self.assertEqual(other_superuser.role, "gates_consumer")
 
 
 class ProfileViewTests(TestCase):
