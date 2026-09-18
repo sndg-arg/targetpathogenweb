@@ -62,8 +62,14 @@
 
         if (closeBtn) closeBtn.addEventListener("click", closeModal);
         if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+        // Close only on a click landing exactly on the backdrop -- a native
+        // <select> popup (the role dropdown) isn't really part of the page's
+        // DOM layout, and picking an option can report a click target that
+        // "panel.contains(ev.target)" doesn't recognize as inside the panel
+        // in some browsers, closing the modal instead of letting the pick
+        // register.
         modal.addEventListener("click", function (ev) {
-            if (!panel.contains(ev.target)) closeModal();
+            if (ev.target === modal) closeModal();
         });
         document.addEventListener("keydown", function (ev) {
             if (ev.key === "Escape" && modal.classList.contains("is-open")) closeModal();
@@ -109,7 +115,7 @@
         if (revokeCloseBtn) revokeCloseBtn.addEventListener("click", closeRevokeModal);
         if (revokeCancelBtn) revokeCancelBtn.addEventListener("click", closeRevokeModal);
         revokeModal.addEventListener("click", function (ev) {
-            if (!revokePanel.contains(ev.target)) closeRevokeModal();
+            if (ev.target === revokeModal) closeRevokeModal();
         });
         document.addEventListener("keydown", function (ev) {
             if (ev.key === "Escape" && revokeModal.classList.contains("is-open")) closeRevokeModal();
