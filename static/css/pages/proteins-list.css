@@ -1704,6 +1704,11 @@ a.filter-pill .filter-pill-remove {
     box-shadow: inset 0 0 0 2px var(--tp-color-brand-100);
 }
 
+.tpd-apply-btn:disabled {
+    color: var(--tp-color-text-muted);
+    cursor: not-allowed;
+}
+
 .tpd-header {
     display: flex;
     align-items: center;
@@ -4070,6 +4075,12 @@ a.filter-pill .filter-pill-remove {
     outline: none;
     border-color: var(--tp-color-border-accent);
     box-shadow: 0 0 0 3px var(--tp-color-brand-100);
+}
+
+.filter-preset-name-input:disabled {
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    cursor: not-allowed;
 }
 
 .filter-preset-list {

@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260909-merge-pipeline-note">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260918-locked-actions">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -226,12 +226,12 @@
                                         <ul class="tpd-list" role="list">
                                             {% for preset in filter_presets %}
                                             <li class="tpd-row{% if preset.is_last_applied %} tpd-row--active{% endif %}">
-                                                <form method="POST" action="" class="tpd-apply-form">
+                                                <form method="POST" action="" class="tpd-apply-form"{% if not user.is_authenticated %} title="{% trans 'Log in to apply this preset.' %}"{% endif %}>
                                                     {% csrf_token %}
                                                     <input type="hidden" name="action" value="apply_filter_preset">
                                                     <input type="hidden" name="preset_id" value="{{ preset.id }}">
                                                     <input type="hidden" name="return_query" value="{{ query_string }}">
-                                                    <button type="submit" class="tpd-apply-btn">
+                                                    <button type="submit" class="tpd-apply-btn"{% if not user.is_authenticated %} disabled{% endif %}>
                                                         <span class="tpd-header">
                                                             <span class="tpd-name">{{ preset.name }}</span>
                                                             {% if preset.is_last_applied %}
@@ -252,9 +252,15 @@
                                                     <input type="hidden" name="action" value="delete_filter_preset">
                                                     <input type="hidden" name="preset_id" value="{{ preset.id }}">
                                                     <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                    {% if user.is_authenticated %}
                                                     <button type="submit" class="btn tp-btn tp-btn--clear tpd-delete-btn" title="{% trans 'Delete preset' %}" aria-label="{% trans 'Delete preset' %}">
                                                         {% include "components/icons/trash.html" %}
                                                     </button>
+                                                    {% else %}
+                                                    <button type="submit" class="btn tp-btn tp-btn--clear tpd-delete-btn" title="{% trans 'Log in to delete this preset.' %}" aria-label="{% trans 'Delete preset' %}" disabled>
+                                                        {% include "components/icons/trash.html" %}
+                                                    </button>
+                                                    {% endif %}
                                                 </form>
                                             </li>
                                             {% endfor %}
@@ -976,7 +982,7 @@
             <section class="filter-presets-footer">
                 <div class="filter-presets-save-panel">
                     <span class="filter-presets-save-label">{% trans "Save this selection" %}</span>
-                    <form method="POST" action="" class="filter-preset-save-form" id="filter-preset-save-form">
+                    <form method="POST" action="" class="filter-preset-save-form" id="filter-preset-save-form"{% if not user.is_authenticated %} title="{% trans 'Log in to save a preset.' %}"{% endif %}>
                         {% csrf_token %}
                         <input type="hidden" name="action" value="save_filter_preset">
                         <input type="hidden" name="return_query" value="{{ query_string }}">
@@ -984,8 +990,8 @@
                         <input type="hidden" name="pending_structure_source" value="{{ structure_source }}">
                         <input type="hidden" name="pending_annotation_kind" value="{% if annotation_filter %}{{ annotation_filter.kind }}{% endif %}">
                         <input type="hidden" name="pending_annotation_value" value="{% if annotation_filter %}{{ annotation_filter.value }}{% endif %}">
-                        <input type="text" name="preset_name" class="filter-preset-name-input" placeholder="{% trans 'Name this selection…' %}" autocomplete="off" required>
-                        <button type="submit" class="btn tp-btn tp-btn--neutral tp-btn-with-icon filter-preset-save-btn">
+                        <input type="text" name="preset_name" class="filter-preset-name-input" placeholder="{% trans 'Name this selection…' %}" autocomplete="off" required{% if not user.is_authenticated %} disabled{% endif %}>
+                        <button type="submit" class="btn tp-btn tp-btn--neutral tp-btn-with-icon filter-preset-save-btn"{% if not user.is_authenticated %} disabled{% endif %}>
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/save.html" %}</span>
                             <span>{% trans "Save" %}</span>
                         </button>
@@ -1239,9 +1245,15 @@
                                           class="scoring-formula-delete-form"
                                           onsubmit="return confirm('{% trans "Delete this formula?" %}')">
                                         {% csrf_token %}
+                                        {% if user.is_authenticated %}
                                         <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution scoring-formula-delete-btn" title="{% trans 'Delete formula' %}">
                                             {% include "components/icons/trash.html" %}
                                         </button>
+                                        {% else %}
+                                        <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution scoring-formula-delete-btn" title="{% trans 'Log in to delete this formula.' %}" disabled>
+                                            {% include "components/icons/trash.html" %}
+                                        </button>
+                                        {% endif %}
                                     </form>
                                 {% endif %}
                             </div>
