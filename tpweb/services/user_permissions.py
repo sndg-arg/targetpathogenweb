@@ -29,8 +29,10 @@ PERMISSION_ORDER = [
 # tampered request can't desync a named role from its real set. Superusers
 # ("Admin: puedo hacer todo") aren't a preset here -- that role is granted
 # as is_superuser instead (see UserManagementView.ADMIN_ROLE_VALUE), since
-# they bypass every has_perm() check already and never see this modal once
-# promoted (manage.html: no Edit button on a superuser row).
+# they bypass every has_perm() check already. Picking a role here for a
+# promoted (non-staff) Admin clears is_superuser again -- only the true
+# site owner (is_staff too, set via Django admin) is locked out of this
+# modal for good.
 PROFILE_PRESETS = [
     {
         # Self-serve signup baseline (tpweb.services.user_approval.

@@ -45,7 +45,11 @@ class UserManagementView(PermissionLockedMixin, View):
                 revoke_access(user)
                 messages.success(request, f"Revoked access for {user.get_username()}.")
         elif action == "update_permissions":
-            if user.is_superuser:
+            if user.is_superuser and user.is_staff:
+                # The true site owner (is_staff too, set via Django admin
+                # only) can't be edited here -- an Admin promoted from this
+                # page (is_superuser but not is_staff) can still be picked
+                # up below and moved to a real role.
                 messages.error(request, "Superusers already have every permission.")
             else:
                 requested_role = request.POST.get("role")
@@ -70,6 +74,12 @@ class UserManagementView(PermissionLockedMixin, View):
                     if user.role != requested_role:
                         user.role = requested_role
                         update_fields.append("role")
+                    # Picking a real role for a promoted (non-staff) Admin
+                    # is a demotion -- take the is_superuser bypass away so
+                    # the role's own codenames actually take effect.
+                    if user.is_superuser:
+                        user.is_superuser = False
+                        update_fields.append("is_superuser")
                     # A superuser assigning a role is the resolution of the
                     # collaborator-access request -- clear the flag so the
                     # "requested" chip doesn't linger once granted.

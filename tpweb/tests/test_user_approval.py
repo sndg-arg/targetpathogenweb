@@ -433,6 +433,29 @@ class UserManagementViewTests(TestCase):
         self.assertIn(f'data-user-id="{approved.pk}"', body)
         self.assertNotIn("Revoke this user's access?", body)
 
+    def test_promoted_admin_shows_an_admin_chip_and_a_still_editable_row(self):
+        # A promoted Admin (is_superuser, not is_staff) isn't the true site
+        # owner -- the roster should say so (not "Owner"), still offer Edit
+        # so they can be moved to a real role, but not Revoke (revoke_access
+        # refuses any superuser regardless of is_staff).
+        owner = User.objects.create_user(
+            username="mgmt-owner17", password="x", is_staff=True, is_superuser=True
+        )
+        promoted = User.objects.create_user(
+            username="mgmt-promoted2", password="x", is_active=True, is_superuser=True
+        )
+        self.client.force_login(owner)
+
+        response = self.client.get(reverse("tpwebapp:user_management"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, ">Admin<")
+        # Neither the true owner nor a promoted (non-staff) Admin gets a
+        # Revoke trigger -- revoke_access refuses any superuser outright.
+        self.assertNotContains(response, "user-mgmt-revoke-trigger")
+        self.assertContains(response, f'data-user-id="{promoted.pk}"')
+        self.assertContains(response, 'data-role="admin"')
+
     def test_wants_collaborator_access_shows_a_badge_and_sorts_first(self):
         owner = User.objects.create_user(
             username="mgmt-owner12", password="x", is_staff=True, is_superuser=True
@@ -579,6 +602,29 @@ class UserManagementViewTests(TestCase):
         self.assertTrue(approved.is_superuser)
         self.assertFalse(approved.is_staff)
         self.assertFalse(approved.wants_collaborator_access)
+
+    def test_post_update_permissions_downgrades_a_promoted_admin_to_a_real_role(self):
+        # A promoted Admin (is_superuser but not is_staff) isn't the true
+        # site owner -- picking a real role for them here must both apply
+        # that role's codenames and take the is_superuser bypass away, or
+        # the new role's restrictions would never actually take effect.
+        owner = User.objects.create_user(
+            username="mgmt-owner16", password="x", is_staff=True, is_superuser=True
+        )
+        promoted = User.objects.create_user(
+            username="mgmt-promoted1", password="x", is_active=True, is_superuser=True
+        )
+        self.client.force_login(owner)
+
+        response = self.client.post(
+            reverse("tpwebapp:user_management"),
+            {"user_id": promoted.pk, "action": "update_permissions", "role": "gates_consumer"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        promoted.refresh_from_db()
+        self.assertFalse(promoted.is_superuser)
+        self.assertEqual(promoted.role, "gates_consumer")
 
     def test_post_update_permissions_rejects_an_unknown_role(self):
         owner = User.objects.create_user(
