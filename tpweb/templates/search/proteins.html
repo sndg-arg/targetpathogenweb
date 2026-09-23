@@ -286,7 +286,7 @@
                                     </span>
                                 </button>
                                 {% endif %}
-                                {% if formulas %}
+                                {% if formulas or perms.tpweb.can_manage_formulas %}
                                     <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary{% if not formula_active %} toolbar-action-btn--cta{% endif %}" id="open-formula-btn">
                                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/calculator.html" %}</span>
                                         <span class="toolbar-action-btn__title">{% trans "Scoring" %}</span>
@@ -1171,7 +1171,7 @@
         </div>
     </aside>
 
-    {% if formulas %}
+    {% if formulas or perms.tpweb.can_manage_formulas %}
         <div class="tp-overlay" id="formula-overlay"></div>
         <aside class="filters-drawer scoring-drawer" id="formula-modal" aria-hidden="true" aria-label="{% trans 'Scoring' %}">
             <div class="drawer-head">
