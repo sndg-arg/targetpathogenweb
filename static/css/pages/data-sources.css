@@ -555,7 +555,8 @@
 
 .ds-db-row {
     display: flex;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 4px 10px;
     align-items: baseline;
     padding: 9px 12px;
     background: var(--tp-color-surface);
@@ -566,12 +567,14 @@
 .ds-db-row:last-child,
 .ds-db-row:nth-last-child(2):nth-child(odd) { border-bottom: none; }
 
+/* No white-space:nowrap/flex-shrink:0 -- the parent .ds-db-grid clips
+   overflow (for its own rounded-corner border), so a name too long for a
+   narrow single-column mobile width (e.g. "TMHMM · Phobius") was being cut
+   off mid-character instead of wrapping. */
 .ds-db-name {
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--tp-color-text-primary);
-    white-space: nowrap;
-    flex-shrink: 0;
     min-width: 110px;
 }
 

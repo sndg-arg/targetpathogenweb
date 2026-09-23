@@ -1047,6 +1047,22 @@
             box-shadow: 0 4px 16px rgba(10, 24, 33, 0.18);
         }
 
+        /* Explicit show/hide for the hamburger collapse, owned by this file
+           instead of relying solely on the Bootstrap 4 CDN stylesheet's own
+           `.collapse`/`.collapse.show` rules. nav-toggle.js only ever flips
+           the "show" class -- if the CDN request for bootstrap.min.css is
+           ever slow/blocked (flaky network, ad/tracker blocker, offline
+           cluster segment), the menu would otherwise sit permanently open
+           (no default `display:none`) with the toggle button appearing to
+           do nothing on click. */
+        .tp-topbar-mobile .navbar-collapse:not(.show) {
+            display: none;
+        }
+
+        .tp-topbar-mobile .navbar-collapse.show {
+            display: block;
+        }
+
         .tp-topbar-mobile .navbar-brand {
             font-weight: 700;
             letter-spacing: 0.3px;

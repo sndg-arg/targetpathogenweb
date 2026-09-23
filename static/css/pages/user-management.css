@@ -273,7 +273,14 @@ body.user-mgmt-modal-open {
     overflow: hidden;
 }
 
-@media (max-width: 640px) {
+/* 900px, not 640px: the approved-list row's fixed columns (128+128+168+210
+   plus gaps) need ~900px of their own before the 1fr person column has any
+   breathing room -- between 641px and ~900px (a portrait tablet, a landscape
+   phone) that column was being squeezed to near zero, clipping names/emails
+   and forcing horizontal page overflow. Stacking the pending list this early
+   too is harmless (its fixed columns are much narrower), so one shared
+   breakpoint keeps both lists consistent. */
+@media (max-width: 900px) {
     .user-mgmt-list-row--head {
         display: none;
     }
