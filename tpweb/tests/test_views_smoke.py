@@ -24,7 +24,7 @@ from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biosequence import Biosequence
 from tpweb.models.Binders import Binders
 from tpweb.models.BioentryStructure import BioentryStructure
-from tpweb.models.pdb import PDB
+from tpweb.models.pdb import PDB, Atom, Residue
 from tpweb.models.RestrictedGenome import RestrictedGenome
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 from tpweb.views.AgentChatView import AgentChatView
@@ -467,6 +467,60 @@ class StructureExportViewTests(LoggedInTestCase):
             reverse("tpwebapp:structure_export", kwargs={"struct_id": 999999})
         )
         self.assertEqual(response.status_code, 404)
+
+
+class PocketPseudoAtomExportTests(TestCase):
+    """The raw structure file on disk never has FPocket's alpha-sphere
+    "STP" pseudo-atoms written into it (only the DB does, see
+    tpweb.io.FPocket2SQL) -- vmd_style()'s "resname STP" selections would
+    always match zero atoms without _with_pocket_pseudo_atoms() splicing
+    them back in before the exported .pdb's terminating END record."""
+
+    def _make_stp_residue(self, pdb, resid):
+        residue = Residue.objects.create(
+            pdb=pdb, chain="A", resname="STP", resid=resid, type="", disordered=True
+        )
+        Atom.objects.create(
+            residue=residue,
+            serial=9001,
+            name="STP",
+            x=1.0,
+            y=2.0,
+            z=3.0,
+            occupancy=1.0,
+            bfactor=0.5,
+            element="",
+        )
+        return residue
+
+    def test_inserts_pocket_atoms_before_the_terminating_end_record(self):
+        from types import SimpleNamespace
+
+        from tpweb.views.StructureExportView import _with_pocket_pseudo_atoms
+
+        pdb = PDB.objects.create(code="pocket-export-test")
+        self._make_stp_residue(pdb, resid=1)
+        pdb_text = (
+            "ATOM      1  CA  ALA A   1      11.000  12.000  13.000  1.00  0.00           C\nEND\n"
+        )
+
+        result = _with_pocket_pseudo_atoms(pdb_text, pdb, [SimpleNamespace(name="1")])
+
+        lines = result.splitlines()
+        stp_index = next(i for i, line in enumerate(lines) if "STP" in line)
+        end_index = next(i for i, line in enumerate(lines) if line.rstrip() == "END")
+        self.assertLess(stp_index, end_index)
+        self.assertIn("ATOM      1  CA  ALA A   1", result)
+
+    def test_returns_input_unchanged_when_no_pockets(self):
+        from tpweb.views.StructureExportView import _with_pocket_pseudo_atoms
+
+        pdb = PDB.objects.create(code="pocket-export-test-empty")
+        pdb_text = (
+            "ATOM      1  CA  ALA A   1      11.000  12.000  13.000  1.00  0.00           C\nEND\n"
+        )
+
+        self.assertEqual(_with_pocket_pseudo_atoms(pdb_text, pdb, []), pdb_text)
 
 
 class HumanProteinViewTests(LoggedInTestCase):
