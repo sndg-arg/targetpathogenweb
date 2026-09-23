@@ -45,6 +45,10 @@ omit = [
 ]
 
 [tool.coverage.report]
+# Baseline measured 2026-08-10 was 21% -- floor sits a couple points below so
+# the gate is regression protection, not a moving target hit by rounding
+# noise. Raise this as real coverage grows; never lower it to make CI pass.
+fail_under = 19
 exclude_lines = [
   "pragma: no cover",
   "raise NotImplementedError",

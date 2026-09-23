@@ -15,16 +15,10 @@ from tpweb.services.score_params import resolve_score_param_for_import
 from tpweb.services.score_param_types import is_numeric_score_param
 
 
-def mkdir(dirpath):
-    if not os.path.exists(dirpath):
-        os.makedirs(dirpath)
-
-
 class Command(BaseCommand):
     help = "Imports a PDB"
 
     def add_arguments(self, parser):
-
         parser.add_argument("genome_name")
         parser.add_argument("score_tsv", help="tsv with: gene prop1 prop2 ... ")
         parser.add_argument("--separator", default="\t")
@@ -33,7 +27,6 @@ class Command(BaseCommand):
         parser.add_argument("--username", default=None)
 
     def handle(self, *args, **options):
-
         genome_name = options["genome_name"]
         owner = None
         if options["username"]:

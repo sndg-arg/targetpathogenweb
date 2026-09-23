@@ -161,9 +161,14 @@ def alphafold_cmd(protein_list_line, folder_path, genome):
     alphafold_folder = os.path.join(folder_path, "alphafold")
     parts = protein_list_line.split()
     accession, locustag = parts[0], parts[1]
+    # -np/-nf: this stage is meant to be download-only (see docs/DATA_SOURCES.md).
+    # P2RANK/FPocket are stage 17's job (structures_af / structures_remote.py) --
+    # without these flags TP.alphafold also runs both itself (P2RANK locally,
+    # FPocket via a nested `docker run`), redundant with stage 17 and heavy
+    # enough to violate the nodo0 no-local-compute policy.
     return (
         f"{PYTHON_BIN} -m TP.alphafold -pr ../opt/p2rank/distro/prank"
-        f" -o {alphafold_folder} -T 10 -nc -parsl {accession} -ltag {locustag}"
+        f" -o {alphafold_folder} -T 10 -nc -np -nf -parsl {accession} -ltag {locustag}"
     )
 
 

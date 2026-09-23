@@ -4,11 +4,11 @@ from django.http import Http404
 from django.http import HttpResponse, HttpResponseNotFound
 
 from bioseq.io.BioIO import BioIO
-from tpweb.models.pdb import PDB
+from tpweb.models.pdb import PDB, Residue
 
 import gzip
 import zipfile
-from tpweb.views.StructureView import pdb_structure
+from tpweb.services.structure_summary import pdb_structure
 import io
 from django.utils.encoding import smart_str
 from tpweb.services.genome_workspace import user_can_access_genome_name
@@ -34,7 +34,9 @@ class StructureExportView(View):
             except (FileNotFoundError, OSError):
                 return HttpResponseNotFound("Structure source file not found.")
             pdb_dto = pdb_structure(pdb, [])
-            vmd_txt = vmd_style(pdb_dto["pockets"])
+            pockets = pdb_dto["pockets"]
+            vmd_txt = vmd_style(pockets)
+            data = _with_pocket_pseudo_atoms(data, pdb, pockets)
             stream = io.BytesIO()
             with zipfile.ZipFile(stream, mode="w", compression=zipfile.ZIP_DEFLATED) as zip_file:
                 zip_file.writestr(f"{pdb.code}.tcl", vmd_txt)
@@ -49,6 +51,45 @@ class StructureExportView(View):
             return response
         else:
             return HttpResponseNotFound()
+
+
+def _with_pocket_pseudo_atoms(pdb_text, pdb, pockets):
+    """vmd_style() below writes VMD selections against "resname STP" --
+    FPocket's alpha-sphere pseudo-atoms -- but those only ever get stored
+    in the DB (see tpweb.io.FPocket2SQL), never written into the raw
+    structure file on disk that `pdb_text` comes from. Without them here,
+    every pocket selection in the exported .tcl script matches zero atoms
+    and the pocket spheres never show up in VMD. Re-serialize them with
+    the existing Residue.lines()/Atom.line() formatters (already
+    special-cased for resname "STP") and splice them in just before the
+    terminating END record, so the exported .pdb actually has something
+    for the script to select.
+    """
+    pocket_resids = []
+    for p in pockets:
+        try:
+            pocket_resids.append(int(p.name))
+        except (TypeError, ValueError):
+            pass
+    if not pocket_resids:
+        return pdb_text
+
+    pocket_lines = []
+    for residue in Residue.objects.prefetch_related("atoms").filter(
+        pdb=pdb, resname="STP", resid__in=pocket_resids
+    ):
+        pocket_lines += residue.lines()
+    if not pocket_lines:
+        return pdb_text
+
+    lines = pdb_text.splitlines()
+    insert_at = len(lines)
+    for i in range(len(lines) - 1, -1, -1):
+        if lines[i].rstrip() == "END":
+            insert_at = i
+            break
+    lines[insert_at:insert_at] = pocket_lines
+    return "\n".join(lines) + "\n"
 
 
 def vmd_style(pockets):

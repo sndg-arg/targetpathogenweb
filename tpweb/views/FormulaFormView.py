@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -46,6 +47,8 @@ EXAMPLE_FORMULAS = [
 ]
 
 
+@login_required
+@permission_required("tpweb.can_manage_formulas", raise_exception=True)
 def FormulaFormView(request, genome):
     assembly_name = resolve_genome_from_slug(request.user, genome)
     if not assembly_name:

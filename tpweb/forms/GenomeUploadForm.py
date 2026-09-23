@@ -30,6 +30,13 @@ class GenomeUploadForm(forms.Form):
             }
         ),
     )
+    make_public = forms.BooleanField(
+        label=_("Make this genome public (visible to everyone)"),
+        help_text=_(
+            "Only the owner account can do this. Otherwise the genome stays private to your account."
+        ),
+        required=False,
+    )
 
     def clean_accession(self):
         accession = str(self.cleaned_data.get("accession") or "").strip()
