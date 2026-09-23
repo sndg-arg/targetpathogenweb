@@ -155,6 +155,12 @@ def build_human_xref_context(human_protein):
     grouped = {group: [] for group in XREF_GROUP_ORDER}
     for xref in human_protein.cross_references_raw or []:
         db = xref.get("database", "")
+        # GO terms are already shown with real names, grouped by aspect, on the
+        # Function tab (build_human_function_context) -- showing them again here
+        # as bare unlabeled IDs in the "Other" catch-all would just duplicate
+        # that, worse.
+        if db == "GO":
+            continue
         group = _XREF_DB_TO_GROUP.get(db, "Other")
         grouped[group].append(xref)
     return {

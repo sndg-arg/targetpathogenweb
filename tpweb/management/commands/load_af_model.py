@@ -69,7 +69,17 @@ class Command(BaseCommand):
             self.stderr.write(f"deleting... {code} ")
             pdb_model_qs.delete()
         if pdb_model_qs.exists():
-            self.stderr.write(f"structure {code} already exists")
+            # The PDB row surviving (e.g. from an earlier ingest) doesn't guarantee
+            # *this* bioentry is still linked to it -- re-link if that got lost
+            # instead of silently leaving the protein without its structure.
+            pdb_model = pdb_model_qs.first()
+            if not BioentryStructure.objects.filter(bioentry=be, pdb=pdb_model).exists():
+                BioentryStructure(bioentry=be, pdb=pdb_model).save()
+                self.stderr.write(
+                    f"structure {code} already exists; re-linked missing bioentry link"
+                )
+            else:
+                self.stderr.write(f"structure {code} already exists")
             sys.exit(1)
         else:
             if forced_experiment:
