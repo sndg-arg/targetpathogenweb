@@ -10,6 +10,7 @@ pipeline/           # Pipeline orchestrator (run_pipeline_direct.py) and command
 tpweb/services/     # Business logic — pipeline_status.py, genome_uploads.py
 tpweb/views/        # Thin views, delegate to services
 tpweb/models/       # ORM models (GenomeUpload, PipelineRun, PipelineStageEvent, etc.)
+human_target/       # Separate Django app: Target Human (see "Human Targets" below)
 tpwebconfig/        # Django settings, urls
 static/css/         # Design system — tokens only, no hardcoded hex
 ```
@@ -20,7 +21,7 @@ static/css/         # Design system — tokens only, no hardcoded hex
 - **Activation**: `TPW_USE_DIRECT_PIPELINE=1` env var selects the new orchestrator
 - **Legacy**: `pipeline/apps.py`, `pipeline/config.py`, `pipeline/run_pipeline.py` — old Parsl code, kept as fallback, do not modify
 - **23 stages**, mostly linear — any failure raises immediately (no silent partial failures)
-- **Remote stages**: stage 10 (InterProScan via `interproscan_remote.py`) and optionally stage 16 (ColabFold via `colabfold_remote.py`) run on SLURM cluster nodes over SSH
+- **Remote stages**: stage 10 (InterProScan via `interproscan_remote.py`), optionally stage 4 (FastTarget via `fasttarget_remote.py`) and stage 16 (ColabFold via `colabfold_remote.py`) run on SLURM cluster nodes over SSH
 - **Parallelized stages**: stage 15 (AlphaFold downloads, 4 workers) and stage 17 (structure processing, 4 workers) use `ThreadPoolExecutor`. All other stages run sequentially.
 - **Stage events** tracked in `PipelineStageEvent` model (submitted → completed/failed)
 - **Status**: `tpweb/services/pipeline_status.py` — reads from `PipelineRun` as source of truth
@@ -32,6 +33,55 @@ static/css/         # Design system — tokens only, no hardcoded hex
 4. gbk2uniprot_map → fetch_uniprot_annotations → alphafold loop → colabfold (local CPU or remote GPU) → structures chain → load_uniprot_sites → druggability → load_score
 5. psort → load_score
 6. get_binders → load_binders
+
+## FastTarget (off-target/essentiality)
+- **Stage 4**, controlled by `TPW_FASTTARGET_USE_REMOTE`:
+  - `0` (default): runs `fasttarget.py` locally via `fast_command` — blocked by the
+    heavy-stage guard on Nodo0 (a shared orchestration node, not a compute node)
+    unless `--allow-local-heavy` is passed explicitly.
+  - `1`: runs on a remote SLURM CPU node via `pipeline/fasttarget_remote.py`. **One
+    SLURM job per genome** (both the BLAST/DIAMOND search and FastTarget's own
+    result parsing run in that one job).
+- **Why this one's different from InterProScan/ColabFold/LigQ_2**: those tools live
+  on the SLURM cluster already (conda envs, GPUs, huge reference DBs). FastTarget
+  doesn't — it's vendored in this repo (`fasttarget/`) and normally runs inside the
+  web/queue container itself, with self-downloading reference DBs under
+  `/app/fasttarget/databases`. The remote path instead reuses the fact that the two
+  functions Target actually calls (`human_offtarget`/`gut_microbiome_offtarget` via
+  `fasttarget/ftscripts/offtargets.py`, essentiality via `essentiality.py`) only wrap
+  plain `blastp`/`diamond blastp` — no Docker/Singularity involved (that's only used
+  by unrelated optional FastTarget features Target's `fast_command.py` never enables:
+  foldseek, roary, psortb, corecruncher).
+- **One-time cluster setup** (not automated, do once per cluster):
+  1. Copy the repo's `fasttarget/` directory to the cluster (e.g. `~/fasttarget`).
+  2. `conda env create -f fasttarget/requirements.yml` (creates a `fasttarget` env
+     with `blast=2.17.0` + `diamond=2.1.18` already pinned — nothing else to install).
+     If conda's shared pkg cache isn't writable, set `CONDA_PKGS_DIRS` to a directory
+     under your own home first.
+  3. Bootstrap the reference DBs via SLURM (never on the login/head node):
+     `sbatch` a job running `python fasttarget/databases.py --download all
+     --database-path ~/fasttarget_databases --cpus 4` inside the `fasttarget` env.
+- **Flow**: dump proteome FASTA from the DB (`dump_genome_proteins_fasta`, the same
+  command LigQ_2 uses) → SCP FASTA + the genome's GBK to the cluster → one SLURM job
+  runs `ftscripts.offtargets`/`essentiality`'s own search+parse functions directly
+  (human off-target BLAST, DEG BLAST, gut-microbiome-catalogue DIAMOND, then their
+  own TSV parsing — reused unmodified) → tar-pipe the small `offtarget`/`essentiality`
+  output dirs back → `fast_command` runs locally with `TPW_FASTTARGET_SKIP_EXEC=1` +
+  `TPW_FASTTARGET_ORGANISM_DIR` pointed at the copied-back output, so Target's own
+  DB-loading logic runs unchanged and `fasttarget.py` itself never runs a second time.
+- **Config** (env vars, all have defaults, same `SSH_HOSTNAME`/`SSH_USERNAME`/
+  `SSH_WORKDIR` as the other remote stages):
+  - `TPW_FASTTARGET_USE_REMOTE=1` — activate remote mode
+  - `TPW_FASTTARGET_CONDA_PREFIX` — default `/home/shared/miniconda3.8`
+  - `TPW_FASTTARGET_CONDA_ENV` — default `fasttarget` (a named env, not a prefix path)
+  - `TPW_FASTTARGET_REMOTE_DIR` — default `/home/agutson/fasttarget`
+  - `TPW_FASTTARGET_REMOTE_DATABASES_DIR` — default `/home/agutson/fasttarget_databases`
+  - `TPW_FASTTARGET_SLURM_PARTITION` — default `cpu`
+  - `TPW_FASTTARGET_SLURM_TIME` — default `02:00:00`
+  - `TPW_FASTTARGET_SLURM_MEM` — default `8G`
+  - `TPW_FASTTARGET_SLURM_CPUS` — default `4`
+  - `TPW_FASTTARGET_REMOTE_POLL_SEC` — default `30`
+  - `TPW_FASTTARGET_REMOTE_WAIT_SEC` — default `21600` (6h)
 
 ## InterProScan
 Runs remotely over SSH on the QB cluster. Config in `pipeline/settings.ini` (SSH vars).
@@ -136,8 +186,86 @@ detail page.
   scoped by `genome_accession` (a string, not a FK to `Biodatabase`) alongside the genome's
   `Biodatabase` rows.
 
+## Human Targets (Target Human)
+Sister feature to the bacterial-genome side of this app, deliberately in a **separate Django
+app** (`human_target/`, not inside `tpweb/`) rather than a genome-upload/pipeline entity: one
+small, fixed, already-known human protein set (UniProt-keyed) with several different analyses
+layered on top over time, rather than "upload a genome, run the same pipeline, repeat." Shares
+only the visual design system with Target Pathogen (`base/masterpage.html`, `--tp-*` tokens,
+shared components) — zero data/functionality crossover.
+- **Storage**: reuses `bioseq.Bioentry`/`Biodatabase` as a generic storage primitive (a synthetic
+  `Biodatabase` named `human_curated_prots`, see `human_target/services/human_targets.py`) since
+  `Binders`, `BioentryStructure`, `PDB`, and the EC/GO dbxref infra already key off `Bioentry` —
+  this `Biodatabase` is purely an internal storage container, never surfaced via `GenomesView`/the
+  Genomes list/upload flow. `HumanProtein` (`human_target/models/HumanProtein.py`) holds the
+  parsed UniProt content, JSON-favoring at this pilot scale (10 curated proteins) rather than
+  fully normalized, same pattern as `CuratedImportJob.summary_json`/`PipelineRun.payload`.
+- **Reused unmodified from the bacterial side** (both already generic over any `Bioentry`, no
+  genome coupling): `load_af_model` (structures), `load_ligq_2_results` (ligand evidence →
+  `Binders`), `binder_summary.create_binders_dict`, `functional_annotations.persist_ec_go_annotations`.
+- **Pilot ingest**: `python manage.py import_human_curated_proteins /path/to/new_data` reads a
+  local `new_data/<ACC>/` tree (from the `target-human-web` reference repo's Zenodo archive — a
+  sibling directory, front-end-only, used only to understand data shapes, never to be copied as
+  code) for the 10 accessions in `DEMO_ACCESSIONS`. Writes a `UnipSp`/`UnipTr` `BioentryDbxref`
+  pointing the `Bioentry` at its own accession (human `Bioentry.accession` already *is* the UniProt
+  accession) — without this, `load_ligq_2_results`'s `is_direct` ligand classification silently
+  defaults every match to "homolog."
+- **Tabs**: Overview, Function, Sequence, Structure, Ligands, Cross-refs are built
+  (`human_target/services/human_protein_summary.py` + `human_structure_summary.py`,
+  `human_target/templates/human/human_protein.html`). Diseases, Expression, Pathways are not yet
+  built — `HumanProtein.disease_comments` is captured at ingest but unused by any template.
+- **URLs**: `/human/proteins` (`human_target:human_protein_list`), `/human/protein/<accession>`
+  (`human_target:human_protein`) — routed via `human_target/urls.py`, included from
+  `tpwebconfig/urls.py`. Visible in the nav (top-bar "Human Targets" link + mobile nav item in
+  `masterpage.html`).
+- **Deploy**: no separate Docker service — `human_target` is just another entry in
+  `LOCAL_APPS`, loaded by the existing `web`/`queue` containers, same as `bioseq`.
+- **Scaling past the 10-protein pilot** (not yet built): AlphaFold DB already publishes
+  precomputed per-UniProt-accession models at a stable public URL
+  (`https://alphafold.ebi.ac.uk/files/AF-{accession}-F1-model_v4.cif`) and AlphaFill has a similar
+  public per-accession API — for human proteins (near-total AlphaFold DB coverage), direct
+  download is simpler than running the bacterial AlphaFold/ColabFold *prediction* pipeline, which
+  is genome-shaped and not a good fit here. Ligand evidence at scale would reuse
+  `pipeline/ligq_remote.py`'s SLURM steps unchanged, swapping only its genome-scoped FASTA dump
+  for one keyed off `human_target`'s own `Bioentry` queryset.
+- **Cross-app template gotcha**: Django's `{% extends "../base/masterpage.html" %}` (relative
+  path, used throughout `tpweb/templates/*`) resolves relative to the *rendering template's own
+  file location*, not to a fixed app root — it only works because every one of those templates
+  lives one directory under `tpweb/templates/`, alongside `tpweb/templates/base/`. A template
+  living in a different app (like `human_target/templates/human/*.html`) must use the absolute,
+  non-relative form `{% extends "base/masterpage.html" %}` instead — Django's `app_directories`
+  loader then finds it by searching every installed app's `templates/` dir for that name, landing
+  correctly on `tpweb/templates/base/masterpage.html` regardless of which app the calling template
+  belongs to.
+
 ## PSORTb
 Runs via Docker-in-Docker (`/var/run/docker.sock` mounted). Has fallback to `tpweb_psort_fallback` management command when Docker is unavailable.
+
+## Access control: login wall vs. IP blocking
+Two separate layers, both in `tpweb/middleware/access_control.py`:
+- **`LoginRequiredMiddleware`**: gates every path behind login except `EXEMPT_PATH_PREFIXES`
+  (`/accounts/`, `/health/*`, `/robots.txt`). Anonymous requests get redirected to login, not
+  denied outright — this is what the Activity dashboard's "Blocked by login wall" numbers reflect.
+- **`BlockedIPMiddleware`**: a hard 403 for specific IPs in the `BlockedIP` model (`tpweb/models/BlockedIP.py`),
+  with no exemptions at all (not even `/robots.txt`). Sits *before* `LoginRequiredMiddleware` in
+  `settings.MIDDLEWARE` so a blocked IP never reaches the login-wall check. The blocked-IP set is
+  cached (`tpweb/services/ip_blocking.py`, key `Target:blocked_ips`, 60s TTL, explicitly invalidated
+  by `block_ip`/`unblock_ip`) rather than queried per request.
+- **Auto-blocking**: the same middleware also blocks on first sight, no staff action needed — an
+  anonymous request to a non-exempt path from a User-Agent classified `AI crawler` or `Generic bot`
+  (see `AUTO_BLOCK_BOT_LABELS` / `classify_bot` in `tpweb/services/bot_detection.py`, shared with
+  the dashboard's own bot classification) gets a `BlockedIP` row (`reason="auto: <label>"`,
+  `blocked_by=None`) and a 403 right then. Deliberately excludes `HTTP client` (could be an internal
+  monitor/test) and `Search crawler` (Googlebot/Bingbot; harmless against an already-private site).
+  A bot that only ever requests `/robots.txt` is left alone — auto-block only triggers on a
+  non-exempt path, same definition `_blocked_queryset` in `activity_dashboard.py` uses.
+- **Fully automatic, no manual UI**: `ActivityDashboardView` is read-only (GET only, gated by
+  `tpweb.can_view_activity`) — its "Blocked IPs" panel just lists current blocks (IP, blocked by,
+  reason, since). There's no block/unblock button anywhere on the dashboard by design; the only way
+  to manually block or unblock an IP is the Django admin (`BlockedIP`). `BlockedIPAdmin.delete_model`/
+  `delete_queryset` route deletion through `unblock_ip()` rather than a plain `obj.delete()`, so
+  deleting a row there also busts the middleware's cached blocked-IP set immediately instead of
+  leaving that IP wrongly 403'd for up to the cache's TTL.
 
 ## CSS rules (strict)
 - Hex colors ONLY in `tpweb/templates/base/masterpage.html` (:root block)

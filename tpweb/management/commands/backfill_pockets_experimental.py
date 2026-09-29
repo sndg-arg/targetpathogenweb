@@ -17,7 +17,6 @@ should keep the Druggability score that came from the supplied results TSV.
 import gzip
 import json
 import logging
-import math
 import os
 import subprocess
 import shlex
@@ -30,6 +29,7 @@ from django.core.management.base import BaseCommand
 
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.BioentryStructure import BioentryStructure
+from tpweb.services.structure_files import compute_folder_path
 
 logger = logging.getLogger(__name__)
 
@@ -382,9 +382,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Processing {len(assemblies)} genome(s).")
 
         for assembly_name in assemblies:
-            acclen = len(assembly_name)
-            folder_name = assembly_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
-            folder_path = f"{datadir}/{folder_name}/{assembly_name}"
+            folder_path = compute_folder_path(datadir, assembly_name)
             exp_dir = os.path.join(folder_path, "experimental")
 
             if not os.path.isdir(exp_dir):

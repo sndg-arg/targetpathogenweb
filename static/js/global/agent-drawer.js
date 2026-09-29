@@ -2,10 +2,14 @@
  * masterpage.html, not part of the webpack bundle, matching the existing
  * plain-script convention used by protein-detail.js/metabolic-network.js).
  *
- * Conversation history is persisted server-side per browser session (see
- * AgentChatView.py's module docstring) -- this file just keeps a local copy
- * in a plain JS array and round-trips it on every message, and hydrates that
- * array from the server once on load so a page reload doesn't lose it.
+ * Conversation history is persisted server-side, split into multiple
+ * conversations per browser session (see AgentChatView.py's module docstring
+ * and tpweb/services/agent_chat_sessions.py). This file keeps a local copy
+ * of the *current* conversation in a plain JS array and round-trips it on
+ * every message; currentConversationId tracks which server-side conversation
+ * that is. Switching conversations (via the history picker or "New
+ * conversation") re-fetches from the server rather than reconciling
+ * client-side state.
  */
 (function () {
     "use strict";
@@ -288,7 +292,13 @@
         // Home, About Us, ...) neither applies. Detected the same way
         // getPageState() already reads the page generically: by the root
         // wrapper class each page template renders, not a Django context flag.
-        var TARGET_SCOPED_SELECTOR = ".protein-page, .genome-page, .sv-root, .proteins-page, .binder-page";
+        // .protein-page:not(.human-protein-page) -- human_protein.html reuses
+        // .protein-page purely for CSS (see that template's own comment), on a
+        // page whose accession is a human UniProt id, never a pathogen
+        // protein_id/genome the backend can resolve scope for. Treating it as
+        // target-scoped here would show "Explain target"/"Audit evidence"
+        // suggestions that can only ever fail with "no genome in scope."
+        var TARGET_SCOPED_SELECTOR = ".protein-page:not(.human-protein-page), .genome-page, .sv-root, .proteins-page, .binder-page";
         if (!document.querySelector(TARGET_SCOPED_SELECTOR)) {
             var targetText = document.querySelector(".tp-agent-drawer-empty-text--target");
             var genericText = document.querySelector(".tp-agent-drawer-empty-text--generic");
@@ -296,34 +306,114 @@
             if (genericText) genericText.hidden = false;
             var suggestionsEl = document.querySelector(".tp-agent-drawer-suggestions");
             if (suggestionsEl) suggestionsEl.hidden = true;
+        } else {
+            // Some suggestions only make sense on part of the target-scoped
+            // surface -- "Explain/Audit target" need one specific protein in
+            // view, "Clear filters" only means anything on the protein-list
+            // page's own filter tray. Unscoped buttons (e.g. "Find selective
+            // targets", a genome-wide search) show everywhere in this branch.
+            var hasProteinContext = !!document.querySelector(".protein-page:not(.human-protein-page), .sv-root");
+            var hasListContext = !!document.querySelector(".proteins-page");
+            Array.prototype.slice.call(document.querySelectorAll(".tp-agent-drawer-suggestion")).forEach(function (btn) {
+                var scope = btn.getAttribute("data-suggestion-scope");
+                if (scope === "protein" && !hasProteinContext) {
+                    btn.hidden = true;
+                } else if (scope === "list" && !hasListContext) {
+                    btn.hidden = true;
+                }
+            });
         }
 
         var messagesEl = document.getElementById("tp-agent-drawer-messages");
         var inputEl = document.getElementById("tp-agent-drawer-input");
         var closeBtn = document.getElementById("tp-agent-drawer-close");
         var toggleBtn = document.getElementById("tp-agent-drawer-toggle");
-        var toggleBtnMobile = document.getElementById("tp-agent-drawer-toggle-mobile");
         var suggestionButtons = Array.prototype.slice.call(document.querySelectorAll(".tp-agent-drawer-suggestion"));
         var biologistToggle = document.getElementById("tp-agent-drawer-biologist-toggle");
+        var newConversationBtn = document.getElementById("tp-agent-drawer-new");
+        var historyToggleBtn = document.getElementById("tp-agent-drawer-history-toggle");
+        var historyPanel = document.getElementById("tp-agent-drawer-history-panel");
+        var historyListEl = document.getElementById("tp-agent-drawer-history-list");
+        var historyEmptyEl = document.getElementById("tp-agent-drawer-history-empty");
+        var statusEl = document.getElementById("tp-agent-drawer-status");
+        var currentTitleBar = document.getElementById("tp-agent-drawer-current-title-bar");
+        var currentTitleText = document.getElementById("tp-agent-drawer-current-title-text");
+        var currentTitleRenameBtn = document.getElementById("tp-agent-drawer-current-title-rename");
+        var untitledLabel = historyPanel ? historyPanel.getAttribute("data-untitled-label") : "New conversation";
+        var messageCountLabel = historyPanel ? historyPanel.getAttribute("data-message-count-label") : "";
+        var renameLabel = historyPanel ? historyPanel.getAttribute("data-rename-label") : "Rename";
+        var deleteLabel = historyPanel ? historyPanel.getAttribute("data-delete-label") : "Delete";
+        var deleteConfirmLabel = historyPanel ? historyPanel.getAttribute("data-delete-confirm-label") : "";
+        var cancelLabel = historyPanel ? historyPanel.getAttribute("data-cancel-label") : "Cancel";
         var chatUrl = form.getAttribute("data-chat-url");
+        var sessionsUrl = form.getAttribute("data-sessions-url");
+        var dataset = drawer.dataset || {};
 
         var history = [];
         var pending = false;
+        var currentConversationId = null;
+        var forceNewOnNextSend = false;
+        // Snapshot of the drawer's initial empty-state markup, captured before any
+        // hydration runs, so "New conversation" can restore it exactly later.
+        var emptyStateHtml = messagesEl ? messagesEl.innerHTML : "";
 
-        // Hydrate from the last 7 days of this browser session's conversation, if any.
+        function announce(text) {
+            if (!statusEl || !text) return;
+            // Clear-then-set on the next tick: some screen readers don't
+            // re-announce a live region whose text is set to the same value twice
+            // in a row (e.g. two "Something went wrong." errors back to back).
+            statusEl.textContent = "";
+            window.setTimeout(function () {
+                statusEl.textContent = text;
+            }, 30);
+        }
+
+        function updateCurrentTitleStrip(title) {
+            if (!currentTitleBar || !currentTitleText) return;
+            if (title) {
+                currentTitleText.textContent = title;
+                currentTitleBar.hidden = false;
+            } else {
+                currentTitleBar.hidden = true;
+            }
+        }
+
+        function updateNewConversationButtonState() {
+            if (!newConversationBtn) return;
+            newConversationBtn.disabled = pending || (history.length === 0 && !currentConversationId);
+        }
+
+        function setBusy(isBusy) {
+            drawer.classList.toggle("is-busy", isBusy);
+            if (newConversationBtn) newConversationBtn.disabled = isBusy;
+            if (historyToggleBtn) historyToggleBtn.disabled = isBusy;
+            if (currentTitleRenameBtn) currentTitleRenameBtn.disabled = isBusy;
+            if (!isBusy) updateNewConversationButtonState();
+        }
+
+        function renderHistory(items) {
+            (items || []).forEach(function (item) {
+                if (!item.text) return;
+                if (item.role === "user" || item.role === "assistant") {
+                    appendMessage(item.role, item.text);
+                }
+            });
+        }
+
+        // Hydrate from this browser session's current conversation, if any.
         // Best-effort: a failed/slow fetch just leaves the drawer at its normal empty state.
         if (chatUrl) {
             fetch(chatUrl, { method: "GET", headers: { "X-Requested-With": "XMLHttpRequest" } })
                 .then(function (response) { return response.ok ? response.json() : null; })
                 .then(function (data) {
-                    if (!data || !data.history || !data.history.length) return;
-                    history = data.history;
-                    history.forEach(function (item) {
-                        if (!item.text) return;
-                        if (item.role === "user" || item.role === "assistant") {
-                            appendMessage(item.role, item.text);
-                        }
-                    });
+                    if (!data) return;
+                    currentConversationId = data.conversation_id || null;
+                    updateCurrentTitleStrip(data.title);
+                    if (data.history && data.history.length) {
+                        history = data.history;
+                        renderHistory(history);
+                    }
+                    updateNewConversationButtonState();
                 })
                 .catch(function () { /* best effort -- drawer just starts empty */ });
         }
@@ -355,23 +445,19 @@
                 backdrop.classList.toggle("is-visible", open);
                 backdrop.hidden = !open;
             }
-            [toggleBtn, toggleBtnMobile].forEach(function (btn) {
-                if (btn) {
-                    btn.setAttribute("aria-expanded", open ? "true" : "false");
-                }
-            });
+            if (toggleBtn) {
+                toggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+            }
             if (open && inputEl) {
                 inputEl.focus();
             }
         }
 
-        [toggleBtn, toggleBtnMobile].forEach(function (btn) {
-            if (btn) {
-                btn.addEventListener("click", function () {
-                    setOpen(!drawer.classList.contains("is-open"));
-                });
-            }
-        });
+        if (toggleBtn) {
+            toggleBtn.addEventListener("click", function () {
+                setOpen(!drawer.classList.contains("is-open"));
+            });
+        }
         if (closeBtn) {
             closeBtn.addEventListener("click", function () {
                 setOpen(false);
@@ -386,6 +472,369 @@
             if (event.key === "Escape" && drawer.classList.contains("is-open")) {
                 setOpen(false);
             }
+            if (event.key === "Escape" && historyPanel && !historyPanel.hidden) {
+                setHistoryPanelOpen(false);
+            }
+        });
+
+        // Matches --tp-ui-motion-fast in agent-drawer.css's panel transition -- kept in
+        // sync manually since plain JS here has no access to the CSS custom property.
+        var PANEL_TRANSITION_MS = 160;
+
+        function setHistoryPanelOpen(open) {
+            if (!historyPanel) return;
+            if (historyToggleBtn) {
+                historyToggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+            }
+            if (open) {
+                historyPanel.hidden = false;
+                // Force a reflow between removing `hidden` and adding `.is-open` --
+                // without it, the browser coalesces both changes into one paint and
+                // the opacity/transform transition never actually animates.
+                void historyPanel.offsetWidth;
+                historyPanel.classList.add("is-open");
+                historyPanel.setAttribute("aria-hidden", "false");
+                loadSessionsList();
+            } else {
+                historyPanel.classList.remove("is-open");
+                historyPanel.setAttribute("aria-hidden", "true");
+                window.setTimeout(function () {
+                    if (!historyPanel.classList.contains("is-open")) {
+                        historyPanel.hidden = true;
+                    }
+                }, PANEL_TRANSITION_MS);
+            }
+        }
+
+        function formatConversationTimestamp(isoString) {
+            var date = new Date(isoString);
+            if (isNaN(date.getTime())) return "";
+            try {
+                return new Intl.DateTimeFormat(undefined, { dateStyle: "short", timeStyle: "short" }).format(date);
+            } catch (e) {
+                return date.toLocaleString();
+            }
+        }
+
+        var MESSAGE_ICON_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" aria-hidden="true"><path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/></svg>';
+        var PENCIL_ICON_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M11 2.5 13.5 5 5.5 13 2 13.5 2.5 10Z"/><path d="M9.5 4 12 6.5"/></svg>';
+        var TRASH_ICON_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1.5M4.5 4.5 5 13a1 1 0 0 0 1 .9h4a1 1 0 0 0 1-.9l.5-8.5"/><path d="M6.5 7v4M9.5 7v4"/></svg>';
+
+        function loadSessionsList() {
+            if (!sessionsUrl || !historyListEl) return;
+            fetch(sessionsUrl, { method: "GET", headers: { "X-Requested-With": "XMLHttpRequest" } })
+                .then(function (response) { return response.ok ? response.json() : null; })
+                .then(function (data) {
+                    var sessions = (data && data.sessions) || [];
+                    historyListEl.innerHTML = "";
+                    if (historyEmptyEl) {
+                        historyEmptyEl.hidden = sessions.length > 0;
+                    }
+                    sessions.forEach(function (session) {
+                        historyListEl.appendChild(buildHistoryItem(session));
+                    });
+                })
+                .catch(function () { /* best effort -- panel just stays empty */ });
+        }
+
+        function buildHistoryItem(session) {
+            var item = document.createElement("div");
+            item.className = "tp-agent-drawer-history-item";
+            if (session.id === currentConversationId) {
+                item.classList.add("is-active");
+            }
+            item.setAttribute("data-conversation-id", session.id);
+
+            var openBtn = document.createElement("button");
+            openBtn.type = "button";
+            openBtn.className = "tp-agent-drawer-history-item-open";
+
+            var titleEl = document.createElement("span");
+            titleEl.className = "tp-agent-drawer-history-item-title";
+            titleEl.textContent = session.title || untitledLabel;
+
+            var metaEl = document.createElement("span");
+            metaEl.className = "tp-agent-drawer-history-item-meta";
+            var count = session.message_count || 0;
+            var countEl = document.createElement("span");
+            countEl.className = "tp-agent-drawer-history-item-count";
+            countEl.innerHTML = MESSAGE_ICON_SVG + " " + count;
+            if (messageCountLabel) {
+                countEl.setAttribute("aria-label", count + " " + messageCountLabel);
+            }
+            metaEl.textContent = formatConversationTimestamp(session.updated_at) + " · ";
+            metaEl.appendChild(countEl);
+
+            openBtn.appendChild(titleEl);
+            openBtn.appendChild(metaEl);
+            openBtn.addEventListener("click", function () {
+                if (pending) return;
+                openConversation(session.id);
+            });
+
+            var renameBtn = document.createElement("button");
+            renameBtn.type = "button";
+            renameBtn.className = "tp-agent-drawer-icon-btn tp-agent-drawer-icon-btn--sm";
+            renameBtn.setAttribute("aria-label", renameLabel);
+            renameBtn.title = renameLabel;
+            renameBtn.innerHTML = PENCIL_ICON_SVG;
+            renameBtn.addEventListener("click", function (event) {
+                // Stop this from reaching the document-level "click outside
+                // the panel closes it" listener -- see the stopPropagation
+                // note on deleteBtn below for why that matters here too.
+                event.stopPropagation();
+                if (pending) return;
+                startRenameConversation(session.id, titleEl, function (newTitle) {
+                    session.title = newTitle;
+                    if (session.id === currentConversationId) {
+                        updateCurrentTitleStrip(newTitle);
+                    }
+                });
+            });
+
+            var deleteBtn = document.createElement("button");
+            deleteBtn.type = "button";
+            deleteBtn.className = "tp-agent-drawer-icon-btn tp-agent-drawer-icon-btn--sm";
+            deleteBtn.setAttribute("aria-label", deleteLabel);
+            deleteBtn.title = deleteLabel;
+            deleteBtn.innerHTML = TRASH_ICON_SVG;
+            deleteBtn.addEventListener("click", function (event) {
+                // Must stop propagation: startDeleteConfirm() below detaches
+                // this very button from the DOM (itemEl.innerHTML = "") while
+                // this click is still bubbling. Without stopping it here, the
+                // document-level outside-click listener sees a target that's
+                // no longer inside historyPanel and immediately closes the
+                // panel it out from under the just-shown confirm row.
+                event.stopPropagation();
+                if (pending) return;
+                startDeleteConfirm(session.id, item, deleteBtn);
+            });
+
+            item.appendChild(openBtn);
+            item.appendChild(renameBtn);
+            item.appendChild(deleteBtn);
+            return item;
+        }
+
+        function startRenameConversation(conversationId, titleEl, onSuccess) {
+            var originalText = titleEl.textContent;
+            titleEl.innerHTML = "";
+            var input = document.createElement("input");
+            input.type = "text";
+            input.className = "tp-agent-drawer-rename-input";
+            input.maxLength = 60;
+            input.value = originalText === untitledLabel ? "" : originalText;
+            titleEl.appendChild(input);
+            input.focus();
+            input.select();
+
+            var settled = false;
+
+            function restore(text) {
+                if (settled) return;
+                settled = true;
+                titleEl.textContent = text;
+            }
+
+            function save() {
+                if (settled) return;
+                var value = input.value.trim();
+                if (!value || value === originalText) {
+                    restore(originalText);
+                    return;
+                }
+                settled = true;
+                fetch(sessionsUrl + "/" + conversationId, {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken"),
+                    },
+                    body: JSON.stringify({ title: value }),
+                })
+                    .then(function (response) { return response.ok ? response.json() : null; })
+                    .then(function (data) {
+                        if (!data) {
+                            titleEl.textContent = originalText;
+                            announce(dataset.announceError);
+                            return;
+                        }
+                        titleEl.textContent = data.title;
+                        announce(dataset.announceRenamed);
+                        if (onSuccess) onSuccess(data.title);
+                    })
+                    .catch(function () {
+                        titleEl.textContent = originalText;
+                        announce(dataset.announceError);
+                    });
+            }
+
+            input.addEventListener("blur", save);
+            input.addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    input.blur();
+                } else if (event.key === "Escape") {
+                    // Must not bubble -- the drawer's own global Escape handler would
+                    // otherwise also close the whole history panel/drawer out from
+                    // under this in-progress rename.
+                    event.stopPropagation();
+                    event.preventDefault();
+                    restore(originalText);
+                    input.blur();
+                }
+            });
+        }
+
+        function startDeleteConfirm(conversationId, itemEl, triggerBtn) {
+            var originalChildren = Array.prototype.slice.call(itemEl.childNodes);
+            itemEl.innerHTML = "";
+            itemEl.classList.add("tp-agent-drawer-history-item--confirm");
+
+            var text = document.createElement("span");
+            text.className = "tp-agent-drawer-history-confirm-text";
+            text.textContent = deleteConfirmLabel;
+
+            var cancelBtn = document.createElement("button");
+            cancelBtn.type = "button";
+            cancelBtn.className = "tp-agent-drawer-history-confirm-cancel";
+            cancelBtn.textContent = cancelLabel;
+
+            var confirmBtn = document.createElement("button");
+            confirmBtn.type = "button";
+            confirmBtn.className = "tp-agent-drawer-history-confirm-delete";
+            confirmBtn.textContent = deleteLabel;
+
+            function revert() {
+                itemEl.classList.remove("tp-agent-drawer-history-item--confirm");
+                itemEl.innerHTML = "";
+                originalChildren.forEach(function (node) { itemEl.appendChild(node); });
+                if (triggerBtn) triggerBtn.focus();
+            }
+
+            cancelBtn.addEventListener("click", function (event) {
+                event.stopPropagation();
+                revert();
+            });
+            confirmBtn.addEventListener("click", function (event) {
+                // Same reasoning as deleteBtn's own click handler: revert()/the
+                // success path below both remove this button from the DOM
+                // synchronously (or shortly after) while this click is still
+                // bubbling -- stop it here so the outside-click listener can't
+                // mistake it for a click outside the panel.
+                event.stopPropagation();
+                fetch(sessionsUrl + "/" + conversationId, {
+                    method: "DELETE",
+                    headers: { "X-CSRFToken": getCookie("csrftoken") },
+                })
+                    .then(function (response) { return response.ok; })
+                    .then(function (ok) {
+                        if (!ok) {
+                            revert();
+                            announce(dataset.announceError);
+                            return;
+                        }
+                        var wasActive = conversationId === currentConversationId;
+                        itemEl.classList.add("tp-agent-drawer-history-item--removing");
+                        var nextFocusTarget = itemEl.nextElementSibling || itemEl.previousElementSibling || historyToggleBtn;
+                        window.setTimeout(function () {
+                            itemEl.remove();
+                            if (historyEmptyEl) {
+                                historyEmptyEl.hidden = historyListEl.children.length > 0;
+                            }
+                            if (nextFocusTarget) nextFocusTarget.focus();
+                        }, PANEL_TRANSITION_MS);
+                        if (wasActive) {
+                            startNewConversation();
+                            announce(dataset.announceResetAfterDelete);
+                        } else {
+                            announce(dataset.announceDeleted);
+                        }
+                    })
+                    .catch(function () {
+                        revert();
+                        announce(dataset.announceError);
+                    });
+            });
+
+            itemEl.appendChild(text);
+            itemEl.appendChild(cancelBtn);
+            itemEl.appendChild(confirmBtn);
+            cancelBtn.focus();
+        }
+
+        function openConversation(conversationId) {
+            if (!chatUrl) return;
+            fetch(chatUrl + "?conversation_id=" + encodeURIComponent(conversationId), {
+                method: "GET",
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+            })
+                .then(function (response) { return response.ok ? response.json() : null; })
+                .then(function (data) {
+                    if (!data) return;
+                    currentConversationId = data.conversation_id || null;
+                    forceNewOnNextSend = false;
+                    history = data.history || [];
+                    if (messagesEl) {
+                        messagesEl.innerHTML = emptyStateHtml;
+                    }
+                    renderHistory(history);
+                    updateCurrentTitleStrip(data.title);
+                    updateNewConversationButtonState();
+                })
+                .catch(function () { /* best effort */ })
+                .finally(function () {
+                    setHistoryPanelOpen(false);
+                });
+        }
+
+        function startNewConversation() {
+            history = [];
+            currentConversationId = null;
+            forceNewOnNextSend = true;
+            if (messagesEl) {
+                messagesEl.innerHTML = emptyStateHtml;
+            }
+            updateCurrentTitleStrip(null);
+            updateNewConversationButtonState();
+            setHistoryPanelOpen(false);
+            if (inputEl) {
+                inputEl.focus();
+            }
+        }
+
+        if (newConversationBtn) {
+            newConversationBtn.addEventListener("click", function () {
+                if (pending || newConversationBtn.disabled) return;
+                startNewConversation();
+                announce(dataset.announceNewConversation);
+            });
+        }
+        if (historyToggleBtn) {
+            historyToggleBtn.addEventListener("click", function () {
+                if (pending) return;
+                setHistoryPanelOpen(historyPanel && historyPanel.hidden);
+            });
+        }
+        if (currentTitleRenameBtn && currentTitleText) {
+            currentTitleRenameBtn.addEventListener("click", function () {
+                if (pending || !currentConversationId) return;
+                startRenameConversation(currentConversationId, currentTitleText, function (newTitle) {
+                    // Keep the history panel's own copy of this title in sync too,
+                    // without a full refetch, if the panel happens to be open.
+                    var listItem = historyListEl && historyListEl.querySelector(
+                        '[data-conversation-id="' + currentConversationId + '"] .tp-agent-drawer-history-item-title'
+                    );
+                    if (listItem) listItem.textContent = newTitle;
+                });
+            });
+        }
+        document.addEventListener("click", function (event) {
+            if (!historyPanel || historyPanel.hidden) return;
+            if (historyPanel.contains(event.target) || event.target === historyToggleBtn || (historyToggleBtn && historyToggleBtn.contains(event.target))) {
+                return;
+            }
+            setHistoryPanelOpen(false);
         });
 
         function appendMessage(role, text) {
@@ -429,6 +878,7 @@
         function performRequest(message) {
             pending = true;
             inputEl.disabled = true;
+            setBusy(true);
             var pendingBubble = appendMessage("pending");
 
             fetch(chatUrl, {
@@ -444,6 +894,8 @@
                     biologist_mode: biologistMode,
                     history: history,
                     message: message,
+                    conversation_id: currentConversationId,
+                    force_new: forceNewOnNextSend,
                 }),
             })
                 .then(function (response) {
@@ -463,6 +915,15 @@
                         return;
                     }
                     history = result.data.history || history;
+                    currentConversationId = result.data.conversation_id || currentConversationId;
+                    forceNewOnNextSend = false;
+                    updateCurrentTitleStrip(result.data.title);
+                    if (result.data.conversation_reset) {
+                        announce(dataset.announceConversationReset);
+                    }
+                    if (historyPanel && !historyPanel.hidden) {
+                        loadSessionsList();
+                    }
                     appendMessage("assistant", result.data.reply || "");
                     if (result.data.reload) {
                         window.setTimeout(function () {
@@ -484,6 +945,7 @@
                 .finally(function () {
                     pending = false;
                     inputEl.disabled = false;
+                    setBusy(false);
                     inputEl.focus();
                 });
         }

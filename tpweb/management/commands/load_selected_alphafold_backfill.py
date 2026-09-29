@@ -1,5 +1,3 @@
-import csv
-import math
 import os
 
 import requests
@@ -10,31 +8,16 @@ from django.core.management.base import BaseCommand, CommandError
 from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
+from tpweb.management.commands._shared import as_bool, clean, read_manifest, structure_code
 from tpweb.management.commands.load_af_model import store_structure_file
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB
+from tpweb.services.structure_files import compute_folder_path as folder_path
 
 
 DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
 DEFAULT_TIMEOUT = 60
 AFDB_API_URL = "https://alphafold.ebi.ac.uk/api/prediction/{accession}"
-
-
-def clean(value):
-    value = str(value or "").strip()
-    if value.lower() in {"", "nan", "none", "null"}:
-        return ""
-    return value
-
-
-def as_bool(value):
-    return clean(value).lower() in {"1", "true", "yes", "y"}
-
-
-def folder_path(datadir, genome_name):
-    acclen = len(genome_name)
-    folder_name = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
-    return os.path.join(datadir, folder_name, genome_name)
 
 
 def default_manifest(datadir, genome_name):
@@ -47,17 +30,6 @@ def default_manifest(datadir, genome_name):
 
 def default_model_dir(datadir, genome_name):
     return os.path.join(folder_path(datadir, genome_name), "selected_alphafold_jobs", "models")
-
-
-def read_manifest(path):
-    if not os.path.exists(path):
-        raise CommandError(f"Manifest not found: {path}")
-    with open(path, newline="", encoding="utf-8") as handle:
-        return list(csv.DictReader(handle, delimiter="\t"))
-
-
-def structure_code(accession):
-    return f"AF_{clean(accession).upper()}"
 
 
 def resolve_afdb_model_url(accession, fallback_url, timeout):
