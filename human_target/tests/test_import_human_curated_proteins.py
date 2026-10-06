@@ -1,19 +1,21 @@
 """Tests for import_human_curated_proteins.py's UniProt JSON extraction
 helpers. These are plain-dict-in/dict-out functions (no DB, no bioseq
-dependency) that parse the UniProtKB REST response shape -- per the
-command's own module docstring, that shape was never validated against a
-real downloaded file in this environment, so these fixtures are built
-directly from the field paths the code reads, not from a live sample.
+dependency) that parse the UniProtKB REST response shape -- confirmed this
+session against a live UniProt bulk stream fetch for P10721/O00116 (see
+import_human_proteome_bulk.py's module docstring), so these fixtures are
+built directly from the real field paths, not guessed.
 """
 
 import json
 import tempfile
 from pathlib import Path
 
+from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
+from bioseq.models.Biosequence import Biosequence
 from bioseq.models.BioentryDbxref import BioentryDbxref
 
 from human_target.models.HumanPathway import HumanPathway
@@ -476,3 +478,37 @@ class LoadPathwaysTests(TestCase):
         self.assertEqual(HumanPathway.objects.filter(kegg_id="hsa04010").count(), 1)
         second_link = HumanProteinPathway.objects.get(human_protein=second_protein)
         self.assertEqual(second_link.highlighted_node_id, "2")
+
+
+class WriteBiosequenceTests(TestCase):
+    """Bacterial-shared tools (dump_genome_proteins_fasta, needed to dump a
+    FASTA for LigQ_2) read the sequence from Bioentry.seq, not from
+    HumanProtein.sequence -- without a Biosequence row, they'd silently find
+    no sequence for any human protein."""
+
+    def test_full_ingest_writes_a_biosequence_row(self):
+        entry = {
+            "primaryAccession": "P10721",
+            "sequence": {"value": "MRGARGAWDFLCVLLLLLRVQTGSS", "length": 25},
+            "genes": [{"geneName": {"value": "KIT"}}],
+            "organism": {"scientificName": "Homo sapiens"},
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            protein_dir = Path(tmp) / "P10721"
+            protein_dir.mkdir()
+            (protein_dir / "P10721_full.json").write_text(json.dumps(entry), encoding="utf-8")
+
+            call_command(
+                "import_human_curated_proteins",
+                tmp,
+                accession=["P10721"],
+                skip_ligands=True,
+                skip_structures=True,
+                skip_expression=True,
+                skip_pathways=True,
+            )
+
+        bioentry = Bioentry.objects.get(biodatabase__name="human_curated_prots", accession="P10721")
+        biosequence = Biosequence.objects.get(bioentry=bioentry)
+        self.assertEqual(biosequence.seq, "MRGARGAWDFLCVLLLLLRVQTGSS")
+        self.assertEqual(biosequence.length, 25)

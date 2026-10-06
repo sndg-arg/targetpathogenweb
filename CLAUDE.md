@@ -237,6 +237,37 @@ shared components) — zero data/functionality crossover.
   loader then finds it by searching every installed app's `templates/` dir for that name, landing
   correctly on `tpweb/templates/base/masterpage.html` regardless of which app the calling template
   belongs to.
+- **Scaling to the full proteome** (in progress, ~20,400 accessions, proteome `UP000005640`):
+  built around bulk downloads instead of 20,400 individual API calls, confirmed real this session:
+  - **UniProt**: `https://rest.uniprot.org/uniprotkb/stream?query=proteome:UP000005640&format=json&compressed=true`
+    — one streamed call for every entry. Confirmed field-by-field identical in shape to the
+    single-accession/fixture shape `_build_human_protein_fields` already expects (only diff
+    observed: normal `entryAudit.entryVersion` upstream drift) — zero parser changes needed.
+  - **AlphaFold DB**: `https://ftp.ebi.ac.uk/pub/databases/alphafold/latest/UP000005640_9606_HUMAN_v6.tar`
+    (4.8GB, 23,586 structures — some isoforms/fragments beyond the canonical accession set).
+  - **KEGG**: `https://rest.kegg.jp/link/pathway/hsa` — one call, every human gene→pathway link
+    (`hsa:<entrez_id>\tpath:hsa<id>`). Replaces any per-protein `kegg_kgml/` folder scan: fetch each
+    *distinct* pathway's KGML once (`rest.kegg.jp/get/<id>/kgml`, reuses `_parse_kgml` unchanged),
+    not once per protein.
+  - **Bgee**: bulk per-species TSV exists at `bgee.org/download/gene-expression-calls`, but the
+    exact current Homo sapiens download link was **not** confirmed this session (403 on an
+    automated fetch) — get it by hand before running that part of the pipeline.
+  - **AlphaFill**: no bulk path found — deferred/optional (`--with-alphafill`, default off) rather
+    than 20,400 sequential rate-limited calls for a secondary enrichment layer.
+  - One-time bulk download: `scripts/cluster/fetch_human_proteome_bulk.sh`, run by hand over SSH on
+    the login node (**neocranex**, not nodo0, not a SLURM compute node — mirrors FastTarget's
+    one-time cluster setup), staging into the 2TB IT assigned there
+    (`/storage/home/agutson/human_proteome_raw/` by default), kept separate from nodo0's
+    `/data/targetpathogen/` RAID. Only the per-accession subset Django needs gets rsync'd down to
+    nodo0 afterward.
+  - Ingestion: `human_target/management/commands/import_human_proteome_bulk.py` — full-proteome
+    analog of `import_human_curated_proteins`, streams the bulk JSON with `ijson` (don't
+    `json.load()` a multi-GB file), reuses the same pure parsing helpers unchanged. Also writes a
+    `bioseq.models.Biosequence` row per protein (`seq`/`length`) — needed so the bacterial-shared
+    `dump_genome_proteins_fasta` command (for the eventual full-proteome LigQ_2 run) can find a
+    sequence for human proteins at all; `import_human_curated_proteins` was patched to do the same.
+  - Full plan (phased, pause-and-review between each step, row-count/disk-footprint estimates):
+    see the session's saved plan file.
 
 ## PSORTb
 Runs via Docker-in-Docker (`/var/run/docker.sock` mounted). Has fallback to `tpweb_psort_fallback` management command when Docker is unavailable.

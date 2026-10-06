@@ -17,14 +17,13 @@ Usage:
 
 NOTE: the UniProt JSON field paths below (proteinDescription, comments,
 features, uniProtKBCrossReferences, ...) follow the standard UniProt REST
-`/uniprotkb/{accession}` response shape and target-human-web's documented
-field usage, but have not been validated against a real downloaded
-`<ACC>_full.json` in this environment (no internet access here). Parsing is
-defensive (falls back to empty values) specifically so a field-name mismatch
-degrades gracefully into sparse HumanProtein content rather than aborting
-the whole ingestion -- verify field-by-field against one real file before
-trusting this in production, per CLAUDE.md's "no local execution
-environment" note.
+`/uniprotkb/{accession}` response shape. Confirmed field-by-field against a
+live UniProt bulk stream fetch for P10721/O00116 (the same shape the
+full-proteome `import_human_proteome_bulk` command consumes) -- the only
+diff was `entryAudit.entryVersion` being ahead by normal upstream drift, not
+a shape mismatch. Parsing stays defensive (falls back to empty values)
+regardless, so a future field-name change degrades gracefully into sparse
+HumanProtein content rather than aborting the whole ingestion.
 """
 
 import csv
@@ -36,6 +35,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
 from bioseq.models.Bioentry import Bioentry
+from bioseq.models.Biosequence import Biosequence
 from bioseq.models.Ontology import Ontology
 
 from human_target.models.HumanPathway import HumanPathway
@@ -386,6 +386,17 @@ class Command(BaseCommand):
             human_protein, _ = HumanProtein.objects.update_or_create(
                 bioentry=bioentry,
                 defaults={"uniprot_accession": accession, **fields},
+            )
+            # Bacterial-shared tools (dump_genome_proteins_fasta, needed to dump
+            # a FASTA for LigQ_2) read the sequence from Bioentry.seq, not from
+            # HumanProtein.sequence -- without this, they'd silently find no
+            # sequence for any human protein.
+            Biosequence.objects.update_or_create(
+                bioentry=bioentry,
+                defaults={
+                    "seq": fields["sequence"],
+                    "length": fields["sequence_length"] or len(fields["sequence"]),
+                },
             )
             self._write_uniprot_dbxref(bioentry, accession, fields["is_reviewed"])
 
