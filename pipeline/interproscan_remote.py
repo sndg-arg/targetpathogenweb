@@ -79,6 +79,7 @@ class InterProScanRemoteConfig:
     slurm_time: str
     slurm_mem: str
     slurm_exclude: str
+    node_fail_retries: int
 
 
 def _build_remote_config(cfg_dict):
@@ -140,6 +141,14 @@ def _build_remote_config(cfg_dict):
         slurm_time=os.getenv("TPW_INTERPRO_TIME", "05:00:00"),
         slurm_mem=os.getenv("TPW_INTERPRO_MEM", "32gb"),
         slurm_exclude=os.getenv("TPW_INTERPRO_EXCLUDE", "").strip(),
+        # NODE_FAIL means the SLURM compute node crashed mid-job -- a
+        # cluster hardware/scheduler fault, not an InterProScan or app bug.
+        # Resubmitting the exact same job onto (likely) a different node
+        # succeeds the overwhelming majority of the time, so this is worth
+        # a couple of automatic retries before giving up and failing the
+        # whole genome upload (which previously required a full manual
+        # reset-and-reupload for a transient node crash).
+        node_fail_retries=_env_int("TPW_INTERPRO_NODE_FAIL_RETRIES", default=2),
     )
 
 
@@ -294,6 +303,7 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
         completion_seen_at = None
         last_wait_notice = None
         last_download_error = None
+        node_fail_attempts = 0
         # A real wall-clock deadline, not a count of loop iterations -- a
         # single hung scp.get()/exec_command() call (a stale connection with
         # no keepalive response yet) can eat far more than remote_poll_seconds
@@ -344,6 +354,38 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
                     )
                     last_wait_notice = wait_notice
                 if normalized.startswith(REMOTE_FAILURE_PREFIXES):
+                    if (
+                        normalized.startswith("NODE_FAIL")
+                        and node_fail_attempts < config.node_fail_retries
+                    ):
+                        node_fail_attempts += 1
+                        retry_exit, retry_out, retry_err = _run_remote(
+                            f"cd {shlex.quote(remote_job_dir)} && sbatch --parsable {shlex.quote(remote_slurm)}"
+                        )
+                        if retry_exit == 0 and retry_out.split(";")[0].strip():
+                            job_id = retry_out.split(";")[0].strip()
+                            remote_stdout = f"{remote_job_dir}/slurm-{job_id}.out"
+                            remote_stderr = f"{remote_job_dir}/slurm-{job_id}.err"
+                            last_state = "PENDING"
+                            completion_seen_at = None
+                            last_wait_notice = None
+                            retry_message = (
+                                f"Remote InterProScan node failed for {genome} -- resubmitted as "
+                                f"job {job_id} (attempt {node_fail_attempts}/{config.node_fail_retries})."
+                            )
+                            print(retry_message)
+                            _record_remote_job(
+                                run_id_raw, job_id=job_id, remote_job_dir=remote_job_dir
+                            )
+                            _record_remote_info(
+                                run_id_raw,
+                                message=retry_message,
+                                payload={"job_id": job_id, "attempt": node_fail_attempts},
+                            )
+                            continue
+                        # Resubmission itself failed -- fall through to the
+                        # normal failure path below instead of silently
+                        # looping on an unsubmittable job.
                     _, slurm_out_text, _ = _run_remote(
                         f"tail -n 120 {shlex.quote(remote_stdout)} 2>/dev/null || true"
                     )

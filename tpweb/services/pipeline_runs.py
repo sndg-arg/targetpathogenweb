@@ -1,6 +1,7 @@
 import os
 import signal
 import subprocess
+import time
 
 from django.db.models import Case, IntegerField, Value, When
 from django.db import transaction
@@ -232,6 +233,24 @@ def _scancel_remote_job(job_id):
     return result.returncode == 0
 
 
+def _pid_alive(pid):
+    try:
+        os.kill(int(pid), 0)
+    except (OSError, ValueError):
+        return False
+    return True
+
+
+# How long to give a SIGTERM'd orchestrator to actually exit before we
+# escalate to SIGKILL. SIGTERM alone isn't reliable here -- some child
+# tools in the pipeline (BLAST, mid-CUDA-op ColabFold) ignore or defer it,
+# same class of issue documented for `docker kill` on the queue container.
+# A surviving orchestrator kept running after a workspace reset is exactly
+# what left a genome's pipeline silently advancing stages against a
+# Biodatabase that had already been deleted out from under it.
+CANCEL_GRACE_PERIOD_SECONDS = 2
+
+
 def cancel_pipeline_run(run):
     PipelineRun, _ = _models()
     if run is None:
@@ -249,6 +268,17 @@ def cancel_pipeline_run(run):
                 cancelled = True
             except Exception:
                 pass
+
+        if cancelled:
+            time.sleep(CANCEL_GRACE_PERIOD_SECONDS)
+            if _pid_alive(pid):
+                try:
+                    os.killpg(int(pid), signal.SIGKILL)
+                except Exception:
+                    try:
+                        os.kill(int(pid), signal.SIGKILL)
+                    except Exception:
+                        pass
 
     remote_job_id = str(getattr(run, "remote_job_id", "") or "").strip()
     remote_cancelled = False

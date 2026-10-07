@@ -25,6 +25,16 @@ static/css/         # Design system — tokens only, no hardcoded hex
 - **Parallelized stages**: stage 15 (AlphaFold downloads, 4 workers) and stage 17 (structure processing, 4 workers) use `ThreadPoolExecutor`. All other stages run sequentially.
 - **Stage events** tracked in `PipelineStageEvent` model (submitted → completed/failed)
 - **Status**: `tpweb/services/pipeline_status.py` — reads from `PipelineRun` as source of truth
+- **Orphaned-run reconciliation**: `tpweb/services/genome_upload_status.py:reconcile_genome_uploads`
+  (polled every cycle by `tpweb_process_genome_queue`) auto-fails a `PipelineRun` stuck on
+  `status=running` with no update for `STALE_PIPELINE_RUN_GRACE_SECONDS` (24h) — covers the
+  orchestrator dying without reaching its own cleanup (queue container restart/OOM, a hung
+  remote SSH call). Without this, a dead run can sit "running" indefinitely with the Genomes
+  list quietly missing data the whole time, since the queue worker refuses to pick up a new
+  job for the same genome while one is still marked running. `tpweb/services/pipeline_runs.py:
+  cancel_pipeline_run` escalates to SIGKILL after a 2s grace period if SIGTERM didn't actually
+  stop the process — never run the manual reset shell snippet below against a genome whose
+  pipeline might still be alive; check `ps aux | grep run_pipeline_direct` in `queue` first.
 
 ## Pipeline stages overview
 1. clear_folder → download/test/custom gbk → load_gbk
@@ -90,6 +100,10 @@ conda env: `interproscan`. Key fix: `set -u` must come AFTER `conda activate`.
 - Stage 10 can legitimately stay active for hours. First check SLURM state before assuming the pipeline is stuck.
 - On cluster, the real source of truth is the remote SLURM job (`squeue` / `sacct` on `cluster.qb.fcen.uba.ar`), not the local Django banner.
 - If `slurm-<jobid>.out` exists and shows `% completed`, InterProScan is healthy even if the UI still says stage 10.
+- **NODE_FAIL auto-retry**: a SLURM compute node crashing mid-job (hardware/scheduler
+  fault, not an app bug) is handled automatically — `pipeline/interproscan_remote.py`
+  resubmits the same job up to `TPW_INTERPRO_NODE_FAIL_RETRIES` times (default 2) before
+  failing the stage. A stage-10 `info` event logs each resubmission with its new job id.
 
 ## ColabFold
 - **Two execution modes** for stage 16, controlled by `TPW_COLABFOLD_USE_REMOTE`:

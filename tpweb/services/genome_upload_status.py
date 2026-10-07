@@ -17,6 +17,16 @@ ARGENTINA_UPLOAD_TZ = timezone.get_fixed_timezone(-180)
 # startups on a busy cluster.
 STALE_RUNNING_GRACE_SECONDS = 600
 
+# A PipelineRun itself can say RUNNING with no staleness check at all once it
+# exists -- if the orchestrator process dies without reaching its own
+# `finally` cleanup (queue container restarted/OOM-killed mid-run, SSH to a
+# remote stage hung forever), nothing else ever moves it out of "running",
+# and it can sit stuck for days with the Genomes list quietly missing data
+# the whole time. Deliberately much longer than STALE_RUNNING_GRACE_SECONDS
+# above -- InterProScan/ColabFold stages can legitimately run for many hours
+# with no new PipelineStageEvent in between (see CLAUDE.md).
+STALE_PIPELINE_RUN_GRACE_SECONDS = 24 * 3600
+
 
 def _process_exists(_pid):
     """Legacy compatibility shim.
@@ -129,8 +139,31 @@ def reconcile_genome_uploads(pipeline_status=None, owner=None):
 
         if pipeline_run is not None:
             if pipeline_run.status == pipeline_run.STATUS_RUNNING:
-                next_status = GenomeUpload.STATUS_RUNNING
-                next_error = ""
+                last_touch = pipeline_run.updated_at
+                age = (now - last_touch).total_seconds() if last_touch else 0
+                if age > STALE_PIPELINE_RUN_GRACE_SECONDS:
+                    stale_error = (
+                        "Pipeline orchestrator stopped responding -- no progress for "
+                        f"over {int(STALE_PIPELINE_RUN_GRACE_SECONDS // 3600)} hours."
+                    )
+                    pipeline_run.status = pipeline_run.STATUS_FAILED
+                    pipeline_run.error_message = stale_error
+                    pipeline_run.finished_at = now
+                    pipeline_run.launch_pid = None
+                    pipeline_run.save(
+                        update_fields=[
+                            "status",
+                            "error_message",
+                            "finished_at",
+                            "launch_pid",
+                            "updated_at",
+                        ]
+                    )
+                    next_status = GenomeUpload.STATUS_FAILED
+                    next_error = stale_error
+                else:
+                    next_status = GenomeUpload.STATUS_RUNNING
+                    next_error = ""
             elif pipeline_run.status == pipeline_run.STATUS_SUBMITTED:
                 next_status = (
                     GenomeUpload.STATUS_RUNNING
