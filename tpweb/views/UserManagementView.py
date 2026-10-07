@@ -84,10 +84,13 @@ class UserManagementView(PermissionLockedMixin, View):
                     if user.is_superuser:
                         user.is_superuser = False
                         update_fields.append("is_superuser")
-                    # A superuser assigning a role is the resolution of the
-                    # collaborator-access request -- clear the flag so the
-                    # "requested" chip doesn't linger once granted.
-                    if requested_role != User.Role.BASIC and user.wants_collaborator_access:
+                    # Submitting a role through this form is the resolution of
+                    # the collaborator-access request either way -- granting a
+                    # different role, or deliberately keeping Basic to reject
+                    # the request -- so clear the flag regardless of which
+                    # role was picked, or the "requested" chip has no way to
+                    # go away short of promoting the user.
+                    if user.wants_collaborator_access:
                         user.wants_collaborator_access = False
                         update_fields.append("wants_collaborator_access")
                     if update_fields:

@@ -1,0 +1,231 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261006-settings1">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% url 'tpwebapp:index' as index_url %}
+        {% trans "Settings" as crumb_settings %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_settings %}
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="settings-page">
+
+    <section class="settings-hero">
+        <div class="tp-view-head">
+            <div class="tp-view-head-copy">
+                <h1>{% trans "Settings" %}</h1>
+                <p class="settings-hero-description">{% trans "Decide who can see your own scoring formulas and custom params." %}</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="settings-section">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Scoring" %}</p>
+                <h2 class="settings-section-title">{% trans "My scoring formulas" %}</h2>
+            </div>
+            <span class="tp-chip tp-chip--count tp-chip--sm">{{ my_formula_rows|length }}</span>
+        </div>
+        {% if my_formula_rows %}
+        <div class="settings-list" role="table" aria-label="{% trans 'My scoring formulas' %}">
+            <div class="settings-list-row settings-list-row--head" role="row">
+                <span class="settings-list-cell" role="columnheader">{% trans "Name" %}</span>
+                <span class="settings-list-cell settings-list-cell--visibility" role="columnheader">{% trans "Visibility" %}</span>
+            </div>
+            {% for row in my_formula_rows %}
+            <div class="settings-list-row" role="row">
+                <div class="settings-list-cell" role="cell">
+                    <span class="settings-item-name">{{ row.obj.name }}</span>
+                    {% if row.obj.default %}<span class="tp-chip tp-chip--sm">{% trans "Default" %}</span>{% endif %}
+                </div>
+                <div class="settings-list-cell settings-list-cell--visibility" role="cell">
+                    <form method="post" action="{% url 'tpwebapp:settings' %}" class="settings-visibility-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="set_formula_visibility">
+                        <input type="hidden" name="formula_id" value="{{ row.obj.pk }}">
+                        <select name="visibility" class="form-control tp-ui-control" onchange="this.form.submit()">
+                            {% for value, label in formula_visibility_choices %}
+                            <option value="{{ value }}" {% if value == row.visibility %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty">{% trans "You haven't created a scoring formula yet." %}</p>
+        {% endif %}
+    </section>
+
+    <section class="settings-section">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Evidence" %}</p>
+                <h2 class="settings-section-title">{% trans "My custom params" %}</h2>
+            </div>
+            <span class="tp-chip tp-chip--count tp-chip--sm">{{ my_param_rows|length }}</span>
+        </div>
+        {% if my_param_rows %}
+        <div class="settings-list" role="table" aria-label="{% trans 'My custom params' %}">
+            <div class="settings-list-row settings-list-row--head" role="row">
+                <span class="settings-list-cell" role="columnheader">{% trans "Name" %}</span>
+                <span class="settings-list-cell settings-list-cell--visibility" role="columnheader">{% trans "Visibility" %}</span>
+            </div>
+            {% for row in my_param_rows %}
+            <div class="settings-list-row" role="row">
+                <div class="settings-list-cell" role="cell">
+                    <span class="settings-item-name">{{ row.obj.name }}</span>
+                </div>
+                <div class="settings-list-cell settings-list-cell--visibility" role="cell">
+                    <form method="post" action="{% url 'tpwebapp:settings' %}" class="settings-visibility-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="set_param_visibility">
+                        <input type="hidden" name="param_id" value="{{ row.obj.pk }}">
+                        <select name="visibility" class="form-control tp-ui-control" onchange="this.form.submit()">
+                            {% for value, label in param_visibility_choices %}
+                            <option value="{{ value }}" {% if value == row.visibility %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty">{% trans "You haven't uploaded a custom param yet." %}</p>
+        {% endif %}
+        <p class="settings-note">{% trans "Sharing a custom param only lets other Gates users see and use it — uploading new values stays yours alone." %}</p>
+    </section>
+
+    {% if is_superuser_view %}
+    <section class="settings-section">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Owner only" %}</p>
+                <h2 class="settings-section-title">{% trans "Every user's scoring formulas" %}</h2>
+            </div>
+            <span class="tp-chip tp-chip--count tp-chip--sm">{{ all_formula_rows|length }}</span>
+        </div>
+        {% if all_formula_rows %}
+        <div class="settings-list settings-list--3col" role="table" aria-label="{% trans 'Every scoring formula' %}">
+            <div class="settings-list-row settings-list-row--head" role="row">
+                <span class="settings-list-cell" role="columnheader">{% trans "Owner" %}</span>
+                <span class="settings-list-cell" role="columnheader">{% trans "Name" %}</span>
+                <span class="settings-list-cell settings-list-cell--visibility" role="columnheader">{% trans "Visibility" %}</span>
+            </div>
+            {% for row in all_formula_rows %}
+            <div class="settings-list-row" role="row">
+                <div class="settings-list-cell settings-list-cell--meta" role="cell">{{ row.obj.user.name|default:row.obj.user.get_username }}</div>
+                <div class="settings-list-cell" role="cell"><span class="settings-item-name">{{ row.obj.name }}</span></div>
+                <div class="settings-list-cell settings-list-cell--visibility" role="cell">
+                    <form method="post" action="{% url 'tpwebapp:settings' %}" class="settings-visibility-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="set_formula_visibility">
+                        <input type="hidden" name="formula_id" value="{{ row.obj.pk }}">
+                        <select name="visibility" class="form-control tp-ui-control" onchange="this.form.submit()">
+                            {% for value, label in formula_visibility_choices %}
+                            <option value="{{ value }}" {% if value == row.visibility %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty">{% trans "No one has created a formula of their own yet." %}</p>
+        {% endif %}
+    </section>
+
+    <section class="settings-section">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Owner only" %}</p>
+                <h2 class="settings-section-title">{% trans "Every user's custom params" %}</h2>
+            </div>
+            <span class="tp-chip tp-chip--count tp-chip--sm">{{ all_param_rows|length }}</span>
+        </div>
+        {% if all_param_rows %}
+        <div class="settings-list settings-list--3col" role="table" aria-label="{% trans 'Every custom param' %}">
+            <div class="settings-list-row settings-list-row--head" role="row">
+                <span class="settings-list-cell" role="columnheader">{% trans "Owner" %}</span>
+                <span class="settings-list-cell" role="columnheader">{% trans "Name" %}</span>
+                <span class="settings-list-cell settings-list-cell--visibility" role="columnheader">{% trans "Visibility" %}</span>
+            </div>
+            {% for row in all_param_rows %}
+            <div class="settings-list-row" role="row">
+                <div class="settings-list-cell settings-list-cell--meta" role="cell">{{ row.obj.user.name|default:row.obj.user.get_username }}</div>
+                <div class="settings-list-cell" role="cell"><span class="settings-item-name">{{ row.obj.name }}</span></div>
+                <div class="settings-list-cell settings-list-cell--visibility" role="cell">
+                    <form method="post" action="{% url 'tpwebapp:settings' %}" class="settings-visibility-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="set_param_visibility">
+                        <input type="hidden" name="param_id" value="{{ row.obj.pk }}">
+                        <select name="visibility" class="form-control tp-ui-control" onchange="this.form.submit()">
+                            {% for value, label in param_visibility_choices %}
+                            <option value="{{ value }}" {% if value == row.visibility %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty">{% trans "No one has uploaded a custom param of their own yet." %}</p>
+        {% endif %}
+    </section>
+
+    <section class="settings-section">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Owner only" %}</p>
+                <h2 class="settings-section-title">{% trans "Restricted genomes" %}</h2>
+            </div>
+            <span class="tp-chip tp-chip--count tp-chip--sm">{{ restricted_genomes|length }}</span>
+        </div>
+        {% if restricted_genomes %}
+        <div class="settings-list settings-list--3col" role="table" aria-label="{% trans 'Restricted genomes' %}">
+            <div class="settings-list-row settings-list-row--head" role="row">
+                <span class="settings-list-cell" role="columnheader">{% trans "Genome" %}</span>
+                <span class="settings-list-cell settings-list-cell--meta" role="columnheader">{% trans "Restricted by" %}</span>
+                <span class="settings-list-cell settings-list-cell--actions" role="columnheader">{% trans "Actions" %}</span>
+            </div>
+            {% for entry in restricted_genomes %}
+            <div class="settings-list-row" role="row">
+                <div class="settings-list-cell" role="cell"><span class="settings-item-name">{{ entry.label }}</span></div>
+                <div class="settings-list-cell settings-list-cell--meta" role="cell">{{ entry.obj.restricted_by.name|default:entry.obj.restricted_by.get_username|default:"—" }}</div>
+                <div class="settings-list-cell settings-list-cell--actions" role="cell">
+                    <form method="post" action="{% url 'tpwebapp:settings' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="unrestrict_genome">
+                        <input type="hidden" name="genome_name" value="{{ entry.obj.genome_name }}">
+                        <button type="submit" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Unrestrict" %}</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty">{% trans "No restricted genomes." %}</p>
+        {% endif %}
+        <p class="settings-note">
+            {% url 'tpwebapp:genomes_list' as genomes_url %}
+            {% blocktrans %}Restrict a new genome from its own row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}
+        </p>
+    </section>
+    {% endif %}
+
+</div>
+{% endblock %}

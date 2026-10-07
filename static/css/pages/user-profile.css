@@ -71,49 +71,71 @@
     font-size: var(--tp-font-size-lg);
 }
 
-.profile-capability-list {
+/* Seamless mosaic grid (1px gaps reading as hairline dividers, same trick
+   as .target-profile-grid in protein-detail.css) instead of a flat vertical
+   list -- groups the capabilities into a card mosaic that fuses with the
+   section like the rest of the editorial layout, rather than a plain
+   bullet-style list sitting inside it. */
+.profile-capability-grid {
     margin: 16px 0 0;
-    padding: 0;
-    list-style: none;
     display: grid;
-    gap: 2px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1px;
+    background: var(--tp-color-border-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    overflow: hidden;
 }
 
-.profile-capability {
+.profile-capability-card {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 0;
-    font-size: var(--tp-font-size-md);
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-md);
+    transition: background var(--tp-ui-motion-base, 160ms) var(--tp-ui-ease-standard, ease);
 }
 
-.profile-capability + .profile-capability {
-    border-top: 1px solid var(--tp-color-border-soft);
+.profile-capability-card:hover {
+    background: var(--tp-color-surface-soft);
 }
 
-.profile-capability-icon {
+.profile-capability-card-icon {
     display: flex;
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
     border-radius: 999px;
     background: var(--tp-color-success-bg);
     color: var(--tp-color-success-ink);
 }
 
-.profile-capability-meta {
+.profile-capability-card-icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.profile-capability-card-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1.3;
+}
+
+.profile-capability-card-meta {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
 }
 
-.profile-capability--off {
+.profile-capability-card--off {
     color: var(--tp-color-text-muted);
 }
 
-.profile-capability--off .profile-capability-icon {
+.profile-capability-card--off .profile-capability-card-icon {
     background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-muted);
 }

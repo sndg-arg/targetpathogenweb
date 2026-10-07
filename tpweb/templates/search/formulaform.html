@@ -74,6 +74,13 @@
                             <p class="formula-field-error">{{ form.formula_name.errors|striptags }}</p>
                         {% endif %}
                     </div>
+                    <div class="tp-ui-field formula-visibility-field">
+                        <label class="tp-ui-field-label" for="{{ form.visibility.id_for_label }}">
+                            {% trans "Who can see this formula" %}
+                        </label>
+                        {{ form.visibility }}
+                        <p class="formula-card-note">{% trans "Change this anytime from Settings without recreating the formula." %}</p>
+                    </div>
                 </div>
 
                 {# Expression editor #}

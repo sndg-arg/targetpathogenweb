@@ -2380,6 +2380,12 @@
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
                             {% trans "My profile" %}
                         </a>
+                        {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
+                        <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" href="{% url 'tpwebapp:settings' %}">
+                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
+                            {% trans "Settings" %}
+                        </a>
+                        {% endif %}
                         {% if perms.tpweb.can_view_human_targets %}
                         <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'human_protein_list' or request.resolver_match.url_name == 'human_protein' %}active{% endif %}" href="{% url 'human_target:human_protein_list' %}">
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
@@ -2481,6 +2487,9 @@
                         </a>
                         <div id="user_dropdown_menu" class="dropdown-menu">
                             <a class="dropdown-item" href="{% url 'tpwebapp:profile' %}">{% trans "My profile" %}</a>
+                            {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
+                            <a class="dropdown-item" href="{% url 'tpwebapp:settings' %}">{% trans "Settings" %}</a>
+                            {% endif %}
                             {% if perms.tpweb.can_view_human_targets %}
                             <a class="dropdown-item" href="{% url 'human_target:human_protein_list' %}">{% trans "Human Targets" %}</a>
                             {% endif %}
