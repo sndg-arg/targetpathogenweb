@@ -10,6 +10,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
 from tpweb.services.structure_summary import pdb_structure
+from tpweb.services.identical_sequences import identical_siblings_for_bioentry
 from tpweb.services.protein_annotations import (
     annotation_dbnames,
     annotation_name as _annotation_name,
@@ -506,6 +507,7 @@ class ProteinView(View):
         pipeline_status = annotate_pipeline_status_for_genome(
             get_pipeline_status(), proteinDTO["assembly_name"]
         )
+        identical_sequence_siblings = identical_siblings_for_bioentry(protein)
 
         # structures/structure_summary/binders were already fetched above with
         # this request's search query and sort order -- passing them in lets
@@ -681,6 +683,7 @@ class ProteinView(View):
             "binders": binders,
             "structure_summary": structure_summary,
             "experimental_structures": experimental_structures,
+            "identical_sequence_siblings": identical_sequence_siblings,
             "target_profile": target_profile,
             "target_summary": target_summary,
             "score_breakdown": score_breakdown,

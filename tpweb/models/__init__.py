@@ -15,6 +15,7 @@ from .AgentChatSession import AgentChatSession
 from .AgentChatMessageLog import AgentChatMessageLog
 from .RequestLog import RequestLog
 from .RestrictedGenome import RestrictedGenome
+from .IdenticalSequence import IdenticalSequenceGroup, IdenticalSequenceMember
 from .Metabolism import (
     MetabolicPathway,
     MetabolicReaction,
@@ -38,6 +39,8 @@ __all__ = [
     "FilterPreset",
     "GeneReactionLink",
     "GenomeUpload",
+    "IdenticalSequenceGroup",
+    "IdenticalSequenceMember",
     "MetabolicImportRun",
     "MetabolicPathway",
     "MetabolicReaction",

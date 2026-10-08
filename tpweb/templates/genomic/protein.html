@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260907-gates-priority">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261008-identical-seq">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -679,6 +679,33 @@
                 {% endif %}
             </section>
 
+            {% if identical_sequence_siblings %}
+                <section class="protein-card" id="section-identical-sequences">
+                    <div class="section-head tp-ui-panel-head">
+                        <div>
+                            <h2>{% trans "Identical sequence in other strains" %}</h2>
+                            <p class="section-subtitle">{% trans "100% identical amino-acid sequence, from a curated cross-strain mapping." %}</p>
+                        </div>
+                    </div>
+                    <ul class="identical-sequence-list">
+                        {% for sibling in identical_sequence_siblings %}
+                        <li class="identical-sequence-item">
+                            <span class="tp-chip tp-chip--sm tp-chip--meta">{{ sibling.strain_label }}</span>
+                            <span class="identical-sequence-locus">{{ sibling.locus_tag }}</span>
+                            {% if sibling.has_structure %}
+                                <span class="tp-chip tp-chip--sm tp-chip--direct">{% trans "Has structure" %}</span>
+                            {% endif %}
+                            {% if sibling.bioentry_id %}
+                                <a class="identical-sequence-link" href="{% url 'tpwebapp:protein' protein_id=sibling.bioentry_id %}">{% trans "View protein" %} →</a>
+                            {% else %}
+                                <span class="identical-sequence-pending">{% trans "Genome not loaded in Target yet" %}</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+            {% endif %}
+
             {% if structure %}
                 <section class="protein-card" id="section-structure">
                     <div class="section-head tp-ui-panel-head">
@@ -711,6 +738,7 @@
                         </div>
                         {% endif %}
                         <a href="{% url "tpwebapp:structure_export" structure.id %}"
+                           data-no-page-loader
                            class="btn tp-btn tp-btn--neutral tp-btn--md tp-btn-with-icon structure-action-btn structure-download-btn"
                            title="{% trans 'Download a visualization script for VMD (Visual Molecular Dynamics), free software to view the 3D structure with pocket overlays — vmd.ks.uiuc.edu' %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
@@ -860,6 +888,14 @@
                             <p class="no-structure-title">{% trans "Structure unavailable" %}</p>
                             <p class="no-structure-reason">{% trans "No pre-computed model was found in the AlphaFold database and no ColabFold prediction is available for this protein." %}</p>
                             <p class="no-structure-meta">{% trans "Sequence length" %}: <strong>{{ protein.size }} aa</strong></p>
+                            {% for sibling in identical_sequence_siblings %}
+                                {% if sibling.has_structure %}
+                                <p class="no-structure-meta">
+                                    {% blocktrans with strain=sibling.strain_label %}A structure is available for the identical sequence in {{ strain }}:{% endblocktrans %}
+                                    <a href="{% url 'tpwebapp:protein' protein_id=sibling.bioentry_id %}">{{ sibling.locus_tag }} →</a>
+                                </p>
+                                {% endif %}
+                            {% endfor %}
                         </div>
                     </div>
                     {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures protein=protein %}

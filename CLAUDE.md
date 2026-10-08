@@ -158,6 +158,32 @@ conda env: `interproscan`. Key fix: `set -u` must come AFTER `conda activate`.
 - **Per-genome workspace**: `<folder_path>/ligq2/proteins.fasta`, `<folder_path>/ligq2/output/` (search_results subtree).
 - **Remote workdir**: `${SSH_WORKDIR}/tpw_ligq/<safe_genome>_<timestamp>/`. Cleaning up after success is optional.
 
+## Cross-strain identical-sequence links
+Several Klebsiella strains' genomes (ST11/VA569, KP13, ATCC43816 today) are uploaded to Target
+separately, but a hand-curated TSV (produced outside the app, by BLAST/sequence-identity
+comparison) says which proteins across them are 100% identical at the amino-acid level — e.g.
+useful so a structure predicted for one strain's copy is visibly cross-linked from the other
+strains' identical copies, instead of silently redone per-strain.
+- **Display-only, structures for now**: `tpweb/models/IdenticalSequence.py`
+  (`IdenticalSequenceGroup` + `IdenticalSequenceMember`) just records the mapping; nothing gets
+  copied between members (no formula/binder/score sharing) — see
+  `tpweb/services/identical_sequences.py:identical_siblings_for_bioentry`, which the protein
+  detail page calls to show a cross-strain chip list and, when this protein itself has no
+  structure, a direct link to a sibling's structure if one exists. Scope was deliberately kept
+  to structures-only for v1; broader evidence sharing would be a separate, bigger change.
+- **Members don't require the sibling genome to exist yet** — `bioentry` starts null at import
+  time. `python manage.py load_identical_sequence_groups <tsv> --representative-strain
+  ST11_VA569 [--overwrite]` parses the TSV (columns: row id, `locus_tag (accession)`
+  representative, `STRAIN: locus_tag (accession); ...` or `-` for cross-strain matches) into
+  groups. Once a strain's genome finishes loading, run `python manage.py
+  backfill_identical_sequence_links <internal_accession> <strain_label>` to resolve that
+  strain's `bioentry` FKs by matching `locus_tag` against `Bioentry.accession` in its `_prots`
+  Biodatabase — safe to re-run, only touches still-unlinked rows.
+- **Cleanup**: deleting a genome's workspace does not currently prune its
+  `IdenticalSequenceMember.bioentry` links back to null — `on_delete=SET_NULL` means a deleted
+  Bioentry just leaves the FK null again next time (effectively self-healing on a future
+  `backfill_identical_sequence_links` run), not a dangling reference.
+
 ## Metabolic pathway integration
 Incorporates genome-scale metabolic network topology (BioCyc/Pathway Tools MetaFlux) into
 target analysis: which reactions/pathways a protein participates in, how central/bottleneck it
