@@ -8,8 +8,11 @@
     --cp-border: var(--tp-color-border-soft);
 }
 
+/* No hairline -- spacing only, same treatment as about-us/data-sources.css
+   (this page's grid gap is 16px; the extra 24px margin here matches that
+   page's own .ds-panel ~ .ds-panel value for the same ~40px total feel). */
 .customparam-page > section ~ section {
-    border-top: 1px solid var(--tp-color-border-soft);
+    margin-top: 24px;
 }
 
 .customparam-page h1,
@@ -24,9 +27,7 @@
 /* ── Hero ── */
 
 /* No longer its own boxed card -- sits directly on the page background
-   (see tpw-editorial-redesign). Its own top accent bar is gone too: that
-   was a page-local duplicate of the site-wide masthead rule in
-   .tp-main::before, which now covers this. */
+   (see tpw-editorial-redesign). */
 .customparam-hero {
     padding: 22px 18px 18px;
 }

@@ -1,4 +1,4 @@
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
 from django.http import Http404
 from django.urls import reverse
@@ -34,13 +34,13 @@ def index_new_param(custom_param):
 
 
 @login_required
+@permission_required("tpweb.can_manage_custom_params", raise_exception=True)
 def upload_form(request, genome):
     assembly_name = resolve_genome_from_slug(request.user, genome)
     if not assembly_name:
         raise Http404("Genome not found")
     workspace_user = resolve_workspace_user(request.user)
     if request.method == "POST":
-        # if request.POST.get('overwrite') != 'false':
         form = CustomParamForm(request.POST, request.FILES)
         if form.is_valid():
             custom_param = form.save(commit=False)  # Don't save yet

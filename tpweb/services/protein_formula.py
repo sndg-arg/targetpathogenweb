@@ -4,6 +4,7 @@ from django.db.models import Q
 
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam
+from tpweb.services.genome_workspace import user_can_view_restricted_genomes
 from tpweb.services.protein_list import humanize_identifier
 from tpweb.services.workspace import resolve_workspace_user
 
@@ -25,6 +26,22 @@ def resolve_formulas_for_user(user):
     formulas = list(
         ScoreFormula.objects.filter(user=workspace_user).order_by("-default", "name", "id")
     )
+
+    # Other real users' own formulas they've explicitly opted to share --
+    # `public` reaches every logged-in user, `shared_with_gates` only
+    # consumer/collaborator roles. Merged in alongside the owner's own list
+    # (not just a fallback for an empty list), so sharing one formula
+    # doesn't require the recipient to have zero formulas of their own.
+    shared_filter = Q(public=True)
+    if user_can_view_restricted_genomes(user):
+        shared_filter |= Q(shared_with_gates=True)
+    formulas += list(
+        ScoreFormula.objects.filter(shared_filter)
+        .exclude(user__isnull=True)
+        .exclude(user=workspace_user)
+        .order_by("-default", "name", "id")
+    )
+
     if not formulas:
         formulas = list(
             ScoreFormula.objects.filter((Q(default=True) | Q(public=True)) & Q(user__isnull=True))

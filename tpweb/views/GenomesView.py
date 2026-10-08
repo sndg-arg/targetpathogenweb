@@ -1,12 +1,22 @@
-from django.shortcuts import render
+from urllib.parse import urlencode
+
+from django.http import HttpResponseForbidden
+from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views import View
 from tpweb.services.genomes import (
     GENOME_TABLE_COLUMNS,
     build_genomes_dto,
     build_genomes_queryset,
+    set_genome_restricted,
     summarize_genomes,
 )
-from tpweb.services.csv_exports import build_view_export_url, csv_response, xlsx_sections_response
+from tpweb.services.csv_exports import (
+    build_export_url,
+    build_view_export_url,
+    csv_response,
+    xlsx_sections_response,
+)
 from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genomes,
     get_pipeline_status,
@@ -18,12 +28,21 @@ class GenomesView(View):
     template_name = "search/genomes.html"
     tcolumns = GENOME_TABLE_COLUMNS
 
-    @staticmethod
-    def _build_export_url(request):
-        params = request.GET.copy()
-        params["export"] = "csv"
-        encoded = params.urlencode()
-        return f"?{encoded}" if encoded else "?export=csv"
+    def post(self, request, *args, **kwargs):
+        # Superuser-only toggle for RestrictedGenome, so restricting a
+        # genome doesn't require hand-typing its internal (prefixed) name
+        # into the Django admin -- see tpweb.services.genomes.set_genome_restricted.
+        if not request.user.is_superuser:
+            return HttpResponseForbidden()
+        action = request.POST.get("action")
+        genome_name = request.POST.get("genome_name", "").strip()
+        if genome_name and action in {"restrict_genome", "unrestrict_genome"}:
+            set_genome_restricted(genome_name, action == "restrict_genome", request.user)
+        search_query = request.POST.get("search", "").strip()
+        redirect_url = reverse("tpwebapp:genomes_list")
+        if search_query:
+            redirect_url = f"{redirect_url}?{urlencode({'search': search_query})}"
+        return redirect(redirect_url)
 
     def get(self, request, *args, **kwargs):
         search_query = request.GET.get("search", "").strip()
@@ -97,7 +116,7 @@ class GenomesView(View):
                 "total_ec_annotated": genome_metrics["total_ec_annotated"],
                 "pipeline_status": pipeline_status,
                 "workspace_deleted": request.GET.get("workspace_deleted", "").strip(),
-                "export_url": self._build_export_url(request),
+                "export_url": build_export_url(request),
                 "view_export_url": build_view_export_url(request),
             },
         )  # , {'form': form})

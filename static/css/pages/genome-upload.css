@@ -20,9 +20,7 @@
 .genome-upload-page h1 { font-weight: 700; }
 
 /* No longer its own boxed card -- sits directly on the page background
-   (see tpw-editorial-redesign). Its own top accent bar is gone too: that
-   was a page-local duplicate of the site-wide masthead rule in
-   .tp-main::before, which now covers this. */
+   (see tpw-editorial-redesign). */
 .genome-upload-hero {
     padding: 22px 18px 18px;
 }
@@ -63,18 +61,9 @@
     gap: 6px;
 }
 
-.genome-upload-pipeline-note,
 .genome-upload-card-note,
 .genome-upload-field-help {
     color: var(--tp-color-text-muted);
-}
-
-.genome-upload-pipeline-note {
-    margin: 10px 0 0;
-    max-width: 860px;
-    font-size: 0.88rem;
-    font-weight: 600;
-    line-height: 1.38;
 }
 
 .genome-upload-hero-actions {
@@ -129,21 +118,26 @@
     grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.9fr);
     gap: 18px;
     align-items: start;
-    /* The two cards inside keep their own border -- margin aligns that
-       border with the 18px text inset the unboxed hero uses. */
+    /* Text inset matching the unboxed hero above it. */
     margin: 0 18px;
 }
 
-/* .genome-upload-card (the form+guide workbench pair) keeps its own
-   card box -- side-by-side tool layout, same call as customparam.html's
-   form+guide. .genome-upload-history sections (recent submissions,
-   curated import, etc.) fuse instead -- they're sequential page
-   sections, not a paired workbench. See tpw-editorial-redesign. */
+/* Sits directly on the page background, like every other section on this
+   page -- no card border/background of its own. A plain-text callout (no
+   chip/button) in its own rounded box read as "text trapped in a pill" once
+   flagged; same standard now applies here as everywhere else on the site,
+   including this previously-kept-boxed workbench pair. See
+   tpw-editorial-redesign. */
 .genome-upload-card {
-    border: 1px solid var(--upload-border);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface);
-    padding: 16px 18px;
+    padding: 16px 0;
+}
+
+/* Vertical hairline between the form and guide columns -- a paired
+   side-by-side workbench, not a sequential top-to-bottom section, so the
+   seam is a left border instead of the usual border-top. */
+.genome-upload-card--guide {
+    border-left: 1px solid var(--tp-color-border-soft);
+    padding-left: 18px;
 }
 
 .genome-upload-history {
@@ -193,8 +187,23 @@
     border: 0;
 }
 
-.genome-upload-form-state {
+/* This sits inside the already-boxed .genome-upload-card--form (the
+   intentional workbench exception) -- the shared .tp-state-note treatment
+   (its own border + radius + tinted background) on top of that read as a
+   second rounded card nested inside the first. Left-accent-bar instead,
+   same info coloring, no second box. Selector doubled for specificity over
+   the shared .tp-state-note/.tp-state-note--loading rules (ui-system.css). */
+.genome-upload-form-state.tp-state-note {
     margin-bottom: 14px;
+    border: 0;
+    border-left: 3px solid var(--tp-color-border-strong);
+    border-radius: 0;
+    background: none;
+    padding: 2px 0 2px 12px;
+}
+
+.genome-upload-form-state.tp-state-note--loading {
+    border-left-color: var(--tp-color-info-border);
 }
 
 .genome-upload-form-grid {
@@ -214,6 +223,46 @@
 .genome-upload-field input[type="text"] {
     min-height: 46px;
     border-radius: 14px;
+}
+
+/* The native file input otherwise renders as unstyled browser chrome --
+   the one control on this form that didn't match the rest of the design
+   system. Styled to look like the other fields, with the browser's own
+   picker button restyled via ::file-selector-button rather than replaced
+   by JS, so it stays a real, accessible <input type="file">. */
+.genome-upload-field .tp-file-input {
+    display: flex;
+    align-items: center;
+    min-height: 46px;
+    padding: 4px 6px;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 14px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.genome-upload-field .tp-file-input::file-selector-button {
+    margin-right: 10px;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--upload-accent-soft-2);
+    color: var(--upload-accent-ink);
+    font-weight: 600;
+    font-size: var(--tp-font-size-sm);
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.genome-upload-field .tp-file-input::file-selector-button:hover {
+    background: var(--upload-accent-border);
+}
+
+.genome-upload-field .tp-file-input:focus-visible {
+    outline: none;
+    border-color: var(--upload-accent-border);
+    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
 }
 
 .genome-upload-field-help,
@@ -269,7 +318,6 @@
 .genome-upload-card--guide {
     display: grid;
     gap: 8px;
-    background: var(--tp-color-surface);
 }
 
 .genome-upload-guide {
@@ -319,12 +367,12 @@
     line-height: 1.5;
 }
 
+/* Plain text, no chip/button in it -- left-accent-bar instead of a
+   rounded/tinted box, same treatment as .genome-upload-form-state. */
 .genome-upload-guide-note {
     margin-top: 6px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: var(--tp-color-info-bg);
-    border: 1px solid var(--tp-color-info-border);
+    padding: 2px 0 2px 12px;
+    border-left: 3px solid var(--tp-color-info-border);
     color: var(--tp-color-text-secondary);
     font-size: 0.9rem;
     line-height: 1.5;
@@ -478,17 +526,12 @@
 
 .genome-upload-hero,
 .genome-upload-card,
-.genome-upload-history,
 .genome-upload-message {
     animation: genome-upload-enter 0.36s ease;
 }
 
 .genome-upload-card {
     animation-delay: 0.04s;
-}
-
-.genome-upload-history {
-    animation-delay: 0.08s;
 }
 
 @keyframes genome-upload-enter {
@@ -502,6 +545,24 @@
     }
 }
 
+/* Opacity-only, not the shared slide+fade -- this wraps a sticky table
+   header (tp-table--premium), and a `transform` on an ancestor of a
+   `position: sticky` element makes browsers momentarily mis-render its
+   stuck position (the same class of bug documented on .tp-ui-enter, there
+   for a nested native <select> popup instead of a sticky header). */
+.genome-upload-history {
+    animation: genome-upload-enter-fade 0.36s ease 0.08s backwards;
+}
+
+@keyframes genome-upload-enter-fade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
 @media (max-width: 980px) {
     .genome-upload-layout {
         grid-template-columns: minmax(0, 1fr);
@@ -510,6 +571,17 @@
     .genome-upload-form-grid {
         grid-template-columns: minmax(0, 1fr);
     }
+
+    /* Form and guide stack instead of sitting side by side -- the seam
+       between them becomes a horizontal hairline (like the rest of the
+       page's sequential sections) instead of the desktop vertical divider. */
+    .genome-upload-card--guide {
+        border-left: 0;
+        padding-left: 0;
+        border-top: 1px solid var(--tp-color-border-soft);
+        padding-top: 16px;
+        margin-top: 16px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -517,7 +589,10 @@
         padding: 18px 16px 16px;
     }
 
-    .genome-upload-card,
+    .genome-upload-layout {
+        margin: 0 16px;
+    }
+
     .genome-upload-history {
         padding: 14px;
     }
@@ -542,6 +617,42 @@
 }
 
 /* ── Staff section body ── */
+
+/* Collapsed by default (superuser view stacks several of these) --
+   default-closed, opened automatically when there's a result to show
+   (see external_import_result in the template). Plain text-link idiom
+   (.targets-methodology/.activity-details-summary), not a pill button --
+   this toggle sits directly above a form that already ends in its own
+   boxed .genome-upload-submit-row, so a bordered pill here read as an
+   extra rounded card wrapping another rounded card. */
+.genome-upload-details summary {
+    cursor: pointer;
+    display: inline-block;
+    margin: 0 16px;
+    color: var(--upload-accent-ink);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: underline;
+    text-decoration-color: var(--upload-accent-border);
+    text-underline-offset: 3px;
+    list-style: none;
+}
+
+.genome-upload-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.genome-upload-details summary:hover,
+.genome-upload-details summary:focus-visible {
+    outline: none;
+    color: var(--tp-color-link-hover);
+    text-decoration-color: currentColor;
+}
+
+.genome-upload-details[open] summary,
+.genome-upload-details.is-open-visual summary {
+    margin-bottom: 12px;
+}
 
 .genome-upload-staff-body {
     padding: 16px;

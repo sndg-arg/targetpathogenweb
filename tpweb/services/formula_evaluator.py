@@ -76,7 +76,7 @@ def safe_eval_expression(expr_str: str, variables: dict) -> float:
         if isinstance(node, ast.Expression):
             return _eval(node.body)
         if isinstance(node, ast.Constant):
-            if not isinstance(node.value, (int, float)):
+            if not isinstance(node.value, int | float):
                 raise ValueError("Only numeric literals are allowed")
             return float(node.value)
         if isinstance(node, ast.Name):
@@ -129,12 +129,11 @@ def build_all_options_zero(user=None):
     from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
     from django.db.models import Q
     from tpweb.services.score_param_types import is_numeric_score_param
-    from tpweb.services.workspace import resolve_workspace_user
+    from tpweb.services.score_params import score_param_visibility_filter
 
     if user is not None:
-        workspace_user = resolve_workspace_user(user)
-        param_visibility = Q(user__isnull=True) | Q(user=workspace_user)
-        option_visibility = Q(score_param__user__isnull=True) | Q(score_param__user=workspace_user)
+        param_visibility = score_param_visibility_filter(user)
+        option_visibility = Q(score_param__in=ScoreParam.objects.filter(param_visibility))
     else:
         param_visibility = Q(user__isnull=True)
         option_visibility = Q(score_param__user__isnull=True)
@@ -200,14 +199,12 @@ def available_variables_grouped(
     are useful as filters but make the formula builder unusable.
     """
     from tpweb.models.ScoreParam import ScoreParam
-    from django.db.models import Q
     from tpweb.services.score_param_types import is_numeric_score_param
-    from tpweb.services.workspace import resolve_workspace_user
+    from tpweb.services.score_params import score_param_visibility_filter
 
     if user is not None:
-        workspace_user = resolve_workspace_user(user)
         param_qs = (
-            ScoreParam.objects.filter(Q(user__isnull=True) | Q(user=workspace_user))
+            ScoreParam.objects.filter(score_param_visibility_filter(user))
             .prefetch_related("choices")
             .order_by("category", "name")
         )

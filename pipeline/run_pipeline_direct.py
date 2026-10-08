@@ -56,6 +56,7 @@ from pipeline_commands import (
 )
 from interproscan_remote import run_remote_interproscan
 from colabfold_remote import run_remote_colabfold
+from fasttarget_remote import run_remote_fasttarget
 from ligq_remote import run_remote_ligq
 from slurm_remote_command import run_remote_shell_job
 from structures_remote import run_remote_structures
@@ -103,7 +104,6 @@ def _run_python_stage(stage_number, app_name, fn, *args, **kwargs):
 HEAVY_LOCAL_STAGES = {
     4: "FastTarget",
     10: "InterProScan",
-    15: "AlphaFold",
     16: "ColabFold",
     17: "FPocket/P2Rank",
     22: "binders",
@@ -316,14 +316,14 @@ def run_genome(
         )
     if not _skip(4):
         if os.environ.get("TPW_FASTTARGET_USE_REMOTE", "").strip() == "1":
-            _run_configured_remote_stage(
+            _run_python_stage(
                 4,
                 "fasttarget_remote",
-                "TPW_FASTTARGET",
-                cfg_dict,
+                run_remote_fasttarget,
+                cfg_dict=cfg_dict,
+                folder_path=folder_path,
                 genome=genome,
                 working_dir=working_dir,
-                folder_path=folder_path,
             )
         else:
             fasttarget_skip_exec = os.environ.get(
@@ -374,7 +374,6 @@ def run_genome(
     if not _skip(14) or not _skip(15):
         protein_list = _run_python_stage(14, "get_unipslst", _read_unips, folder_path, genome)
         if not _skip(15):
-            _assert_heavy_stage_allowed(15, "alphafold_unips", allow_local_heavy)
             lines = [line.strip() for line in protein_list.strip().split("\n") if line.strip()]
             if lines:
                 _run_alphafold_parallel(15, lines, folder_path, genome)
@@ -452,6 +451,22 @@ def run_genome(
 def _clear_folder(folder_path):
     if os.path.exists(folder_path):
         shutil.rmtree(folder_path)
+
+
+def _resolve_working_dir(cfg):
+    """Project root the pipeline_commands.py manage.py commands run against.
+    Priority matches the legacy TargetConfig: explicit env var, then
+    settings.ini's [GENERAL] WorkingDir, then the repo root inferred from
+    this file's own location. Deliberately not os.getcwd() -- the queue
+    worker invokes this script with cwd set to pipeline/ itself (see
+    _build_pipeline_runtime in tpweb/services/genome_uploads.py), which
+    would otherwise resolve here to .../pipeline instead of the actual
+    project root, breaking every {working_dir}/manage.py command."""
+    return (
+        os.environ.get("TPW_PIPELINE_WORKING_DIR")
+        or cfg.get("GENERAL", "WorkingDir", fallback=None)
+        or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -564,11 +579,7 @@ if __name__ == "__main__":
         cfg.read(settings_ini)
 
     # Resolve working_dir with the same priority as TargetConfig.
-    working_dir = (
-        os.environ.get("TPW_PIPELINE_WORKING_DIR")
-        or (cfg.get("GENERAL", "WorkingDir", fallback=None))
-        or os.getcwd()
-    )
+    working_dir = _resolve_working_dir(cfg)
 
     _initialize_pipeline_run(run_specs, gram, custom, args.test)
     internal_genomes = [target for _, target in run_specs]

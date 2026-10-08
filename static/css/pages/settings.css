@@ -1,0 +1,128 @@
+/* ── Settings — visibility controls for scoring formulas, custom params,
+   and (owner-only) restricted genomes. Same grid-row list idiom as
+   user-management.css's .user-mgmt-list, under its own page-scoped class
+   names per the one-CSS-file-per-page rule. ── */
+
+.settings-page {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    color: var(--tp-color-text-primary);
+    margin: 0;
+}
+
+.settings-page > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-hero,
+.settings-section {
+    padding: 28px 18px;
+}
+
+.settings-hero-description {
+    margin: 8px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-md);
+}
+
+.settings-section-title {
+    margin: 8px 0 0;
+    font-size: var(--tp-font-size-lg);
+}
+
+.settings-list {
+    max-width: 900px;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-list-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    align-items: center;
+    column-gap: 16px;
+    padding: 12px 18px;
+    background: var(--tp-color-surface);
+}
+
+.settings-list--3col .settings-list-row {
+    grid-template-columns: minmax(0, 1fr) 160px 140px;
+}
+
+.settings-list-row + .settings-list-row {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-list-row--head {
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-list-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.settings-list-cell--meta {
+    color: var(--tp-color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.settings-list-cell--visibility,
+.settings-list-cell--actions {
+    justify-content: flex-end;
+}
+
+.settings-item-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.settings-visibility-form select {
+    min-width: 200px;
+}
+
+.settings-note {
+    margin: 14px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.settings-note a {
+    color: var(--tp-color-link);
+}
+
+.settings-note a:hover {
+    color: var(--tp-color-link-hover);
+}
+
+@media (max-width: 640px) {
+    .settings-list-row,
+    .settings-list--3col .settings-list-row {
+        grid-template-columns: 1fr;
+        row-gap: 8px;
+        padding: 14px 16px;
+    }
+
+    .settings-list-row--head {
+        display: none;
+    }
+
+    .settings-list-cell--visibility,
+    .settings-list-cell--actions {
+        justify-content: flex-start;
+    }
+
+    .settings-visibility-form select {
+        min-width: 0;
+        width: 100%;
+    }
+}

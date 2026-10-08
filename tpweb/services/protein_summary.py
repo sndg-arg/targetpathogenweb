@@ -138,7 +138,7 @@ def p2rank_label(value):
 
     Same shape as druggability_label but P2Rank's own thresholds (high >= 0.5,
     medium 0.2-0.49 -- see the "Probability: high >= 0.5..." hint in
-    pocket_cards.html and p2rank_probability_color in StructureView.py),
+    pocket_cards.html and p2rank_probability_color in structure_summary.py),
     since P2Rank's probability scale isn't calibrated the same as FPocket's
     druggability score."""
     if value is None:
@@ -368,8 +368,8 @@ _pocket_reference_cache = None
 def _pocket_reference_rows():
     """Cached module-level lookup for the FPocket druggability Property/ResidueSet rows
     used by _resolve_fpocket_structure_by_max_score -- same always-the-same-rows
-    rationale as StructureView._pdb_reference_rows, kept local to this module rather
-    than imported from a view (CLAUDE.md: views delegate to services, not the reverse)."""
+    rationale as structure_summary._pdb_reference_rows, kept local to this module
+    since it only needs 2 of that function's 6 rows."""
     global _pocket_reference_cache
     if _pocket_reference_cache is None:
         from tpweb.models.pdb import Property, ResidueSet
@@ -532,6 +532,36 @@ def build_conservation_profile(raw_scores):
         "is_core": roary and corecruncher,
         "roary_label": "core" if roary else "accessory",
         "corecruncher_label": "core" if corecruncher else "accessory",
+    }
+
+
+# Maps the Gates-project pan-genome model's priority label (tpweb/management/
+# commands/load_gates_metabolic_score.py) to one of the site's semantic tone
+# tokens, for the badge color on the protein page's evidence card.
+_GATES_PRIORITY_TONES = {
+    "Priority target": "success",
+    "Second priority targets": "warning",
+    "Non-priority target": "idle",
+}
+
+
+def build_gates_metabolic_priority(raw_scores):
+    """The Gates-project pan-genome metabolic priority score (S_gene,
+    reaction_support, n_reactions, quadrant, priority) -- a curated
+    replacement for the automatic BioCyc/Pathway Tools metrics in
+    build_metabolic_context, only loaded for KP13/ATCC43816 so far
+    (see load_gates_metabolic_score)."""
+    priority = _raw_score(raw_scores, "priority")
+    quadrant = _raw_score(raw_scores, "quadrant")
+    if not priority and not quadrant:
+        return None
+    return {
+        "priority": priority,
+        "quadrant": quadrant,
+        "tone": _GATES_PRIORITY_TONES.get(priority, "idle"),
+        "s_gene": _format_score_value(_raw_score(raw_scores, "S_gene")),
+        "reaction_support": _format_score_value(_raw_score(raw_scores, "reaction_support")),
+        "n_reactions": _raw_score(raw_scores, "n_reactions"),
     }
 
 
@@ -1204,6 +1234,7 @@ def build_protein_executive_context(
     microbiome_context = build_microbiome_context(raw_scores)
     target_profile = build_target_profile(raw_scores, microbiome_context=microbiome_context)
     metabolic_context = build_metabolic_context(protein, raw_scores)
+    gates_metabolic_priority = build_gates_metabolic_priority(raw_scores)
 
     if binders is None:
         binders = create_binders_dict(protein, search_query=search_query, structures=structures)
@@ -1230,6 +1261,7 @@ def build_protein_executive_context(
         "conservation_profile": conservation_profile,
         "microbiome_context": microbiome_context,
         "metabolic_context": metabolic_context,
+        "gates_metabolic_priority": gates_metabolic_priority,
         "structure_summary": structure_summary,
         "binders": binders,
         "target_summary": target_summary,

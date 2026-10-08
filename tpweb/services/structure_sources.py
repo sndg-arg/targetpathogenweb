@@ -80,7 +80,7 @@ def is_multichain(chain, structure_data=None):
     is blank (selector falls back to 'polymer', i.e. the whole file is
     shown unrestricted), fall back to counting distinct chains actually
     present in the loaded structure (`structure_data["chains"]`, already
-    computed by StructureView.pdb_structure from real residue data).
+    computed by structure_summary.pdb_structure from real residue data).
     """
     parts = chain_parts(chain)
     if parts:

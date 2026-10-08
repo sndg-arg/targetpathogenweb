@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -9,6 +10,7 @@ from tpweb.services.genome_workspace import (
     genome_url_slug,
     resolve_genome_from_slug,
 )
+from tpweb.services.visibility_settings import VISIBILITY_PRIVATE, set_formula_visibility
 from tpweb.services.workspace import resolve_workspace_user
 from tpweb.views.FormulaForm import FormulaForm
 
@@ -46,6 +48,8 @@ EXAMPLE_FORMULAS = [
 ]
 
 
+@login_required
+@permission_required("tpweb.can_manage_formulas", raise_exception=True)
 def FormulaFormView(request, genome):
     assembly_name = resolve_genome_from_slug(request.user, genome)
     if not assembly_name:
@@ -74,6 +78,8 @@ def FormulaFormView(request, genome):
                     user=user,
                     defaults={"expression": expression},
                 )
+                visibility = form.cleaned_data.get("visibility") or VISIBILITY_PRIVATE
+                set_formula_visibility(formula_obj, user, visibility)
                 return redirect(
                     reverse(
                         "tpwebapp:protein_list", kwargs={"genome": genome_url_slug(assembly_name)}

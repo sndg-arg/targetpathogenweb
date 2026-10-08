@@ -82,6 +82,30 @@ HET_DENYLIST = frozenset(
         "CO3",
         "SCN",
         "ACE",
+        # Heavy-atom phasing additives, cryoprotectants, and detergents commonly
+        # present in crystallization buffers -- not real binders. Found leaking
+        # into human-protein ligand evidence (A0A075B6I6) via LigQ_2's PDB-homolog
+        # matches.
+        "IUM",
+        "AZI",
+        "PEO",
+        "PER",
+        "TMO",
+        "LDA",
+        "LMT",
+        "ETX",
+        "BOG",
+        "OGA",
+        "DTT",
+        "TCE",
+        "1BO",
+        "PGO",
+        "PE4",
+        "PE8",
+        "6JZ",
+        "SPD",
+        "SPM",
+        "HEZ",
     }
 )
 
@@ -292,18 +316,36 @@ class Command(BaseCommand):
                                 other_df["_pchembl_sort"] = pd.to_numeric(
                                     other_df["pchembl"], errors="coerce"
                                 )
+                                # Same-protein (direct) evidence is scientifically more
+                                # valuable than a more-potent homolog transfer -- without
+                                # this, a query protein's own real hits can be crowded out
+                                # of the pre-cap entirely by higher-pchembl homolog rows
+                                # (seen on P10721/KIT: 1462 real self-matched ChEMBL rows,
+                                # almost none surviving a pchembl-blind cut).
+                                other_df["_is_direct_proxy"] = (
+                                    other_df.get("uniprot_id", "").astype(str).str.strip() == qseqid
+                                )
                                 other_df = other_df.sort_values(
-                                    "_pchembl_sort", ascending=False, na_position="last"
+                                    ["_is_direct_proxy", "_pchembl_sort"],
+                                    ascending=[False, False],
+                                    na_position="last",
                                 ).head(known_pre_cap)
-                                other_df = other_df.drop(columns=["_pchembl_sort"])
+                                other_df = other_df.drop(
+                                    columns=["_pchembl_sort", "_is_direct_proxy"]
+                                )
                             df = pd.concat([pdb_df, other_df], ignore_index=True)
                             df = df.drop(columns=["_inner_source"], errors="ignore")
                         elif known_pre_cap and len(df) > known_pre_cap and "pchembl" in df.columns:
                             df["_pchembl_sort"] = pd.to_numeric(df["pchembl"], errors="coerce")
+                            df["_is_direct_proxy"] = (
+                                df.get("uniprot_id", "").astype(str).str.strip() == qseqid
+                            )
                             df = df.sort_values(
-                                "_pchembl_sort", ascending=False, na_position="last"
+                                ["_is_direct_proxy", "_pchembl_sort"],
+                                ascending=[False, False],
+                                na_position="last",
                             ).head(known_pre_cap)
-                            df = df.drop(columns=["_pchembl_sort"])
+                            df = df.drop(columns=["_pchembl_sort", "_is_direct_proxy"])
                         df["_locustag"] = qseqid
                         known_frames.append(df)
                 for zinc_name in zinc_like_names:
@@ -440,8 +482,17 @@ class Command(BaseCommand):
             return df
         df = df.copy()
         df["_pchembl_sort"] = pd.to_numeric(df.get("pchembl"), errors="coerce")
+        # Same direct-evidence-first priority as the pre-cap above -- this is the
+        # final per-protein top-N cut, so it needs the same protection or the
+        # pre-cap fix alone isn't enough to keep direct hits in the loaded set.
+        df["_is_direct_proxy"] = (
+            df.get("uniprot_id", "").astype(str).str.strip()
+            == df["_locustag"].astype(str).str.strip()
+        )
         df = df.sort_values(
-            ["_locustag", "_pchembl_sort"], ascending=[True, False], na_position="last"
+            ["_locustag", "_is_direct_proxy", "_pchembl_sort"],
+            ascending=[True, False, False],
+            na_position="last",
         )
         return df.groupby("_locustag", as_index=False, sort=False).head(n)
 
