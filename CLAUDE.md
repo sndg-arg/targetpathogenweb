@@ -108,23 +108,28 @@ conda env: `interproscan`. Key fix: `set -u` must come AFTER `conda activate`.
 ## ColabFold
 - **Two execution modes** for stage 16, controlled by `TPW_COLABFOLD_USE_REMOTE`:
   - `0` (default): runs locally on CPU inside `target2_nodo0_queue` via `colabfold_predict` management command. Extremely slow (~30–60 min per protein).
-  - `1`: runs remotely on SLURM GPU nodes via `pipeline/colabfold_remote.py`. **One SLURM job per protein** (not batch), so one failure doesn't kill the rest.
-- **Remote mode behavior**:
-  - Proteins <= `TPW_COLABFOLD_MAX_SEQ_LENGTH` (default 800 aa) → GPU via SLURM
-  - Proteins > limit → fallback to local ColabFold CPU (same quality, just slower)
-  - If an individual GPU job fails → fallback to local CPU for that protein
-  - Persists `job_id` and `remote_job_dir` in `PipelineRun`. On timeout/failure, does `scancel` to avoid orphan GPU jobs.
-- **Remote GPU config** (env vars, all have defaults):
+  - `1`: runs remotely on SLURM nodes via `pipeline/colabfold_remote.py`. **One SLURM job per protein** (not batch), so one failure doesn't kill the rest.
+- **Remote mode runs in two passes** (`run_remote_colabfold`), not one combined loop — this split exists because remote-CPU ColabFold can take many hours for a single hard/long protein, and inline retry used to tie up a whole worker thread for that entire time, starving the rest of the genome of GPU concurrency (one bad protein could make ~5000 others crawl):
+  1. **GPU-fast pass**: one SLURM GPU job per protein <= `TPW_COLABFOLD_MAX_SEQ_LENGTH`, concurrency `TPW_COLABFOLD_MAX_PARALLEL`. A protein that's too long for GPU, or whose GPU attempt(s) all fail, is *deferred* — nothing in this pass ever waits on a CPU job.
+  2. **CPU catch-up pass**: runs only after the GPU pass fully finishes, over exactly the deferred proteins, with its own concurrency (`TPW_COLABFOLD_CPU_MAX_PARALLEL`, defaults to the same value as `TPW_COLABFOLD_MAX_PARALLEL`). Isolated on purpose so it can't block the fast pass.
+  - `TPW_COLABFOLD_STRICT=1` makes a GPU failure a hard failure for that protein instead of deferring it to the CPU pass (that protein ends up with no structure; stage 16 itself still finishes and reports every such failure at the end, it does not abort on the first one).
+  - Persists `job_id` and `remote_job_dir` in `PipelineRun` per attempt. On timeout/failure, does `scancel` to avoid orphan GPU jobs.
+- **Remote config** (env vars, all have defaults):
   - `TPW_COLABFOLD_USE_REMOTE=1` — activate remote mode
   - `TPW_COLABFOLD_CONDA_PREFIX` — default `/home/shared/miniconda3.8`
   - `TPW_COLABFOLD_CONDA_ENV` — default `colabfold`
-  - `TPW_COLABFOLD_MAX_SEQ_LENGTH` — default `800` (safe for 8 GB VRAM GPUs like RTX 2080)
-  - `TPW_COLABFOLD_PARTITION` — default `gpu`
+  - `TPW_COLABFOLD_MAX_SEQ_LENGTH` — default `800` (safe for 8 GB VRAM GPUs like RTX 2080) — raising it reduces how often the CPU catch-up pass is needed, but only safe if the cluster's GPUs actually have enough VRAM headroom for longer sequences
+  - `TPW_COLABFOLD_MAX_PARALLEL` — default `8` (GPU-fast pass concurrency)
+  - `TPW_COLABFOLD_CPU_MAX_PARALLEL` — default: same as `TPW_COLABFOLD_MAX_PARALLEL`. CPU jobs are heavier per-worker (`TPW_COLABFOLD_CPU_CPUS`/`TPW_COLABFOLD_CPU_MEM` below), so this exists to cap catch-up concurrency independently
+  - `TPW_COLABFOLD_PARTITION` — default `gpu`; `TPW_COLABFOLD_CPU_PARTITION` — default `cpu`
   - `TPW_COLABFOLD_GRES` — default `gpu:1`
-  - `TPW_COLABFOLD_TIME` — default `12:00:00`
-  - `TPW_COLABFOLD_MEM` — default `16gb`
-  - `TPW_COLABFOLD_NUM_RECYCLES` — default `3`
-  - `TPW_COLABFOLD_NUM_MODELS` — default `1`
+  - `TPW_COLABFOLD_TIME` — default `12:00:00` (per GPU job); `TPW_COLABFOLD_CPU_TIME` — default `24:00:00` (per CPU catch-up job — generous on purpose, a single long protein can legitimately take many hours on CPU)
+  - `TPW_COLABFOLD_MEM` — default `16gb`; `TPW_COLABFOLD_CPU_MEM` — default `32gb`
+  - `TPW_COLABFOLD_CPUS` — default `4`; `TPW_COLABFOLD_CPU_CPUS` — default `8`
+  - `TPW_COLABFOLD_GPU_RETRIES` — default `1`; `TPW_COLABFOLD_CPU_RETRIES` — default `2`
+  - `TPW_COLABFOLD_EXCLUDE` — exclude specific bad SLURM nodes (same idea as InterProScan's node exclusion); `TPW_COLABFOLD_CPU_EXCLUDE` overrides it for the CPU partition specifically if set
+  - `TPW_COLABFOLD_NUM_RECYCLES` — default `3`; `TPW_COLABFOLD_NUM_MODELS` — default `1`
+- **Whole-pipeline timeout matters here**: `TPW_PIPELINE_TIMEOUT_SEC` (`tpweb/services/genome_uploads.py`, default 6h, commonly overridden much higher — e.g. 86400/24h) is the *entire run's* ceiling, not per-stage. A genome with thousands of missing structures can legitimately need far longer than 24h for stage 16 alone; if the orchestrator hits this timeout mid-stage-16 it gets SIGTERM'd (escalating to SIGKILL), the whole run fails, and reconcile_genome_uploads' 24h staleness check (see above) is what actually surfaces that failure in the UI since the killed process never reaches its own cleanup. Size this to the genome, not just "a day."
 - **Local mode progress** (when `TPW_COLABFOLD_USE_REMOTE=0`):
   - `run_pipeline_direct.py` executes `colabfold_predict` with `capture_output=True`, so live progress does NOT appear in `docker logs`.
   - Real progress is in `/tmp/colabfold_*/output/log.txt` inside the queue container.
