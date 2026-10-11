@@ -6,6 +6,7 @@ from tpweb.services.genome_uploads import _dataset_ready, _extract_error_message
 from tpweb.services.pipeline_runs import (
     latest_pipeline_run_for_accession,
     latest_pipeline_run_for_upload,
+    terminate_launch_pid,
 )
 
 
@@ -146,6 +147,11 @@ def reconcile_genome_uploads(pipeline_status=None, owner=None):
                         "Pipeline orchestrator stopped responding -- no progress for "
                         f"over {int(STALE_PIPELINE_RUN_GRACE_SECONDS // 3600)} hours."
                     )
+                    # Marking this FAILED must not leave its process (if
+                    # it's somehow not actually dead -- just hung on a
+                    # blocked call) running with nothing supervising it
+                    # anymore, same reasoning as cancel_pipeline_run.
+                    terminate_launch_pid(pipeline_run.launch_pid)
                     pipeline_run.status = pipeline_run.STATUS_FAILED
                     pipeline_run.error_message = stale_error
                     pipeline_run.finished_at = now

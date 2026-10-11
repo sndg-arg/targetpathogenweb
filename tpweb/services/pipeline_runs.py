@@ -251,34 +251,47 @@ def _pid_alive(pid):
 CANCEL_GRACE_PERIOD_SECONDS = 2
 
 
+def terminate_launch_pid(pid):
+    """Best-effort SIGTERM, escalating to SIGKILL if still alive after
+    CANCEL_GRACE_PERIOD_SECONDS. Shared by cancel_pipeline_run (explicit
+    cancel) and the stale-PipelineRun reconciliation path
+    (genome_upload_status.reconcile_genome_uploads) -- marking a run FAILED
+    for being unresponsive must not leave its process (if it somehow isn't
+    actually dead) running uncontrolled. Returns True if a kill signal was
+    sent at all."""
+    if not pid:
+        return False
+
+    sent = False
+    try:
+        os.killpg(int(pid), signal.SIGTERM)
+        sent = True
+    except Exception:
+        try:
+            os.kill(int(pid), signal.SIGTERM)
+            sent = True
+        except Exception:
+            pass
+
+    if sent:
+        time.sleep(CANCEL_GRACE_PERIOD_SECONDS)
+        if _pid_alive(pid):
+            try:
+                os.killpg(int(pid), signal.SIGKILL)
+            except Exception:
+                try:
+                    os.kill(int(pid), signal.SIGKILL)
+                except Exception:
+                    pass
+    return sent
+
+
 def cancel_pipeline_run(run):
     PipelineRun, _ = _models()
     if run is None:
         return False
 
-    cancelled = False
-    pid = getattr(run, "launch_pid", None)
-    if pid:
-        try:
-            os.killpg(int(pid), signal.SIGTERM)
-            cancelled = True
-        except Exception:
-            try:
-                os.kill(int(pid), signal.SIGTERM)
-                cancelled = True
-            except Exception:
-                pass
-
-        if cancelled:
-            time.sleep(CANCEL_GRACE_PERIOD_SECONDS)
-            if _pid_alive(pid):
-                try:
-                    os.killpg(int(pid), signal.SIGKILL)
-                except Exception:
-                    try:
-                        os.kill(int(pid), signal.SIGKILL)
-                    except Exception:
-                        pass
+    cancelled = terminate_launch_pid(getattr(run, "launch_pid", None))
 
     remote_job_id = str(getattr(run, "remote_job_id", "") or "").strip()
     remote_cancelled = False
