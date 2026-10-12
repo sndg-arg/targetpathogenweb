@@ -322,34 +322,55 @@ function jsloaded() {
             // correctly excludes filters pending removal (chip lost --active).
             var activeCount = group.querySelectorAll(".filter-chip.filter-chip--active").length;
 
-            // Active dot — show/hide without removing (server may have rendered it)
-            var dot = meta.querySelector(".filter-group-active-dot");
-            if (activeCount > 0) {
-                if (!dot) {
-                    dot = document.createElement("span");
-                    dot.className = "filter-group-active-dot";
-                    dot.setAttribute("aria-label", window.TPW_PROTEINS_I18N.hasActiveCriteria);
-                    meta.insertBefore(dot, meta.firstChild);
-                }
-                dot.hidden = false;
-            } else if (dot) {
-                dot.hidden = true;
-            }
-
-            // Selected-count badge — teal pill next to the dot
+            // Single selected-count badge (server renders it when the group
+            // already has active criteria; reused here, never duplicated).
             var badge = meta.querySelector(".filter-group-selected-count");
             if (activeCount > 0) {
                 if (!badge) {
                     badge = document.createElement("span");
                     badge.className = "filter-group-selected-count";
-                    var insertRef = meta.querySelector(".filter-group-count") || meta.querySelector(".filter-group-chevron");
-                    meta.insertBefore(badge, insertRef);
+                    meta.insertBefore(badge, meta.querySelector(".filter-group-chevron"));
                 }
                 badge.hidden = false;
                 badge.textContent = String(activeCount);
             } else if (badge) {
                 badge.hidden = true;
             }
+        });
+        updateEcBulkToggle();
+    }
+
+    // EC class "Select all" / "Clear": queues the same per-chip toggles a
+    // click on each chip would (via requestSubmit -> handleDeferredFilterSubmit),
+    // so it rides the normal pending/Apply flow instead of a parallel one.
+    var ecBulkToggle = document.querySelector("[data-ec-bulk-toggle]");
+    var ecClassChips = document.querySelector("[data-ec-class-chips]");
+
+    function ecClassForms() {
+        return ecClassChips ? Array.from(ecClassChips.querySelectorAll(".filter-chip-form")) : [];
+    }
+
+    function ecChipIsActive(form) {
+        var chip = form.querySelector(".filter-chip");
+        return !!chip && chip.classList.contains("filter-chip--active");
+    }
+
+    function updateEcBulkToggle() {
+        if (!ecBulkToggle) return;
+        var forms = ecClassForms();
+        var allActive = forms.length > 0 && forms.every(ecChipIsActive);
+        ecBulkToggle.textContent = allActive
+            ? ecBulkToggle.dataset.labelClear
+            : ecBulkToggle.dataset.labelSelect;
+        ecBulkToggle.dataset.mode = allActive ? "clear" : "select";
+    }
+
+    if (ecBulkToggle) {
+        ecBulkToggle.addEventListener("click", function () {
+            var wantActive = ecBulkToggle.dataset.mode !== "clear";
+            ecClassForms().forEach(function (form) {
+                if (ecChipIsActive(form) !== wantActive) form.requestSubmit();
+            });
         });
     }
 

@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261012-count-inset">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261012-ec-bulk">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -726,10 +726,10 @@
                         <summary class="filter-group-summary">
                             <span class="filter-group-name">{{ group.category|humanize_identifier }}</span>
                             <span class="filter-group-meta">
-                                {% if group.any_active %}
-                                    <span class="filter-group-active-dot" aria-label="{% trans 'Has active criteria' %}"></span>
-                                {% endif %}
-                                {% if group.param_count %}<span class="filter-group-count">{{ group.param_count }}</span>{% endif %}
+                                {# One live count of active criteria (kept in sync by proteins-list.js #}
+                                {# as chips toggle) -- a separate server count + JS count + dot used #}
+                                {# to show the same number twice. #}
+                                {% if group.param_count %}<span class="filter-group-selected-count" aria-label="{% trans 'Active criteria in this group' %}">{{ group.param_count }}</span>{% endif %}
                                 <span class="filter-group-chevron" aria-hidden="true"></span>
                             </span>
                         </summary>
@@ -738,30 +738,17 @@
                                 <div class="filter-param" data-filter-param data-search-text="ec class enzyme function">
                                     <div class="filter-param-head">
                                         <span class="filter-param-label">{% trans "EC class" %}</span>
+                                        {# Select/clear all 7 classes in one click (= every enzyme-annotated #}
+                                        {# protein). A bulk control, not another chip -- it just queues the #}
+                                        {# same per-class toggles the chips do (proteins-list.js). #}
+                                        <button type="button"
+                                                class="filter-param-bulk-toggle"
+                                                data-ec-bulk-toggle
+                                                data-label-select="{% trans 'Select all' %}"
+                                                data-label-clear="{% trans 'Clear' %}"
+                                                title="{% trans 'All seven classes = every protein with an EC number (all enzymes)' %}">{% trans "Select all" %}</button>
                                     </div>
-                                    <div class="filter-chip-group">
-                                        {% if group.ec_any %}
-                                            <form method="POST" action="" class="filter-chip-form">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="return_query" value="{{ query_string }}">
-                                                {% if group.ec_any.active %}
-                                                    <input type="hidden" name="action" value="remove_filter">
-                                                    <input type="hidden" name="filter_option_id" value="special:ec:{{ group.ec_any.value }}">
-                                                {% else %}
-                                                    <input type="hidden" name="action" value="add_special_filter">
-                                                    <input type="hidden" name="special_kind" value="ec">
-                                                    <input type="hidden" name="special_value" value="{{ group.ec_any.value }}">
-                                                {% endif %}
-                                                <button type="submit"
-                                                        class="filter-chip filter-chip--ec-any {% if group.ec_any.active %}filter-chip--active{% endif %}"
-                                                        data-server-active="{{ group.ec_any.active|yesno:'true,false' }}"
-                                                        aria-pressed="{% if group.ec_any.active %}true{% else %}false{% endif %}"
-                                                        title="{% trans 'Every protein with at least one EC number, whatever its class' %}">
-                                                    <span class="filter-chip-label">{% trans "Any EC number (all enzymes)" %}</span>
-                                                    {% if group.ec_any.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
-                                                </button>
-                                            </form>
-                                        {% endif %}
+                                    <div class="filter-chip-group" data-ec-class-chips>
                                         {% for cls in group.ec_classes %}
                                             <form method="POST" action="" class="filter-chip-form">
                                                 {% csrf_token %}
@@ -1356,5 +1343,5 @@
             confirmClearAll: "{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}"
         };
     </script>
-    <script src="{% static 'js/pages/proteins-list.js' %}?v=20260902-fix-save-preset-warning"></script>
+    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261012-ec-bulk"></script>
 {% endblock %}

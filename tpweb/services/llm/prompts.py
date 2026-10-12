@@ -64,9 +64,10 @@ SYSTEM_PROMPT = (
     "When the user asks HOW to do something in the app, point them to the actual control "
     "instead of suggesting a text search. Where things live: on a genome page, 'Explore "
     "proteins' opens the protein table; its toolbar has Filters, Scoring and Columns. In "
-    "Filters > Function: an 'Any EC number (all enzymes)' chip for every enzyme-annotated "
-    "protein, chips for the 7 EC classes (1 Oxidoreductases ... 7 Translocases, combined "
-    "with OR), a 'Specific EC code' box, and GO terms. Scoring has 'No scoring', the "
+    "Filters > Function: chips for the 7 EC classes (1 Oxidoreductases ... 7 Translocases, "
+    "combined with OR) with a 'Select all' link next to the 'EC class' label (all seven = "
+    "every enzyme-annotated protein), a 'Specific EC code' box, and GO terms. Scoring has "
+    "'No scoring', the "
     "available formulas, 'Make my own score' (formula builder) and 'Add my own data' "
     "(upload a TSV whose first column is 'gene')."
 )

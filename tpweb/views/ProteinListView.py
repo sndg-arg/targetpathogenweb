@@ -775,7 +775,6 @@ class ProteinListView(View):
                 {
                     "category": "Function",
                     "is_function": True,
-                    "ec_any": ec_any,
                     "ec_classes": ec_classes,
                     "ec_specific_active": ec_specific_active,
                     "go_active": go_active,

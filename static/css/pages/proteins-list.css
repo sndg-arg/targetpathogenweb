@@ -3135,27 +3135,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-muted);
 }
 
-.filter-group-active-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--tp-color-brand-700);
-    box-shadow: 0 0 0 3px var(--tp-color-brand-100);
-}
-
-.filter-group-count {
-    font-size: var(--tp-font-label);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-muted);
-    border-radius: 999px;
-    padding: 2px 9px;
-    min-width: 22px;
-    text-align: center;
-}
-
-/* Selected-criteria count — brand teal pill, shown by JS next to the dot */
+/* Active-criteria count for a filter group — the group's only badge */
 .filter-group-selected-count {
     font-size: var(--tp-font-label);
     font-weight: 600;
@@ -3205,6 +3185,25 @@ a.filter-pill .filter-pill-remove {
     align-items: center;
     gap: 8px;
     margin-bottom: 10px;
+}
+
+/* "Select all" / "Clear" text action, right-aligned in a param head */
+.filter-param-bulk-toggle {
+    margin-left: auto;
+    padding: 2px 6px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-xs);
+    font-weight: var(--tp-font-weight-semibold);
+    cursor: pointer;
+}
+
+.filter-param-bulk-toggle:hover,
+.filter-param-bulk-toggle:focus-visible {
+    color: var(--tp-color-link-hover);
+    background: var(--tp-color-surface-muted);
 }
 
 .filter-param-label {
