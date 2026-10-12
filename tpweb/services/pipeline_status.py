@@ -27,6 +27,15 @@ from tpweb.services.workspace import (
 
 logger = logging.getLogger(__name__)
 
+# Which remote tool actually owns a SLURM "waiting for resources" message, by
+# stage number -- classify_slurm_resource_message's own default ("InterProScan")
+# is only correct for stage 10. Without this, the banner said "InterProScan is
+# waiting for resources" even while stage 16 (ColabFold) was the one queued.
+_REMOTE_STAGE_TOOL_LABELS = {
+    10: "InterProScan",
+    16: "ColabFold",
+}
+
 ARGENTINA_TZ = timezone(timedelta(hours=-3))
 PIPELINE_STATUS_CACHE_TTL_SECONDS = float(os.getenv("TPW_PIPELINE_STATUS_CACHE_TTL_SECONDS", "4"))
 _PIPELINE_STATUS_CACHE: dict = {
@@ -404,7 +413,10 @@ def _status_from_pipeline_run(run):
             active_app,
         )
         info_message = str(getattr(info_event, "message", "") or "").strip()
-        friendly_info = classify_slurm_resource_message(info_message, running=True)
+        tool_label = _REMOTE_STAGE_TOOL_LABELS.get(stage_number, "InterProScan")
+        friendly_info = classify_slurm_resource_message(
+            info_message, running=True, tool_label=tool_label
+        )
         if friendly_info:
             status_data["activity_label"] = friendly_info
     elif run.status == run.STATUS_SUBMITTED:

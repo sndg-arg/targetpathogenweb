@@ -413,7 +413,7 @@ def _run_remote_colabfold_candidate(
             )
             if submit_exit != 0:
                 details = submit_err or submit_out or f"exit status {submit_exit}"
-                friendly = classify_slurm_resource_message(details)
+                friendly = classify_slurm_resource_message(details, tool_label="ColabFold")
                 if friendly:
                     details = f"{friendly} SLURM response: {details}"
                 raise RuntimeError(
@@ -480,9 +480,10 @@ def _run_remote_colabfold_candidate(
                     queue_line = queue_out.splitlines()[0].strip() if queue_out.strip() else ""
                     queue_parts = queue_line.split("|", 1) if queue_line else []
                     queue_reason = queue_parts[1].strip() if len(queue_parts) == 2 else ""
-                    wait_notice = classify_slurm_resource_message(queue_reason, running=True)
+                    wait_notice = classify_slurm_resource_message(
+                        queue_reason, running=True, tool_label="ColabFold"
+                    )
                     if wait_notice and wait_notice != last_wait_notice:
-                        wait_notice = wait_notice.replace("InterProScan", "ColabFold")
                         _record_remote_info(
                             run_id_raw,
                             stage_number=16,
@@ -512,7 +513,7 @@ def _run_remote_colabfold_candidate(
                         details = (
                             slurm_err_text or slurm_out_text or state_err or "no remote output"
                         )
-                        friendly = classify_slurm_resource_message(details)
+                        friendly = classify_slurm_resource_message(details, tool_label="ColabFold")
                         if friendly:
                             details = f"{friendly} SLURM details: {details}"
                         raise RuntimeError(
