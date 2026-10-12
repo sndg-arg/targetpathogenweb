@@ -9,6 +9,8 @@ here is purely an internal storage container, never surfaced via
 `GenomesView`/the Genomes list/upload flow.
 """
 
+from django.db.models import Q
+
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 
@@ -41,6 +43,27 @@ def get_or_create_human_biodatabase():
         defaults={"description": "Human Targets — curated UniProt protein set"},
     )
     return biodatabase
+
+
+def human_proteins_queryset(query=""):
+    """All curated human proteins (HumanProtein rows, not Bioentry), with an
+    optional DB-side search against accession/gene/name.
+
+    Scales to the full proteome -- human_bioentries_queryset() + a Python-side
+    filter materializes every row (with every JSON field) into memory before
+    filtering, fine at the 10-protein pilot scale, not at ~20,400 (see
+    HumanProteinListView and the full-proteome scaling plan)."""
+    from human_target.models.HumanProtein import HumanProtein
+
+    qs = HumanProtein.objects.filter(bioentry__biodatabase__name=HUMAN_BIODATABASE_NAME)
+    query = (query or "").strip()
+    if query:
+        qs = qs.filter(
+            Q(uniprot_accession__icontains=query)
+            | Q(gene_symbol__icontains=query)
+            | Q(protein_name__icontains=query)
+        )
+    return qs
 
 
 def human_bioentries_queryset():

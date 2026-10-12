@@ -24,7 +24,7 @@ class HumanProtein(models.Model):
 
     # Scalar fields -- Overview quick-fact tiles, list page columns.
     protein_name = models.CharField(max_length=512, blank=True, default="")
-    gene_symbol = models.CharField(max_length=64, blank=True, default="")
+    gene_symbol = models.CharField(max_length=64, blank=True, default="", db_index=True)
     organism_name = models.CharField(max_length=255, blank=True, default="")
     taxon_id = models.IntegerField(null=True, blank=True)
     sequence_length = models.IntegerField(null=True, blank=True)

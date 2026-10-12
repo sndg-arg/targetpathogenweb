@@ -29,6 +29,16 @@
     margin: 0;
 }
 
+.human-list-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-2);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
 .human-protein-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));

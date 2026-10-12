@@ -10,7 +10,7 @@
     detail page's own head block.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260907-gates-priority">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-list.css' %}?v=20260909-dashboard">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-list.css' %}?v=20261012-pagination">
 {% endblock %}
 
 {% block body %}
@@ -45,7 +45,9 @@
                 <span class="metric-value">{{ dashboard.by_source.pdb }} · {{ dashboard.by_source.chembl }} · {{ dashboard.by_source.zinc }}</span>
             </div>
         </div>
-        <p class="tp-state-note human-dashboard-caveat">{% trans "These figures reflect the current 10-protein pilot set, not the full ~20,400-protein human proteome -- expect them to look sparse until ingestion scales up." %}</p>
+        {% if dashboard.total_proteins < 500 %}
+        <p class="tp-state-note human-dashboard-caveat">{% trans "These figures reflect a small pilot set, not the full ~20,400-protein human proteome -- expect them to look sparse until ingestion scales up." %}</p>
+        {% endif %}
 
         <form method="GET" class="human-list-search" role="search">
             <input type="search" name="q" value="{{ query }}" placeholder="{% trans 'Search by accession, gene, or name…' %}" aria-label="{% trans 'Search human proteins' %}">
@@ -75,5 +77,17 @@
             <p class="tp-state-note tp-state-note--empty">{% trans "No human proteins match this search." %}</p>
             {% endfor %}
         </div>
+
+        {% if proteins.paginator.num_pages > 1 %}
+        <nav class="human-list-pagination" aria-label="{% trans 'Protein list pagination' %}">
+            {% if proteins.has_previous %}
+            <a href="?{% if query %}q={{ query }}&{% endif %}page={{ proteins.previous_page_number }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Previous" %}</a>
+            {% endif %}
+            <span>{% blocktrans with current=proteins.number total=proteins.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktrans %}</span>
+            {% if proteins.has_next %}
+            <a href="?{% if query %}q={{ query }}&{% endif %}page={{ proteins.next_page_number }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Next" %}</a>
+            {% endif %}
+        </nav>
+        {% endif %}
     </div>
 {% endblock %}
