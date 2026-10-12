@@ -2057,11 +2057,18 @@ a.filter-pill .filter-pill-remove {
     min-width: 0;
 }
 
+.scoring-formula-actions {
+    display: flex;
+    gap: 2px;
+    align-items: flex-start;
+}
+
 .scoring-formula-delete-form {
     margin: 0;
     flex-shrink: 0;
 }
 
+.scoring-formula-edit-btn,
 .scoring-formula-delete-btn {
     display: inline-flex;
     align-items: center;
@@ -2074,6 +2081,7 @@ a.filter-pill .filter-pill-remove {
     margin-top: 8px;
 }
 
+.scoring-formula-edit-btn svg,
 .scoring-formula-delete-btn svg {
     width: 18px;
     height: 18px;
@@ -2088,6 +2096,12 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-danger-bg) !important;
     border-color: var(--tp-color-danger-border) !important;
     color: var(--tp-color-danger-ink) !important;
+}
+
+.scoring-formula-edit-btn:hover,
+.scoring-formula-edit-btn:focus-visible {
+    background: var(--tp-color-brand-100) !important;
+    color: var(--tp-color-brand-900) !important;
 }
 
 .scoring-formula-row {

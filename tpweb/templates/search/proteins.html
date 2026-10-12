@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261012-preset-rename">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261012-formula-edit">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -1283,6 +1283,15 @@
                                     </button>
                                 </form>
                                 {% if entry.is_user_formula %}
+                                <div class="scoring-formula-actions">
+                                    {% if entry.is_editable and user.is_authenticated %}
+                                        <a href="{{ custom_score_url }}?edit={{ entry.pk }}"
+                                           class="btn tp-btn tp-btn--clear scoring-formula-edit-btn"
+                                           title="{% trans 'Edit formula' %}"
+                                           aria-label="{% trans 'Edit formula' %}">
+                                            {% include "components/icons/pencil.html" %}
+                                        </a>
+                                    {% endif %}
                                     <form method="POST"
                                           action="{% url 'tpwebapp:delete_formula' genome=genome formula_pk=entry.pk %}"
                                           class="scoring-formula-delete-form"
@@ -1298,6 +1307,7 @@
                                         </button>
                                         {% endif %}
                                     </form>
+                                </div>
                                 {% endif %}
                             </div>
                         {% endfor %}

@@ -1592,6 +1592,7 @@ class ProteinListView(View):
                     "term_help": annotate_formula_terms(formula_expression, all_term_descriptions),
                     "is_user_formula": f.user_id is not None
                     and f.user_id == getattr(workspace_user_for_drawer, "pk", None),
+                    "is_editable": bool((f.expression or "").strip()),
                 }
             )
 

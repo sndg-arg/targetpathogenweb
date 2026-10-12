@@ -36,7 +36,7 @@
                 <span aria-hidden="true">∫</span>
                 {% trans "Custom scoring · Mathematical formula" %}
             </span>
-            <h1>{% trans "Make my own score" %}</h1>
+            <h1>{% if editing %}{% blocktrans with name=editing.name %}Edit score: {{ name }}{% endblocktrans %}{% else %}{% trans "Make my own score" %}{% endif %}</h1>
             <p class="formula-subtitle">{% trans "Build an optional composite score by combining raw numeric evidence, such as druggability or identity, with binary categorical signals such as essentiality and off-target hits." %}</p>
             <div class="formula-chip-group tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm">
@@ -56,6 +56,7 @@
 
         <form id="formula-form" method="POST" novalidate>
         {% csrf_token %}
+        {% if editing %}<input type="hidden" name="editing_pk" value="{{ editing.pk }}">{% endif %}
 
         {# ── Main workbench ── #}
         <section class="formula-workbench">
@@ -100,7 +101,7 @@
                         <div class="formula-validation-row">
                             <div id="formula-validation-result"
                                  hx-get="{% url 'tpwebapp:validate_expression' %}"
-                                 hx-trigger="keyup from:#id_expression delay:500ms, change from:#id_expression"
+                                 hx-trigger="{% if form.expression.value %}load, {% endif %}keyup from:#id_expression delay:500ms, change from:#id_expression"
                                  hx-include="#id_expression"
                                  hx-swap="innerHTML">
                                 <span class="formula-valid-badge formula-valid-badge--empty">{% trans "Type an expression above" %}</span>
@@ -215,7 +216,7 @@
         {# ── Footer ── #}
         <section class="formula-footer tp-ui-panel">
             <div class="formula-footer-copy">
-                <p class="formula-footer-title">{% trans "Save and apply" %}</p>
+                <p class="formula-footer-title">{% if editing %}{% trans "Save changes and apply" %}{% else %}{% trans "Save and apply" %}{% endif %}</p>
                 <p class="formula-footer-note">{% trans "Saves this formula and takes you to the protein list ranked by your score." %}</p>
             </div>
             <div class="formula-footer-actions">

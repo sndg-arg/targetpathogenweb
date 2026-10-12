@@ -10,7 +10,11 @@ from tpweb.services.genome_workspace import (
     genome_url_slug,
     resolve_genome_from_slug,
 )
-from tpweb.services.visibility_settings import VISIBILITY_PRIVATE, set_formula_visibility
+from tpweb.services.visibility_settings import (
+    VISIBILITY_PRIVATE,
+    formula_visibility,
+    set_formula_visibility,
+)
 from tpweb.services.workspace import resolve_workspace_user
 from tpweb.views.FormulaForm import FormulaForm
 
@@ -58,6 +62,19 @@ def FormulaFormView(request, genome):
     user = resolve_workspace_user(request.user)
     variable_groups = available_variables_grouped(user)
 
+    # Edit mode: ?edit=<pk> (GET) / editing_pk (POST) on one of the user's own
+    # expression-based formulas. Term-based legacy formulas (no expression)
+    # can't round-trip through the expression editor, so they're not editable.
+    editing_pk = request.POST.get("editing_pk") or request.GET.get("edit")
+    editing = None
+    if editing_pk and str(editing_pk).isdigit():
+        editing = (
+            ScoreFormula.objects.filter(pk=editing_pk, user=user)
+            .exclude(expression__isnull=True)
+            .exclude(expression="")
+            .first()
+        )
+
     if request.method == "POST":
         if "reset_process" in request.POST:
             return redirect(
@@ -70,14 +87,27 @@ def FormulaFormView(request, genome):
             expression = form.cleaned_data["expression"].strip()
 
             validation = validate_expression_syntax(expression, user=user)
+            name_taken = (
+                ScoreFormula.objects.filter(name=name, user=user)
+                .exclude(pk=getattr(editing, "pk", None))
+                .exists()
+            )
             if not validation["valid"]:
                 form.add_error("expression", validation["error"] or "Invalid expression")
+            elif editing and name_taken:
+                form.add_error("formula_name", "You already have another formula with this name.")
             else:
-                formula_obj, _ = ScoreFormula.objects.update_or_create(
-                    name=name,
-                    user=user,
-                    defaults={"expression": expression},
-                )
+                if editing:
+                    editing.name = name
+                    editing.expression = expression
+                    editing.save(update_fields=["name", "expression"])
+                    formula_obj = editing
+                else:
+                    formula_obj, _ = ScoreFormula.objects.update_or_create(
+                        name=name,
+                        user=user,
+                        defaults={"expression": expression},
+                    )
                 visibility = form.cleaned_data.get("visibility") or VISIBILITY_PRIVATE
                 set_formula_visibility(formula_obj, user, visibility)
                 return redirect(
@@ -86,6 +116,14 @@ def FormulaFormView(request, genome):
                     )
                     + f"?scoreformula={name}"
                 )
+    elif editing:
+        form = FormulaForm(
+            initial={
+                "formula_name": editing.name,
+                "expression": editing.expression,
+                "visibility": formula_visibility(editing),
+            }
+        )
     else:
         form = FormulaForm()
 
@@ -100,5 +138,6 @@ def FormulaFormView(request, genome):
             "variable_groups": variable_groups,
             "safe_functions": SAFE_FUNCTIONS,
             "example_formulas": EXAMPLE_FORMULAS,
+            "editing": editing,
         },
     )
