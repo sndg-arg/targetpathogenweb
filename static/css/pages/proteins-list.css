@@ -3827,7 +3827,11 @@ a.filter-pill .filter-pill-remove {
 
 /* Result count line at the head of the table */
 .protein-table-results {
-    margin: 0 0 var(--tp-space-2);
+    /* Inline padding = the scroll-note pill's 1px border + 14px padding, so
+       this line's text starts on the same edge as "More columns available"
+       right below it instead of hanging flush at the panel's raw edge. */
+    margin: var(--tp-space-1) 0 0;
+    padding: 0 15px;
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
 }
