@@ -3855,9 +3855,17 @@ a.filter-pill .filter-pill-remove {
        this line's text starts on the same edge as "More columns available"
        right below it instead of hanging flush at the panel's raw edge. */
     margin: var(--tp-space-1) 0 0;
-    padding: 0 15px;
+    padding: 6px 15px;
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
+    /* Stays under the top bar + breadcrumb (theme-and-chrome.js measures
+       them into --tp-sticky-chrome-h) while scrolling through the table, so
+       "did my filter work?" never needs a scroll back up. Sticks only within
+       .protein-table-panel, so it leaves with the table. */
+    position: sticky;
+    top: var(--tp-sticky-chrome-h, 66px);
+    z-index: calc(var(--tp-table-sticky-z) + 6);
+    background: var(--tp-color-surface);
 }
 
 .protein-table-results strong {
