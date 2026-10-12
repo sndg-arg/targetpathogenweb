@@ -128,6 +128,15 @@
     margin-bottom: 14px;
 }
 
+.customparam-problem-list {
+    margin: var(--tp-space-2) 0 0;
+    padding-left: var(--tp-space-5);
+}
+
+.customparam-problem-list li + li {
+    margin-top: var(--tp-space-1);
+}
+
 /* ── Form ── */
 
 .customparam-form {

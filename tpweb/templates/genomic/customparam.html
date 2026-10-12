@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20260810-drop-hairline">
+    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20261012-import-errors">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -37,8 +37,8 @@
                     <strong>{% trans "Genome" %}:</strong>
                     <span class="customparam-chip-id">{{ assembly_label|default:assembly_name }}</span>
                 </span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Format" %}:</strong> TSV</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Columns" %}:</strong> {% trans "protein accession, value" %}</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Format" %}:</strong> TSV / CSV</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Columns" %}:</strong> {% trans "gene, then one column per value" %}</span>
                 <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Value type" %}:</strong> {% trans "numeric or categorical" %}</span>
             </div>
         </section>
@@ -47,6 +47,14 @@
             <article class="customparam-card customparam-card--form tp-ui-panel">
                 <h2>{% trans "Upload evidence file" %}</h2>
 
+                {% if import_problems %}
+                    <div class="customparam-state-note tp-state-note tp-state-note--error" role="alert">
+                        <strong>{% trans "The file was not loaded." %}</strong>
+                        <ul class="customparam-problem-list">
+                            {% for problem in import_problems %}<li>{{ problem }}</li>{% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
                 {% if file_exists %}
                     <div class="customparam-state-note tp-state-note tp-state-note--error">
                         {% blocktrans %}A file with this name already exists. Upload again to replace it with the new version.{% endblocktrans %}
@@ -60,7 +68,7 @@
                     <div class="tp-ui-field customparam-field">
                         <label class="tp-ui-field-label" for="{{ form.tsv.id_for_label }}">{% trans "TSV file" %}</label>
                         {{ form.tsv }}
-                        <p class="customparam-field-help">{% trans "Tab-separated · protein accession in first column · one row per protein" %}</p>
+                        <p class="customparam-field-help">{% trans "TSV (tab) or CSV (comma) · first column named gene with the protein accession · one row per protein" %}</p>
                         {% if form.tsv.errors %}
                             <p class="customparam-field-error">{{ form.tsv.errors|striptags }}</p>
                         {% endif %}

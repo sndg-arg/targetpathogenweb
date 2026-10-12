@@ -2157,3 +2157,32 @@ class GatesMetabolicPriorityTests(SimpleTestCase):
         )
 
         self.assertEqual(result["tone"], "warning")
+
+
+class CustomParamImportSummaryTests(SimpleTestCase):
+    def test_wrong_header_is_explained(self):
+        from tpweb.services.custom_param_import import summarize_import_output
+
+        result = summarize_import_output(
+            1,
+            "Traceback (most recent call last):\n"
+            "AssertionError: 'gene' is not in the column list\n",
+        )
+
+        self.assertFalse(result.ok)
+        self.assertEqual(result.problems, ["The first column header must be exactly gene."])
+
+    def test_success_lists_loaded_columns_and_unknown_accessions(self):
+        from tpweb.services.custom_param_import import summarize_import_output
+
+        result = summarize_import_output(
+            0,
+            "'BAD_1' was not found\n'BAD_2' was not found\n"
+            "100%|##########| 3/3\n"
+            "done adding properties (my_score,my_class) to public__X ",
+        )
+
+        self.assertTrue(result.ok)
+        self.assertEqual(result.loaded_columns, ["my_score", "my_class"])
+        self.assertEqual(len(result.problems), 1)
+        self.assertIn("BAD_1, BAD_2", result.problems[0])
