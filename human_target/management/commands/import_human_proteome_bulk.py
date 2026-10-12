@@ -106,7 +106,14 @@ class Command(BaseCommand):
         batch = []
 
         with _open_bulk_file(path) as fh:
-            for entry in ijson.items(fh, "results.item"):
+            # use_float=True: ijson parses JSON numbers as Decimal by default
+            # (to avoid float precision loss) -- but `uniprot_raw` stores the
+            # whole entry dict as-is in a JSONField, and Django's JSON encoder
+            # doesn't know how to serialize Decimal, so every entry failed
+            # with "Object of type Decimal is not JSON serializable" without
+            # this. json.load() (used by the pilot's fixture-based command)
+            # never hit this because it always returns plain float.
+            for entry in ijson.items(fh, "results.item", use_float=True):
                 accession = entry.get("primaryAccession", "")
                 if not accession:
                     continue
