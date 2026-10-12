@@ -632,13 +632,6 @@ a.filter-pill .filter-pill-remove {
     width: 0;
     height: 0;
 }
-
-/* Export CSV on the left, next to where the table starts -- on this wide
-   table the shared right-aligned default left it far from everything else. */
-.protein-table-panel .tp-table-export-bar {
-    justify-content: flex-start;
-}
-
 .protein-workspace {
     display: grid;
     grid-template-columns: 1fr;
