@@ -857,6 +857,39 @@ a.filter-pill .filter-pill-remove {
     min-width: 220px;
 }
 
+/* Pin "#" + "Protein" while scrolling the wide table sideways, so every
+   evidence column stays attributable to its protein. Desktop only -- on a
+   phone, ~280px of pinned columns would leave no room for the rest.
+   Cells inherit the row's (striped/hover) background so scrolled-under
+   content doesn't show through. */
+@media (min-width: 768px) {
+    .protein-table thead th:nth-child(1),
+    .protein-table tbody td:nth-child(1) {
+        position: sticky;
+        left: 0;
+        min-width: 56px;
+        max-width: 56px;
+    }
+
+    .protein-table thead th:nth-child(2),
+    .protein-table tbody td:nth-child(2) {
+        position: sticky;
+        left: 56px;
+        box-shadow: inset -1px 0 0 var(--tp-color-border-soft);
+    }
+
+    .protein-table tbody td:nth-child(1),
+    .protein-table tbody td:nth-child(2) {
+        z-index: 1;
+        background-color: inherit;
+    }
+
+    .protein-table thead th:nth-child(1),
+    .protein-table thead th:nth-child(2) {
+        z-index: calc(var(--tp-table-sticky-z) + 1);
+    }
+}
+
 .protein-table thead th:nth-child(3),
 .protein-table tbody td:nth-child(3) {
     min-width: 320px;
@@ -4265,4 +4298,46 @@ a.filter-pill .filter-pill-remove {
 .filter-preset-delete-btn svg {
     width: 16px;
     height: 16px;
+}
+
+/* Column resize handle (proteins-list.js initColumnResize): a thin grab
+   strip on each header's right edge, visible on hover. */
+.protein-table thead th .th-resize-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 7px;
+    height: 100%;
+    cursor: col-resize;
+    touch-action: none;
+}
+
+.protein-table thead th .th-resize-handle::after {
+    content: "";
+    position: absolute;
+    top: 25%;
+    bottom: 25%;
+    right: 3px;
+    width: 1px;
+    background: var(--tp-color-border);
+    opacity: 0;
+    transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.protein-table thead th:hover .th-resize-handle::after,
+.protein-table thead th .th-resize-handle:hover::after {
+    opacity: 1;
+    background: var(--tp-color-brand-600);
+}
+
+body.is-resizing-column,
+body.is-resizing-column * {
+    cursor: col-resize !important;
+    user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .protein-table thead th .th-resize-handle::after {
+        transition: none;
+    }
 }

@@ -1476,6 +1476,99 @@ if (copyShareLinkBtn) {
     });
 }
 
+// Resizable protein-table columns: drag the right edge of a header to set
+// that column's width (cells clip with an ellipsis), double-click the edge to
+// reset. Widths are a per-browser convenience, kept in localStorage by
+// column label -- never required for the page to work.
+(function initColumnResize() {
+    const table = document.getElementById("proteins_table");
+    if (!table) return;
+    const STORAGE_KEY = "tpw:protein-col-widths";
+    const MIN_WIDTH = 60;
+    const styleEl = document.createElement("style");
+    document.head.appendChild(styleEl);
+
+    function readWidths() {
+        try {
+            return JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "{}") || {};
+        } catch (error) {
+            return {};
+        }
+    }
+
+    function writeWidths(widths) {
+        try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(widths));
+        } catch (error) {
+            /* storage unavailable: widths just won't persist */
+        }
+    }
+
+    const headers = Array.from(table.querySelectorAll("thead th"));
+    function columnKey(th) {
+        return (th.getAttribute("data-col") || th.textContent || "").trim().split("\n")[0].trim();
+    }
+
+    function applyWidths(widths) {
+        const rules = [];
+        headers.forEach(function (th, index) {
+            const width = widths[columnKey(th)];
+            if (!width) return;
+            const n = index + 1;
+            const sel = "#proteins_table th:nth-child(" + n + "), #proteins_table td:nth-child(" + n + ")";
+            rules.push(sel + "{width:" + width + "px;min-width:" + width + "px;max-width:" + width
+                + "px;overflow:hidden;text-overflow:ellipsis;}");
+        });
+        styleEl.textContent = rules.join("\n");
+    }
+
+    let widths = readWidths();
+    applyWidths(widths);
+
+    // Skip "#" (index 0): fixed narrow column, pinned on desktop.
+    headers.slice(1).forEach(function (th) {
+        const handle = document.createElement("span");
+        handle.className = "th-resize-handle";
+        handle.setAttribute("aria-hidden", "true");
+        handle.title = window.TPW_PROTEINS_I18N.resizeColumn || "";
+        th.appendChild(handle);
+
+        handle.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        });
+        handle.addEventListener("dblclick", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            delete widths[columnKey(th)];
+            applyWidths(widths);
+            writeWidths(widths);
+        });
+        handle.addEventListener("pointerdown", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const startX = event.clientX;
+            const startWidth = th.getBoundingClientRect().width;
+            document.body.classList.add("is-resizing-column");
+            function onMove(moveEvent) {
+                widths[columnKey(th)] = Math.max(
+                    MIN_WIDTH,
+                    Math.round(startWidth + moveEvent.clientX - startX)
+                );
+                applyWidths(widths);
+            }
+            function onUp() {
+                document.removeEventListener("pointermove", onMove);
+                document.removeEventListener("pointerup", onUp);
+                document.body.classList.remove("is-resizing-column");
+                writeWidths(widths);
+            }
+            document.addEventListener("pointermove", onMove);
+            document.addEventListener("pointerup", onUp);
+        });
+    });
+})();
+
 if (window.jQuery) {
     $(document).ready(jsloaded);
 } else if (document.readyState === "loading") {
