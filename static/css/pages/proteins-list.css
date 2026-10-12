@@ -1421,7 +1421,8 @@ a.filter-pill .filter-pill-remove {
     border-left: 1px solid var(--tp-color-border);
     box-shadow: -8px 0 48px color-mix(in srgb, var(--tp-color-brand-950) 20%, transparent);
     transform: translateX(100%);
-    transition: transform var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+    transition: transform var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
+        width var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
     z-index: 1050;
     display: grid;
     grid-template-rows: auto 1fr auto;
@@ -4339,5 +4340,59 @@ body.is-resizing-column * {
 @media (prefers-reduced-motion: reduce) {
     .protein-table thead th .th-resize-handle::after {
         transition: none;
+    }
+}
+
+/* Filters drawer: optional wide mode (expand button in the drawer head),
+   two catalogue columns instead of one long scroll. Desktop only. */
+.drawer-expand-btn.drawer-expand-btn {
+    margin-left: auto;
+    width: 30px !important;
+    min-width: 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 0 !important;
+    border-radius: 8px;
+    display: inline-grid;
+    place-items: center;
+    border-color: var(--tp-color-border) !important;
+    background: transparent !important;
+    color: var(--tp-color-text-muted) !important;
+    box-shadow: none !important;
+}
+
+.drawer-expand-btn.drawer-expand-btn:hover,
+.drawer-expand-btn.drawer-expand-btn:focus-visible,
+.drawer-expand-btn.drawer-expand-btn[aria-pressed="true"] {
+    border-color: var(--tp-color-border-strong) !important;
+    background: var(--tp-color-surface-muted) !important;
+    color: var(--tp-color-text-secondary) !important;
+}
+
+.drawer-expand-btn svg {
+    width: 15px;
+    height: 15px;
+}
+
+@media (min-width: 900px) {
+    .filters-drawer.filters-drawer--wide {
+        width: min(1080px, 94vw);
+    }
+
+    .filters-drawer--wide .drawer-filter-catalogue {
+        display: block;
+        column-count: 2;
+        column-gap: 14px;
+    }
+
+    .filters-drawer--wide .drawer-filter-catalogue > * {
+        break-inside: avoid;
+        margin-bottom: 6px;
+    }
+}
+
+@media (max-width: 899px) {
+    .drawer-expand-btn.drawer-expand-btn {
+        display: none;
     }
 }

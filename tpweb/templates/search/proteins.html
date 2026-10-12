@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261012-col-resize">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261012-wide-drawer">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -670,6 +670,14 @@
     <aside class="filters-drawer" id="filters-drawer" aria-hidden="true">
         <div class="drawer-head">
             <h2>{% trans "Filters" %}</h2>
+            <button type="button" class="btn tp-btn tp-btn--neutral drawer-expand-btn" id="filters-drawer-expand"
+                    aria-pressed="false"
+                    data-label-expand="{% trans 'Expand to a wider panel' %}"
+                    data-label-collapse="{% trans 'Back to the side panel' %}"
+                    title="{% trans 'Expand to a wider panel' %}"
+                    aria-label="{% trans 'Expand to a wider panel' %}">
+                {% include "components/icons/maximize.html" %}
+            </button>
             <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-filters-btn" aria-label="{% trans 'Close' %}">
                 <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
             </button>
@@ -1380,5 +1388,5 @@
             confirmClearAll: "{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}"
         };
     </script>
-    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261012-col-resize"></script>
+    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261012-wide-drawer"></script>
 {% endblock %}

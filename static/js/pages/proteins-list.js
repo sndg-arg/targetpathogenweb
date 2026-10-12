@@ -1476,6 +1476,40 @@ if (copyShareLinkBtn) {
     });
 }
 
+// Filters drawer wide mode: the expand button in the drawer head toggles a
+// wider, two-column panel; the choice is remembered per browser.
+(function initFiltersDrawerExpand() {
+    const drawer = document.getElementById("filters-drawer");
+    const button = document.getElementById("filters-drawer-expand");
+    if (!drawer || !button) return;
+    const STORAGE_KEY = "tpw:filters-drawer-wide";
+
+    function setWide(wide, persist) {
+        drawer.classList.toggle("filters-drawer--wide", wide);
+        button.setAttribute("aria-pressed", wide ? "true" : "false");
+        const label = wide ? button.dataset.labelCollapse : button.dataset.labelExpand;
+        button.title = label;
+        button.setAttribute("aria-label", label);
+        if (!persist) return;
+        try {
+            window.localStorage.setItem(STORAGE_KEY, wide ? "1" : "0");
+        } catch (error) {
+            /* storage unavailable: just won't be remembered */
+        }
+    }
+
+    let initial = false;
+    try {
+        initial = window.localStorage.getItem(STORAGE_KEY) === "1";
+    } catch (error) {
+        initial = false;
+    }
+    setWide(initial, false);
+    button.addEventListener("click", function () {
+        setWide(!drawer.classList.contains("filters-drawer--wide"), true);
+    });
+})();
+
 // Resizable protein-table columns: drag the right edge of a header to set
 // that column's width (cells clip with an ellipsis), double-click the edge to
 // reset. Widths are a per-browser convenience, kept in localStorage by
