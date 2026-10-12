@@ -582,3 +582,94 @@
     --ff-editor-bg: var(--tp-color-brand-050);
     --ff-editor-color: var(--tp-color-brand-900);
 }
+
+/* ── Variable autocomplete (in-flow list right under the expression) ── */
+.formula-autocomplete {
+    list-style: none;
+    margin: 0;
+    padding: 4px;
+    display: grid;
+    gap: 2px;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 12px;
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-shadow-sm);
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.formula-autocomplete-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tp-space-3);
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.formula-autocomplete-item code {
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.formula-autocomplete-item.is-active,
+.formula-autocomplete-item:hover {
+    background: var(--tp-color-brand-050);
+}
+
+.formula-autocomplete-kind {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.formula-autocomplete-hint {
+    margin: 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+/* ── Collapsible palettes / variable groups ── */
+details.formula-palette > summary,
+details.formula-var-group > summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+details.formula-palette > summary::-webkit-details-marker,
+details.formula-var-group > summary::-webkit-details-marker {
+    display: none;
+}
+
+details.formula-palette > summary::before,
+details.formula-var-group > summary::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    flex-shrink: 0;
+}
+
+details.formula-palette[open] > summary::before,
+details.formula-var-group[open] > summary::before {
+    transform: rotate(45deg);
+}
+
+.formula-var-group-count {
+    margin-left: auto;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    details.formula-palette > summary::before,
+    details.formula-var-group > summary::before {
+        transition: none;
+    }
+}

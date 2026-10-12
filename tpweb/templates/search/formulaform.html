@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260811-sticky-anim-fix">
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20261012-autocomplete">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -95,6 +95,9 @@
 
                     <div class="tp-ui-field formula-expr-field">
                         {{ form.expression }}
+                        {# Variable autocomplete: filled by the script below as you type. #}
+                        <ul class="formula-autocomplete" id="formula-autocomplete" role="listbox" aria-label="{% trans 'Matching variables' %}" hidden></ul>
+                        <p class="formula-autocomplete-hint">{% trans "Start typing a variable name for suggestions · ↑↓ to choose · Enter or Tab to insert · Esc to close" %}</p>
                         {% if form.expression.errors %}
                             <p class="formula-field-error">{{ form.expression.errors|striptags }}</p>
                         {% endif %}
@@ -118,8 +121,8 @@
                     </div>
 
                     {% if example_formulas %}
-                        <div class="formula-palette formula-palette--examples">
-                            <p class="formula-palette-label">{% trans "Examples" %}</p>
+                        <details class="formula-palette formula-palette--examples">
+                            <summary class="formula-palette-label">{% trans "Examples" %}</summary>
                             <div class="formula-palette-chips">
                                 {% for example in example_formulas %}
                                     <button type="button"
@@ -132,12 +135,12 @@
                                     </button>
                                 {% endfor %}
                             </div>
-                        </div>
+                        </details>
                     {% endif %}
 
                     {# Function palette #}
-                    <div class="formula-palette formula-palette--funcs">
-                        <p class="formula-palette-label">{% trans "Functions" %}</p>
+                    <details class="formula-palette formula-palette--funcs">
+                        <summary class="formula-palette-label">{% trans "Functions" %}</summary>
                         <div class="formula-palette-chips">
                             {% for fn in safe_functions %}
                                 <button type="button"
@@ -146,7 +149,7 @@
                                         title="{{ fn.desc }}">{{ fn.label }}</button>
                             {% endfor %}
                         </div>
-                    </div>
+                    </details>
 
                     {# Operator shortcuts #}
                     <div class="formula-palette formula-palette--ops">
@@ -186,8 +189,8 @@
                     <div class="formula-var-groups" id="formula-var-groups">
                         {% if variable_groups %}
                             {% for category, vars in variable_groups.items %}
-                                <div class="formula-var-group" data-category="{{ category }}">
-                                    <p class="formula-var-group-label">{{ category }}</p>
+                                <details class="formula-var-group" data-category="{{ category }}"{% if forloop.first %} open{% endif %}>
+                                    <summary class="formula-var-group-label">{{ category }} <span class="formula-var-group-count">{{ vars|length }}</span></summary>
                                     <div class="formula-var-chips">
                                         {% for v in vars %}
                                             <button type="button"
@@ -202,7 +205,7 @@
                                             </button>
                                         {% endfor %}
                                     </div>
-                                </div>
+                                </details>
                             {% endfor %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty">{% trans "No scoring parameters available." %}</p>
@@ -307,8 +310,112 @@
                         if (match) anyVisible = true;
                     });
                     group.style.display = anyVisible ? "" : "none";
+                    // Collapsed groups open while searching so matches are visible.
+                    if (q && anyVisible) group.open = true;
                 });
             });
+        }
+
+        // ── Variable autocomplete ─────────────────────────────────────────
+        // Suggests variables (from the palette chips, so it always matches
+        // what this user can actually use) for the identifier being typed.
+        const acList = document.getElementById("formula-autocomplete");
+        const AC_MAX = 8;
+        const acVars = Array.from(document.querySelectorAll(".formula-var-chip[data-var]")).map(chip => ({
+            name: chip.dataset.var,
+            desc: chip.dataset.desc || "",
+            kind: chip.querySelector(".formula-var-kind")?.textContent.trim() || "",
+        }));
+        let acItems = [];
+        let acIndex = -1;
+        let acSuppress = false;
+
+        function currentToken() {
+            const upto = textarea.value.slice(0, textarea.selectionStart);
+            const match = upto.match(/[A-Za-z_][A-Za-z0-9_]*$/);
+            return match ? match[0] : "";
+        }
+
+        function closeAutocomplete() {
+            if (!acList) return;
+            acList.hidden = true;
+            acList.innerHTML = "";
+            acItems = [];
+            acIndex = -1;
+        }
+
+        function highlight(index) {
+            acIndex = index;
+            Array.from(acList.children).forEach((li, i) => {
+                li.classList.toggle("is-active", i === index);
+                li.setAttribute("aria-selected", i === index ? "true" : "false");
+            });
+        }
+
+        function acceptSuggestion(index) {
+            const item = acItems[index];
+            if (!item) return;
+            const token = currentToken();
+            const start = textarea.selectionStart - token.length;
+            textarea.setSelectionRange(start, textarea.selectionStart);
+            acSuppress = true;
+            insertAtCursor(item.name);
+            acSuppress = false;
+            closeAutocomplete();
+        }
+
+        function updateAutocomplete() {
+            if (!acList || !textarea || acSuppress) return;
+            const token = currentToken().toLowerCase();
+            if (token.length < 2) { closeAutocomplete(); return; }
+            const starts = acVars.filter(v => v.name.toLowerCase().startsWith(token));
+            const contains = acVars.filter(v => !v.name.toLowerCase().startsWith(token)
+                && (v.name.toLowerCase().includes(token) || v.desc.toLowerCase().includes(token)));
+            acItems = starts.concat(contains).slice(0, AC_MAX);
+            if (!acItems.length || (acItems.length === 1 && acItems[0].name.toLowerCase() === token)) {
+                closeAutocomplete();
+                return;
+            }
+            acList.innerHTML = "";
+            acItems.forEach((item, i) => {
+                const li = document.createElement("li");
+                li.className = "formula-autocomplete-item";
+                li.setAttribute("role", "option");
+                const name = document.createElement("code");
+                name.textContent = item.name;
+                const kind = document.createElement("span");
+                kind.className = "formula-autocomplete-kind";
+                kind.textContent = item.kind;
+                li.append(name, kind);
+                if (item.desc) li.title = item.desc;
+                li.addEventListener("mousedown", event => {
+                    event.preventDefault();
+                    acceptSuggestion(i);
+                });
+                acList.appendChild(li);
+            });
+            acList.hidden = false;
+            highlight(0);
+        }
+
+        if (textarea && acList) {
+            textarea.addEventListener("input", updateAutocomplete);
+            textarea.addEventListener("keydown", event => {
+                if (acList.hidden) return;
+                if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    highlight((acIndex + 1) % acItems.length);
+                } else if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    highlight((acIndex - 1 + acItems.length) % acItems.length);
+                } else if (event.key === "Enter" || event.key === "Tab") {
+                    event.preventDefault();
+                    acceptSuggestion(acIndex);
+                } else if (event.key === "Escape") {
+                    closeAutocomplete();
+                }
+            });
+            textarea.addEventListener("blur", () => window.setTimeout(closeAutocomplete, 120));
         }
 
         // ── Pretty-print expression (no external dependencies) ───────────
