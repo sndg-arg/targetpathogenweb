@@ -95,6 +95,12 @@
     margin: 0;
 }
 
+.genomes-restricted-note {
+    margin: var(--tp-space-3) 0 0;
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-muted);
+}
+
 .genomes-pipeline {
     margin-top: 12px;
     display: flex;

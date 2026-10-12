@@ -133,3 +133,13 @@ def user_can_delete_genome_name(user, genome_name):
         "",
         PUBLIC_WORKSPACE_USERNAME,
     } and workspace_slug == workspace_slug_for_user(user)
+
+
+def hidden_restricted_genome_count(user):
+    """How many existing genomes `user` can't see because they're flagged
+    restricted (collaborator-only). Lets the Genomes page say "N more exist"
+    instead of silently showing a shorter list -- names are never exposed."""
+    if user_can_view_restricted_genomes(user):
+        return 0
+    restricted_names = RestrictedGenome.objects.values("genome_name")
+    return Biodatabase.objects.filter(name__in=restricted_names).count()

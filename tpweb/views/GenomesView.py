@@ -17,6 +17,7 @@ from tpweb.services.csv_exports import (
     csv_response,
     xlsx_sections_response,
 )
+from tpweb.services.genome_workspace import hidden_restricted_genome_count
 from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genomes,
     get_pipeline_status,
@@ -118,5 +119,6 @@ class GenomesView(View):
                 "workspace_deleted": request.GET.get("workspace_deleted", "").strip(),
                 "export_url": build_export_url(request),
                 "view_export_url": build_view_export_url(request),
+                "hidden_restricted_count": hidden_restricted_genome_count(request.user),
             },
         )  # , {'form': form})

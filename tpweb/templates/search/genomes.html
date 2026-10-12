@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260917-restrict-toggle">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261012-restricted-note">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -62,6 +62,11 @@
                 <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_pdb_xrefs }} {% trans "PDB xrefs" %}</span>
                 <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_ec_annotated }} {% trans "EC-annotated proteins" %}</span>
             </div>
+            {% if hidden_restricted_count %}
+                <p class="genomes-restricted-note">
+                    {% blocktrans count total=hidden_restricted_count %}{{ total }} more genome belongs to a collaborative project and is only visible to collaborator accounts. Ask an administrator if you need access.{% plural %}{{ total }} more genomes belong to collaborative projects and are only visible to collaborator accounts. Ask an administrator if you need access.{% endblocktrans %}
+                </p>
+            {% endif %}
         </section>
 
         {% if workspace_deleted %}
