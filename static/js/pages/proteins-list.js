@@ -337,42 +337,43 @@ function jsloaded() {
                 badge.hidden = true;
             }
         });
-        updateEcBulkToggle();
+        updateBulkToggles();
     }
 
-    // EC class "Select all" / "Clear": queues the same per-chip toggles a
-    // click on each chip would (via requestSubmit -> handleDeferredFilterSubmit),
-    // so it rides the normal pending/Apply flow instead of a parallel one.
-    var ecBulkToggle = document.querySelector("[data-ec-bulk-toggle]");
-    var ecClassChips = document.querySelector("[data-ec-class-chips]");
+    // "Select all" / "Clear" on a multi-option filter (EC classes, categorical
+    // params with 3+ options): queues the same per-chip toggles a click on
+    // each chip would (via requestSubmit -> handleDeferredFilterSubmit), so it
+    // rides the normal pending/Apply flow instead of a parallel one.
+    var bulkToggles = Array.from(document.querySelectorAll("[data-bulk-toggle]"));
 
-    function ecClassForms() {
-        return ecClassChips ? Array.from(ecClassChips.querySelectorAll(".filter-chip-form")) : [];
+    function bulkForms(toggle) {
+        var param = toggle.closest(".filter-param");
+        var chips = param ? param.querySelector("[data-bulk-chips]") : null;
+        return chips ? Array.from(chips.querySelectorAll(".filter-chip-form")) : [];
     }
 
-    function ecChipIsActive(form) {
+    function chipFormIsActive(form) {
         var chip = form.querySelector(".filter-chip");
         return !!chip && chip.classList.contains("filter-chip--active");
     }
 
-    function updateEcBulkToggle() {
-        if (!ecBulkToggle) return;
-        var forms = ecClassForms();
-        var allActive = forms.length > 0 && forms.every(ecChipIsActive);
-        ecBulkToggle.textContent = allActive
-            ? ecBulkToggle.dataset.labelClear
-            : ecBulkToggle.dataset.labelSelect;
-        ecBulkToggle.dataset.mode = allActive ? "clear" : "select";
-    }
-
-    if (ecBulkToggle) {
-        ecBulkToggle.addEventListener("click", function () {
-            var wantActive = ecBulkToggle.dataset.mode !== "clear";
-            ecClassForms().forEach(function (form) {
-                if (ecChipIsActive(form) !== wantActive) form.requestSubmit();
-            });
+    function updateBulkToggles() {
+        bulkToggles.forEach(function (toggle) {
+            var forms = bulkForms(toggle);
+            var allActive = forms.length > 0 && forms.every(chipFormIsActive);
+            toggle.textContent = allActive ? toggle.dataset.labelClear : toggle.dataset.labelSelect;
+            toggle.dataset.mode = allActive ? "clear" : "select";
         });
     }
+
+    bulkToggles.forEach(function (toggle) {
+        toggle.addEventListener("click", function () {
+            var wantActive = toggle.dataset.mode !== "clear";
+            bulkForms(toggle).forEach(function (form) {
+                if (chipFormIsActive(form) !== wantActive) form.requestSubmit();
+            });
+        });
+    });
 
     function cancelPendingToggle(optionId) {
         var entry = pendingToggleMap.get(optionId);

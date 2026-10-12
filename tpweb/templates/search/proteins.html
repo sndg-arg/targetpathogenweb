@@ -743,12 +743,12 @@
                                         {# same per-class toggles the chips do (proteins-list.js). #}
                                         <button type="button"
                                                 class="filter-param-bulk-toggle"
-                                                data-ec-bulk-toggle
+                                                data-bulk-toggle
                                                 data-label-select="{% trans 'Select all' %}"
                                                 data-label-clear="{% trans 'Clear' %}"
                                                 title="{% trans 'All seven classes = every protein with an EC number (all enzymes)' %}">{% trans "Select all" %}</button>
                                     </div>
-                                    <div class="filter-chip-group" data-ec-class-chips>
+                                    <div class="filter-chip-group" data-bulk-chips>
                                         {% for cls in group.ec_classes %}
                                             <form method="POST" action="" class="filter-chip-form">
                                                 {% csrf_token %}
@@ -895,6 +895,13 @@
                                                     <span aria-hidden="true">i</span>
                                                 </span>
                                             {% endif %}
+                                            {% if param.bulk_selectable %}
+                                                <button type="button"
+                                                        class="filter-param-bulk-toggle"
+                                                        data-bulk-toggle
+                                                        data-label-select="{% trans 'Select all' %}"
+                                                        data-label-clear="{% trans 'Clear' %}">{% trans "Select all" %}</button>
+                                            {% endif %}
                                         </div>
                                         {% if param.type == "numeric" %}
                                             <form method="POST" action="" class="filter-numeric-form" data-param-label="{{ param.label }}">
@@ -948,7 +955,7 @@
                                                 </div>
                                             {% endif %}
                                         {% else %}
-                                            <div class="filter-chip-group">
+                                            <div class="filter-chip-group"{% if param.bulk_selectable %} data-bulk-chips{% endif %}>
                                                 {% for option in param.options %}
                                                     {% if option.is_link %}
                                                         <form method="POST" action="" class="filter-chip-form">
@@ -1343,5 +1350,5 @@
             confirmClearAll: "{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}"
         };
     </script>
-    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261012-ec-bulk"></script>
+    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261012-bulk-all"></script>
 {% endblock %}

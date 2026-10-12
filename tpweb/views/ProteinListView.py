@@ -707,6 +707,10 @@ class ProteinListView(View):
                     "description": score_param.description or "",
                     "type": "categorical",
                     "options": options,
+                    # Options within one param combine as OR, so "Select all"
+                    # then deselecting one or two ("every localization except
+                    # cytoplasmic") is a real shortcut -- pointless with 2.
+                    "bulk_selectable": len(options) >= 3,
                     "any_active": any_active,
                     "search_text": " ".join(search_tokens).lower(),
                 }
