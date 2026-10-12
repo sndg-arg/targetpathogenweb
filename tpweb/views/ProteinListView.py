@@ -19,6 +19,9 @@ from urllib.parse import urlencode, parse_qs
 from tpweb.services.protein_list import (
     DEFAULT_PAGE_SIZE,
     EC_ANY_VALUE,
+    EC_CLASSES,
+    EC_FILTER_LABEL,
+    ec_filter_value_label,
     apply_filter_changes,
     apply_protein_search,
     apply_selected_parameter_filters,
@@ -558,15 +561,7 @@ class ProteinListView(View):
             )
         return ordered_rows
 
-    EC_CLASSES = [
-        ("1", "Oxidoreductases"),
-        ("2", "Transferases"),
-        ("3", "Hydrolases"),
-        ("4", "Lyases"),
-        ("5", "Isomerases"),
-        ("6", "Ligases"),
-        ("7", "Translocases"),
-    ]
+    EC_CLASSES = EC_CLASSES
 
     _NUMERIC_FILTER_PLACEHOLDERS = {
         "human_identity": ("30", "80"),
@@ -1479,11 +1474,9 @@ class ProteinListView(View):
                     display_name = item.get("display_name") or item.get("name", "")
                     special_key = str(item.get("special_key") or "").strip()
                     if display_name:
-                        is_ec_any = item.get("special_value") == EC_ANY_VALUE
-                        if special_key == "ec_filter" and is_ec_any:
-                            criteria_labels.append(display_name)
-                        elif special_key == "ec_filter":
-                            criteria_labels.append(f"EC class: {humanize_identifier(display_name)}")
+                        if special_key == "ec_filter":
+                            ec_label = ec_filter_value_label(item.get("special_value"))
+                            criteria_labels.append(f"{EC_FILTER_LABEL}: {ec_label}")
                         elif special_key == "go_filter":
                             criteria_labels.append(f"GO: {display_name}")
                         elif special_key == "structure_source":
@@ -1657,6 +1650,15 @@ class ProteinListView(View):
             }
             for parameter in selected_parameters
         ]
+        # EC chips get final, biologist-readable labels the template shows
+        # as-is ("Enzyme (EC): Class 1 · Oxidoreductases" instead of the raw
+        # "EC Number: 1") -- recomputed here so filters already saved in a
+        # session or preset before this label existed read right too.
+        for parameter in display_parameters:
+            if parameter.get("special_key") == "ec_filter":
+                parameter["display_score_param_name"] = EC_FILTER_LABEL
+                parameter["display_name"] = ec_filter_value_label(parameter.get("special_value"))
+                parameter["display_label_final"] = True
 
         # Two chips can share a score_param_name yet come from different
         # advanced-filter groups, which combine as AND rather than the OR a

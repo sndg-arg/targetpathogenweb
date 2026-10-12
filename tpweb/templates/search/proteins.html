@@ -336,7 +336,7 @@
                         <input type="hidden" name="action" value="remove_filter">
                         <input type="hidden" name="filter_option_id" value="{{ parameter.id }}">
                         <input type="hidden" name="return_query" value="{{ query_string }}">
-                        <span><strong>{{ parameter.display_score_param_name|default:parameter.score_param_name|humanize_identifier }}:</strong> {{ parameter.display_name|default:parameter.name|humanize_identifier }}</span>
+                        {% if parameter.display_label_final %}<span><strong>{{ parameter.display_score_param_name }}:</strong> {{ parameter.display_name }}</span>{% else %}<span><strong>{{ parameter.display_score_param_name|default:parameter.score_param_name|humanize_identifier }}:</strong> {{ parameter.display_name|default:parameter.name|humanize_identifier }}</span>{% endif %}
                         <button type="submit" class="filter-pill-remove tp-focusable" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</button>
                     </form>
                 {% endfor %}
@@ -681,7 +681,7 @@
                             <input type="hidden" name="action" value="remove_filter">
                             <input type="hidden" name="filter_option_id" value="{{ parameter.id }}">
                             <input type="hidden" name="return_query" value="{{ query_string }}">
-                            <span><strong>{{ parameter.display_score_param_name|default:parameter.score_param_name|humanize_identifier }}:</strong> {{ parameter.display_name|default:parameter.name|humanize_identifier }}</span>
+                            {% if parameter.display_label_final %}<span><strong>{{ parameter.display_score_param_name }}:</strong> {{ parameter.display_name }}</span>{% else %}<span><strong>{{ parameter.display_score_param_name|default:parameter.score_param_name|humanize_identifier }}:</strong> {{ parameter.display_name|default:parameter.name|humanize_identifier }}</span>{% endif %}
                             <button type="submit" class="filter-pill-remove tp-focusable" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</button>
                         </form>
                     {% endfor %}

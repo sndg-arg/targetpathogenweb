@@ -528,6 +528,28 @@ class ProteinListFilterQueryTests(TestCase):
         self.assertNotEqual(with_ligand.pk, with_ligand.accession)
         self.assertNotEqual(without_ligand.pk, without_ligand.accession)
 
+    def test_ec_filter_labels_are_readable(self):
+        from tpweb.services.protein_list import ec_filter_value_label
+
+        self.assertEqual(ec_filter_value_label("1"), "Class 1 · Oxidoreductases")
+        self.assertEqual(ec_filter_value_label("any"), "Any EC number (all enzymes)")
+        self.assertEqual(ec_filter_value_label("2.7.1"), "EC 2.7.1.- and sub-classes")
+        self.assertEqual(ec_filter_value_label("2.7.1.1"), "EC 2.7.1.1")
+        self.assertEqual(
+            grouped_selected_parameters(
+                [
+                    {
+                        "type": "special",
+                        "score_param_name": "ec_number",
+                        "special_key": "ec_filter",
+                        "special_value": "3",
+                    }
+                ],
+                humanize=True,
+            ),
+            [("Enzyme (EC)", "Class 3 · Hydrolases")],
+        )
+
     def test_ec_any_filter_matches_every_enzyme_annotated_protein(self):
         from bioseq.models.BioentryDbxref import BioentryDbxref
         from bioseq.models.Dbxref import Dbxref

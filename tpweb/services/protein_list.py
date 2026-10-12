@@ -22,6 +22,45 @@ DEFAULT_PAGE_SIZE = 25
 # of having to tick all seven EC classes by hand.
 EC_ANY_VALUE = "any"
 
+EC_CLASSES = [
+    ("1", "Oxidoreductases"),
+    ("2", "Transferases"),
+    ("3", "Hydrolases"),
+    ("4", "Lyases"),
+    ("5", "Isomerases"),
+    ("6", "Ligases"),
+    ("7", "Translocases"),
+]
+EC_CLASS_NAMES = dict(EC_CLASSES)
+
+# Label for EC filters wherever active criteria are listed. Shown as-is,
+# never run through humanize_identifier (it would mangle "(EC)").
+EC_FILTER_LABEL = "Enzyme (EC)"
+
+
+def ec_filter_value_label(value):
+    """Biologist-readable text for an EC filter value: "Class 1 ·
+    Oxidoreductases", "EC 2.7.1.1", "EC 2.7.1.- and sub-classes" (a prefix
+    matches everything under it), or the any-EC switch."""
+    value = str(value or "").strip()
+    if value == EC_ANY_VALUE:
+        return "Any EC number (all enzymes)"
+    if value in EC_CLASS_NAMES:
+        return f"Class {value} · {EC_CLASS_NAMES[value]}"
+    levels = [level for level in value.split(".") if level]
+    if 0 < len(levels) < 4:
+        padded = ".".join(levels + ["-"] * (4 - len(levels)))
+        return f"EC {padded} and sub-classes"
+    return f"EC {value}"
+
+
+def _is_ec_filter(parameter):
+    return (
+        _selected_parameter_kind(parameter) == "special"
+        and parameter.get("special_key") == "ec_filter"
+    )
+
+
 ACRONYM_TOKENS = {
     "deg": "DEG",
     "ppi": "PPI",
@@ -184,6 +223,8 @@ def _format_numeric_filter_value(value):
 
 def _selected_parameter_display_value(parameter, humanize=False):
     kind = _selected_parameter_kind(parameter)
+    if _is_ec_filter(parameter):
+        return ec_filter_value_label(parameter.get("special_value"))
     if kind == "special":
         special_value = parameter.get("display_name") or parameter.get("name", "")
         return humanize_identifier(special_value) if humanize else special_value
@@ -259,7 +300,9 @@ def grouped_selected_parameters(selected_parameters, humanize=False):
         if not score_param_name:
             continue
         option_name = _selected_parameter_display_value(item, humanize=humanize)
-        if humanize:
+        if _is_ec_filter(item):
+            score_param_name = EC_FILTER_LABEL
+        elif humanize:
             score_param_name = humanize_identifier(score_param_name) or score_param_name
         if score_param_name not in values_by_group:
             values_by_group[score_param_name] = {}
@@ -342,7 +385,7 @@ def build_special_filter_payload(kind, value):
             "type": "special",
             "special_key": "ec_filter",
             "special_value": value,
-            "display_name": "Any EC number" if value == EC_ANY_VALUE else value,
+            "display_name": ec_filter_value_label(value),
         }
     if kind == "go":
         normalized = value.upper() if not value.upper().startswith("GO:") else value.upper()
