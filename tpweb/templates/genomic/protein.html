@@ -831,7 +831,7 @@
                                     <dd data-pocket-field="method">-</dd>
                                 </div>
                                 <div>
-                                    <dt>{% trans "Score" %}</dt>
+                                    <dt>{% trans "Druggability" %}</dt>
                                     <dd data-pocket-field="score">-</dd>
                                 </div>
                                 <div>
@@ -843,7 +843,7 @@
                                     <dd data-pocket-field="residues">-</dd>
                                 </div>
                                 <div class="sv-pocket-inspector-wide">
-                                    <dt title="{% trans "Includes geometric center, whether FPocket and P2Rank agree on this site (within ~8 Å), and the nearest annotated functional site, when available." %}">{% trans "Pocket properties" %}</dt>
+                                    <dt title="{% trans "Extra descriptors from the predictor (volume, alpha spheres, etc.), the geometric center, whether FPocket and P2Rank agree on this site (within ~8 Å), and the nearest annotated functional site, when available. A ranking/raw score listed here is not the druggability shown above." %}">{% trans "Pocket properties" %}</dt>
                                     <dd data-pocket-field="properties">-</dd>
                                 </div>
                             </dl>
@@ -1254,7 +1254,7 @@
     {{ graphic_features|json_script:"seqfeatures" }}
 
     <script src="{% static 'js/pages/protein-detail.js' %}?v=20260807-quicknav-fix"></script>
-    <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20260726-resetzoom1"></script>
+    <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20261012-drugg-label"></script>
     <script src="{% static 'js/pages/ngl-shape-registry.js' %}?v=20260720-shaperegistry1"></script>
     <script>
         function jsloaded() {

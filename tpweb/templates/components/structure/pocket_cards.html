@@ -11,6 +11,7 @@
                      data-pocket-title="{% trans 'Pocket' %} {{ forloop.counter }}"
                      data-pocket-id="P2Rank #{{ p2.name }}"
                      data-pocket-score="{{ p2.probability }}"
+                     data-pocket-score-label="{{ p2.score_label }}"
                      data-pocket-residues="{{ p2.residues|join:' ' }}"
                      data-pocket-properties="{{ p2.inspector_properties }}"
                      data-pocket-core-note="{{ p2.core_note }}"
@@ -20,7 +21,7 @@
                         <div class="pocket-card-label">
                             <strong class="pocket-card-name" title="P2Rank #{{ p2.name }}">{% trans "Pocket" %} {{ forloop.counter }}</strong>
                         </div>
-                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span>
+                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob" title="{{ p2.score_label }}">{{ p2.probability }}{% if p2.score_band %} · {{ p2.score_band }}{% endif %}</span>
                     </div>
                     {% if p2.consensus_label %}
                     <div class="pocket-consensus"
@@ -64,6 +65,7 @@
                      data-pocket-title="{% trans 'Pocket' %} {{ forloop.counter }}"
                      data-pocket-id="FPocket #{{ p.name }}"
                      data-pocket-score="{{ p.druggability }}"
+                     data-pocket-score-label="{{ p.score_label }}"
                      data-pocket-residues="{{ p.residues|join:' ' }}"
                      data-pocket-properties="{{ p.inspector_properties }}"
                      data-pocket-core-note="{{ p.core_note }}"
@@ -74,7 +76,7 @@
                             <strong class="pocket-card-name" title="FPocket #{{ p.name }}">{% trans "Pocket" %} {{ forloop.counter }}</strong>
                         </div>
                         <div class="pocket-card-badges">
-                            <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span>
+                            <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}" title="{{ p.score_label }}">{{ p.druggability }}{% if p.score_band %} · {{ p.score_band }}{% endif %}</span>
                             {% if p.size_outlier %}
                                 <span class="tp-chip tp-chip--warning tp-chip--sm" title="{{ p.size_outlier_note }}">{% trans "Unusual size" %}</span>
                             {% else %}

@@ -2186,3 +2186,17 @@ class CustomParamImportSummaryTests(SimpleTestCase):
         self.assertEqual(result.loaded_columns, ["my_score", "my_class"])
         self.assertEqual(len(result.problems), 1)
         self.assertIn("BAD_1, BAD_2", result.problems[0])
+
+
+class PocketScoreLabelTests(SimpleTestCase):
+    def test_bands_follow_each_method_thresholds(self):
+        from tpweb.services.structure_summary import pocket_score_band, pocket_score_label
+
+        self.assertEqual(pocket_score_band(0.75, "fpocket"), "High")
+        self.assertEqual(pocket_score_band(0.5, "fpocket"), "Medium")
+        self.assertEqual(pocket_score_band(0.5, "p2rank"), "High")
+        self.assertEqual(pocket_score_band(0.1, "p2rank"), "Low")
+        self.assertEqual(pocket_score_band(None, "p2rank"), "")
+        self.assertEqual(
+            pocket_score_label(0.82, "fpocket"), "0.82 · High — FPocket druggability (0–1)"
+        )

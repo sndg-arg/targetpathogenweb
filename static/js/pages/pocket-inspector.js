@@ -127,7 +127,10 @@
 
             setPocketInspectorField("title", card.getAttribute("data-pocket-title") || "");
             setPocketInspectorField("method", card.getAttribute("data-pocket-method") || "");
-            setPocketInspectorField("score", card.getAttribute("data-pocket-score") || "");
+            setPocketInspectorField(
+                "score",
+                card.getAttribute("data-pocket-score-label") || card.getAttribute("data-pocket-score") || ""
+            );
             setPocketInspectorField(
                 "layer",
                 coreBtn ? (coreBtn.getAttribute("data-layer-label") || coreBtn.textContent || "") : defaultLayerLabel

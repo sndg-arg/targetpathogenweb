@@ -26,7 +26,7 @@ from tpweb.services.structure_files import display_code
 _METHOD_MAP = {"EX": "Crystal structure", "AF": "AlphaFold DB model", "CF": "ColabFold model"}
 _FPOCKET_INSPECTOR_PROPERTIES = [
     ("Volume", "Volume"),
-    ("Score", "FPocket score"),
+    ("Score", "FPocket ranking score (orders cavities; not the druggability)"),
     ("Number of Alpha Spheres", "Alpha spheres"),
     ("Total SASA", "Total SASA"),
     ("Apolar alpha sphere proportion", "Apolar spheres"),
@@ -35,7 +35,7 @@ _FPOCKET_INSPECTOR_PROPERTIES = [
     ("Flexibility", "Flexibility"),
 ]
 _P2RANK_INSPECTOR_PROPERTIES = [
-    ("p2score", "P2Rank score"),
+    ("p2score", "P2Rank raw score (unscaled; druggability is the 0-1 probability)"),
 ]
 
 # Property/ResidueSet rows below are fixed vocabulary defined by the pipeline
@@ -60,6 +60,36 @@ def _pdb_reference_rows():
             "volume": Property.objects.filter(name="volume").first(),
         }
     return _pdb_reference_rows_cache
+
+
+# Druggability bands, same thresholds the pocket-card hints and the score-tag
+# coloring (protein-detail.js / structure.html decorateScoreTags) use.
+POCKET_SCORE_BANDS = {
+    "fpocket": (0.7, 0.4, "FPocket druggability"),
+    "p2rank": (0.5, 0.2, "P2Rank ligandability probability"),
+}
+
+
+def pocket_score_band(value, method):
+    high, medium, _ = POCKET_SCORE_BANDS[method]
+    try:
+        num = float(value)
+    except (TypeError, ValueError):
+        return ""
+    if num >= high:
+        return "High"
+    if num >= medium:
+        return "Medium"
+    return "Low"
+
+
+def pocket_score_label(value, method):
+    """E.g. "0.82 · High — FPocket druggability (0–1)": the pocket's score with
+    its band and what it measures, so the inspector never shows a bare number."""
+    band = pocket_score_band(value, method)
+    if not band:
+        return ""
+    return f"{_format_float(value)} · {band} — {POCKET_SCORE_BANDS[method][2]} (0–1)"
 
 
 def _format_float(value):
@@ -381,6 +411,8 @@ def pdb_structure(
 
     for p in context["pockets"]:
         p.druggability = [x.value for x in p.properties.all() if x.property == ds][0]
+        p.score_label = pocket_score_label(p.druggability, "fpocket")
+        p.score_band = pocket_score_band(p.druggability, "fpocket")
         p.atoms = []
         p.core_atoms = _residue_set_core_atoms(p)
         residue_core_points = _residue_set_core_points(p)
@@ -472,6 +504,8 @@ def pdb_structure(
     for p2 in context["p2_pockets"]:
         p2.p2score = [x.value for x in p2.properties.all() if x.property == p2s][0]
         p2.probability = [x.value for x in p2.properties.all() if x.property == p2p][0]
+        p2.score_label = pocket_score_label(p2.probability, "p2rank")
+        p2.score_band = pocket_score_band(p2.probability, "p2rank")
         p2.atoms = []
         p2.core_atoms = _residue_set_core_atoms(p2)
         p2.core_points = _residue_set_core_points(p2)
