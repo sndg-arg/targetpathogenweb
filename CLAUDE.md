@@ -350,8 +350,11 @@ Two separate layers, both in `tpweb/middleware/access_control.py`:
 
 ## Deployment
 - Local: `docker compose up --build -d`
-- Cluster (Nodo0, QB FCEN UBA): `make build ENV=cluster && make up ENV=cluster`
-- Cluster access: `ssh agutson@cluster.qb.fcen.uba.ar → sudo su glyco → ssh nodo0 → sudo su dockeradmin`
+- Production = Nodo0 on the QB FCEN UBA cluster, live at https://target2.infra.cluster.qb.fcen.uba.ar/.
+  A push to GitHub does NOT deploy; the user pulls + rebuilds on Nodo0 by hand.
+- Cluster access: `ssh agutson@cluster.qb.fcen.uba.ar → su glyco → ssh nodo0 → sudo su dockeradmin → cd ~/targetpathogenweb`
+- Cluster update (live branch is `misc-fixes`):
+  `git pull origin misc-fixes && make build ENV=cluster && make up ENV=cluster && make migrate ENV=cluster`
 - Data lives in `/data/targetpathogen/` on cluster (RAID — never delete volumes)
 - Nodo0 is a shared orchestration node, not a bioinformatics compute node. Do
   not run full-proteome BLAST/HMMER, InterProScan, LigQ_2, AlphaFold/ColabFold,
