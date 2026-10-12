@@ -1091,7 +1091,13 @@ class ProteinListView(View):
         # would needlessly block session-only filtering for someone just
         # browsing without an account.
         if (
-            action in {"save_filter_preset", "apply_filter_preset", "delete_filter_preset"}
+            action
+            in {
+                "save_filter_preset",
+                "apply_filter_preset",
+                "rename_filter_preset",
+                "delete_filter_preset",
+            }
             and not request.user.is_authenticated
         ):
             return redirect_to_login(request.get_full_path(), login_url=settings.LOGIN_URL)
@@ -1171,7 +1177,7 @@ class ProteinListView(View):
             target_annotation_value = (request.POST.get("pending_annotation_value") or "").strip()
             preset_name = (request.POST.get("preset_name") or "").strip()
             if preset_name:
-                saved_preset, _ = FilterPreset.objects.update_or_create(
+                saved_preset, preset_created = FilterPreset.objects.update_or_create(
                     owner=workspace_user,
                     genome_name=assembly_name,
                     name=preset_name,
@@ -1185,6 +1191,12 @@ class ProteinListView(View):
                     },
                 )
                 applied_preset_id = saved_preset.pk
+                if not preset_created:
+                    messages.info(
+                        request,
+                        f'Preset "{preset_name}" already existed and was updated with '
+                        "the current filters.",
+                    )
 
         elif action == "apply_filter_preset":
             preset_id = request.POST.get("preset_id")
@@ -1199,6 +1211,29 @@ class ProteinListView(View):
                 target_annotation_kind = normalize_annotation_kind(preset.annotation_kind or "ec")
                 target_annotation_value = preset.annotation_value or ""
                 applied_preset_id = preset.pk
+
+        elif action == "rename_filter_preset":
+            preset = FilterPreset.objects.filter(
+                id=request.POST.get("preset_id"),
+                owner=workspace_user,
+                genome_name=assembly_name,
+            ).first()
+            new_name = (request.POST.get("preset_name") or "").strip()[:255]
+            if preset and new_name and new_name != preset.name:
+                name_taken = (
+                    FilterPreset.objects.filter(
+                        owner=workspace_user, genome_name=assembly_name, name=new_name
+                    )
+                    .exclude(pk=preset.pk)
+                    .exists()
+                )
+                if name_taken:
+                    messages.error(
+                        request, f'A preset named "{new_name}" already exists for this genome.'
+                    )
+                else:
+                    preset.name = new_name
+                    preset.save(update_fields=["name", "updated_at"])
 
         elif action == "delete_filter_preset":
             preset_id = request.POST.get("preset_id")

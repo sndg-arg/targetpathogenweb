@@ -1661,6 +1661,7 @@ a.filter-pill .filter-pill-remove {
     margin: 0;
 }
 
+.tpd-rename-form,
 .tpd-delete-form {
     flex: 0 0 auto;
     display: flex;
@@ -1669,6 +1670,7 @@ a.filter-pill .filter-pill-remove {
     border-left: 1px solid var(--tp-color-border-soft);
 }
 
+.tpd-row--active .tpd-rename-form,
 .tpd-row--active .tpd-delete-form {
     border-left-color: var(--tp-color-brand-200);
 }
@@ -1777,6 +1779,7 @@ a.filter-pill .filter-pill-remove {
    was silently losing that specificity fight despite both using
    !important, which is why this used to render as a solid boxed button
    even at rest. */
+.tpd-row .tpd-rename-btn.tpd-rename-btn,
 .tpd-row .tpd-delete-btn.tpd-delete-btn {
     width: 36px;
     height: 100%;
@@ -1800,6 +1803,14 @@ a.filter-pill .filter-pill-remove {
     outline: none;
 }
 
+.tpd-row .tpd-rename-btn.tpd-rename-btn:hover,
+.tpd-row .tpd-rename-btn.tpd-rename-btn:focus-visible {
+    background: var(--tp-color-brand-100) !important;
+    color: var(--tp-color-brand-900) !important;
+    outline: none;
+}
+
+.tpd-rename-btn svg,
 .tpd-delete-btn svg {
     width: 15px;
     height: 15px;

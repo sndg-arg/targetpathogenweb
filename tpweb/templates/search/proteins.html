@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261012-ec-bulk">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261012-preset-rename">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -248,6 +248,24 @@
                                                         {% endif %}
                                                     </button>
                                                 </form>
+                                                {% if user.is_authenticated %}
+                                                <form method="POST" action="" class="tpd-rename-form">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="rename_filter_preset">
+                                                    <input type="hidden" name="preset_id" value="{{ preset.id }}">
+                                                    <input type="hidden" name="preset_name" value="">
+                                                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                    <button type="button"
+                                                            class="btn tp-btn tp-btn--clear tpd-rename-btn"
+                                                            data-preset-rename
+                                                            data-current-name="{{ preset.name }}"
+                                                            data-prompt="{% trans 'New name for this preset:' %}"
+                                                            title="{% trans 'Rename preset' %}"
+                                                            aria-label="{% trans 'Rename preset' %}">
+                                                        {% include "components/icons/pencil.html" %}
+                                                    </button>
+                                                </form>
+                                                {% endif %}
                                                 <form method="POST" action="" class="tpd-delete-form" onsubmit="return confirm('{% trans "Delete this filter preset?" %}')">
                                                     {% csrf_token %}
                                                     <input type="hidden" name="action" value="delete_filter_preset">
@@ -1347,8 +1365,9 @@
             collapseAll: "{% trans 'Collapse all' %}",
             expandAll: "{% trans 'Expand all' %}",
             confirmApplyPreset: "{% trans 'You have unsaved filter changes. Applying this preset will discard them.' %}",
+            confirmRenamePreset: "{% trans 'You have unsaved filter changes. Renaming reloads the page and will discard them.' %}",
             confirmClearAll: "{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}"
         };
     </script>
-    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261012-bulk-all"></script>
+    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261012-preset-rename"></script>
 {% endblock %}

@@ -926,6 +926,23 @@ function jsloaded() {
         });
     });
 
+    // Rename a saved preset: native prompt prefilled with the current name,
+    // then a plain POST (rename_filter_preset) -- same reload-based flow as
+    // apply/delete, so it gets the same "discard pending changes?" guard.
+    document.querySelectorAll("[data-preset-rename]").forEach(function (button) {
+        button.addEventListener("click", function (e) {
+            e.stopPropagation();
+            const currentName = button.dataset.currentName || "";
+            const newName = (window.prompt(button.dataset.prompt, currentName) || "").trim();
+            if (!newName || newName === currentName) return;
+            if (!confirmDiscardPending(window.TPW_PROTEINS_I18N.confirmRenamePreset)) return;
+            const form = button.closest("form");
+            form.querySelector("input[name='preset_name']").value = newName;
+            suppressBeforeUnloadWarning = true;
+            form.submit();
+        });
+    });
+
     const drawerResetForm = document.querySelector(".drawer-reset-form");
     if (drawerResetForm) {
         drawerResetForm.addEventListener("submit", function (e) {
