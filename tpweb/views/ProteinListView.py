@@ -18,6 +18,7 @@ from django.shortcuts import redirect
 from urllib.parse import urlencode, parse_qs
 from tpweb.services.protein_list import (
     DEFAULT_PAGE_SIZE,
+    EC_ANY_VALUE,
     apply_filter_changes,
     apply_protein_search,
     apply_selected_parameter_filters,
@@ -763,12 +764,15 @@ class ProteinListView(View):
 
         function_data = function_data or {}
         ec_classes = function_data.get("ec_classes") or []
+        ec_any = function_data.get("ec_any")
+        ec_any_active = bool(ec_any and ec_any.get("active"))
         ec_specific_active = function_data.get("ec_specific_active") or []
         go_active = function_data.get("go_active") or []
         ec_explorer_url = function_data.get("ec_explorer_url", "")
         if ec_classes or ec_specific_active or go_active or ec_explorer_url:
             any_function_active = (
-                any(cls.get("active") for cls in ec_classes)
+                ec_any_active
+                or any(cls.get("active") for cls in ec_classes)
                 or bool(ec_specific_active)
                 or bool(go_active)
             )
@@ -776,6 +780,7 @@ class ProteinListView(View):
                 {
                     "category": "Function",
                     "is_function": True,
+                    "ec_any": ec_any,
                     "ec_classes": ec_classes,
                     "ec_specific_active": ec_specific_active,
                     "go_active": go_active,
@@ -783,6 +788,7 @@ class ProteinListView(View):
                     "any_active": any_function_active,
                     "param_count": len(ec_specific_active)
                     + len(go_active)
+                    + int(ec_any_active)
                     + sum(1 for c in ec_classes if c.get("active")),
                 }
             )
@@ -1473,7 +1479,10 @@ class ProteinListView(View):
                     display_name = item.get("display_name") or item.get("name", "")
                     special_key = str(item.get("special_key") or "").strip()
                     if display_name:
-                        if special_key == "ec_filter":
+                        is_ec_any = item.get("special_value") == EC_ANY_VALUE
+                        if special_key == "ec_filter" and is_ec_any:
+                            criteria_labels.append(display_name)
+                        elif special_key == "ec_filter":
                             criteria_labels.append(f"EC class: {humanize_identifier(display_name)}")
                         elif special_key == "go_filter":
                             criteria_labels.append(f"GO: {display_name}")
@@ -1873,7 +1882,7 @@ class ProteinListView(View):
             elif special_key == "ligand_filter" and special_value:
                 active_ligand_value = {"value": special_value, "id": entry_id}
 
-        ec_class_value_set = {value for value, _ in self.EC_CLASSES}
+        ec_class_value_set = {value for value, _ in self.EC_CLASSES} | {EC_ANY_VALUE}
         active_ec_class_set = {
             entry["value"] for entry in active_ec_values if entry["value"] in ec_class_value_set
         }
@@ -1894,6 +1903,7 @@ class ProteinListView(View):
 
         function_data = {
             "ec_classes": ec_classes_for_drawer,
+            "ec_any": {"value": EC_ANY_VALUE, "active": EC_ANY_VALUE in active_ec_class_set},
             "ec_specific_active": ec_specific_active,
             "go_active": active_go_values,
             "ligand_active": active_ligand_value,

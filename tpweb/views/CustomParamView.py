@@ -26,6 +26,10 @@ def index_new_param(custom_param):
         "--username",
         custom_param.owner.username,
     ]
+    # The form accepts .csv too, but load_score_values defaults to tab --
+    # a comma-separated file would otherwise parse as one single column.
+    if custom_param.tsv.path.lower().endswith(".csv"):
+        command += ["--separator", ","]
     try:
         subprocess.run(command, check=True)
         print("Script executed successfully.")

@@ -179,7 +179,7 @@
             <div class="sv-tb-sep" aria-hidden="true"></div>
 
             {# VMD download — href updated by JS when switching structures #}
-            <a href="{% url 'tpwebapp:structure_export' structure.id %}" id="sv-vmd-link"
+            <a href="{% url 'tpwebapp:structure_export' structure.id %}" id="sv-vmd-link" data-no-page-loader
                class="sv-tb-btn sv-download-link" title="{% trans 'Download VMD visualization script' %}">
                 <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
                     <path d="M8 2v8M5 7l3 3 3-3M2 13h12"/>

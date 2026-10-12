@@ -528,6 +528,32 @@ class ProteinListFilterQueryTests(TestCase):
         self.assertNotEqual(with_ligand.pk, with_ligand.accession)
         self.assertNotEqual(without_ligand.pk, without_ligand.accession)
 
+    def test_ec_any_filter_matches_every_enzyme_annotated_protein(self):
+        from bioseq.models.BioentryDbxref import BioentryDbxref
+        from bioseq.models.Dbxref import Dbxref
+
+        proteome = Biodatabase.objects.create(name="TEST_ec_protein")
+        accessions_with_ec = {"LOCUS_EC1": "1.1.1.1", "LOCUS_EC7": "7.1.2.2"}
+        for accession, ec_number in accessions_with_ec.items():
+            entry = Bioentry.objects.create(
+                biodatabase=proteome, name=accession, accession=accession, identifier=accession
+            )
+            dbxref, _ = Dbxref.objects.get_or_create(dbname="ec", accession=ec_number)
+            BioentryDbxref.objects.create(dbxref=dbxref, bioentry=entry)
+        Bioentry.objects.create(
+            biodatabase=proteome, name="LOCUS_NO_EC", accession="LOCUS_NO_EC", identifier="x"
+        )
+
+        any_ec = apply_selected_parameter_filters(
+            Bioentry.objects.filter(biodatabase=proteome),
+            [{"type": "special", "special_key": "ec_filter", "special_value": "any"}],
+        )
+
+        self.assertEqual(
+            sorted(any_ec.values_list("accession", flat=True).distinct()),
+            sorted(accessions_with_ec),
+        )
+
     def test_any_group_ors_two_numeric_score_params(self):
         """Motivating case for the advanced filter builder: druggable pockets
         by FPocket OR by P2Rank, not just AND."""
@@ -1093,7 +1119,20 @@ class WorkspaceIsolationTests(TestCase):
         alice_formulas = [formula.name for formula in resolve_formulas_for_user(self.alice)]
 
         self.assertEqual(anonymous_formulas, ["PublicFormula"])
-        self.assertEqual(alice_formulas, ["AliceFormula"])
+        # Own formulas first, then the public workspace's as a baseline --
+        # never another user's private ones.
+        self.assertEqual(alice_formulas, ["AliceFormula", "PublicFormula"])
+
+    def test_resolve_formulas_for_new_user_falls_back_to_public_baseline(self):
+        ScoreFormula.objects.create(name="Druggability", user=self.public_user)
+        ScoreFormula.objects.create(name="Druggability", user=self.alice, expression="2*x")
+
+        bob_formulas = resolve_formulas_for_user(self.bob)
+        alice_formulas = resolve_formulas_for_user(self.alice)
+
+        self.assertEqual([f.user_id for f in bob_formulas], [self.public_user.pk])
+        # Alice's own same-named copy wins the dedupe.
+        self.assertEqual([f.user_id for f in alice_formulas], [self.alice.pk])
 
     def test_formula_form_only_shows_visible_params(self):
         self.create_score_param(name="GlobalBuiltin", category="Protein", user=None)

@@ -60,7 +60,15 @@ SYSTEM_PROMPT = (
     "filter, narrow, or change their protein list (e.g. 'apply this filter', 'filtra la "
     "lista'), not as a substitute for answering a question. When a request needs several "
     "filter changes, pass all of them in one apply_filters call (the changes array takes "
-    "multiple entries) instead of calling it once per change."
+    "multiple entries) instead of calling it once per change. "
+    "When the user asks HOW to do something in the app, point them to the actual control "
+    "instead of suggesting a text search. Where things live: on a genome page, 'Explore "
+    "proteins' opens the protein table; its toolbar has Filters, Scoring and Columns. In "
+    "Filters > Function: an 'Any EC number (all enzymes)' chip for every enzyme-annotated "
+    "protein, chips for the 7 EC classes (1 Oxidoreductases ... 7 Translocases, combined "
+    "with OR), a 'Specific EC code' box, and GO terms. Scoring has 'No scoring', the "
+    "available formulas, 'Make my own score' (formula builder) and 'Add my own data' "
+    "(upload a TSV whose first column is 'gene')."
 )
 
 NO_GENOME_SCOPE_NOTE = (

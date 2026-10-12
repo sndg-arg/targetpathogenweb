@@ -18,6 +18,10 @@ MIN_PAGE_SIZE = 10
 MAX_PAGE_SIZE = 100
 DEFAULT_PAGE_SIZE = 25
 
+# Special EC filter value meaning "has any EC number" -- one switch instead
+# of having to tick all seven EC classes by hand.
+EC_ANY_VALUE = "any"
+
 ACRONYM_TOKENS = {
     "deg": "DEG",
     "ppi": "PPI",
@@ -338,7 +342,7 @@ def build_special_filter_payload(kind, value):
             "type": "special",
             "special_key": "ec_filter",
             "special_value": value,
-            "display_name": value,
+            "display_name": "Any EC number" if value == EC_ANY_VALUE else value,
         }
     if kind == "go":
         normalized = value.upper() if not value.upper().startswith("GO:") else value.upper()
@@ -743,6 +747,9 @@ def _apply_and_selected_parameter_filters(queryset, selected_parameters):
     if ec_values:
         ec_query = Q()
         for ec_value in ec_values:
+            if ec_value == EC_ANY_VALUE:
+                ec_query |= Q(dbxrefs__dbxref__dbname="ec")
+                continue
             ec_query |= Q(
                 dbxrefs__dbxref__dbname="ec",
                 dbxrefs__dbxref__accession__istartswith=ec_value,

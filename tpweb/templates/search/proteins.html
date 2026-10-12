@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260918-locked-actions">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261009-toolbar-left">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -286,15 +286,16 @@
                                     </span>
                                 </button>
                                 {% endif %}
-                                {% if formulas or perms.tpweb.can_manage_formulas %}
-                                    <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary{% if not formula_active %} toolbar-action-btn--cta{% endif %}" id="open-formula-btn">
-                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/calculator.html" %}</span>
-                                        <span class="toolbar-action-btn__title">{% trans "Scoring" %}</span>
-                                        <span class="toolbar-action-btn__meta">
-                                            {% if formula_active %}{{ formula.name }}{% else %}{% trans "Combine criteria →" %}{% endif %}
-                                        </span>
-                                    </button>
-                                {% endif %}
+                                {# Always shown: the drawer also hosts "No scoring" and the #}
+                                {# "Make my own score" / "Add my own data" entry points, so #}
+                                {# hiding it for users with no formulas yet left them no way in. #}
+                                <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary{% if not formula_active %} toolbar-action-btn--cta{% endif %}" id="open-formula-btn">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/calculator.html" %}</span>
+                                    <span class="toolbar-action-btn__title">{% trans "Scoring" %}</span>
+                                    <span class="toolbar-action-btn__meta">
+                                        {% if formula_active %}{{ formula.name }}{% else %}{% trans "Combine criteria →" %}{% endif %}
+                                    </span>
+                                </button>
                             </div>
                             <div class="toolbar-workbench__group toolbar-workbench__group--secondary" aria-label="{% trans 'Table display' %}">
                                 <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--secondary" id="open-columns-btn">
@@ -398,6 +399,15 @@
                     {% endif %}
                 </div>
                 {% else %}
+                {# Result count right at the head of the table (not just the hero chip / bottom #}
+                {# pagination) -- the first thing to check after applying a filter is whether it worked. #}
+                <p class="protein-table-results" role="status">
+                    {% if filtered_protein_count != total_protein_count %}
+                        {% blocktrans with filtered=filtered_protein_count total=total_protein_count %}<strong>{{ filtered }}</strong> of {{ total }} proteins match the current search and filters{% endblocktrans %}
+                    {% else %}
+                        {% blocktrans with total=total_protein_count %}Showing all <strong>{{ total }}</strong> proteins{% endblocktrans %}
+                    {% endif %}
+                </p>
                 <div class="protein-table-scroll-note" id="protein-table-scroll-note" hidden>
                     <span class="protein-table-scroll-note__label">{% trans "More columns available" %}</span>
                     <span class="protein-table-scroll-note__hint">{% trans "Scroll right to inspect all evidence" %}</span>
@@ -729,6 +739,28 @@
                                         <span class="filter-param-label">{% trans "EC class" %}</span>
                                     </div>
                                     <div class="filter-chip-group">
+                                        {% if group.ec_any %}
+                                            <form method="POST" action="" class="filter-chip-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                {% if group.ec_any.active %}
+                                                    <input type="hidden" name="action" value="remove_filter">
+                                                    <input type="hidden" name="filter_option_id" value="special:ec:{{ group.ec_any.value }}">
+                                                {% else %}
+                                                    <input type="hidden" name="action" value="add_special_filter">
+                                                    <input type="hidden" name="special_kind" value="ec">
+                                                    <input type="hidden" name="special_value" value="{{ group.ec_any.value }}">
+                                                {% endif %}
+                                                <button type="submit"
+                                                        class="filter-chip filter-chip--ec-any {% if group.ec_any.active %}filter-chip--active{% endif %}"
+                                                        data-server-active="{{ group.ec_any.active|yesno:'true,false' }}"
+                                                        aria-pressed="{% if group.ec_any.active %}true{% else %}false{% endif %}"
+                                                        title="{% trans 'Every protein with at least one EC number, whatever its class' %}">
+                                                    <span class="filter-chip-label">{% trans "Any EC number (all enzymes)" %}</span>
+                                                    {% if group.ec_any.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
+                                                </button>
+                                            </form>
+                                        {% endif %}
                                         {% for cls in group.ec_classes %}
                                             <form method="POST" action="" class="filter-chip-form">
                                                 {% csrf_token %}
@@ -1171,7 +1203,6 @@
         </div>
     </aside>
 
-    {% if formulas or perms.tpweb.can_manage_formulas %}
         <div class="tp-overlay" id="formula-overlay"></div>
         <aside class="filters-drawer scoring-drawer" id="formula-modal" aria-hidden="true" aria-label="{% trans 'Scoring' %}">
             <div class="drawer-head">
@@ -1181,7 +1212,6 @@
                 </button>
             </div>
             <div class="drawer-body scoring-drawer-body">
-                {% if formulas_for_drawer %}
                     <div class="scoring-formula-list" role="radiogroup" aria-label="{% trans 'Ranking formula' %}">
                         <div class="scoring-formula-entry">
                             <form method="GET" action="" class="scoring-formula-form">
@@ -1259,9 +1289,6 @@
                             </div>
                         {% endfor %}
                     </div>
-                {% else %}
-                    <p class="tp-state-note tp-state-note--empty">{% trans "No scoring formulas available for this workspace." %}</p>
-                {% endif %}
 
                 <section class="scoring-mydata">
                     <h3 class="scoring-mydata__title">{% trans "My data" %}</h3>
@@ -1297,7 +1324,6 @@
                 </section>
             </div>
         </aside>
-    {% endif %}
 {% endblock %}
 
 {% block jsloaded %}

@@ -6,7 +6,7 @@ from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam
 from tpweb.services.genome_workspace import user_can_view_restricted_genomes
 from tpweb.services.protein_list import humanize_identifier
-from tpweb.services.workspace import resolve_workspace_user
+from tpweb.services.workspace import get_public_workspace_user, resolve_workspace_user
 
 
 def _dedupe_formulas_by_name(formulas):
@@ -41,6 +41,18 @@ def resolve_formulas_for_user(user):
         .exclude(user=workspace_user)
         .order_by("-default", "name", "id")
     )
+
+    # The base formulas (GARDP_*, Druggability, Localization) are seeded
+    # per-user by ScoreParam.Initialize_* at setup time, so any account
+    # created afterwards has none of its own -- the Scoring drawer then
+    # showed nothing until the user built a formula by hand. Always offer
+    # the public workspace's formulas as a baseline; appended last so a
+    # user's own same-named copy wins the dedupe below.
+    public_user = get_public_workspace_user()
+    if workspace_user.pk != public_user.pk:
+        formulas += list(
+            ScoreFormula.objects.filter(user=public_user).order_by("-default", "name", "id")
+        )
 
     if not formulas:
         formulas = list(

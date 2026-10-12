@@ -633,6 +633,12 @@ a.filter-pill .filter-pill-remove {
     height: 0;
 }
 
+/* Export CSV on the left, next to where the table starts -- on this wide
+   table the shared right-aligned default left it far from everything else. */
+.protein-table-panel .tp-table-export-bar {
+    justify-content: flex-start;
+}
+
 .protein-workspace {
     display: grid;
     grid-template-columns: 1fr;
@@ -3824,6 +3830,18 @@ a.filter-pill .filter-pill-remove {
 /* Hero chip: count shown as "N / total" */
 .filter-result-chip strong {
     font-weight: 700;
+}
+
+/* Result count line at the head of the table */
+.protein-table-results {
+    margin: 0 0 var(--tp-space-2);
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-secondary);
+}
+
+.protein-table-results strong {
+    font-weight: var(--tp-font-weight-bold);
+    color: var(--tp-color-text-primary);
 }
 
 /* Pending state — brand double-ring that fades in/out smoothly */

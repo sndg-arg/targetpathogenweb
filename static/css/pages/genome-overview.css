@@ -149,6 +149,22 @@
     justify-content: center;
 }
 
+/* Arrow nudges forward on hover -- reinforces "this takes you somewhere". */
+.genome-hero-actions .tp-btn-icon {
+    transition: transform 160ms ease;
+}
+
+.genome-hero-actions .btn:hover .tp-btn-icon,
+.genome-hero-actions .btn:focus-visible .tp-btn-icon {
+    transform: translateX(3px);
+}
+
+.genome-hero-actions-hint {
+    margin: var(--tp-space-2) 0 0;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
 .genome-hero-actions--secondary {
     gap: 8px;
     margin-top: 10px;
@@ -1136,6 +1152,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .genome-hero-actions .tp-btn-icon {
+        transition: none;
+        transform: none !important;
+    }
+
     .genome-hero,
     .genome-page .quick-nav,
     .genome-card {

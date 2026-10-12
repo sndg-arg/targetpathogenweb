@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260909-merge-pipeline-chip">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261009-hero-actions">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -72,9 +72,18 @@
                         <p class="tp-state-note tp-state-note--error">{{ delete_error_message }}</p>
                     {% endif %}
                     <div class="genome-hero-actions">
-                        <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Proteins" %}</a>
-                        <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--outline">{% trans "Metabolism" %}</a>
+                        {# Verb + arrow on purpose: a bare filled "Proteins" button read as a #}
+                        {# selected tab/section title, not as the way into the protein table. #}
+                        <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
+                            <span>{% trans "Explore proteins" %}</span>
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                        </a>
+                        <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--outline tp-btn-with-icon">
+                            <span>{% trans "Explore metabolism" %}</span>
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                        </a>
                     </div>
+                    <p class="genome-hero-actions-hint">{% trans "Filters, scoring and the full protein table are under Explore proteins." %}</p>
                     <div class="genome-hero-actions genome-hero-actions--secondary">
                         <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span>

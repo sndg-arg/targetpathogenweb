@@ -71,7 +71,9 @@ APPLY_FILTERS = ToolDefinition(
                                 "add_numeric_filter: filter a numeric field by range (needs "
                                 "score_param_id, numeric_operation, value, and value_max for "
                                 "'between'). add_special_filter: filter by EC or GO term (needs "
-                                "special_kind='ec'|'go' and special_value). remove_filter: remove a "
+                                "special_kind='ec'|'go' and special_value; for EC, special_value "
+                                "is a class '1'..'7', a code prefix like '2.7.1', or 'any' for "
+                                "every protein with any EC number). remove_filter: remove a "
                                 "previously-added filter (needs filter_option_id)."
                             ),
                         },

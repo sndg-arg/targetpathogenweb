@@ -89,15 +89,15 @@
                     <div class="customparam-guide-item">
                         <span class="customparam-guide-step">1</span>
                         <div>
-                            <h3>{% trans "First column: protein accession" %}</h3>
-                            <p>{% trans "Use the same accession shown in the protein ranking table for this genome." %}</p>
+                            <h3>{% trans "First column: gene" %}</h3>
+                            <p>{% trans "Header must be exactly gene. Values are the same protein accession shown in the protein table for this genome." %}</p>
                         </div>
                     </div>
                     <div class="customparam-guide-item">
                         <span class="customparam-guide-step">2</span>
                         <div>
-                            <h3>{% trans "Second column: value" %}</h3>
-                            <p>{% trans "Numeric (e.g. 0.83) or categorical (e.g. essential). One value per protein." %}</p>
+                            <h3>{% trans "Next columns: one parameter each" %}</h3>
+                            <p>{% trans "The header becomes the parameter name. A column is numeric only if every value is a number (e.g. 0.83); any text value makes the whole column categorical (e.g. essential / non_essential). Don't mix numbers and text in one column." %}</p>
                         </div>
                     </div>
                     <div class="customparam-guide-item">
@@ -110,11 +110,12 @@
                 </div>
 
                 <div class="customparam-example">
-                    <p class="customparam-example-label">{% trans "Example" %}</p>
-                    <code class="customparam-example-code">protein_accession&#9;custom_score
-A0A0000001&#9;0.83
-A0A0000002&#9;0.41
-A0A0000003&#9;essential</code>
+                    <p class="customparam-example-label">{% trans "Example (tab-separated .tsv, or comma-separated .csv)" %}</p>
+                    <code class="customparam-example-code">gene&#9;my_score&#9;my_essentiality
+A0A0000001&#9;0.83&#9;essential
+A0A0000002&#9;0.41&#9;non_essential
+A0A0000003&#9;0.12&#9;essential</code>
+                    <p class="customparam-example-label">{% trans "my_score is loaded as numeric, my_essentiality as categorical." %}</p>
                 </div>
             </aside>
         </section>
