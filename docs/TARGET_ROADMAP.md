@@ -261,22 +261,22 @@ listas no estan rankeadas. En celular se corrigieron Methodology, el visor 3D co
 del asistente y se agrego el tema oscuro. Runs huerfanos sin upload se marcan fallados a las 24 h
 y gunicorn usa workers con hilos.
 
+Tambien: la tarjeta de evidencia de pockets dice de que estructura y pocket sale el valor de
+FPocket; la paleta de variables y las formulas base se filtran por los datos del genoma; no se
+puede lanzar un segundo run del mismo genoma (`manage.py cancel_pipeline_run <id>` libera uno
+colgado); roles y opciones de compartir sin "Gates" en Profile/Settings.
+
 **Pendiente para cerrar.**
 
-- La ficha de proteina usa estructuras distintas para el encabezado de drogabilidad, la lista de
-  pockets y el visor (p. ej. 6JOE / AlphaFold / 6JKI en PA3743): unificar en una sola estructura
-  o indicar de cual sale cada valor, con boton para mostrar ese pocket.
+- La ficha de proteina muestra en el visor una estructura (la de mayor cobertura) distinta de la
+  que dio el mejor pocket: agregar un boton "Show this pocket" que cambie el visor a esa
+  estructura y abra el pocket.
 - Visor 3D embebido en la ficha queda en "Loading 3D structure..." aunque el archivo carga (el
   visor completo funciona).
-- Paleta de variables y formulas base filtradas por genoma (hoy PAO1 ofrece "Kp score" y variables
-  de metabolismo que no tiene).
-- Bloquear un segundo run del mismo genoma mientras otro esta activo, y una accion para cancelar
-  un run desde la web.
-- Migracion faltante de `tpweb` (el deploy avisa cambios de modelo sin migracion) y migracion de
-  datos para las descripciones de Localization ("Celular", "periplasmatic").
-- Nombres de rol legibles (Basic / Gates consumer / Gates collaborator) en Profile y /users.
+- La barra superior de escritorio se parte en dos filas entre 992 y 1200 px; compactarla (y recien
+  ahi sumar "Human Targets" como link principal).
+- Migracion faltante de `tpweb` (el deploy avisa cambios de modelo sin migracion).
 - Email de contacto en los textos de acceso restringido ("ask a site administrator").
-- "Human Targets" en la barra principal para quien tenga permiso.
 - BLAST unificado (nucleotido/proteina en una pagina) y resultados de blastn en tabla con links.
 - Optimizar las vistas lentas: ficha de proteina 10-38 s, explorador EC 25-35 s.
 
