@@ -1681,11 +1681,18 @@ class PipelineStatusTests(SimpleTestCase):
         self.assertEqual(status.workspace_owner_id, 42)
         self.assertEqual(status.stage_current, 9)
 
+    # RestrictedGenome is queried by user_can_access_genome_name (called via
+    # sanitize_pipeline_status_for_user) once genome_accession is truthy --
+    # added after this test was written, so it needs mocking the same way
+    # Biodatabase already is, or this hits a real DB query under
+    # SimpleTestCase.
+    @patch("tpweb.services.genome_workspace.RestrictedGenome")
     @patch("tpweb.services.pipeline_status.Biodatabase")
     def test_sanitize_pipeline_status_for_user_hides_deleted_workspace_status(
-        self, biodatabase_model
+        self, biodatabase_model, restricted_genome_model
     ):
         biodatabase_model.objects.filter.return_value.exists.return_value = False
+        restricted_genome_model.objects.filter.return_value.exists.return_value = False
 
         status = sanitize_pipeline_status_for_user(
             {

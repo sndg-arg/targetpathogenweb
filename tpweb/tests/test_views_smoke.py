@@ -1046,20 +1046,30 @@ class GenomeUploadViewTests(TestCase):
     def test_use_test_genome_without_permission_is_blocked(self):
         # Approval no longer implies can_upload_genome by itself once the
         # permission was made independently revocable.
+        from django.contrib.messages import get_messages
+
         user = get_user_model().objects.create_user(
             username="upload-no-perm", password="test-pass", is_staff=True
         )
         self.client.force_login(user)
 
+        # Not follow=True: the redirect target (GET /upload) now has its own
+        # can_upload_genome gate (see GenomeUploadView.get), which this user
+        # deliberately lacks too -- following would land on that 403 page
+        # instead of showing the POST's own redirect-with-message behavior
+        # this test is actually about. Messages set during a request that
+        # redirects are still readable off that response's own wsgi_request.
         response = self.client.post(
-            reverse("tpwebapp:genome_upload"), {"action": "use_test_genome"}, follow=True
+            reverse("tpwebapp:genome_upload"), {"action": "use_test_genome"}
         )
 
-        self.assertEqual(response.status_code, 200)
-        messages = list(response.context["messages"])
+        self.assertEqual(response.status_code, 302)
+        messages = list(get_messages(response.wsgi_request))
         self.assertTrue(any("permission" in str(m) for m in messages))
 
     def test_curated_import_action_without_permission_is_blocked(self):
+        from django.contrib.messages import get_messages
+
         user = get_user_model().objects.create_user(
             username="upload-no-curated-perm", password="test-pass", is_staff=True
         )
@@ -1068,27 +1078,26 @@ class GenomeUploadViewTests(TestCase):
         response = self.client.post(
             reverse("tpwebapp:genome_upload"),
             {"action": "validate_external_import"},
-            follow=True,
         )
 
-        self.assertEqual(response.status_code, 200)
-        messages = list(response.context["messages"])
+        self.assertEqual(response.status_code, 302)
+        messages = list(get_messages(response.wsgi_request))
         self.assertTrue(any("curated external imports" in str(m) for m in messages))
 
     def test_clear_history_does_not_require_upload_permission(self):
         # Clearing history is not "uploading" -- it must stay reachable
         # even for a user without can_upload_genome.
+        from django.contrib.messages import get_messages
+
         user = get_user_model().objects.create_user(
             username="upload-clear-only", password="test-pass", is_staff=True
         )
         self.client.force_login(user)
 
-        response = self.client.post(
-            reverse("tpwebapp:genome_upload"), {"action": "clear_history"}, follow=True
-        )
+        response = self.client.post(reverse("tpwebapp:genome_upload"), {"action": "clear_history"})
 
-        self.assertEqual(response.status_code, 200)
-        messages = list(response.context["messages"])
+        self.assertEqual(response.status_code, 302)
+        messages = list(get_messages(response.wsgi_request))
         self.assertFalse(any("permission" in str(m) for m in messages))
 
     def test_superuser_can_upload_directly_into_the_public_workspace(self):
