@@ -1036,8 +1036,12 @@ class ProteinListView(View):
                 "genome": genome_url_slug(assembly_name),
                 "genome_label": display_genome_name(assembly_name),
                 "generated_at": timezone.now(),
-                "view_rows": view_section["rows"],
-                "table_headers": table_section["headers"],
+                # "Visible columns" just restates the table header right below.
+                "view_rows": [row for row in view_section["rows"] if row[0] != "Visible columns"],
+                "table_headers": [
+                    header if header in fixed else (humanize_identifier(header) or header)
+                    for header in headers
+                ],
                 "table_rows": all_rows[: self.REPORT_MAX_ROWS],
                 "total_rows": len(all_rows),
                 "truncated": len(all_rows) > self.REPORT_MAX_ROWS,

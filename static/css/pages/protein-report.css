@@ -1,102 +1,105 @@
-/* Printable protein report (search/protein_report.html). On screen it's a
-   normal page; when printed, only the report itself is kept. */
+/* Printable protein report (search/protein_report.html).
+   Layout follows the site's fused editorial standard: no stacked cards,
+   sections sit on the page background separated by hairlines, 18px text
+   inset shared by every section (same as .genome-hero / Proteins). Tables
+   reuse the shared .tp-table--premium styling. When printed, only the
+   report is kept. */
 
 .protein-report {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--tp-space-6) var(--tp-space-4) var(--tp-space-8);
+    margin: 0;
     color: var(--tp-color-text-primary);
 }
 
-.protein-report-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--tp-space-4);
-    padding-bottom: var(--tp-space-4);
-    border-bottom: 1px solid var(--tp-color-border);
+.protein-report > section {
+    padding: 22px 18px;
 }
 
-.protein-report-head h1 {
-    margin: 4px 0;
-    font-size: var(--tp-font-size-2xl);
+.protein-report > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
 }
 
 .protein-report-eyebrow {
-    margin: 0;
+    margin: 6px 0 10px;
+    color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
-    font-weight: var(--tp-font-weight-semibold);
-    letter-spacing: 0.06em;
+    font-weight: var(--tp-font-weight-medium);
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--tp-color-text-muted);
 }
 
-.protein-report-meta,
-.protein-report-note {
+.protein-report-hero h1 {
     margin: 0;
-    font-size: var(--tp-font-size-sm);
-    color: var(--tp-color-text-muted);
+    font-size: var(--tp-heading-lg);
+    line-height: 1.1;
 }
 
-.protein-report-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2);
-}
-
-.protein-report-section {
-    padding-top: var(--tp-space-5);
+.protein-report-chips {
+    margin-top: var(--tp-space-3);
 }
 
 .protein-report-section h2 {
     margin: 0 0 var(--tp-space-3);
+    font-family: "Space Grotesk", system-ui, sans-serif;
     font-size: var(--tp-font-size-lg);
+    font-weight: var(--tp-font-weight-semibold);
+}
+
+.protein-report-note {
+    margin: 0 0 var(--tp-space-3);
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-muted);
 }
 
 .protein-report-criteria {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: var(--tp-space-2) var(--tp-space-5);
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--tp-space-3) var(--tp-space-6);
     margin: 0;
 }
 
 .protein-report-criteria dt {
     font-size: var(--tp-font-label);
-    color: var(--tp-color-text-muted);
+    font-weight: var(--tp-font-weight-medium);
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    color: var(--tp-color-text-muted);
 }
 
 .protein-report-criteria dd {
     margin: 2px 0 0;
     font-size: var(--tp-font-size-sm);
-    overflow-wrap: anywhere;
 }
 
 .protein-report-table-wrap {
     overflow-x: auto;
+    border: 1px solid var(--tp-color-border);
+    border-radius: var(--tp-ui-radius-panel);
 }
 
 .protein-report-table {
-    width: 100%;
-    border-collapse: collapse;
+    margin: 0;
     font-size: var(--tp-font-size-xs);
 }
 
-.protein-report-table th,
+/* Cells wrap only between words (GO/EC lists break after their commas);
+   identifiers like VK055_0242 or 1.7.5.1 are never split mid-token. */
 .protein-report-table td {
-    padding: 5px 8px;
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    text-align: left;
     vertical-align: top;
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
+    word-break: normal;
 }
 
 .protein-report-table th {
-    background: var(--tp-color-surface-muted);
-    font-weight: var(--tp-font-weight-semibold);
     white-space: nowrap;
+}
+
+.protein-report-table:not(.protein-report-table--sources) td:nth-child(1),
+.protein-report-table:not(.protein-report-table--sources) td:nth-child(2) {
+    white-space: nowrap;
+}
+
+.protein-report-table:not(.protein-report-table--sources) td:nth-child(3) {
+    min-width: 180px;
 }
 
 .protein-report-table--sources td:first-child {
@@ -117,7 +120,7 @@
 @media print {
     @page {
         size: A4 landscape;
-        margin: 12mm;
+        margin: 10mm;
     }
 
     body * {
@@ -133,8 +136,6 @@
         position: absolute;
         inset: 0 auto auto 0;
         width: 100%;
-        max-width: none;
-        padding: 0;
         color-scheme: light;
     }
 
@@ -145,12 +146,27 @@
         color: CanvasText !important;
     }
 
+    .protein-report > section {
+        padding: 10px 0;
+    }
+
     .protein-report-actions {
-        display: none;
+        display: none !important;
     }
 
     .protein-report-table-wrap {
         overflow: visible;
+        border: 0;
+        border-radius: 0;
+    }
+
+    .protein-report-table {
+        font-size: 8pt;
+    }
+
+    .protein-report-table th,
+    .protein-report-table td {
+        padding: 3px 5px !important;
     }
 
     .protein-report-table thead {
