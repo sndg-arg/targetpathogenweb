@@ -221,7 +221,13 @@
 
 /* Sequence */
 
+/* Bootstrap's reboot sets a hardcoded `pre { color: #212529 }` that wins
+   over any inherited theme color (a direct element-selector rule beats
+   plain inheritance) -- the bacterial page's own .protein-sequence-fallback
+   has to override this the same way; without it, dark mode renders
+   near-black text on this block's near-black background. */
 .human-sequence-block {
+    color: var(--tp-color-text-secondary);
     font-family: "SFMono-Regular", Consolas, monospace;
     font-size: var(--tp-font-size-sm);
     line-height: 1.6;
@@ -394,15 +400,23 @@
 
 /* Cross-references */
 
+/* Mosaic with real dividers, same 1px-gap-as-hairline technique as
+   .human-feature-lanes above -- a thin rule between every card, both ways,
+   reads as a reference catalog; the previous plain gap-only grid read as
+   every category "pegada" to the next with no real separation. */
 .human-xref-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--tp-space-3);
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1px;
+    background: var(--tp-color-border-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 4px;
+    overflow: hidden;
 }
 
 .human-xref-card {
-    border-top: 1px solid var(--tp-color-border-soft);
-    padding: var(--tp-space-3) 0 0;
+    background: var(--tp-color-surface);
+    padding: var(--tp-space-5);
 }
 
 .human-xref-card h3 {
@@ -410,7 +424,7 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--tp-color-text-muted);
-    margin-bottom: var(--tp-space-2);
+    margin-bottom: var(--tp-space-3);
 }
 
 .human-xref-list {
@@ -418,13 +432,14 @@
     margin: 0;
     padding: 0;
     display: grid;
-    gap: var(--tp-space-1);
+    gap: var(--tp-space-2);
 }
 
 .human-xref-list li {
     display: flex;
     justify-content: space-between;
-    gap: var(--tp-space-2);
+    align-items: baseline;
+    gap: var(--tp-space-3);
     font-size: var(--tp-font-size-sm);
 }
 
