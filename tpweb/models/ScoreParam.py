@@ -391,7 +391,7 @@ class ScoreParam(models.Model):
             category="Localization",
             name="Localization",
             type="CATEGORICAL",
-            description="Celular localization of the protein",
+            description="Cellular localization of the protein",
             default_operation="=",
             default_value="Unknown",
             user=None,
@@ -425,7 +425,7 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(
             score_param=sp,
             name="Periplasmic",
-            defaults={"description": "Protein located in periplasmatic space"},
+            defaults={"description": "Protein located in the periplasmic space"},
         )
         ScoreParamOptions.objects.get_or_create(
             score_param=sp, name="Unknown", defaults={"description": "Protein location not known"}
