@@ -55,7 +55,7 @@ lint:
 	$(PYTHON) -m ruff check .
 
 test:
-	$(PYTHON) scripts/run_tests.py
+	$(COMPOSE) exec web $(CONTAINER_PYTHON) scripts/run_tests.py
 
 coverage:
 	$(PYTHON) -m coverage run --source=tpweb,pipeline scripts/run_tests.py
