@@ -248,6 +248,38 @@ Persistencia server-side del historial del drawer, dividida en conversaciones mu
 
 ## En progreso
 
+### Auditoria de usabilidad (octubre 2026)
+
+Auditoria completa de la app desde el punto de vista de un biologo (codigo + recorrido en vivo,
+celular y modo oscuro). El resumen del target ahora nombra solo la evidencia que la proteina
+tiene y muestra el riesgo de microbioma; la tabla de proteinas ya no tapa off-target/esencialidad
+con "No structure" y oculta la columna Metabolism en genomas sin modelo; columnas, filtros y
+descripciones usan nombres legibles (sin Ptools, S Gene, Y/N, Gates, curated pipeline); GO y EC
+muestran el nombre del termino; el explorador tiene selector EC/GO; el ranking del genoma se
+muestra en puntos (x / 15); el asistente filtra "esenciales" como hit en DEG y aclara que sus
+listas no estan rankeadas. En celular se corrigieron Methodology, el visor 3D completo, el boton
+del asistente y se agrego el tema oscuro. Runs huerfanos sin upload se marcan fallados a las 24 h
+y gunicorn usa workers con hilos.
+
+**Pendiente para cerrar.**
+
+- La ficha de proteina usa estructuras distintas para el encabezado de drogabilidad, la lista de
+  pockets y el visor (p. ej. 6JOE / AlphaFold / 6JKI en PA3743): unificar en una sola estructura
+  o indicar de cual sale cada valor, con boton para mostrar ese pocket.
+- Visor 3D embebido en la ficha queda en "Loading 3D structure..." aunque el archivo carga (el
+  visor completo funciona).
+- Paleta de variables y formulas base filtradas por genoma (hoy PAO1 ofrece "Kp score" y variables
+  de metabolismo que no tiene).
+- Bloquear un segundo run del mismo genoma mientras otro esta activo, y una accion para cancelar
+  un run desde la web.
+- Migracion faltante de `tpweb` (el deploy avisa cambios de modelo sin migracion) y migracion de
+  datos para las descripciones de Localization ("Celular", "periplasmatic").
+- Nombres de rol legibles (Basic / Gates consumer / Gates collaborator) en Profile y /users.
+- Email de contacto en los textos de acceso restringido ("ask a site administrator").
+- "Human Targets" en la barra principal para quien tenga permiso.
+- BLAST unificado (nucleotido/proteina en una pagina) y resultados de blastn en tabla con links.
+- Optimizar las vistas lentas: ficha de proteina 10-38 s, explorador EC 25-35 s.
+
 ### Batch de pedidos de las biologas (6/08 + reporte previo)
 
 Dos documentos de las biologas (cambios de producto + bugs de una sesion de uso anterior)
