@@ -99,8 +99,12 @@
                         {% if chat_quota_label %}<span class="profile-capability-card-meta">{{ chat_quota_label }}</span>{% endif %}
                     </span>
                 </div>
+                <div class="profile-capability-card{% if not can_view_restricted_genomes %} profile-capability-card--off{% endif %}">
+                    <span class="profile-capability-card-icon" aria-hidden="true">{% if can_view_restricted_genomes %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
+                    <span class="profile-capability-card-label">{% trans "See collaborative-project genomes" %}</span>
+                </div>
             </div>
-            <p class="profile-capability-note">{% trans "Want more access? Ask the site owner." %}</p>
+            <p class="profile-capability-note">{% trans "Need more access? Ask a site administrator." %}</p>
         </section>
 
     </div>

@@ -83,7 +83,7 @@
                         {% else %}
                             <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
-                                {% trans "Upload and index" %}
+                                {% trans "Upload file" %}
                             </button>
                         {% endif %}
                     </div>
@@ -112,7 +112,7 @@
                         <span class="customparam-guide-step">3</span>
                         <div>
                             <h3>{% trans "Use it for scoring" %}</h3>
-                            <p>{% trans "After upload, go to Make my own score to include this parameter in a custom ranking formula." %}</p>
+                            <p>{% trans "After upload, it appears under Filters (Custom) and in" %} <a href="{% url 'tpwebapp:formula_form' genome=genome %}">{% trans "Make my own score" %}</a>.</p>
                         </div>
                     </div>
                 </div>
@@ -120,9 +120,9 @@
                 <div class="customparam-example">
                     <p class="customparam-example-label">{% trans "Example (tab-separated .tsv, or comma-separated .csv)" %}</p>
                     <code class="customparam-example-code">gene&#9;my_score&#9;my_essentiality
-A0A0000001&#9;0.83&#9;essential
-A0A0000002&#9;0.41&#9;non_essential
-A0A0000003&#9;0.12&#9;essential</code>
+{{ example_accessions.0 }}&#9;0.83&#9;essential
+{{ example_accessions.1 }}&#9;0.41&#9;non_essential
+{{ example_accessions.2 }}&#9;0.12&#9;essential</code>
                     <p class="customparam-example-label">{% trans "my_score is loaded as numeric, my_essentiality as categorical." %}</p>
                 </div>
             </aside>

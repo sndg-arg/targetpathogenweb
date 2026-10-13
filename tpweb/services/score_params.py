@@ -52,11 +52,18 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
     },
     "hit_in_deg": {
         "category": "Essentiality",
-        "description": "Protein has a hit in the DEG database.",
+        "description": (
+            "Whether the protein has a homolog in the Database of Essential Genes (DEG). "
+            "Y suggests the protein is essential, which favors it as a target."
+        ),
         "type": "C",
         "default_operation": "=",
         "default_value": "N",
         "options": ("Y", "N"),
+        "option_descriptions": {
+            "Y": "Essential: has a homolog in the Database of Essential Genes.",
+            "N": "Not flagged as essential: no homolog in the Database of Essential Genes.",
+        },
     },
     "deg_identity": {
         "category": "Essentiality",
@@ -77,7 +84,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "description": (
             "FPocket druggability score for the best ColabFold predicted structure (0–1). "
             "≥ 0.7 highly druggable · ≥ 0.4 moderately druggable · < 0.4 low druggability. "
-            "Available only for genomes analyzed with the curated pipeline."
+            "Only available for genomes with imported expert-reviewed results."
         ),
         "type": "N",
         "default_operation": ">=",
@@ -86,9 +93,9 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
     "colabfold_p2rank_probability": {
         "category": "Pocket",
         "description": (
-            "P2RANK ligandability score for the best pocket in the ColabFold model (0–1). "
-            "Higher values indicate higher predicted ligandability. "
-            "Available only for genomes analyzed with the curated pipeline."
+            "P2Rank binding-site probability for the best pocket in the ColabFold model (0–1). "
+            "Higher values mean a more likely ligand-binding site. "
+            "Only available for genomes with imported expert-reviewed results."
         ),
         "type": "N",
         "default_operation": ">=",
@@ -97,9 +104,9 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
     "p2rank_probability": {
         "category": "Pocket",
         "description": (
-            "P2RANK ligandability score for the best pocket in the experimental structure (0–1). "
-            "Higher values indicate higher predicted ligandability. "
-            "Available only for genomes analyzed with the curated pipeline."
+            "P2Rank binding-site probability for the best pocket in the experimental structure (0–1). "
+            "Higher values mean a more likely ligand-binding site. "
+            "Only available for genomes with imported expert-reviewed results."
         ),
         "type": "N",
         "default_operation": ">=",
@@ -111,7 +118,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
             "ColabFold model confidence score (pLDDT, 0–100). "
             "Values ≥ 70 indicate reliable local structure; low values mean the predicted "
             "structure — and its pocket predictions — may be unreliable. "
-            "Available only for genomes analyzed with the curated pipeline."
+            "Only available for genomes with imported expert-reviewed results."
         ),
         "type": "N",
         "default_operation": ">=",
@@ -158,7 +165,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "description": (
             "Gut microbiome off-target signal normalized by the number of analyzed genomes (0–1). "
             "Values near 0 are favorable; higher values indicate broader microbiome cross-reactivity. "
-            "Available only for genomes analyzed with the curated pipeline."
+            "Only available for genomes with imported expert-reviewed results."
         ),
         "type": "N",
         "default_operation": "<=",
@@ -169,7 +176,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "description": (
             "Number of gut microbiome reference genomes with a homolog above the identity/coverage threshold. "
             "Lower counts are favorable for microbiome sparing. "
-            "Available only for genomes analyzed with the curated pipeline."
+            "Only available for genomes with imported expert-reviewed results."
         ),
         "type": "N",
         "default_operation": "<=",
@@ -180,7 +187,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "description": (
             "Total number of gut microbiome reference genomes screened for off-target homology. "
             "Use together with off-target counts to interpret the normalized score. "
-            "Available only for genomes analyzed with the curated pipeline."
+            "Only available for genomes with imported expert-reviewed results."
         ),
         "type": "N",
         "default_operation": ">=",
@@ -192,7 +199,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
             "Pan-genome core status from Roary. "
             "Core genes are conserved across all (or nearly all) strains in the pan-genome; "
             "accessory genes are present only in a subset of strains. "
-            "Available only for genomes analyzed with the curated pipeline."
+            "Only available for genomes with imported expert-reviewed results."
         ),
         "type": "C",
         "default_operation": "=",
@@ -209,7 +216,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
             "Pan-genome core status from CoreCruncher. "
             "Core genes are conserved across all (or nearly all) strains in the pan-genome; "
             "accessory genes are present only in a subset of strains. "
-            "Available only for genomes analyzed with the curated pipeline."
+            "Only available for genomes with imported expert-reviewed results."
         ),
         "type": "C",
         "default_operation": "=",
@@ -221,7 +228,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         },
     },
     "PTOOLS_betweenness_centrality": {
-        "category": "Metabolism (automatic)",
+        "category": "Metabolic network",
         "description": (
             "Betweenness centrality of the metabolic reaction(s) this gene catalyzes, within the "
             "genome-scale metabolic reaction network (BioCyc/Pathway Tools MetaFlux). Higher values "
@@ -234,7 +241,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "default_value": "0",
     },
     "metabolic_chokepoint": {
-        "category": "Metabolism (automatic)",
+        "category": "Metabolic network",
         "description": (
             "Whether this gene catalyzes a metabolic chokepoint reaction — the sole reaction "
             "producing or consuming a given metabolite in the network. Chokepoint reactions are "
@@ -251,7 +258,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         },
     },
     "PTOOLS_edges": {
-        "category": "Metabolism (automatic)",
+        "category": "Metabolic network",
         "description": (
             "Degree (edge count) of this gene's reaction(s) in the full genome-scale metabolic "
             "reaction network — how many other reactions it directly shares a metabolite with. "
@@ -263,11 +270,11 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "default_value": "0",
     },
     "S_gene": {
-        "category": "Metabolism (Gates)",
+        "category": "Metabolic model (pan-genome)",
         "description": (
-            "Gates-project pan-genome metabolic model: per-gene support score (0–1) for how "
+            "Pan-genome metabolic model (curated): per-gene support score (0–1) for how "
             "confidently this gene's ortholog mapping into the pan-genome model is supported. "
-            "Curated by the Gates-project metabolic team, replacing the automatic BioCyc/Pathway "
+            "Curated by the project metabolic team, replacing the automatic BioCyc/Pathway "
             "Tools metrics as the primary metabolic-importance score for this strain."
         ),
         "type": "N",
@@ -275,9 +282,9 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "default_value": "0",
     },
     "reaction_support": {
-        "category": "Metabolism (Gates)",
+        "category": "Metabolic model (pan-genome)",
         "description": (
-            "Gates-project pan-genome metabolic model: per-reaction support score (0–1) — how "
+            "Pan-genome metabolic model (curated): per-reaction support score (0–1) — how "
             "strongly this gene's reaction is supported across the modeled pan-genome strains. "
             "Drives the quadrant/priority classification below."
         ),
@@ -286,9 +293,9 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "default_value": "0",
     },
     "n_reactions": {
-        "category": "Metabolism (Gates)",
+        "category": "Metabolic model (pan-genome)",
         "description": (
-            "Gates-project pan-genome metabolic model: number of metabolic reactions this gene "
+            "Pan-genome metabolic model (curated): number of metabolic reactions this gene "
             "participates in."
         ),
         "type": "N",
@@ -296,9 +303,9 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "default_value": "0",
     },
     "quadrant": {
-        "category": "Metabolism (Gates)",
+        "category": "Metabolic model (pan-genome)",
         "description": (
-            "Gates-project pan-genome metabolic model: which S_gene/reaction_support quadrant "
+            "Pan-genome metabolic model (curated): which gene-support / reaction-support quadrant "
             "this gene falls into (high/low gene support × high/low reaction support)."
         ),
         "type": "C",
@@ -312,10 +319,10 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         ),
     },
     "priority": {
-        "category": "Metabolism (Gates)",
+        "category": "Metabolic model (pan-genome)",
         "description": (
-            "Gates-project pan-genome metabolic model: target priority tier derived from the "
-            "S_gene/reaction_support quadrant."
+            "Pan-genome metabolic model (curated): target priority tier derived from the "
+            "gene-support / reaction-support quadrant."
         ),
         "type": "C",
         "default_operation": "=",

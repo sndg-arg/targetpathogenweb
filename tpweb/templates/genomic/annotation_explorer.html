@@ -39,7 +39,7 @@
                 <div class="tp-view-head-actions">
                     <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
-                        {% trans "Export view" %}
+                        {% trans "Download Excel summary" %}
                     </a>
                 </div>
             </div>
@@ -50,7 +50,7 @@
             <h1>{% blocktrans with kind=explorer.kind_label %}Filter proteins by {{ kind }} hierarchy{% endblocktrans %}</h1>
             <p class="explorer-subtitle">
                 {% blocktrans with assembly=assembly_label kind=explorer.kind_label %}
-                    Browse the {{ kind }} annotation hierarchy for {{ assembly }} and select a node to open the corresponding proteins in the ranking table.
+                    Browse the {{ kind }} annotation hierarchy for {{ assembly }} and select a node to open the matching proteins in the protein table.
                 {% endblocktrans %}
             </p>
             <div class="explorer-meta tp-chip-group">
@@ -91,7 +91,7 @@
                         </div>
                         <div class="explorer-selection-card is-empty" id="selected-annotation-card">
                             <h3 id="selected-annotation-accession">{% trans "Nothing selected" %}</h3>
-                            <p id="selected-annotation-copy">{% trans "Choose a node or annotation row to enable the filtered jump." %}</p>
+                            <p id="selected-annotation-copy">{% trans "Click a segment or a row to see its proteins." %}</p>
                             <div id="selected-annotation-path" class="explorer-selection-path" hidden>
                                 <span class="explorer-selection-path-label">{% trans "Hierarchy path" %}</span>
                                 <div id="selected-annotation-path-items" class="explorer-selection-path-items"></div>
@@ -216,7 +216,7 @@
     <script>
         function jsloaded() {
             {% trans "Nothing selected" as nothing_selected_label %}
-            {% trans "Choose a node or annotation row to enable the filtered jump." as empty_selection_copy %}
+            {% trans "Click a segment or a row to see its proteins." as empty_selection_copy %}
             {% trans "Open the ranking with this annotation pre-filtered." as selected_link_copy %}
             const plotTarget = document.getElementById("annotation-explorer-plot");
             const plotFallback = document.getElementById("annotation-explorer-fallback");

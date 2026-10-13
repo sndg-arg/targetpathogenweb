@@ -10,7 +10,7 @@
 <div class="tp-breadcrumb-bar">
     <div class="tp-breadcrumb-bar-inner">
         {% trans "Genomes" as crumb_genomes %}
-        {% trans "Add your own data" as crumb_upload %}
+        {% trans "Upload a genome" as crumb_upload %}
         {% url 'tpwebapp:index' as index_url %}
         {% url 'tpwebapp:genomes_list' as genomes_url %}
         {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_upload %}
@@ -21,8 +21,8 @@
 {% block body %}
     <div class="genome-upload-page">
         <section class="genome-upload-hero">
-            <span class="genome-upload-eyebrow">{% trans "Genome submission - Workspace pipeline" %}</span>
-            <h1>{% trans "Add your own data" %}</h1>
+            <span class="genome-upload-eyebrow">{% trans "New genome analysis" %}</span>
+            <h1>{% trans "Upload a genome" %}</h1>
             <p class="genome-upload-subtitle">{% trans "Upload a compressed GenBank record to create a genome workspace and queue a new target-prioritization run." %}</p>
             <div class="genome-upload-chip-group tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Workspace" %}:</strong> <span>{{ workspace_label }}</span></span>
@@ -79,7 +79,7 @@
                             <div class="genome-upload-field tp-ui-field">
                                 <label class="tp-ui-field-label" for="{{ form.gram.id_for_label }}">{{ form.gram.label }}</label>
                                 {{ form.gram }}
-                                <p class="genome-upload-field-help">{% trans "Sets the scoring context for the proteome." %}</p>
+                                <p class="genome-upload-field-help">{% trans "Used to predict subcellular localization (PSORTb)." %}</p>
                                 {% if form.gram.errors %}<p class="genome-upload-field-error">{{ form.gram.errors|striptags }}</p>{% endif %}
                             </div>
                         </div>
@@ -208,7 +208,7 @@
                                 <td><span class="genome-upload-status tp-chip tp-chip--sm genome-upload-status--{{ job.state_class }}">{{ job.state_label }}</span></td>
                                 <td>
                                     {% if job.state_class == "finished" %}
-                                        <a href="{% url 'tpwebapp:protein_list' job.protein_workspace_url %}">{% trans "Open ranking" %}</a>
+                                        <a href="{% url 'tpwebapp:protein_list' job.protein_workspace_url %}">{% trans "Explore proteins" %}</a>
                                     {% elif job.state_class == "queued" %}
                                         <span class="text-muted">{% trans "Waiting in queue" %}</span>
                                     {% elif job.state_class == "running" %}

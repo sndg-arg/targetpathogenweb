@@ -11,7 +11,7 @@
     <div class="tp-breadcrumb-bar-inner">
         {% trans "Genomes" as crumb_genomes %}
         {% trans "Proteins" as crumb_proteins %}
-        {% trans "Custom score" as crumb_custom_score %}
+        {% trans "Make my own score" as crumb_custom_score %}
         {% url 'tpwebapp:index' as index_url %}
         {% url 'tpwebapp:genomes_list' as genomes_url %}
         {% url 'tpwebapp:assembly' genome as assembly_url %}
@@ -197,7 +197,8 @@
                                                     class="formula-var-chip formula-var-chip--{{ v.kind|default:'categorical' }}"
                                                     data-var="{{ v.var }}"
                                                     data-desc="{{ v.desc }}"
-                                                    aria-label="{{ v.desc }}">
+                                                    title="{{ v.desc }}"
+                                                    aria-label="{{ v.var }}: {{ v.desc }}">
                                                 <span class="formula-var-name">{{ v.var }}</span>
                                                 <span class="formula-var-kind">
                                                     {% if v.kind == "numeric" %}{% trans "numeric" %}{% else %}{% trans "0/1" %}{% endif %}
@@ -231,7 +232,7 @@
                 <button type="submit" form="formula-form" name="reset_process" value="true"
                         class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon">
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
-                    <span>{% trans "Reset" %}</span>
+                    <span>{% trans "Clear editor" %}</span>
                 </button>
             </div>
         </section>

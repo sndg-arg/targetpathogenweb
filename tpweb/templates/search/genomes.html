@@ -27,7 +27,7 @@
                 <div class="tp-view-head-actions">
                     <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
-                        {% trans "Export view" %}
+                        {% trans "Download Excel summary" %}
                     </a>
                 </div>
             </div>
@@ -161,7 +161,7 @@
                                     {% endfor %}
                                     <td class="genome-actions-cell">
                                         <div class="genome-actions-inline">
-                                            <a href="{% url 'tpwebapp:protein_list' genome.slug %}" class="btn tp-btn tp-btn--outline btn-sm">{% trans "Proteins" %}</a>
+                                            <a href="{% url 'tpwebapp:protein_list' genome.slug %}" class="btn tp-btn tp-btn--outline btn-sm">{% trans "Explore proteins" %}</a>
                                             {% if user.is_superuser %}
                                             <form method="post" class="genome-restrict-form">
                                                 {% csrf_token %}

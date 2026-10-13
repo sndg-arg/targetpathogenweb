@@ -483,7 +483,7 @@
                                     {% if protein.has_structure %}
                                         <span class="tp-chip tp-chip--meta tp-chip--sm">{{ protein.structure_source_label }}</span>
                                     {% else %}
-                                        <span class="tp-chip tp-chip--warning tp-chip--sm structure-unavailable">{{ protein.structure_source_label }}<span class="cell-tooltip" role="tooltip">{% trans "No structure available — sequence may exceed the prediction length limit" %}</span></span>
+                                        <span class="tp-chip tp-chip--warning tp-chip--sm structure-unavailable">{{ protein.structure_source_label }}<span class="cell-tooltip" role="tooltip">{% trans "No 3D model loaded (no PDB entry, AlphaFold DB model or ColabFold prediction)." %}</span></span>
                                     {% endif %}
                                 </td>
                                 <td data-col="ec">
@@ -532,7 +532,7 @@
                                 </td>
                                 {% for col in tcolumns %}
                                     <td data-col="{{ col|slugify }}">
-                                        {% if not protein.has_structure %}
+                                        {% if not protein.has_structure and col in structure_columns %}
                                             <span class="metric-no-structure">
                                                 <span class="metric-no-structure-icon" aria-hidden="true">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v3"/><circle cx="8" cy="11.5" r="0.01" stroke-width="2"/><path d="M6.9 2.5l-5 8.5A1.3 1.3 0 0 0 3 13h10a1.3 1.3 0 0 0 1.1-2l-5-8.5a1.3 1.3 0 0 0-2.2 0z"/></svg>
@@ -597,7 +597,7 @@
                         {% else %}
                             {% trans "Page" %} 1 {% trans "of" %} 1
                         {% endif %}
-                         · {{ pagination.proteins.paginator.count }} {% trans "total proteins" %}
+                         · {{ pagination.proteins.paginator.count }} {% trans "matching proteins" %}
                     </span>
                     <ul class="pagination tp-pagination">
                         <li class="page-item {% if not pagination.has_previous %}disabled{% endif %}">
@@ -739,7 +739,7 @@
 
             <div class="drawer-catalogue-meta">
                 <span class="drawer-catalogue-count">
-                    {% blocktrans count total=filter_groups_total_options %}{{ total }} criterion across {{ filter_groups|length }} categories{% plural %}{{ total }} criteria across {{ filter_groups|length }} categories{% endblocktrans %}
+                    {% blocktrans count total=filter_groups_total_options with groups=filter_groups|length %}{{ total }} criterion across {{ groups }} categories{% plural %}{{ total }} criteria across {{ groups }} categories{% endblocktrans %}
                 </span>
                 <button type="button" class="btn tp-btn tp-btn--clear tp-btn-with-icon drawer-catalogue-toggle" id="filter-expand-all" data-expand-all="false">
                     <span data-expand-all-label>{% trans "Expand all" %}</span>

@@ -163,6 +163,26 @@ def build_score_dict_and_columns(ordered_params):
     return score_dict, columns
 
 
+_STRUCTURE_COLUMN_CATEGORIES = {"pocket", "structure"}
+_STRUCTURE_COLUMN_TOKENS = ("druggability", "p2rank", "plddt", "pocket")
+
+
+def structure_dependent_columns(score_dict):
+    """Names of table columns whose value only exists when the protein has a
+    3D structure (pocket/druggability/pLDDT). The protein table shows "No
+    structure" only in these -- off-target, essentiality, localization, etc.
+    don't depend on a structure and must keep showing their real value."""
+    names = set()
+    for name, score_param in (score_dict or {}).items():
+        category = str(getattr(score_param, "category", "") or "").strip().lower()
+        lowered = str(name or "").lower()
+        if category in _STRUCTURE_COLUMN_CATEGORIES or any(
+            token in lowered for token in _STRUCTURE_COLUMN_TOKENS
+        ):
+            names.add(name)
+    return names
+
+
 def coefficient_map(formula_term_list):
     coefficient_by_param = {}
     for term in formula_term_list:

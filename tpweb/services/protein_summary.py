@@ -756,6 +756,38 @@ def _append_summary_item(
     )
 
 
+_EVIDENCE_KIND_ORDER = ("metabolic", "structural", "chemical", "selectivity", "conservation")
+
+
+def _summary_evidence_kind(item):
+    anchor = item.get("anchor") or ""
+    label = (item.get("label") or "").lower()
+    if anchor == "#section-metabolic-context":
+        return "metabolic"
+    if anchor == "#section-binders":
+        return "chemical"
+    if anchor == "#section-structure" or "pocket" in label:
+        return "structural"
+    if label.startswith("no similar"):
+        return "selectivity"
+    if label.startswith("core gene"):
+        return "conservation"
+    return None
+
+
+def _summary_evidence_kinds(strengths):
+    found = {_summary_evidence_kind(item) for item in strengths}
+    return [kind for kind in _EVIDENCE_KIND_ORDER if kind in found]
+
+
+def _join_evidence_kinds(kinds):
+    if not kinds:
+        return "supporting"
+    if len(kinds) == 1:
+        return kinds[0]
+    return ", ".join(kinds[:-1]) + " and " + kinds[-1]
+
+
 def build_target_executive_summary(
     raw_scores,
     structure_summary,
@@ -810,7 +842,7 @@ def build_target_executive_summary(
         _append_summary_item(
             missing,
             "No metabolic context",
-            "No SBML/network-derived reaction evidence is loaded for this protein.",
+            "No metabolic-model reactions are loaded for this protein.",
             "missing",
             "#section-metabolic-context",
         )
@@ -865,8 +897,12 @@ def build_target_executive_summary(
             )
             _append_summary_item(risks, "Human similarity", detail, "risk", "#section-binders")
 
-    if microbiome_context:
-        gut_offtarget = _raw_score(raw_scores, "gut_microbiome_offtarget").lower()
+    # Read straight from raw_scores, not gated on microbiome_context: that context
+    # only exists for curated imports (counts/totals), but the plain hit/no_hit
+    # call is loaded for every pipeline genome and a hit must still surface as a risk.
+    microbiome_context = microbiome_context or {}
+    gut_offtarget = _raw_score(raw_scores, "gut_microbiome_offtarget").lower()
+    if gut_offtarget:
         if gut_offtarget == "no_hit":
             _append_summary_item(
                 strengths,
@@ -1113,22 +1149,28 @@ def build_target_executive_summary(
         )
         signal_score += 1
 
+    # Name only the evidence kinds this protein actually has -- a fixed
+    # "converging metabolic, structural and chemical evidence" sentence used to
+    # appear even for proteins with no metabolic data at all.
+    evidence_kinds = _summary_evidence_kinds(strengths)
+    kinds_text = _join_evidence_kinds(evidence_kinds)
     if not strengths:
         verdict = "Evidence is still sparse for this target."
         tone = "sparse"
     elif signal_score >= 8:
-        verdict = (
-            "Strong target candidate with converging metabolic, structural and chemical evidence."
-        )
+        verdict = f"Well-supported target candidate: {kinds_text} evidence point the same way."
         tone = "strong"
     elif signal_score >= 5:
-        verdict = "Promising target candidate with multiple supporting evidence streams."
+        verdict = f"Promising target candidate with {kinds_text} evidence."
         tone = "promising"
     else:
         verdict = (
-            "Target candidate with partial support; inspect missing evidence before prioritizing."
+            f"Target candidate with partial support ({kinds_text} evidence); "
+            "inspect missing evidence before prioritizing."
         )
         tone = "partial"
+    if risks and strengths:
+        verdict += f" Review {len(risks)} flagged risk{'s' if len(risks) != 1 else ''} below."
 
     # Stable sort: higher-priority (more specific, e.g. direct ligand evidence,
     # experimental structure, pocket consensus) items surface first so they

@@ -107,14 +107,24 @@ CLEAR_FILTERS = ToolDefinition(
 )
 
 
+def _short(text, limit=160):
+    text = " ".join(str(text or "").split())
+    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
+
+
 def build_list_available_filters_entry(user):
     def run(_input):
         score_params = visible_score_params_queryset(user).prefetch_related("choices")
         lines = []
         for score_param in score_params:
+            # Descriptions included so the model can tell e.g. that hit_in_deg=Y (a match
+            # in the Database of Essential Genes) is what "essential" means -- with bare
+            # "Y"/"N" option names it once filtered essential proteins with N instead.
+            description = _short(score_param.description)
             if is_categorical_score_param(score_param):
                 option_parts = [
                     f"{option.name} (filter_option_id={option.pk})"
+                    + (f" = {_short(option.description, 90)}" if option.description else "")
                     for option in score_param.choices.all()[:20]
                 ]
                 extra_count = max(0, score_param.choices.count() - len(option_parts))
@@ -125,11 +135,13 @@ def build_list_available_filters_entry(user):
                     continue
                 lines.append(
                     f"- {score_param.name} [{score_param.category}, categorical]: {options}"
+                    + (f" -- {description}" if description else "")
                 )
             else:
                 lines.append(
                     f"- {score_param.name} [{score_param.category}, numeric, "
                     f"score_param_id={score_param.pk}]"
+                    + (f" -- {description}" if description else "")
                 )
         if not lines:
             return "No filterable fields are available for this genome."

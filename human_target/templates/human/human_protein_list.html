@@ -27,7 +27,7 @@
             <div class="tp-view-head-copy">
                 <p class="tp-view-eyebrow">{% trans "Human Targets" %}</p>
                 <h1>{% trans "Curated human proteins" %}</h1>
-                <p>{% trans "A small, fixed set of human UniProt proteins -- sequence, structure, and ligand evidence, with several analyses layered on top rather than a genome pipeline to run." %}</p>
+                <p>{% trans "Human proteins from UniProt, with sequence, 3D structure and ligand evidence." %}</p>
             </div>
         </div>
 
@@ -54,7 +54,7 @@
             </div>
         </div>
         {% if dashboard.ligand_coverage_is_sparse %}
-        <p class="tp-state-note human-dashboard-caveat">{% trans "Ligand/structure/pathway/expression ingestion hasn't caught up to the protein count yet -- these figures will look sparse until it does." %}</p>
+        <p class="tp-state-note human-dashboard-caveat">{% trans "Ligand, structure, pathway and expression data are still being loaded for these proteins, so some figures and sections may be empty for now." %}</p>
         {% endif %}
 
         <form method="GET" class="human-list-search" role="search">

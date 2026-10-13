@@ -32,7 +32,7 @@
                 <p class="genome-description">{% trans "Every pathway in one graph. Click a pathway to expand it in place and see its reactions." %}</p>
                 <div class="genome-hero-actions">
                     <a href="{{ metabolism_url }}" class="btn tp-btn tp-btn--outline">{% trans "Pathway ranking" %}</a>
-                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--outline">{% trans "Protein ranking" %}</a>
+                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--outline">{% trans "Explore proteins" %}</a>
                     <a href="{{ assembly_url }}" class="btn tp-btn tp-btn--outline">{% trans "Genome overview" %}</a>
                 </div>
             </div>
@@ -57,10 +57,12 @@
         </div>
     </section>
 
+    {% if summary.reaction_count %}
     <p class="tp-state-note tp-state-note--empty metabolism-curation-note">
         {% trans "This metabolic network is curated, not automatically generated from the genome." %}
         <a href="{% url 'tpwebapp:data_sources' %}#metabolism-methodology">{% trans "Methodology and citation" %}</a>
     </p>
+    {% endif %}
 
     <section class="genome-card metabolism-panel">
         <div class="section-head tp-ui-panel-head">

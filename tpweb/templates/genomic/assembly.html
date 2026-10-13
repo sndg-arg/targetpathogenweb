@@ -78,18 +78,20 @@
                             <span>{% trans "Explore proteins" %}</span>
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                         </a>
+                        {% if workspace_metrics.metabolic_reaction_count %}
                         <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--outline tp-btn-with-icon">
                             <span>{% trans "Explore metabolism" %}</span>
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                         </a>
+                        {% endif %}
                     </div>
                     <p class="genome-hero-actions-hint">{% trans "Filters, scoring and the full protein table are under Explore proteins." %}</p>
                     <div class="genome-hero-actions genome-hero-actions--secondary">
                         <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span>
-                            <span>{% trans "Add data" %}</span>
+                            <span>{% trans "Add my own data" %}</span>
                         </a>
-                        <a href="{{ workspace_links.formula_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Custom score" %}</a>
+                        <a href="{{ workspace_links.formula_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Make my own score" %}</a>
                         <a href="{{ workspace_links.ec_explorer_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "EC tree" %}</a>
                         <div class="genome-blast-group" role="group" aria-label="{% trans 'BLAST' %}">
                             <span class="genome-blast-group-label" aria-hidden="true">{% trans "BLAST" %}</span>
@@ -101,7 +103,7 @@
                 <div class="tp-view-head-actions">
                     <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
-                        {% trans "Export view" %}
+                        {% trans "Download Excel summary" %}
                     </a>
                 </div>
             </div>
@@ -150,7 +152,7 @@
             {% endif %}
             <a href="#section-details" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Details" %}</a>
             {% if can_delete_workspace %}
-                <a href="#section-dataset" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Dataset" %}</a>
+                <a href="#section-dataset" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Delete genome" %}</a>
             {% endif %}
         </nav>
 
@@ -216,14 +218,18 @@
                         <span class="evidence-headline">
                             {% if workspace_metrics.binder_direct %}
                                 {% blocktrans count n=workspace_metrics.binder_direct %}{{ n }} direct hit{% plural %}{{ n }} direct hits{% endblocktrans %}
-                            {% else %}
+                            {% elif workspace_metrics.binder_total %}
                                 {% trans "All via homologs" %}
+                            {% else %}
+                                {% trans "No ligand evidence loaded yet" %}
                             {% endif %}
+                            {% if workspace_metrics.binder_total %}
                             <span class="evidence-headline-sub">
                                 {% blocktrans count total=workspace_metrics.binder_total %}{{ total }} total record{% plural %}{{ total }} total records{% endblocktrans %}
                                 ·
                                 {% blocktrans count proteins=workspace_metrics.proteins_with_binders %}{{ proteins }} protein{% plural %}{{ proteins }} proteins{% endblocktrans %}
                             </span>
+                            {% endif %}
                         </span>
                         <ul class="evidence-breakdown">
                             <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Ligand observed in an experimental Protein Data Bank structure of this protein.' %}">{% trans "PDB co-crystal" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_direct }}</span></li>
@@ -346,14 +352,14 @@
                                          invisible "How is this calculated?" spacer below, mirrored the other
                                          direction. -->
                                     <span class="targets-eyebrow" style="visibility: hidden;" aria-hidden="true">{% trans "No ligand evidence yet" %}</span>
-                                    <h2>{% trans "Example of Top Targets" %}</h2>
+                                    <h2>{% trans "Quick triage ranking" %}</h2>
                                     <p class="section-subtitle">
-                                        {% trans "A worked example, not a definitive ranking: composite score (0-100%) weighing druggability, ligand evidence, and five other independent signals. Read the full breakdown below before treating this order as a recommendation." %}
+                                        {% trans "A first-look ranking: proteins earn points for independent supporting evidence and lose points for red flags, out of 15. Open a protein to review its evidence before treating it as a candidate." %}
                                     </p>
                                     <details class="targets-methodology js-smooth-details">
                                         <summary>{% trans "How is this calculated?" %}</summary>
                                         <p>
-                                            {% trans "This is a fixed, built-in heuristic (labeled Evidence convergence in the CSV export) -- not a customizable ScoreFormula. It adds points for independent supporting evidence and subtracts them for red flags, up to a maximum of 15 points; the percentage shown for each protein is its score divided by 15." %}
+                                            {% trans "This ranking uses a fixed set of rules, not one of your scoring formulas. Each protein gains points for supporting evidence and loses points for red flags, up to 15 points." %}
                                         </p>
                                         <p><strong>{% trans "Points added:" %}</strong></p>
                                         <ul>
@@ -378,10 +384,10 @@
                                             <li>{% trans "Significant gut microbiome similarity detected: -1" %}</li>
                                         </ul>
                                         <p>
-                                            {% trans "Proteins scoring at or below zero with no positive signal at all are left out of both lists entirely. Ties are broken first by FPocket druggability, then by direct ligand count, then by total ligand record count. Strong means at least 65% of the maximum score; Moderate is 40-65%; Limited is below 40%." %}
+                                            {% trans "Proteins scoring at or below zero with no positive signal at all are left out of both lists entirely. Ties are broken first by FPocket druggability, then by direct ligand count, then by total ligand record count." %}
                                         </p>
                                         <p>
-                                            {% trans "This heuristic only orders candidates for a first look. It is independent from any custom ScoreFormula you build yourself, and it is not a substitute for reviewing the underlying evidence for each protein." %}
+                                            {% trans "This ranking only orders candidates for a first look. It does not change, and is not changed by, the scoring formulas you create, and it is not a substitute for reviewing each protein's evidence." %}
                                         </p>
                                     </details>
                                 </div>
@@ -392,7 +398,7 @@
                             </div>
                             <ol class="targets-list">
                                 {% for t in top_targets_by_score.items %}
-                                    {% blocktrans with percent=t.score_percent asvar score_tooltip %}Composite score: {{ percent }}% of the maximum weighted evidence. Strong means several independent evidence types agree; it is still only a first-pass triage score.{% endblocktrans %}
+                                    {% blocktrans with points=t.score maximum=t.score_max asvar score_tooltip %}Quick triage score: {{ points }} of {{ maximum }} points. Strong means several independent evidence types agree; it is still only a first-pass triage score.{% endblocktrans %}
                                     {% include "components/targets/ranking_item.html" %}
                                 {% endfor %}
                             </ol>
@@ -425,7 +431,7 @@
                             </div>
                             <ol class="targets-list">
                                 {% for t in unexplored_targets.items %}
-                                    {% blocktrans with percent=t.score_percent asvar score_tooltip %}Composite score: {{ percent }}% of the maximum weighted evidence, computed without any ligand-evidence signal.{% endblocktrans %}
+                                    {% blocktrans with points=t.score maximum=t.score_max asvar score_tooltip %}Quick triage score: {{ points }} of {{ maximum }} points, computed without any ligand-evidence signal.{% endblocktrans %}
                                     {% include "components/targets/ranking_item.html" %}
                                 {% endfor %}
                             </ol>
@@ -483,7 +489,7 @@
                                 {% trans "This removes the uploaded genome dataset, protein records, upload history, and generated analysis artifacts for this genome. This cannot be undone." %}
                             </p>
                             <div class="tp-ui-field">
-                                <label class="tp-ui-field-label" for="delete-workspace-confirm">{% trans "Type the accession to confirm" %}</label>
+                                <label class="tp-ui-field-label" for="delete-workspace-confirm">{% blocktrans with name=assembly.name %}Type {{ name }} to confirm{% endblocktrans %}</label>
                                 <input
                                     id="delete-workspace-confirm"
                                     name="confirm_accession"

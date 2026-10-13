@@ -66,7 +66,7 @@ ACRONYM_TOKENS = {
     "ppi": "PPI",
     "dna": "DNA",
     "rna": "RNA",
-    "p2rank": "P2RANK",
+    "p2rank": "P2Rank",
     "fpocket": "FPocket",
     "alphafold": "AlphaFold DB",
     "colabfold": "ColabFold",
@@ -87,13 +87,38 @@ EXACT_REPLACEMENTS = {
     "human_evalue": "Human E-value",
     "deg_identity": "DEG identity (%)",
     "deg_evalue": "DEG E-value",
-    "hit_in_deg": "Hit in DEG",
     "no_hit": "No hit",
     "ec_number": "EC number",
     "go_term": "GO term",
-    "druggability": "Druggability (FPocket)",
-    "p2rank_probability": "Druggability (P2Rank)",
+    "druggability": "Druggability (FPocket, 0–1)",
+    "p2rank_probability": "Druggability (P2Rank, 0–1)",
     "priority": "Metabolic priority",
+    # Biologist-readable names for raw pipeline/import column names that the
+    # generic token rules below would otherwise turn into "Ptools Edges",
+    # "S Gene", "N Reactions", "Core Corecruncher", etc.
+    "ptools_betweenness_centrality": "Metabolic centrality (betweenness)",
+    "ptools_edges": "Metabolic connections (reaction degree)",
+    "metabolic_chokepoint": "Metabolic chokepoint",
+    "s_gene": "Gene support, pan-genome model (0–1)",
+    "reaction_support": "Reaction support, pan-genome model (0–1)",
+    "n_reactions": "Number of metabolic reactions",
+    "quadrant": "Metabolic model quadrant",
+    "gut_microbiome_offtarget_norm": "Gut microbiome hits (fraction of genomes, 0–1)",
+    "gut_microbiome_offtarget_counts": "Gut microbiome genomes with a hit",
+    "gut_microbiome_genomes_analyzed": "Gut microbiome genomes screened",
+    "core_roary": "Core gene (Roary)",
+    "core_corecruncher": "Core gene (CoreCruncher)",
+    "colabfold_plddt": "ColabFold model confidence (pLDDT, 0–100)",
+    "colabfold_druggability_score": "Druggability on ColabFold model (FPocket, 0–1)",
+    "colabfold_p2rank_probability": "Druggability on ColabFold model (P2Rank, 0–1)",
+    "pocket_size_outlier": "Unusual pocket size",
+    "pocket_consensus_high_score": "FPocket and P2Rank agree on a strong site",
+    "hit_in_deg": "Essential homolog (DEG)",
+    "off-target": "Off-target",
+    "metabolic network": "Metabolic network",
+    "metabolic model (pan-genome)": "Metabolic model (pan-genome)",
+    "y": "Yes",
+    "n": "No",
 }
 
 
@@ -883,7 +908,9 @@ def apply_protein_search(queryset, search_query):
     )
 
 
-def find_top_proteins(assembly_name, selected_parameters, search_text=None, limit=10):
+def find_top_proteins(
+    assembly_name, selected_parameters, search_text=None, limit=10, with_total=False
+):
     """Filter+search a genome's proteins and return up to `limit` compact
     dicts ({accession, description, druggability}), with no pagination/HTTP
     concerns. Used by the search_proteins agent tool. Ordering is by
@@ -897,12 +924,11 @@ def find_top_proteins(assembly_name, selected_parameters, search_text=None, limi
     proteins = Bioentry.objects.filter(biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX)
     if selected_parameters:
         proteins = apply_selected_parameter_filters(proteins, selected_parameters)
-    proteins = apply_protein_search(proteins, search_text)
-    proteins = (
-        proteins.prefetch_related("score_params__score_param")
-        .order_by("accession")
-        .distinct()[: max(1, min(int(limit or 10), 25))]
-    )
+    proteins = apply_protein_search(proteins, search_text).distinct()
+    total = proteins.count() if with_total else None
+    proteins = proteins.prefetch_related("score_params__score_param").order_by("accession")[
+        : max(1, min(int(limit or 10), 25))
+    ]
 
     results = []
     for protein in proteins:
@@ -914,6 +940,8 @@ def find_top_proteins(assembly_name, selected_parameters, search_text=None, limi
                 "druggability": param_values.get("Druggability"),
             }
         )
+    if with_total:
+        return results, total
     return results
 
 

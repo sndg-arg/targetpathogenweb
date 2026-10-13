@@ -48,7 +48,7 @@
                 <span class="metric-label">{% trans "Network centrality" %}</span>
                 <span class="metric-value">{{ metabolic_context.centrality }}
                     {% if metabolic_context.centrality_percentile %}
-                    <span class="metric-value-pct">{% blocktrans with pct=metabolic_context.centrality_percentile %}top {{ pct }}%{% endblocktrans %}</span>
+                    <span class="metric-value-pct">{% blocktrans with pct=metabolic_context.centrality_percentile %}more central than {{ pct }}% of genes{% endblocktrans %}</span>
                     {% endif %}
                 </span>
             </div>

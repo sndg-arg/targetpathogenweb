@@ -31,7 +31,7 @@
                 <p class="genome-description">{{ assembly.name }}{% if assembly.description %} - {{ assembly.description }}{% endif %}</p>
                 <div class="genome-hero-actions">
                     <a href="{{ metabolism_url }}" class="btn tp-btn tp-btn--outline">{% trans "All pathways" %}</a>
-                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--outline">{% trans "Protein ranking" %}</a>
+                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--outline">{% trans "Explore proteins" %}</a>
                     <form method="post" action="{{ proteins_url }}" class="metabolism-pathway-filter-form">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="add_special_filter">

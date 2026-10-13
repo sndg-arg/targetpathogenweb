@@ -26,8 +26,9 @@ class ProfileView(LoginRequiredMixin, View):
         # elsewhere in the app regardless of who's looking (Upload/BLAST/
         # Formulas/Custom params nav links, the chat drawer's own button) --
         # never list anything that would tip someone off to a feature they
-        # don't have access to see exists at all (Human Targets, restricted
-        # genomes).
+        # don't have access to see exists at all (Human Targets). Restricted
+        # genomes are the exception: the Genomes page already tells everyone
+        # how many collaborative-project genomes they can't see.
         quota = quota_for(user)
         if not user.has_perm("tpweb.can_use_agent_chat"):
             chat_quota_label = ""
@@ -42,6 +43,7 @@ class ProfileView(LoginRequiredMixin, View):
             "can_manage_formulas": user.has_perm("tpweb.can_manage_formulas"),
             "can_manage_custom_params": user.has_perm("tpweb.can_manage_custom_params"),
             "can_use_agent_chat": user.has_perm("tpweb.can_use_agent_chat"),
+            "can_view_restricted_genomes": user.has_perm("tpweb.can_view_restricted_genomes"),
             "chat_quota_label": chat_quota_label,
         }
 

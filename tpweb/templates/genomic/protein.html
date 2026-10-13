@@ -78,7 +78,7 @@
                 <div class="tp-view-head-actions">
                     <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
-                        {% trans "Export view" %}
+                        {% trans "Download Excel summary" %}
                     </a>
                 </div>
             </div>
@@ -358,7 +358,7 @@
                     </div>
                     {% endif %}
                     {% if conservation_profile %}
-                    <div class="target-evidence-card" title="{% trans "Conservation across multiple Klebsiella genomes. A gene is flagged as core only when both Roary and CoreCruncher agree." %}">
+                    <div class="target-evidence-card" title="{% trans "Conservation across the strains analyzed for this species. A gene is flagged as core only when both Roary and CoreCruncher agree." %}">
                         <span class="target-evidence-label">{% trans "Core conservation" %}</span>
                         {% if conservation_profile.is_core %}
                         <span class="target-evidence-core-badge">
@@ -381,15 +381,15 @@
                     </div>
                     {% endif %}
                     {% if gates_metabolic_priority %}
-                    <div class="target-evidence-card" title="{% trans "Gates-project pan-genome metabolic model: how strongly this gene's ortholog mapping and its reaction are supported across the modeled Klebsiella strains. The curated replacement for the automatic BioCyc/Pathway Tools metrics below." %}">
-                        <span class="target-evidence-label">{% trans "Metabolic priority" %} <span class="tp-chip tp-chip--sm tp-chip--meta">Gates</span></span>
+                    <div class="target-evidence-card" title="{% trans "Curated pan-genome metabolic model: how strongly this gene's ortholog mapping and its reaction are supported across the modeled Klebsiella strains. The curated replacement for the automatic BioCyc/Pathway Tools metrics below." %}">
+                        <span class="target-evidence-label">{% trans "Metabolic priority" %} <span class="tp-chip tp-chip--sm tp-chip--meta">{% trans "pan-genome model" %}</span></span>
                         <span class="target-evidence-priority-badge target-evidence-priority-badge--{{ gates_metabolic_priority.tone }}">{{ gates_metabolic_priority.priority }}</span>
                         {% if gates_metabolic_priority.quadrant %}
                         <span class="target-evidence-subtext">{{ gates_metabolic_priority.quadrant }}</span>
                         {% endif %}
                         <div class="target-evidence-meta target-evidence-meta--top">
                             <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key" title="{% trans "Per-gene support (0–1) for this gene's ortholog mapping into the pan-genome model." %}">S_gene</span>
+                                <span class="target-evidence-meta-key" title="{% trans "Per-gene support (0–1) for this gene's ortholog mapping into the pan-genome model." %}">{% trans "Gene support" %}</span>
                                 <span class="target-evidence-meta-val">{{ gates_metabolic_priority.s_gene|default:"—" }}</span>
                             </div>
                             <div class="target-evidence-meta-row">
@@ -404,7 +404,7 @@
                     </div>
                     {% endif %}
                     {% if microbiome_context %}
-                    <div class="target-evidence-card" title="{% trans "Sequence similarity to 4744 gut microbiome reference genomes. Lower hit counts reduce the risk of off-target effects on commensal bacteria." %}">
+                    <div class="target-evidence-card" title="{% if microbiome_context.total %}{% blocktrans with total=microbiome_context.total %}Sequence similarity to {{ total }} gut microbiome reference genomes. Fewer hits mean less risk of affecting commensal bacteria.{% endblocktrans %}{% else %}{% trans "Sequence similarity to gut microbiome reference genomes. Fewer hits mean less risk of affecting commensal bacteria." %}{% endif %}">
                         <span class="target-evidence-label">{% trans "Gut microbiome" %}</span>
                         {% if microbiome_context.count or microbiome_context.total %}
                         <strong class="target-evidence-value">{{ microbiome_context.count|default:"0" }}<span class="target-evidence-value-denom"> / {{ microbiome_context.total }}</span></strong>
@@ -536,10 +536,10 @@
                         id="copy-sequence-btn"
                         class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon btn-copy-seq"
                         type="button"
-                        data-default-label="{% trans "Copy Sequence" %}"
+                        data-default-label="{% trans "Copy sequence" %}"
                         data-copied-label="{% trans "Copied" %}">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
-                        <span data-copy-label>{% trans "Copy Sequence" %}</span>
+                        <span data-copy-label>{% trans "Copy sequence" %}</span>
                     </button>
                 </div>
                 <textarea id="raw-protein-seq" class="d-none">{{ protein.seq }}</textarea>
@@ -752,7 +752,7 @@
                         </a>
                     </div>
                     {% if structure and not structure.pockets and not structure.p2_pockets and not alt_structure.pockets and not alt_structure.p2_pockets %}
-                        <p class="table-hint">{% blocktrans with source=pocket_structure_label %}No pockets are loaded yet for the displayed {{ source }} structure. Run experimental pocket backfill to show FPocket/P2Rank overlays on this structure.{% endblocktrans %}</p>
+                        <p class="table-hint">{% blocktrans with source=pocket_structure_label %}No pocket predictions are available for this {{ source }} structure yet.{% endblocktrans %}</p>
                     {% endif %}
                     <div class="structure-viewport-wrap">
                         <div class="structure-viewport-glow" aria-hidden="true"></div>
@@ -765,14 +765,9 @@
                     </div>
                     <div class="structure-viewport-meta">
                         <p class="structure-viewport-hint">{% trans "Drag to rotate — click the view, then scroll to zoom." %}</p>
-                        {% if structure.pockets or structure.p2_pockets or alt_structure.pockets or alt_structure.p2_pockets %}
-                        <div class="structure-score-legend" aria-label="{% trans "Pocket score legend" %}">
-                            <span class="legend-label">{% trans "Pocket score" %}</span>
-                            <span class="tp-score-tag high">{% trans "High" %}</span>
-                            <span class="tp-score-tag medium">{% trans "Medium" %}</span>
-                            <span class="tp-score-tag low">{% trans "Low" %}</span>
-                        </div>
-                        {% endif %}
+                        {# A generic High/Medium/Low legend used to sit here; FPocket and P2Rank use #}
+                        {# different thresholds, already shown above each pocket list -- removed, #}
+                        {# same as the full-screen viewer. #}
                     </div>
                     <details class="structure-color-guide js-smooth-details">
                         <summary class="structure-color-guide-title">{% trans "How colors and pocket overlays are used" %}</summary>
@@ -843,11 +838,11 @@
                                     <dd data-pocket-field="residues">-</dd>
                                 </div>
                                 <div class="sv-pocket-inspector-wide">
-                                    <dt title="{% trans "Extra descriptors from the predictor (volume, alpha spheres, etc.), the geometric center, whether FPocket and P2Rank agree on this site (within ~8 Å), and the nearest annotated functional site, when available. A ranking/raw score listed here is not the druggability shown above." %}">{% trans "Pocket properties" %}</dt>
+                                    <dt title="{% trans "Extra descriptors from the predictor (volume, alpha spheres, etc.), whether FPocket and P2Rank agree on this site (within ~8 Å), and the nearest annotated functional site, when available. A ranking/raw score listed here is not the druggability shown above." %}">{% trans "Pocket properties" %}</dt>
                                     <dd data-pocket-field="properties">-</dd>
                                 </div>
                             </dl>
-                            <p class="sv-pocket-inspector-note">{% trans "Selecting a pocket opens its details and centers the viewer without clearing other active layers. Use Focus this pocket when you want to hide the rest; use Surface for the wider residue environment." %}</p>
+                            <p class="sv-pocket-inspector-note">{% trans "Selecting a pocket opens its details and centers the viewer without clearing other active layers. Use Focus this pocket when you want to hide the rest; use Residue surface for the wider residue environment." %}</p>
                         </section>
                         {% include "components/structure/pocket_cards.html" with structure_data=structure structure_key="primary" %}
                         {% if alt_structure %}
@@ -1141,7 +1136,7 @@
                     </div>
 
                     <p class="binders-footnote">
-                        {% blocktrans %}PDB and ChEMBL records on this protein are shown in full. ChEMBL records from similar proteins are capped at the top 100 per protein (by pchembl) and ZINC at the top 50 (Tanimoto ≥ 0.5). ADME columns are descriptor-based screening flags, not experimental toxicity results.{% endblocktrans %}
+                        {% blocktrans %}PDB and ChEMBL records on this protein are shown in full. ChEMBL records from similar proteins are capped at the top 100 per protein (by pchembl) and ZINC at the top 50 (Tanimoto ≥ 0.5). Drug-likeness columns (Lipinski, PAINS) are computed from the chemical structure, not measured.{% endblocktrans %}
                     </p>
                 </section>
             {% endif %}

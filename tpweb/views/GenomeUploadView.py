@@ -222,8 +222,11 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 request,
                 "components/access_locked.html",
                 {
-                    "page_title": "Add your own data",
-                    "locked_message": "Ask the site owner to grant upload access from Manage users.",
+                    "page_title": "Upload a genome",
+                    "locked_message": (
+                        "Uploading new genomes is limited to project collaborators. "
+                        "If you need a genome added, ask a site administrator."
+                    ),
                 },
                 status=403,
             )

@@ -8,7 +8,7 @@
             {% for p2 in structure_data.p2_pockets %}
                 <div class="pocket-card pocket-card--p2rank"
                      data-pocket-method="P2Rank"
-                     data-pocket-title="{% trans 'Pocket' %} {{ forloop.counter }}"
+                     data-pocket-title="{% trans 'Pocket' %} {{ p2.name }}"
                      data-pocket-id="P2Rank #{{ p2.name }}"
                      data-pocket-score="{{ p2.probability }}"
                      data-pocket-score-label="{{ p2.score_label }}"
@@ -19,7 +19,7 @@
                      data-pocket-zoom="p2_{{p2.name}}_sph">
                     <div class="pocket-card-head js-inspect-pocket" role="button" tabindex="0" title="{% trans 'Select this pocket: center the view, show its core layer if no layer is active, and open the detail panel.' %}">
                         <div class="pocket-card-label">
-                            <strong class="pocket-card-name" title="P2Rank #{{ p2.name }}">{% trans "Pocket" %} {{ forloop.counter }}</strong>
+                            <strong class="pocket-card-name" title="P2Rank #{{ p2.name }}">{% trans "Pocket" %} {{ p2.name }}</strong>
                         </div>
                         <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob" title="{{ p2.score_label }}">{{ p2.probability }}{% if p2.score_band %} · {{ p2.score_band }}{% endif %}</span>
                     </div>
@@ -62,7 +62,7 @@
             {% for p in structure_data.pockets %}
                 <div class="pocket-card pocket-card--fpocket"
                      data-pocket-method="FPocket"
-                     data-pocket-title="{% trans 'Pocket' %} {{ forloop.counter }}"
+                     data-pocket-title="{% trans 'Pocket' %} {{ p.name }}"
                      data-pocket-id="FPocket #{{ p.name }}"
                      data-pocket-score="{{ p.druggability }}"
                      data-pocket-score-label="{{ p.score_label }}"
@@ -73,7 +73,7 @@
                      data-pocket-zoom="{{p.name}}_sph">
                     <div class="pocket-card-head js-inspect-pocket" role="button" tabindex="0" title="{% trans 'Select this pocket: center the view, show its core layer if no layer is active, and open the detail panel.' %}">
                         <div class="pocket-card-label">
-                            <strong class="pocket-card-name" title="FPocket #{{ p.name }}">{% trans "Pocket" %} {{ forloop.counter }}</strong>
+                            <strong class="pocket-card-name" title="FPocket #{{ p.name }}">{% trans "Pocket" %} {{ p.name }}</strong>
                         </div>
                         <div class="pocket-card-badges">
                             <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}" title="{{ p.score_label }}">{{ p.druggability }}{% if p.score_band %} · {{ p.score_band }}{% endif %}</span>

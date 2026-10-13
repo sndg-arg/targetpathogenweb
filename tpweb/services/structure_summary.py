@@ -25,13 +25,13 @@ from tpweb.services.structure_files import display_code
 
 _METHOD_MAP = {"EX": "Crystal structure", "AF": "AlphaFold DB model", "CF": "ColabFold model"}
 _FPOCKET_INSPECTOR_PROPERTIES = [
-    ("Volume", "Volume"),
+    ("Volume", "Volume (Å³)"),
     ("Score", "FPocket ranking score (orders cavities; not the druggability)"),
     ("Number of Alpha Spheres", "Alpha spheres"),
-    ("Total SASA", "Total SASA"),
+    ("Total SASA", "Solvent-accessible area (Å²)"),
     ("Apolar alpha sphere proportion", "Apolar spheres"),
     ("Mean local hydrophobic density", "Hydrophobic density"),
-    ("Mean alpha sphere radius", "Mean sphere radius"),
+    ("Mean alpha sphere radius", "Mean sphere radius (Å)"),
     ("Flexibility", "Flexibility"),
 ]
 _P2RANK_INSPECTOR_PROPERTIES = [
@@ -240,12 +240,6 @@ def _residue_display_label(residue):
     resname = str(getattr(residue, "resname", "") or "").strip()
     resid = getattr(residue, "resid", "")
     return f"{resname.capitalize()}{resid}" if resname else str(resid)
-
-
-def _format_pocket_center(center):
-    if center is None:
-        return ""
-    return f"Center: ({center[0]:.1f}, {center[1]:.1f}, {center[2]:.1f})"
 
 
 def _join_nonempty(parts, sep=" | "):
@@ -645,7 +639,6 @@ def pdb_structure(
         p.inspector_properties = _join_nonempty(
             [
                 _inspector_property_summary(p, _FPOCKET_INSPECTOR_PROPERTIES),
-                _format_pocket_center(p.geometric_center),
                 consensus_note,
                 site_note,
             ]
@@ -693,7 +686,6 @@ def pdb_structure(
         p2.inspector_properties = _join_nonempty(
             [
                 _inspector_property_summary(p2, _P2RANK_INSPECTOR_PROPERTIES),
-                _format_pocket_center(p2.geometric_center),
                 consensus_note,
                 site_note,
             ]

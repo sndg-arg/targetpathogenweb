@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
 from django.http import Http404
 from django.urls import reverse
+from bioseq.models.Biodatabase import Biodatabase
+from bioseq.models.Bioentry import Bioentry
 from tpweb.forms.CustomParamForm import CustomParamForm
 from tpweb.models import CustomParam
 from tpweb.services.custom_param_import import run_custom_param_import
@@ -14,12 +16,25 @@ from tpweb.services.genome_workspace import (
 )
 
 
+def _example_accessions(assembly_name, count=3):
+    """Real accessions from this genome for the format example, so students
+    copy the right identifier shape (e.g. a locus tag) instead of a made-up
+    UniProt-looking one."""
+    accessions = list(
+        Bioentry.objects.filter(biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX)
+        .order_by("accession")
+        .values_list("accession", flat=True)[:count]
+    )
+    return accessions or ["A0A0000001", "A0A0000002", "A0A0000003"]
+
+
 def _page_context(form, assembly_name, **extra):
     return {
         "form": form,
         "assembly_name": assembly_name,
         "assembly_label": display_genome_name(assembly_name),
         "genome": genome_url_slug(assembly_name),
+        "example_accessions": _example_accessions(assembly_name),
         **extra,
     }
 

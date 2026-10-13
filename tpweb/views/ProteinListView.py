@@ -46,6 +46,7 @@ from tpweb.services.protein_formula import (
     formula_to_dto,
     ordered_score_params,
     resolve_formulas_for_user,
+    structure_dependent_columns,
 )
 from tpweb.services.protein_annotations import (
     annotation_dbnames,
@@ -2107,6 +2108,7 @@ class ProteinListView(View):
                 "proteins": proteins_dto,
                 "score_dict": score_dict,
                 "tcolumns": tcolumns,
+                "structure_columns": structure_dependent_columns(score_dict),
                 "tdata": page_tdatas,
                 "formula": formuladto,
                 "col_descriptions": col_descriptions,

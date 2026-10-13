@@ -29,7 +29,7 @@
                 <h1>{% trans "Metabolic pathways" %}</h1>
                 <p class="genome-description">{{ assembly.name }}{% if assembly.description %} — {{ assembly.description }}{% endif %}</p>
                 <div class="genome-hero-actions">
-                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Protein ranking" %}</a>
+                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Explore proteins" %}</a>
                     <a href="{% url 'tpwebapp:genome_metabolism_network' genome=assembly.slug %}" class="btn tp-btn tp-btn--outline">{% trans "View as network" %}</a>
                     <a href="{{ assembly_url }}" class="btn tp-btn tp-btn--outline">{% trans "Genome overview" %}</a>
                 </div>
@@ -55,11 +55,17 @@
         </div>
     </section>
 
+    {# Only meaningful when this genome actually has an imported model; the #}
+    {# Klebsiella citation only applies to Klebsiella genomes. #}
+    {% if summary.reaction_count %}
     <p class="tp-state-note tp-state-note--empty metabolism-curation-note">
         {% trans "This metabolic network is curated, not automatically generated from the genome." %}
+        {% if "Klebsiella" in assembly.description %}
         {% blocktrans %}Methodology: Ramos, P.I.P. et al. "An integrative, multi-omics approach towards the prioritization of <em>Klebsiella pneumoniae</em> drug targets." <em>Scientific Reports</em> 8, 10755 (2018).{% endblocktrans %}
         <a href="https://doi.org/10.1038/s41598-018-28916-7" target="_blank" rel="noopener noreferrer">doi.org/10.1038/s41598-018-28916-7</a>
+        {% endif %}
     </p>
+    {% endif %}
 
     <section class="genome-card metabolism-panel">
         <div class="section-head tp-ui-panel-head">
@@ -115,8 +121,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="metabolism-score-block">
-                            <span class="metabolism-score-label">{% trans "Best target signal" %}</span>
+                        <div class="metabolism-score-block" title="{% if summary.active_formula_name %}{% trans 'Highest score of any protein in this pathway under your active scoring formula; mean is the average across its proteins.' %}{% else %}{% trans 'Highest protein score in this pathway: pocket druggability (0–1) + 0.15 if chokepoint + 0.1 × centrality, so up to about 1.25. Mean is the average across its proteins.' %}{% endif %}">
+                            <span class="metabolism-score-label">{% trans "Best target score" %}</span>
                             <span class="metabolism-score-n">{{ pathway.best_target_score }}</span>
                             <span class="metabolism-score-sub">{% trans "mean" %} {{ pathway.mean_target_score }}</span>
                             <div class="metabolism-score-track">
@@ -147,9 +153,9 @@
                         <a href="{% url 'tpwebapp:protein' protein_id=target.protein_id %}"
                            class="metabolism-target-chip{% if forloop.first %} metabolism-target-chip--top{% endif %}">
                             <span class="metabolism-target-id">{{ target.accession }}</span>
-                            <span class="metabolism-target-meta" title="{% trans "drug = druggability score (P2Rank when available, otherwise FPocket). cent = betweenness centrality in the reaction network (higher = more of a metabolic chokepoint)." %}">
-                                {% trans "drug" %} {{ target.druggability|floatformat:2 }}
-                                &middot; {% trans "cent" %} {{ target.centrality|floatformat:3 }}
+                            <span class="metabolism-target-meta" title="{% trans "Pocket = best druggability score, 0–1 (P2Rank when available, otherwise FPocket). Centrality = betweenness centrality in the reaction network (higher = more central)." %}">
+                                {% trans "Pocket" %} {% if target.druggability %}{{ target.druggability|floatformat:2 }}{% else %}—{% endif %}
+                                &middot; {% trans "Centrality" %} {{ target.centrality|floatformat:3 }}
                             </span>
                             {% if target.is_chokepoint %}<span class="metabolism-chokepoint-dot" title="{% trans "Chokepoint" %}"></span>{% endif %}
                         </a>
