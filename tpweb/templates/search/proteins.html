@@ -50,7 +50,9 @@
                 </div>
             </div>
             <div class="hero-chips tp-chip-group">
-                <span class="tp-chip tp-chip--meta filter-result-chip"><strong>{{ filtered_protein_count }}</strong> / {{ total_protein_count }} {% trans "proteins" %}</span>
+                {# The match count already sits right above the table; the hero only says how #}
+                {# the table is ordered. Filters/search are listed in the Active criteria tray. #}
+                <span class="tp-chip tp-chip--meta">{% trans "Sorted by" %}: {{ sorted_by_label }}</span>
                 {% if formula %}
                     <span class="tp-chip tp-chip--meta">{% trans "Scoring" %}: {{ formula.name }}</span>
                 {% endif %}
@@ -63,57 +65,6 @@
                     {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
                 </div>
             {% endif %}
-            <details class="hero-analysis-context js-smooth-details" {% if not is_default_view %}open{% endif %}>
-                <summary class="hero-analysis-summary">
-                    {% if is_default_view %}
-                        {% trans "No filters or custom sorting applied — click to see defaults" %}
-                    {% else %}
-                        {% trans "View settings" %}
-                    {% endif %}
-                </summary>
-                <p class="hero-analysis-line">
-                    <span class="hero-analysis-label">{% trans "Scoring formula" %}</span>
-                    <span class="hero-analysis-value{% if not formula %} hero-analysis-value--empty{% endif %}">{% if formula %}{{ formula.name }}{% else %}None{% endif %}</span>
-                </p>
-                <p class="hero-analysis-line">
-                    <span class="hero-analysis-label">{% trans "Sorted by" %}</span>
-                    <span class="hero-analysis-value">{{ sorted_by_label }}</span>
-                </p>
-                <p class="hero-analysis-line">
-                    <span class="hero-analysis-label">{% trans "Applied filters" %}</span>
-                    <span class="hero-analysis-value{% if not active_preset_name and not grouped_parameters and not structure_source and not annotation_filter %} hero-analysis-value--empty{% endif %}">
-                        {% if active_preset_name %}<span class="hero-analysis-preset">{{ active_preset_name }}</span>{% if grouped_parameters or structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}{% endif %}
-                        {% if grouped_parameters or structure_source or annotation_filter %}
-                            {# grouped_parameters is already humanized in the view (humanize=True) -- a second pass here turned "Enzyme (EC)" into "Enzyme (ec)". #}
-                            {% for score_param, values in grouped_parameters %}
-                                <span class="hero-analysis-criterion"><strong>{{ score_param }}:</strong> {{ values }}</span>{% if not forloop.last or structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
-                            {% endfor %}
-                            {% if structure_source %}
-                                <span class="hero-analysis-criterion"><strong>{% trans "Structure" %}:</strong> {{ structure_source|humanize_identifier }}</span>{% if annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
-                            {% endif %}
-                            {% if annotation_filter %}
-                                <span class="hero-analysis-criterion"><strong>{{ annotation_filter.kind_label }}:</strong> {{ annotation_filter.value }}</span>
-                            {% endif %}
-                        {% else %}
-                            {% trans "No active filters" %}
-                        {% endif %}
-                    </span>
-                </p>
-                <p class="hero-analysis-line">
-                    <span class="hero-analysis-label">{% trans "Search query" %}</span>
-                    <span class="hero-analysis-value{% if not search_query %} hero-analysis-value--empty{% endif %}">
-                        {% if search_query %}
-                            <span title="{% trans 'Full search query' %}: {{ search_query }}">{{ search_query }}</span>
-                        {% else %}
-                            {% trans "No active search" %}
-                        {% endif %}
-                    </span>
-                </p>
-                <p class="hero-analysis-line">
-                    <span class="hero-analysis-label">{% trans "Rows per page" %}</span>
-                    <span class="hero-analysis-value">{{ page_size }}</span>
-                </p>
-            </details>
             {% if pipeline_status.available and pipeline_status.current_genome_status_note %}
                 <p class="tp-state-note {% if pipeline_status.failed_for_current_genome %}tp-state-note--error{% else %}tp-state-note--empty{% endif %}">
                     {{ pipeline_status.current_genome_status_note }}
@@ -458,7 +409,7 @@
                         <th>{% trans "Structure" %}</th>
                         <th>{% trans "EC" %}</th>
                         <th>{% trans "GO" %}</th>
-                        <th>{% trans "Metabolism" %}</th>
+                        {% if genome_has_metabolism %}<th>{% trans "Metabolism" %}</th>{% endif %}
                         {% for col in tcolumns %}
                             {% with col_desc=col_descriptions|dictkey:col %}
                             <th data-col="{{ col|slugify }}"
@@ -514,6 +465,7 @@
                                         <span class="annotation-empty">–</span>
                                     {% endif %}
                                 </td>
+                                {% if genome_has_metabolism %}
                                 <td data-col="metabolism">
                                     {% if protein.has_metabolic_context %}
                                         <a href="{% url 'tpwebapp:protein' protein.id %}#section-metabolic-context"
@@ -527,9 +479,10 @@
                                             <span class="protein-metabolism-chip__count">{{ protein.metabolic_reaction_count }}</span>
                                         </a>
                                     {% else %}
-                                        <span class="protein-metabolism-empty" title="{% trans "No metabolic reaction was mapped to this protein." %}">{% trans "No map" %}</span>
+                                        <span class="protein-metabolism-empty" title="{% trans "No metabolic reaction was mapped to this protein." %}">{% trans "Not in model" %}</span>
                                     {% endif %}
                                 </td>
+                                {% endif %}
                                 {% for col in tcolumns %}
                                     <td data-col="{{ col|slugify }}">
                                         {% if not protein.has_structure and col in structure_columns %}

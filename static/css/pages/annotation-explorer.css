@@ -467,3 +467,8 @@
         padding: 18px 16px 16px;
     }
 }
+
+/* EC / GO switch in the hero (the GO explorer had no link anywhere). */
+.explorer-kind-switch {
+    margin: var(--tp-space-3) 0 var(--tp-space-2);
+}

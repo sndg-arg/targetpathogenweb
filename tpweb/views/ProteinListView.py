@@ -15,6 +15,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.BioentryStructure import BioentryStructure
+from tpweb.models.Metabolism import MetabolicReaction
 from django.shortcuts import redirect
 from urllib.parse import urlencode, parse_qs
 from tpweb.services.protein_list import (
@@ -1683,6 +1684,11 @@ class ProteinListView(View):
         genome_has_gates_priority = ScoreParamValue.objects.filter(
             score_param__name="priority", bioentry__biodatabase=bdb
         ).exists()
+        # Same idea for the fixed Metabolism column: without an imported model
+        # every row would just say "Not in model".
+        genome_has_metabolism = MetabolicReaction.objects.filter(
+            genome_accession=assembly_name
+        ).exists()
         default_column_names, selected_column_names, score_dict, tcolumns, col_descriptions = (
             self._resolve_visible_columns(
                 request,
@@ -2109,6 +2115,7 @@ class ProteinListView(View):
                 "score_dict": score_dict,
                 "tcolumns": tcolumns,
                 "structure_columns": structure_dependent_columns(score_dict),
+                "genome_has_metabolism": genome_has_metabolism,
                 "tdata": page_tdatas,
                 "formula": formuladto,
                 "col_descriptions": col_descriptions,

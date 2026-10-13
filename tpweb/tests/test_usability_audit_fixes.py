@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 from django.test import SimpleTestCase
 
+from tpweb.services.protein_annotations import _dbxref_label
 from tpweb.services.protein_formula import structure_dependent_columns
 from tpweb.services.protein_summary import build_target_executive_summary
 
@@ -35,6 +36,27 @@ class TargetSummaryVerdictTests(SimpleTestCase):
     def test_verdict_points_to_flagged_risks(self):
         result = _summary({"gut_microbiome_offtarget": "hit", "Druggability": "0.9"})
         self.assertIn("flagged risk", result["verdict"])
+
+
+def _dbxref(accession, dbname, name="", definition="", identifier=""):
+    term = SimpleNamespace(name=name, definition=definition, identifier=identifier or accession)
+    terms = SimpleNamespace(all=lambda: [SimpleNamespace(term=term)])
+    return SimpleNamespace(accession=accession, dbname=dbname, terms=terms)
+
+
+class AnnotationLabelTests(SimpleTestCase):
+    def test_go_label_is_the_term_name_not_the_long_definition(self):
+        dbxref = _dbxref(
+            "GO:0005829",
+            "GO",
+            name="cytosol",
+            definition="The part of the cytoplasm that does not contain organelles...",
+        )
+        self.assertEqual(_dbxref_label(dbxref), "cytosol")
+
+    def test_falls_back_to_definition_when_name_just_repeats_the_identifier(self):
+        dbxref = _dbxref("GO:0000001", "GO", name="GO:0000001", definition="Some definition.")
+        self.assertEqual(_dbxref_label(dbxref), "Some definition.")
 
 
 class StructureDependentColumnsTests(SimpleTestCase):

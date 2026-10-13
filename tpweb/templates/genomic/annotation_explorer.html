@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/annotation-explorer.css' %}?v=20260804-fusion1">
+    <link rel="stylesheet" href="{% static 'css/pages/annotation-explorer.css' %}?v=20261013-kind-switch">
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 {% endblock %}
 
@@ -53,9 +53,13 @@
                     Browse the {{ kind }} annotation hierarchy for {{ assembly }} and select a node to open the matching proteins in the protein table.
                 {% endblocktrans %}
             </p>
+            {# EC/GO switch: the GO explorer existed but nothing linked to it. #}
+            <div class="tp-ui-group explorer-kind-switch" role="group" aria-label="{% trans 'Annotation type' %}">
+                <a href="{% url 'tpwebapp:annotation_explorer' genome=genome annotation_kind='ec' %}" class="btn tp-btn tp-btn--sm {% if explorer.kind == 'ec' %}tp-btn--primary{% else %}tp-btn--neutral{% endif %}"{% if explorer.kind == 'ec' %} aria-current="page"{% endif %}>{% trans "Enzymes (EC)" %}</a>
+                <a href="{% url 'tpwebapp:annotation_explorer' genome=genome annotation_kind='go' %}" class="btn tp-btn tp-btn--sm {% if explorer.kind == 'go' %}tp-btn--primary{% else %}tp-btn--neutral{% endif %}"{% if explorer.kind == 'go' %} aria-current="page"{% endif %}>{% trans "Gene Ontology (GO)" %}</a>
+            </div>
             <div class="explorer-meta tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm">{{ explorer.annotation_count }} {% trans "annotations" %}</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{{ explorer.node_count }} {% trans "nodes" %}</span>
             </div>
             {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
             {% if pipeline_status.current_genome_status_note %}
@@ -199,10 +203,6 @@
                             <div class="explorer-fact">
                                 <span class="explorer-fact-label">{% trans "Hierarchy nodes" %}</span>
                                 <span class="explorer-fact-value">{{ explorer.node_count }}</span>
-                            </div>
-                            <div class="explorer-fact">
-                                <span class="explorer-fact-label">{% trans "Recommended next step" %}</span>
-                                <span class="explorer-fact-value">{% trans "Inspect proteins or use the other annotation hierarchy" %}</span>
                             </div>
                         </div>
                     </section>
