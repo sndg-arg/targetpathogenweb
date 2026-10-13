@@ -7,6 +7,9 @@
     color: var(--tp-ink);
     margin: 0;
     display: grid;
+    /* minmax(0, 1fr): without it the implicit column grows to the sticky
+       nav's full no-wrap width and the whole page overflows on phones. */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--tp-space-4);
     --ds-accent: var(--tp-color-brand-800);
     --ds-accent-deep: var(--tp-color-brand-900);

@@ -127,6 +127,35 @@
     }
 }
 
+/* Phones: a smaller button plus bottom room on the page, so the floating
+   button stops sitting on top of the last control on screen (Export CSV,
+   Save scoring formula) with no way to scroll it clear. */
+@media (max-width: 720px) {
+    .tp-agent-fab {
+        right: 14px;
+        bottom: 14px;
+        width: 46px;
+        height: 46px;
+    }
+
+    .tp-agent-fab-icon {
+        flex-basis: 46px;
+        width: 46px;
+        height: 46px;
+    }
+
+    .tp-agent-fab-ring {
+        right: 12px;
+        bottom: 12px;
+        width: 50px;
+        height: 50px;
+    }
+
+    body .tp-main {
+        padding-bottom: 76px;
+    }
+}
+
 .tp-agent-drawer {
     position: fixed;
     top: 0;

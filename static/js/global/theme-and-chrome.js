@@ -68,14 +68,22 @@
         return window.matchMedia("(prefers-color-scheme: dark)").matches;
     }
 
+    // Desktop topbar button plus the mobile menu one (the mobile navbar had no
+    // theme control at all, so phones could never switch).
+    var BUTTON_IDS = ["tp-theme-toggle", "tp-theme-toggle-mobile"];
+
     function apply(mode) {
         var dark = getEffective(mode);
+        var shown = dark ? "dark" : "light";
         document.documentElement.classList.toggle("tp-dark", dark);
-        var btn = document.getElementById("tp-theme-toggle");
-        if (btn) {
-            btn.querySelector(".tp-theme-toggle-icon").innerHTML = ICONS[mode];
-            btn.querySelector(".tp-theme-toggle-label").textContent = LABELS[mode];
-        }
+        BUTTON_IDS.forEach(function (id) {
+            var btn = document.getElementById(id);
+            if (!btn) return;
+            var icon = btn.querySelector(".tp-theme-toggle-icon");
+            var label = btn.querySelector(".tp-theme-toggle-label");
+            if (icon) icon.innerHTML = ICONS[shown];
+            if (label) label.textContent = LABELS[shown];
+        });
         document.dispatchEvent(new CustomEvent("tp:themechange", {
             detail: {
                 mode: mode,
@@ -84,26 +92,27 @@
         }));
     }
 
+    // No stored choice = follow the operating system ("auto"), matching the
+    // pre-paint script in masterpage.html. Defaulting to "light" here used to
+    // undo that script and flash dark-mode users back to light.
     function current() {
-        var stored = localStorage.getItem("tp-theme");
-        return MODES.indexOf(stored) !== -1 ? stored : "light";
+        var stored = null;
+        try { stored = localStorage.getItem("tp-theme"); } catch (e) {}
+        return MODES.indexOf(stored) !== -1 ? stored : "auto";
     }
 
     function cycle() {
-        var idx = (MODES.indexOf(current()) + 1) % MODES.length;
-        var next = MODES[idx];
-        if (next === "auto") {
-            localStorage.removeItem("tp-theme");
-        } else {
-            localStorage.setItem("tp-theme", next);
-        }
+        var next = getEffective(current()) ? "light" : "dark";
+        try { localStorage.setItem("tp-theme", next); } catch (e) {}
         apply(next);
     }
 
     function init() {
         apply(current());
-        var btn = document.getElementById("tp-theme-toggle");
-        if (btn) btn.addEventListener("click", cycle);
+        BUTTON_IDS.forEach(function (id) {
+            var btn = document.getElementById(id);
+            if (btn) btn.addEventListener("click", cycle);
+        });
         window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
             if (current() === "auto") apply("auto");
         });
