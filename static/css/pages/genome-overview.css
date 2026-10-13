@@ -275,27 +275,30 @@
     display: flex;
     flex-wrap: nowrap;
     align-items: stretch;
-    gap: 26px;
+    gap: 28px;
     overflow-x: auto;
+    scrollbar-width: none;
     padding: 0 18px;
     border: none;
-    border-bottom: 1px solid var(--tp-color-border-soft);
     border-radius: 0;
-    background: color-mix(in srgb, var(--tp-color-surface) 88%, transparent);
-    backdrop-filter: blur(6px);
+    /* Full-bleed band matching the breadcrumb bar -- see protein-detail.css's
+       .quick-nav for why border-image (paint-only, no page scroll). */
+    background: var(--tp-color-surface-soft);
+    border-image:
+        linear-gradient(
+            to bottom,
+            var(--tp-color-surface-soft) calc(100% - 1px),
+            var(--tp-color-border-soft) 0
+        ) fill 0 / 0 / 0 100vmax;
     margin: 0;
 }
 
 .genome-page .quick-nav::-webkit-scrollbar {
-    height: 6px;
-}
-
-.genome-page .quick-nav::-webkit-scrollbar-thumb {
-    background: var(--tp-color-border-strong);
-    border-radius: 999px;
+    display: none;
 }
 
 .genome-page .quick-nav .quick-nav-link {
+    position: relative;
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
@@ -312,12 +315,26 @@
     border: none !important;
     background: transparent !important;
     color: var(--tp-color-text-muted) !important;
-    box-shadow: inset 0 -2px 0 transparent !important;
+    box-shadow: none !important;
     white-space: nowrap;
     text-decoration: none !important;
+    transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.genome-page .quick-nav .quick-nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: currentColor;
+    opacity: 0;
+    transform: scaleX(0.4);
     transition:
-        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 /* Marks the one quick-nav tab that navigates to a different page instead
@@ -327,24 +344,26 @@
 .genome-page .quick-nav .quick-nav-link:hover,
 .genome-page .quick-nav .quick-nav-link:focus-visible {
     color: var(--tp-color-text-primary) !important;
-    box-shadow: inset 0 -2px 0 var(--tp-color-border-strong) !important;
     background: transparent !important;
+}
+
+.genome-page .quick-nav .quick-nav-link:hover::after,
+.genome-page .quick-nav .quick-nav-link:focus-visible::after {
+    opacity: 0.28;
+    transform: scaleX(1);
 }
 
 .genome-page .quick-nav .quick-nav-link.is-active,
 .genome-page .quick-nav .quick-nav-link[aria-current="true"] {
     color: var(--tp-color-link-hover) !important;
-    box-shadow: inset 0 -2px 0 var(--tp-color-link-hover) !important;
     background: transparent !important;
-    font-weight: 650;
     text-decoration: none !important;
 }
 
-.tp-dark .genome-page .quick-nav .quick-nav-link.is-active,
-.tp-dark .genome-page .quick-nav .quick-nav-link[aria-current="true"] {
-    color: var(--tp-color-brand-200) !important;
-    box-shadow: inset 0 -2px 0 var(--tp-color-brand-200) !important;
-    background: transparent !important;
+.genome-page .quick-nav .quick-nav-link.is-active::after,
+.genome-page .quick-nav .quick-nav-link[aria-current="true"]::after {
+    opacity: 1;
+    transform: scaleX(1);
 }
 
 /* ── Grid + panels ────────────────────────────────────────────────── */
@@ -375,15 +394,13 @@
     /* Horizontal padding matches .genome-hero's 18px so card content
        lines up with the hero above it instead of sitting 2px narrower. */
     padding: 16px 18px;
-    /* Clearance for the sticky .quick-nav when a nav link jumps here: nav box
-       (8px padding + 34px min-height link + 8px padding + 2px border = 52px)
-       minus its -2px sticky offset, plus ~24px breathing room. Was 128px,
-       which both left a large empty gap above the section on jump AND made
-       the quick-nav's own scroll-spy threshold (scrollY + nav.offsetHeight +
-       24, see assembly.html's jsloaded) never match the landed position, so
-       the clicked link never got marked active either. Keep this in sync
-       with .quick-nav's own box model if that ever changes. */
-    scroll-margin-top: 74px;
+    /* Clearance for the sticky chrome when a nav link jumps here: top bar +
+       breadcrumb bar (--tp-sticky-chrome-h), then the 45px .quick-nav docked
+       below them, plus ~29px breathing room. Must stay just under
+       assembly.html's scroll-spy threshold (nav's bottom edge + 30) or the
+       clicked link never gets marked active. Keep this in sync with
+       .quick-nav's own box model if that ever changes. */
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 74px);
 }
 
 /* Exception: the two ranking tiles inside .genome-targets-wrap are a
@@ -444,7 +461,7 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 14px;
     /* See .genome-card's scroll-margin-top comment. */
-    scroll-margin-top: 74px;
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 74px);
     align-items: stretch;
     /* The two ranking tiles inside keep their own border -- left/right margin
        aligns that border with the 18px text inset used elsewhere on the page,
@@ -459,18 +476,18 @@
     margin-right: 18px;
 }
 
+/* Dock below the sticky breadcrumb bar, not just the top bar -- see
+   protein-detail.css's .quick-nav (--tp-sticky-chrome-h is measured by
+   theme-and-chrome.js); fallbacks are the old topbar-only offsets. */
 @media (max-width: 991px) {
     .genome-page .quick-nav {
-        top: 64px;
+        top: var(--tp-sticky-chrome-h, 64px);
     }
 }
 
-/* The fixed desktop top bar (masterpage.html) reserves height via body's
-   own padding-top -- sticky elements need the same offset added on top of
-   their usual value or they scroll up underneath it. */
 @media (min-width: 992px) {
     .genome-page .quick-nav {
-        top: calc(var(--tp-topbar-h) - 2px);
+        top: var(--tp-sticky-chrome-h, calc(var(--tp-topbar-h) - 2px));
     }
 }
 
@@ -1159,6 +1176,8 @@
 
     .genome-hero,
     .genome-page .quick-nav,
+    .genome-page .quick-nav .quick-nav-link,
+    .genome-page .quick-nav .quick-nav-link::after,
     .genome-card {
         animation: none !important;
         transition: none !important;

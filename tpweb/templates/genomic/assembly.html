@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261009-hero-actions">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261013-quicknav-band">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -536,7 +536,10 @@
                 var atBottom = (window.scrollY + window.innerHeight) >= (document.documentElement.scrollHeight - 4);
                 if (atBottom) return sections[sections.length - 1];
 
-                var threshold = window.scrollY + nav.offsetHeight + 24;
+                // nav.getBoundingClientRect().bottom, not offsetHeight: the nav docks
+                // below the top bar + breadcrumb bar, so its stuck bottom edge already
+                // includes that chrome (matches .genome-card's scroll-margin-top).
+                var threshold = window.scrollY + nav.getBoundingClientRect().bottom + 30;
                 var active = sections[0];
                 for (var i = 0; i < sections.length; i++) {
                     if (absTop(sections[i]) <= threshold) active = sections[i];

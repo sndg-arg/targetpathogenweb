@@ -244,36 +244,45 @@
     display: flex;
     flex-wrap: nowrap;
     align-items: stretch;
-    gap: 26px;
+    gap: 28px;
     overflow-x: auto;
+    scrollbar-width: none;
     padding: 0 18px;
     border: none;
-    border-bottom: 1px solid var(--tp-color-border-soft);
     border-radius: 0;
-    background: color-mix(in srgb, var(--tp-color-surface) 88%, transparent);
-    backdrop-filter: blur(6px);
+    /* Full-bleed band matching the breadcrumb bar -- see protein-detail.css's
+       .quick-nav for why border-image (paint-only, no page scroll). */
+    background: var(--tp-color-surface-soft);
+    border-image:
+        linear-gradient(
+            to bottom,
+            var(--tp-color-surface-soft) calc(100% - 1px),
+            var(--tp-color-border-soft) 0
+        ) fill 0 / 0 / 0 100vmax;
     margin: 0;
 }
 
-/* The fixed desktop top bar (masterpage.html) reserves height via body's
-   own padding-top -- sticky elements need the same offset added on top of
-   their usual value or they scroll up underneath it. */
+/* Dock below the sticky breadcrumb bar, not just the top bar --
+   --tp-sticky-chrome-h is measured by theme-and-chrome.js; fallbacks are
+   the old topbar-only offsets. */
+@media (max-width: 991px) {
+    .binder-page .quick-nav {
+        top: var(--tp-sticky-chrome-h, -2px);
+    }
+}
+
 @media (min-width: 992px) {
     .binder-page .quick-nav {
-        top: calc(var(--tp-topbar-h) - 2px);
+        top: var(--tp-sticky-chrome-h, calc(var(--tp-topbar-h) - 2px));
     }
 }
 
 .binder-page .quick-nav::-webkit-scrollbar {
-    height: 6px;
-}
-
-.binder-page .quick-nav::-webkit-scrollbar-thumb {
-    background: var(--tp-color-border-strong);
-    border-radius: 999px;
+    display: none;
 }
 
 .binder-page .quick-nav .quick-nav-link {
+    position: relative;
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
@@ -290,35 +299,51 @@
     border: none !important;
     background: transparent !important;
     color: var(--tp-color-text-muted) !important;
-    box-shadow: inset 0 -2px 0 transparent !important;
+    box-shadow: none !important;
     white-space: nowrap;
     text-decoration: none !important;
+    transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.binder-page .quick-nav .quick-nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: currentColor;
+    opacity: 0;
+    transform: scaleX(0.4);
     transition:
-        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .binder-page .quick-nav .quick-nav-link:hover,
 .binder-page .quick-nav .quick-nav-link:focus-visible {
     color: var(--tp-color-text-primary) !important;
-    box-shadow: inset 0 -2px 0 var(--tp-color-border-strong) !important;
     background: transparent !important;
+}
+
+.binder-page .quick-nav .quick-nav-link:hover::after,
+.binder-page .quick-nav .quick-nav-link:focus-visible::after {
+    opacity: 0.28;
+    transform: scaleX(1);
 }
 
 .binder-page .quick-nav .quick-nav-link.is-active,
 .binder-page .quick-nav .quick-nav-link[aria-current="true"] {
     color: var(--tp-color-link-hover) !important;
-    box-shadow: inset 0 -2px 0 var(--tp-color-link-hover) !important;
     background: transparent !important;
-    font-weight: 650;
     text-decoration: none !important;
 }
 
-.tp-dark .binder-page .quick-nav .quick-nav-link.is-active,
-.tp-dark .binder-page .quick-nav .quick-nav-link[aria-current="true"] {
-    color: var(--tp-color-brand-200) !important;
-    box-shadow: inset 0 -2px 0 var(--tp-color-brand-200) !important;
-    background: transparent !important;
+.binder-page .quick-nav .quick-nav-link.is-active::after,
+.binder-page .quick-nav .quick-nav-link[aria-current="true"]::after {
+    opacity: 1;
+    transform: scaleX(1);
 }
 
 /* ── Grid + panels ────────────────────────────────────────────────── */
@@ -340,7 +365,7 @@
        height (44px link height + 1px bottom border = 45px) minus its -2px
        sticky offset, plus ~24px breathing room -- same box model as
        protein-detail.css/genome-overview.css's .quick-nav. */
-    scroll-margin-top: 68px;
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 68px);
 }
 
 .binder-card--identifiers {
@@ -388,6 +413,8 @@
 @media (prefers-reduced-motion: reduce) {
     .binder-hero,
     .binder-page .quick-nav,
+    .binder-page .quick-nav .quick-nav-link,
+    .binder-page .quick-nav .quick-nav-link::after,
     .binder-card {
         animation: none !important;
         transition: none !important;

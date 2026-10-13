@@ -609,7 +609,12 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 /* Editorial tab strip, not a row of boxed buttons -- matches the top bar's
    own "thin underline instead of a filled pill" active-tab language
    (masterpage.html's .tp-topbar-desktop-link.active) instead of looking
-   like a distinct, dated app widget bolted onto the page. */
+   like a distinct, dated app widget bolted onto the page.
+   Same surface as the sticky breadcrumb bar above it, bled out to both
+   viewport edges via border-image outset (paint-only, so no horizontal
+   page scroll) -- once stuck, the two read as one two-tier header instead
+   of a narrower, darker band with the page canvas showing at its sides.
+   The gradient's last 1px is the bottom hairline, bled out with it. */
 .quick-nav {
     position: sticky;
     top: -2px;
@@ -620,28 +625,29 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     display: flex;
     flex-wrap: nowrap;
     align-items: stretch;
-    gap: 26px;
+    gap: 28px;
     justify-content: flex-start;
     overflow-x: auto;
+    scrollbar-width: none;
     padding: 0 18px;
     border: none;
-    border-bottom: 1px solid var(--tp-color-border-soft);
     border-radius: 0;
-    background: color-mix(in srgb, var(--tp-color-surface) 88%, transparent);
-    backdrop-filter: blur(6px);
+    background: var(--tp-color-surface-soft);
+    border-image:
+        linear-gradient(
+            to bottom,
+            var(--tp-color-surface-soft) calc(100% - 1px),
+            var(--tp-color-border-soft) 0
+        ) fill 0 / 0 / 0 100vmax;
     margin: 0;
 }
 
 .quick-nav::-webkit-scrollbar {
-    height: 6px;
-}
-
-.quick-nav::-webkit-scrollbar-thumb {
-    background: var(--tp-color-border-strong);
-    border-radius: 999px;
+    display: none;
 }
 
 .quick-nav .quick-nav-link {
+    position: relative;
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
@@ -658,29 +664,54 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border: none !important;
     background: transparent !important;
     color: var(--tp-color-text-muted) !important;
-    box-shadow: inset 0 -2px 0 transparent !important;
+    box-shadow: none !important;
     white-space: nowrap;
     text-decoration: none !important;
+    transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+/* Underline grows from the centre instead of snapping in -- faint on
+   hover, full accent once the section is active. */
+.quick-nav .quick-nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: currentColor;
+    opacity: 0;
+    transform: scaleX(0.4);
     transition:
-        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .quick-nav .quick-nav-link:hover,
 .quick-nav .quick-nav-link:focus-visible {
     color: var(--tp-color-text-primary) !important;
-    box-shadow: inset 0 -2px 0 var(--tp-color-border-strong) !important;
     background: transparent !important;
     text-decoration: none !important;
+}
+
+.quick-nav .quick-nav-link:hover::after,
+.quick-nav .quick-nav-link:focus-visible::after {
+    opacity: 0.28;
+    transform: scaleX(1);
 }
 
 .quick-nav .quick-nav-link.is-active,
 .quick-nav .quick-nav-link[aria-current="true"] {
     color: var(--tp-color-link-hover) !important;
-    box-shadow: inset 0 -2px 0 var(--tp-color-link-hover) !important;
     background: transparent !important;
-    font-weight: 650;
     text-decoration: none !important;
+}
+
+.quick-nav .quick-nav-link.is-active::after,
+.quick-nav .quick-nav-link[aria-current="true"]::after {
+    opacity: 1;
+    transform: scaleX(1);
 }
 
 /* human_protein.html nests its .protein-card sections directly here (no
@@ -824,7 +855,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
    own box model if that ever changes. */
 .protein-card {
     padding: 16px 18px;
-    scroll-margin-top: 68px;
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 68px);
 }
 
 /* No longer boxed via .tp-page-hero -- sits directly on the page
@@ -832,7 +863,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
    now instead of inheriting that shared class's. */
 .protein-hero {
     padding: 20px 18px;
-    scroll-margin-top: 68px;
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 68px);
 }
 
 .protein-card h2 {
@@ -3331,6 +3362,7 @@ body.residue-modal-open {
     .protein-card,
     .binder-card,
     .quick-nav a,
+    .quick-nav a::after,
     .data-details > summary::after,
     .protein-interpretation-guide summary::after,
     .structure-color-guide-title::after,
@@ -4260,14 +4292,6 @@ body.residue-modal-open {
 
 .target-evidence-source-status--info {
     color: var(--tp-color-text-muted);
-}
-
-/* Quick-nav active state — dark mode needs a more visible token */
-.tp-dark .quick-nav .quick-nav-link.is-active,
-.tp-dark .quick-nav .quick-nav-link[aria-current="true"] {
-    color: var(--tp-color-brand-200) !important;
-    box-shadow: inset 0 -2px 0 var(--tp-color-brand-200) !important;
-    background: transparent !important;
 }
 
 .binder-tbl__crystal {
