@@ -8,6 +8,16 @@ from tpweb.forms.UserForms import ProfileForm
 from tpweb.services.agent_chat_quota import quota_for
 
 
+# What a user sees as their own role. The model's choice labels ("Gates
+# consumer", ...) stay as-is for the /users admin screen; a student doesn't
+# know what "Gates" means.
+PROFILE_ROLE_LABELS = {
+    "basic": "Basic access",
+    "gates_consumer": "Project member",
+    "gates_collaborator": "Project collaborator",
+}
+
+
 class ProfileView(LoginRequiredMixin, View):
     template_name = "users/profile.html"
 
@@ -37,7 +47,9 @@ class ProfileView(LoginRequiredMixin, View):
         else:
             chat_quota_label = f"{quota} messages/day"
         return {
-            "role_display": "Owner" if user.is_superuser else user.get_role_display(),
+            "role_display": "Owner"
+            if user.is_superuser
+            else PROFILE_ROLE_LABELS.get(user.role, user.get_role_display()),
             "can_upload_genome": user.has_perm("tpweb.can_upload_genome"),
             "can_run_blast": user.has_perm("tpweb.can_run_blast"),
             "can_manage_formulas": user.has_perm("tpweb.can_manage_formulas"),

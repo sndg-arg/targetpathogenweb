@@ -19,13 +19,13 @@ VISIBILITY_PUBLIC = "public"
 
 FORMULA_VISIBILITY_CHOICES = [
     (VISIBILITY_PRIVATE, "Private (only me)"),
-    (VISIBILITY_GATES, "Shared with Gates roles"),
+    (VISIBILITY_GATES, "Shared with project members"),
     (VISIBILITY_PUBLIC, "Public (every signed-in user)"),
 ]
 
 PARAM_VISIBILITY_CHOICES = [
     (VISIBILITY_PRIVATE, "Private (only me)"),
-    (VISIBILITY_GATES, "Shared with Gates roles (read-only for them)"),
+    (VISIBILITY_GATES, "Shared with project members (read-only for them)"),
 ]
 
 
