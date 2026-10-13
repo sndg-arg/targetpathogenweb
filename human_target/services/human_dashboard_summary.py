@@ -70,6 +70,17 @@ def build_human_dashboard_context():
 
     proteins_with_ligands = len(counts_per_protein)
 
+    # Scaling ingestion happens one data source at a time (protein count
+    # first, then structures/pathways/expression/ligands separately) -- the
+    # sparse-data caveat needs to track *ligand coverage*, not protein count:
+    # once the protein count scaled to the full proteome (~31,000) while
+    # ligand ingestion was still only the original 10-protein pilot, a
+    # caveat gated on total_proteins alone had already gone stale (hid
+    # itself right when "5 of 31,000 proteins have ligand evidence" most
+    # needed the explanation, not less).
+    coverage_ratio = (proteins_with_ligands / total_proteins) if total_proteins else 0
+    ligand_coverage_is_sparse = coverage_ratio < 0.9
+
     return {
         "total_proteins": total_proteins,
         "total_ligand_records": total_ligand_records,
@@ -79,4 +90,5 @@ def build_human_dashboard_context():
         "by_evidence": by_evidence,
         "pchembl_bins": pchembl_bins,
         "richness_bins": richness_bins,
+        "ligand_coverage_is_sparse": ligand_coverage_is_sparse,
     }

@@ -55,3 +55,25 @@ class BuildHumanDashboardContextTests(TestCase):
         self.assertEqual(bin_1["count"], 1)
         bin_25 = next(b for b in context["richness_bins"] if b["label"] == "2–5")
         self.assertEqual(bin_25["count"], 1)
+
+    def test_ligand_coverage_is_not_sparse_when_every_protein_has_ligands(self):
+        protein_a = self._make_bioentry("P10721")
+        protein_b = self._make_bioentry("O00116")
+        self._make_binder(protein_a, Binders.SOURCE_PDB, is_direct=True)
+        self._make_binder(protein_b, Binders.SOURCE_PDB, is_direct=True)
+
+        context = build_human_dashboard_context()
+
+        self.assertFalse(context["ligand_coverage_is_sparse"])
+
+    def test_ligand_coverage_is_sparse_when_most_proteins_have_no_ligands(self):
+        protein_with_ligand = self._make_bioentry("P10721")
+        self._make_binder(protein_with_ligand, Binders.SOURCE_PDB, is_direct=True)
+        for i in range(99):
+            self._make_bioentry(f"NOLIGAND{i}")
+
+        context = build_human_dashboard_context()
+
+        self.assertEqual(context["total_proteins"], 100)
+        self.assertEqual(context["proteins_with_ligands"], 1)
+        self.assertTrue(context["ligand_coverage_is_sparse"])

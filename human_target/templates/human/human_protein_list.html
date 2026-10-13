@@ -45,8 +45,8 @@
                 <span class="metric-value">{{ dashboard.by_source.pdb }} · {{ dashboard.by_source.chembl }} · {{ dashboard.by_source.zinc }}</span>
             </div>
         </div>
-        {% if dashboard.total_proteins < 500 %}
-        <p class="tp-state-note human-dashboard-caveat">{% trans "These figures reflect a small pilot set, not the full ~20,400-protein human proteome -- expect them to look sparse until ingestion scales up." %}</p>
+        {% if dashboard.ligand_coverage_is_sparse %}
+        <p class="tp-state-note human-dashboard-caveat">{% trans "Ligand/structure/pathway/expression ingestion hasn't caught up to the protein count yet -- these figures will look sparse until it does." %}</p>
         {% endif %}
 
         <form method="GET" class="human-list-search" role="search">
