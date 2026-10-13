@@ -392,10 +392,15 @@
 
 .human-xref-db {
     color: var(--tp-color-text-muted);
+    flex-shrink: 0;
 }
 
 .human-xref-id {
     font-family: "SFMono-Regular", Consolas, monospace;
+    text-align: right;
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-all;
 }
 
 /* Expression */
