@@ -1,12 +1,16 @@
 from datetime import timedelta
+from io import StringIO
 from types import SimpleNamespace
+from unittest.mock import patch
 
+from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase
 from django.utils import timezone as django_timezone
 
 from tpweb.models.PipelineRun import PipelineRun
 from tpweb.services.formula_evaluator import formula_uses_missing_params
 from tpweb.services.genome_upload_status import reconcile_genome_uploads
+from tpweb.services.pipeline_runs import PipelineRunConflict, create_pipeline_run
 
 from tpweb.services.protein_annotations import _dbxref_label
 from tpweb.services.protein_formula import structure_dependent_columns
@@ -133,3 +137,25 @@ class FormulaMissingParamsTests(SimpleTestCase):
     def test_term_based_formula_checks_its_terms(self):
         formula = self._formula(term_params=("Localization",))
         self.assertTrue(formula_uses_missing_params(formula, {"Druggability"}, self.var_to_param))
+
+
+class PipelineRunConflictTests(TestCase):
+    def test_second_active_run_for_the_same_genome_is_refused(self):
+        create_pipeline_run(internal_accession="public__DUP", source_accession="DUP")
+        with self.assertRaises(PipelineRunConflict):
+            create_pipeline_run(internal_accession="public__DUP", source_accession="DUP")
+
+    def test_cancel_command_frees_the_genome_without_killing_the_recorded_pid(self):
+        run = create_pipeline_run(internal_accession="public__CAN", source_accession="CAN")
+        PipelineRun.objects.filter(pk=run.pk).update(
+            status=PipelineRun.STATUS_RUNNING, launch_pid=4242
+        )
+
+        with patch("tpweb.services.pipeline_runs.terminate_launch_pid") as terminate:
+            terminate.return_value = False
+            call_command("cancel_pipeline_run", run.pk, stdout=StringIO())
+            terminate.assert_called_once_with(None)
+
+        run.refresh_from_db()
+        self.assertEqual(run.status, PipelineRun.STATUS_CANCELLED)
+        create_pipeline_run(internal_accession="public__CAN", source_accession="CAN")

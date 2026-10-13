@@ -25,6 +25,10 @@ def _models():
     return PipelineRun, PipelineStageEvent
 
 
+class PipelineRunConflict(RuntimeError):
+    """Raised when a run is requested for a genome that already has an active one."""
+
+
 def create_pipeline_run(
     *,
     genome_upload_id=None,
@@ -36,6 +40,25 @@ def create_pipeline_run(
     metadata=None,
 ):
     PipelineRun, _ = _models()
+    # Two runs of the same genome at once (e.g. a manual resume while an old
+    # run still says "running") write into the same workspace and leave
+    # contradictory status -- refuse instead. A dead run is failed by
+    # reconcile_genome_uploads after 24 h, or cancelled right away with
+    # `manage.py cancel_pipeline_run <id>`.
+    active = (
+        PipelineRun.objects.filter(
+            internal_accession=internal_accession,
+            status__in=[PipelineRun.STATUS_SUBMITTED, PipelineRun.STATUS_RUNNING],
+        )
+        .order_by("-id")
+        .first()
+    )
+    if active is not None:
+        raise PipelineRunConflict(
+            f"Pipeline run #{active.id} for {internal_accession} is still {active.status}. "
+            f"Cancel it first (python manage.py cancel_pipeline_run {active.id}) or wait for it "
+            "to finish."
+        )
     metadata = dict(metadata or {})
     upload = None
     if genome_upload_id:

@@ -35,6 +35,10 @@ static/css/         # Design system — tokens only, no hardcoded hex
   cancel_pipeline_run` escalates to SIGKILL after a 2s grace period if SIGTERM didn't actually
   stop the process — never run the manual reset shell snippet below against a genome whose
   pipeline might still be alive; check `ps aux | grep run_pipeline_direct` in `queue` first.
+  Runs launched straight from the orchestrator CLI (no `GenomeUpload`) are failed by the same
+  24h rule (`fail_stale_unlinked_pipeline_runs`). `create_pipeline_run` refuses a second active
+  run for the same genome; free it with `python manage.py cancel_pipeline_run <id>` (does not
+  signal the recorded PID unless `--kill` is passed — the PID is container-local).
 
 ## Pipeline stages overview
 1. clear_folder → download/test/custom gbk → load_gbk
