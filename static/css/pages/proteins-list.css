@@ -852,9 +852,13 @@ a.filter-pill .filter-pill-remove {
     text-align: center;
 }
 
+/* Protein (accession) column sized to its content: width: 1% + nowrap makes
+   the table give it exactly the accession's width, so the pinned column
+   below stays as narrow as the IDs it shows. */
 .protein-table thead th:nth-child(2),
 .protein-table tbody td:nth-child(2) {
-    min-width: 220px;
+    width: 1%;
+    white-space: nowrap;
 }
 
 /* Pin "#" + "Protein" while scrolling the wide table sideways, so every
