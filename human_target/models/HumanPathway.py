@@ -6,8 +6,8 @@ class HumanPathway(models.Model):
     protein that appears in it -- not per-protein content (see
     `HumanProteinPathway` for the per-protein link). `graph_json` is the
     pruned gene/ortholog node-edge graph parsed once from the pathway's KGML
-    at ingest time (see `import_human_curated_proteins._parse_kgml`), not
-    re-parsed per request.
+    at ingest time (see `human_target.services.kegg_kgml`), not re-parsed
+    per request.
     """
 
     kegg_id = models.CharField(max_length=32, unique=True)

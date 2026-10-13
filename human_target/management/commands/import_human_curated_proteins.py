@@ -45,6 +45,7 @@ from human_target.services.human_targets import (
     DEMO_ACCESSIONS,
     get_or_create_human_biodatabase,
 )
+from human_target.services.kegg_kgml import parse_kgml_file as _parse_kgml
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
 from tpweb.services.functional_annotations import persist_ec_go_annotations
 
@@ -212,56 +213,6 @@ def _extract_publications(entry):
         if pubmed_id:
             publications.append({"pubmed": pubmed_id, "title": citation.get("title", "")})
     return publications
-
-
-def _parse_kgml(kgml_path):
-    """Parse one KEGG KGML pathway file into a pruned node/edge graph:
-    gene/ortholog entries only (compound/map entries dropped, matching the
-    reference app's own pruning rule), and only nodes that participate in at
-    least one relation (isolated nodes dropped). Pure function -- takes a
-    path, returns plain dicts/lists, no DB access -- so it's reusable
-    unchanged by a future live-KEGG-fetch ingest command."""
-    tree = ET.parse(kgml_path)
-    root = tree.getroot()
-
-    nodes = {}
-    for entry in root.findall("entry"):
-        if entry.get("type") not in ("gene", "ortholog"):
-            continue
-        entry_id = entry.get("id", "")
-        if not entry_id:
-            continue
-        kegg_ids = (entry.get("name", "") or "").split()
-        graphics = entry.find("graphics")
-        label = ""
-        if graphics is not None:
-            label = (graphics.get("name", "") or "").split(",")[0].strip()
-        nodes[entry_id] = {
-            "id": entry_id,
-            "label": label or (kegg_ids[0] if kegg_ids else entry_id),
-            "kegg_ids": kegg_ids,
-        }
-
-    edges = []
-    connected_ids = set()
-    for relation in root.findall("relation"):
-        entry1 = relation.get("entry1", "")
-        entry2 = relation.get("entry2", "")
-        if entry1 not in nodes or entry2 not in nodes:
-            continue
-        subtypes = [
-            subtype.get("name", "")
-            for subtype in relation.findall("subtype")
-            if subtype.get("name")
-        ]
-        edges.append({"source": entry1, "target": entry2, "subtypes": subtypes})
-        connected_ids.add(entry1)
-        connected_ids.add(entry2)
-
-    return {
-        "nodes": [node for node_id, node in nodes.items() if node_id in connected_ids],
-        "edges": edges,
-    }
 
 
 def _build_human_protein_fields(entry):

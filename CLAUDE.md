@@ -290,10 +290,16 @@ shared components) — zero data/functionality crossover.
     observed: normal `entryAudit.entryVersion` upstream drift) — zero parser changes needed.
   - **AlphaFold DB**: `https://ftp.ebi.ac.uk/pub/databases/alphafold/latest/UP000005640_9606_HUMAN_v6.tar`
     (4.8GB, 23,586 structures — some isoforms/fragments beyond the canonical accession set).
-  - **KEGG**: `https://rest.kegg.jp/link/pathway/hsa` — one call, every human gene→pathway link
-    (`hsa:<entrez_id>\tpath:hsa<id>`). Replaces any per-protein `kegg_kgml/` folder scan: fetch each
-    *distinct* pathway's KGML once (`rest.kegg.jp/get/<id>/kgml`, reuses `_parse_kgml` unchanged),
-    not once per protein.
+  - **KEGG pathways — implemented**: `python manage.py load_human_pathways_bulk
+    [--accession ... | --accession-file PATH] [--dry-run] [--sleep 0.34]`. One call to
+    `https://rest.kegg.jp/link/pathway/hsa` (every human gene→pathway link, `hsa:<entrez_id>\t
+    path:hsa<id>`) resolved against our proteins' own `GeneID` cross-references (already stored,
+    no extra call per protein), then one `rest.kegg.jp/get/<id>/kgml` fetch per *distinct*
+    pathway actually needed (~350 total across the whole proteome, not one per protein). KGML
+    parsing lives in `human_target/services/kegg_kgml.py` (`parse_kgml_root`/`parse_kgml_file`),
+    extracted unchanged from `import_human_curated_proteins.py`'s old `_parse_kgml` (still
+    importable under that name there, aliased) so both the pilot's local-file path and this
+    live-fetch path share one parser.
   - **Bgee**: bulk per-species TSV exists at `bgee.org/download/gene-expression-calls`, but the
     exact current Homo sapiens download link was **not** confirmed this session (403 on an
     automated fetch) — get it by hand before running that part of the pipeline.
