@@ -302,7 +302,6 @@
                 stage: "Stage",
                 bioinformaticsStage: "Bioinformatics stage",
                 genome: "Genome",
-                run: "Run",
                 updated: "Updated",
                 otherWorkspace: "Another genome submission is currently using the pipeline. Queued runs will start automatically.",
                 metadataUnavailable: "Pipeline activity is available, but detailed stage metadata is not visible yet.",
@@ -324,11 +323,10 @@
                 const stateClass = escapeHtml(status.state_class || "");
                 if (status.running && status.genome_accession) {
                     const genomeLabel = escapeHtml(status.genome_display_accession || status.genome_accession);
-                    var doneCount = (status.stages_completed || []).length;
+                    // Same "Stage N/total" (current stage) format the server renders, so the
+                    // chip doesn't switch to a completed-count after pressing refresh.
                     var stageSuffix = "";
-                    if (doneCount > 0) {
-                        stageSuffix = ` · ${doneCount}/${escapeHtml(status.stage_total)} ${labels.stage}s`;
-                    } else if (status.stage_current) {
+                    if (status.stage_current) {
                         stageSuffix = ` · ${labels.stage} ${escapeHtml(status.stage_current)}/${escapeHtml(status.stage_total)}`;
                     }
                     return `${labels.pipelineInProgressFor} <code>${genomeLabel}</code>${stageSuffix}`;
@@ -374,13 +372,7 @@
                             fillClasses.push("is-failed");
                         }
 
-                        var doneCount = (status.stages_completed || []).length;
-                        var stageProgressText;
-                        if (doneCount > 0) {
-                            stageProgressText = `<strong>${doneCount} / ${escapeHtml(status.stage_total)}</strong> completed`;
-                        } else {
-                            stageProgressText = `<strong>${escapeHtml(status.stage_current)} / ${escapeHtml(status.stage_total)}</strong>`;
-                        }
+                        var stageProgressText = `<strong>${escapeHtml(status.stage_current)} / ${escapeHtml(status.stage_total)}</strong>`;
                         const stageLabel = status.stage_label
                             ? `· ${escapeHtml(status.stage_label)}`
                             : "";
@@ -587,18 +579,6 @@
                     updateStepHighlights(status);
                 };
                 updateStepHighlights(initialPipelineStatus);
-            }
-
-            // Genome list refresh: reload the page to pick up newly processed genomes.
-            const genomesRefreshButton = document.querySelector(".home-updated-genomes-refresh");
-            if (genomesRefreshButton) {
-                genomesRefreshButton.addEventListener("click", () => {
-                    const icon = genomesRefreshButton.querySelector(".home-pipeline-refresh-icon");
-                    if (icon) icon.classList.add("is-spinning");
-                    genomesRefreshButton.disabled = true;
-                    if (window.TPPageLoader) window.TPPageLoader.show();
-                    window.location.reload();
-                });
             }
         }
 

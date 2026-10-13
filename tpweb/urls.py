@@ -50,15 +50,9 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 
-from django.shortcuts import render
-
 from .admin import *  # noqa: F403 -- runs each admin submodule's admin.site.register() side effect
 
 app_name = "tpwebapp"
-
-
-def untestview(request):
-    return render(request, "test.html")
 
 
 urlpatterns = [
@@ -151,7 +145,6 @@ urlpatterns = [
     path("load_options/", load_options, name="load_options"),
     path("structure/<int:struct_id>", view=StructureView.as_view(), name="structure"),
     path("binder/<int:binder_id>", view=BinderDetailView.as_view(), name="binder_detail"),
-    path("test", view=untestview, name="untestview"),
     path("form", view=FormView.as_view(), name="form"),
     path("result/<str:result_id>", view=NewView.as_view(), name="blast_res"),
     path("genome/<str:genome>/formula", view=FormulaFormView, name="formula_form"),
