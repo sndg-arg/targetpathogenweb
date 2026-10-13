@@ -7,7 +7,8 @@ Activated when TPW_COLABFOLD_USE_REMOTE=1 is set; otherwise stage 16 runs locall
 The remote path:
   1. Identifies proteins without an existing structure.
   2. Runs one SLURM GPU job per protein when the sequence length is within the
-     configured safe VRAM envelope.
+     configured safe VRAM envelope -- or, with TPW_COLABFOLD_BATCH_SIZE > 1,
+     first one job per length-sorted batch, then per protein for leftovers.
   3. Falls back to remote ColabFold-on-CPU on the cluster for proteins above
      the GPU length limit or when an individual GPU job fails.
   4. Places results into alphafold/<locus_tag>/<locus_tag>_af.pdb.
@@ -101,6 +102,7 @@ class ColabFoldRemoteConfig:
     gpu_slurm_exclude: str
     strict_gpu: bool
     max_parallel: int
+    batch_size: int
     cpu_catchup_max_parallel: int
     gpu_retry_attempts: int
     cpu_slurm_partition: str
@@ -179,6 +181,9 @@ def _build_colabfold_config(cfg_dict):
         strict_gpu=_env_text("TPW_COLABFOLD_STRICT", default="").strip().lower()
         in ("1", "true", "yes"),
         max_parallel=_env_int("TPW_COLABFOLD_MAX_PARALLEL", default=8),
+        # Proteins per GPU SLURM job in the batched first pass (see
+        # run_remote_colabfold). 1 = no batch pass, one job per protein.
+        batch_size=max(1, _env_int("TPW_COLABFOLD_BATCH_SIZE", default=1)),
         # Deliberately separate from max_parallel: the GPU-fast pass and the
         # CPU-catch-up pass never run at the same time (see
         # run_remote_colabfold), but a CPU job is much heavier per-worker
@@ -265,8 +270,25 @@ def _find_best_pdb(directory, locus_tag):
     return os.path.join(directory, candidates[0])
 
 
-def _copy_predicted_pdb(results_dir, folder_path, locus_tag):
-    pdb_src = _find_best_pdb(results_dir, locus_tag)
+def _find_batch_pdb(directory, locus_tag):
+    """Exact-name rank_001 lookup for a batch's shared output dir.
+
+    _find_best_pdb's plain ``locus_tag + "_"`` prefix is fine with one
+    protein per dir, but in a batch ``X_1`` would also match ``X_1_2``'s
+    files -- so require ColabFold's own ``<jobname>_(un)relaxed_rank_001``
+    naming instead."""
+    prefixes = (f"{locus_tag}_unrelaxed_rank_001", f"{locus_tag}_relaxed_rank_001")
+    try:
+        names = sorted(
+            f for f in os.listdir(directory) if f.startswith(prefixes) and f.endswith(".pdb")
+        )
+    except FileNotFoundError:
+        return None
+    return os.path.join(directory, names[0]) if names else None
+
+
+def _copy_predicted_pdb(results_dir, folder_path, locus_tag, *, exact=False):
+    pdb_src = (_find_batch_pdb if exact else _find_best_pdb)(results_dir, locus_tag)
     if pdb_src is None:
         raise RuntimeError(f"No ColabFold rank_001 PDB produced for {locus_tag}")
     locus_dir = os.path.join(folder_path, "alphafold", locus_tag)
@@ -276,7 +298,7 @@ def _copy_predicted_pdb(results_dir, folder_path, locus_tag):
     return pdb_dst
 
 
-def _run_remote_colabfold_candidate(
+def _run_remote_colabfold_job(
     *,
     ssh,
     scp_client,
@@ -285,12 +307,31 @@ def _run_remote_colabfold_candidate(
     run_id_raw,
     folder_path,
     genome,
-    locus_tag,
-    sequence,
+    entries,
     mode,
     fallback_reason=None,
+    batch=False,
 ):
+    """Run one ColabFold SLURM job over ``entries`` ((locus_tag, sequence)
+    pairs) and save each rank_001 PDB into the workspace.
+
+    Single-protein (``batch=False``): exactly the original per-protein job --
+    a missing PDB raises. Batch: colabfold_batch failing partway still
+    touches DONE (``|| echo``), so whatever it finished is kept; the caller
+    gets the saved locus tags back and retries the rest one by one. Returns
+    the list of locus tags whose structure was saved."""
     import tempfile
+
+    locus_tag = entries[0][0]
+    if batch:
+        lengths = [len(seq) for _, seq in entries]
+        label = f"batch of {len(entries)} ({entries[0][0]}..{entries[-1][0]})"
+        size_text = f"{min(lengths)}-{max(lengths)} aa"
+        job_tag = f"b{len(entries)}_{locus_tag}"
+    else:
+        label = locus_tag
+        size_text = f"{len(entries[0][1])} aa"
+        job_tag = locus_tag
 
     job_id = None
     finished = False
@@ -303,7 +344,7 @@ def _run_remote_colabfold_candidate(
         return exit_code, out, err
 
     safe_genome = "".join(ch if ch.isalnum() or ch in ("_", "-") else "_" for ch in genome)
-    safe_locus = "".join(ch if ch.isalnum() or ch in ("_", "-") else "_" for ch in locus_tag)
+    safe_locus = "".join(ch if ch.isalnum() or ch in ("_", "-") else "_" for ch in job_tag)
     run_label = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     remote_job_dir = (
         f"{config.ssh_rootfolder.rstrip('/')}/tpw_colabfold/"
@@ -342,12 +383,13 @@ def _run_remote_colabfold_candidate(
         with tempfile.TemporaryDirectory(prefix=f"colabfold_remote_{locus_tag}_") as local_tmpdir:
             local_input_fasta = os.path.join(local_tmpdir, "input.fasta")
             with open(local_input_fasta, "w", encoding="utf-8") as handle:
-                handle.write(f">{locus_tag}\n{sequence}\n")
+                for entry_tag, entry_seq in entries:
+                    handle.write(f">{entry_tag}\n{entry_seq}\n")
 
             mkdir_exit, _, mkdir_err = _run_remote(f"mkdir -p {shlex.quote(remote_job_dir)}")
             if mkdir_exit != 0:
                 raise RuntimeError(
-                    f"Unable to create remote ColabFold directory for {locus_tag}: "
+                    f"Unable to create remote ColabFold directory for {label}: "
                     f"{mkdir_err or f'exit {mkdir_exit}'}"
                 )
 
@@ -378,6 +420,11 @@ def _run_remote_colabfold_candidate(
                         f" --num-recycle {config.num_recycles}"
                         f" --num-models {config.num_models}"
                         f" --model-type alphafold2_ptm"
+                        + (
+                            # Keep what finished if one query aborts the run;
+                            # missing PDBs get retried one by one.
+                            ' || echo "colabfold_batch exited with status $?" >&2' if batch else ""
+                        )
                     ),
                     f"touch {shlex.quote(remote_done_marker)}",
                     "",
@@ -416,17 +463,15 @@ def _run_remote_colabfold_candidate(
                 friendly = classify_slurm_resource_message(details, tool_label="ColabFold")
                 if friendly:
                     details = f"{friendly} SLURM response: {details}"
-                raise RuntimeError(
-                    f"Unable to submit ColabFold SLURM job for {locus_tag}: {details}"
-                )
+                raise RuntimeError(f"Unable to submit ColabFold SLURM job for {label}: {details}")
 
             job_id = submit_out.split(";")[0].strip()
             if not job_id:
-                raise RuntimeError(f"Unable to parse SLURM job id for ColabFold on {locus_tag}")
+                raise RuntimeError(f"Unable to parse SLURM job id for ColabFold on {label}")
 
             print(
                 f"ColabFold remote: submitted {mode_label} SLURM job {job_id} for "
-                f"{locus_tag} ({len(sequence)} aa) on partition {slurm_partition}"
+                f"{label} ({size_text}) on partition {slurm_partition}"
             )
             _record_remote_job(
                 run_id_raw,
@@ -436,11 +481,12 @@ def _run_remote_colabfold_candidate(
             _record_remote_info(
                 run_id_raw,
                 stage_number=16,
-                message=f"Submitted remote ColabFold {mode_label} job {job_id} for {locus_tag}",
+                message=f"Submitted remote ColabFold {mode_label} job {job_id} for {label}",
                 payload={
                     "job_id": job_id,
                     "remote_job_dir": remote_job_dir,
                     "locus_tag": locus_tag,
+                    "locus_tags": [tag for tag, _ in entries] if batch else [locus_tag],
                     "mode": mode,
                     "fallback_reason": fallback_reason,
                 },
@@ -487,7 +533,7 @@ def _run_remote_colabfold_candidate(
                         _record_remote_info(
                             run_id_raw,
                             stage_number=16,
-                            message=f"{wait_notice} ({locus_tag})",
+                            message=f"{wait_notice} ({label})",
                             payload={"remote_state": remote_state, "remote_reason": queue_reason},
                         )
                         last_wait_notice = wait_notice
@@ -498,7 +544,7 @@ def _run_remote_colabfold_candidate(
                         and waited_seconds >= pending_wait_limit
                     ):
                         raise TimeoutError(
-                            f"ColabFold job for {locus_tag} stayed PENDING for "
+                            f"ColabFold job for {label} stayed PENDING for "
                             f"{waited_seconds}s, exceeding {mode_label} pending wait limit "
                             f"{pending_wait_limit}s"
                         )
@@ -517,7 +563,7 @@ def _run_remote_colabfold_candidate(
                         if friendly:
                             details = f"{friendly} SLURM details: {details}"
                         raise RuntimeError(
-                            f"Remote ColabFold failed for {locus_tag} "
+                            f"Remote ColabFold failed for {label} "
                             f"({remote_state} / {remote_exit_code}): {details}"
                         )
 
@@ -535,13 +581,13 @@ def _run_remote_colabfold_candidate(
                             )
                             details = slurm_err_text or slurm_out_text or "no remote output"
                             raise RuntimeError(
-                                f"Remote ColabFold finished for {locus_tag} but DONE marker not found "
+                                f"Remote ColabFold finished for {label} but DONE marker not found "
                                 f"after {config.remote_completion_grace_seconds}s grace period. "
                                 f"Details: {details}"
                             )
 
                 print(
-                    f"ColabFold remote ({mode_label}): waiting for {locus_tag} "
+                    f"ColabFold remote ({mode_label}): waiting for {label} "
                     f"(state={last_state}, {waited_seconds}s elapsed)"
                 )
                 time.sleep(config.remote_poll_seconds)
@@ -549,19 +595,45 @@ def _run_remote_colabfold_candidate(
 
             if not finished:
                 raise TimeoutError(
-                    f"ColabFold output not retrieved for {locus_tag} after "
+                    f"ColabFold output not retrieved for {label} after "
                     f"{waited_seconds}s (last remote state: {last_state})"
                 )
 
             local_results_dir = os.path.join(local_tmpdir, "output")
             os.makedirs(local_results_dir, exist_ok=True)
-            scp_client.get(remote_output_dir, local_results_dir, recursive=True)
-            actual_results = os.path.join(local_results_dir, "output")
-            if not os.path.isdir(actual_results):
-                actual_results = local_results_dir
+            if not batch:
+                scp_client.get(remote_output_dir, local_results_dir, recursive=True)
+                actual_results = os.path.join(local_results_dir, "output")
+                if not os.path.isdir(actual_results):
+                    actual_results = local_results_dir
 
-            _copy_predicted_pdb(actual_results, folder_path, locus_tag)
-            print(f"  ColabFold remote ({mode_label}): saved structure for {locus_tag}")
+                _copy_predicted_pdb(actual_results, folder_path, locus_tag)
+                print(f"  ColabFold remote ({mode_label}): saved structure for {locus_tag}")
+                return [locus_tag]
+
+            # Batch: fetch only the rank_001 PDBs -- the full output dir
+            # (MSAs, PAE JSONs, plots) for dozens of proteins is mostly
+            # unused weight.
+            try:
+                remote_names = sftp.listdir(remote_output_dir)
+            except FileNotFoundError:
+                remote_names = []
+            for name in remote_names:
+                if "rank_001" in name and name.endswith(".pdb"):
+                    sftp.get(f"{remote_output_dir}/{name}", os.path.join(local_results_dir, name))
+
+            saved = []
+            for entry_tag, _ in entries:
+                try:
+                    _copy_predicted_pdb(local_results_dir, folder_path, entry_tag, exact=True)
+                except RuntimeError:
+                    continue
+                saved.append(entry_tag)
+            print(
+                f"  ColabFold remote ({mode_label}): saved {len(saved)}/{len(entries)} "
+                f"structures from {label}"
+            )
+            return saved
     finally:
         if not finished and job_id:
             try:
@@ -569,6 +641,11 @@ def _run_remote_colabfold_candidate(
                 print(f"ColabFold remote: cancelled orphan SLURM job {job_id}")
             except Exception:
                 pass
+
+
+def _run_remote_colabfold_candidate(*, locus_tag, sequence, **kwargs):
+    """One protein, one SLURM job -- raises if no PDB comes back."""
+    return _run_remote_colabfold_job(entries=[(locus_tag, sequence)], batch=False, **kwargs)
 
 
 # ---------------------------------------------------------------------------
@@ -580,6 +657,15 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
     """
     Run ColabFold on a remote SLURM GPU node, in two passes.
 
+    0. Batched GPU pass (only when TPW_COLABFOLD_BATCH_SIZE > 1): GPU-eligible
+       proteins sorted by length and chunked, one SLURM job per chunk. With
+       one job per protein, most of each protein's wall-clock went to SLURM
+       queueing, conda/ColabFold startup, model recompilation and the poll
+       interval rather than the ~20-50s of actual GPU work; a batch pays
+       those once and colabfold_batch reuses the compiled model across
+       similar lengths. Anything a batch didn't produce (whole job failed,
+       one query aborted the run) just falls through to step 1 below, so
+       per-protein failure isolation is unchanged.
     1. GPU-fast pass: one SLURM GPU job per protein within the VRAM-safe
        length limit. A protein that's too long for GPU, or whose GPU
        attempt(s) fail, is *deferred* rather than retried on CPU inline --
@@ -612,10 +698,20 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
     _assert_ssh_reachable(config.ssh_host, config.ssh_port, config.ssh_connect_timeout)
 
     run_id_raw = str(os.getenv("TPW_PIPELINE_RUN_ID") or "").strip()
+
+    predicted = 0
+    if config.batch_size > 1:
+        batched, candidates = _run_batched_gpu_pass(
+            config, candidates, folder_path, genome, run_id_raw
+        )
+        predicted += batched
+        if not candidates:
+            print(f"ColabFold stage 16 done: {predicted} predicted")
+            return predicted
+
     gpu_workers = max(1, min(config.max_parallel, len(candidates)))
     print(f"ColabFold remote: GPU-fast pass parallelism={gpu_workers}")
 
-    predicted = 0
     deferred = []  # (locus_tag, sequence, fallback_reason)
     hard_failures = []  # (locus_tag, error) -- only possible in strict mode
 
@@ -676,6 +772,74 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
     return predicted
 
 
+def _make_length_batches(entries, batch_size):
+    """Chunk (locus_tag, sequence) pairs into batches of similar length, so
+    each colabfold_batch run recompiles the model as little as possible."""
+    ordered = sorted(entries, key=lambda entry: (len(entry[1]), entry[0]))
+    return [ordered[i : i + batch_size] for i in range(0, len(ordered), batch_size)]
+
+
+def _run_batched_gpu_pass(config, candidates, folder_path, genome, run_id_raw):
+    """Step 0 of run_remote_colabfold. Returns (predicted_count, leftovers):
+    every candidate without a saved PDB afterwards -- including the ones too
+    long for GPU, which the per-protein pass defers to CPU as before."""
+    eligible = [
+        (tag, seq)
+        for tag, seq in candidates
+        if config.max_sequence_length <= 0 or len(seq) <= config.max_sequence_length
+    ]
+    batches = _make_length_batches(eligible, config.batch_size)
+    if not batches:
+        return 0, candidates
+
+    workers = max(1, min(config.max_parallel, len(batches)))
+    print(
+        f"ColabFold remote: batched GPU pass -- {len(eligible)} proteins in "
+        f"{len(batches)} jobs of up to {config.batch_size}, parallelism={workers}"
+    )
+
+    def run_batch(_batch_key, entries):
+        try:
+            return _run_batch_attempt(config, run_id_raw, folder_path, genome, entries)
+        except Exception as exc:
+            # Whole-batch failure (bad node, timeout, SLURM error): its
+            # proteins just go through the per-protein pass instead.
+            _record_remote_info(
+                run_id_raw,
+                stage_number=16,
+                message=(
+                    f"Batched ColabFold job for {len(entries)} proteins "
+                    f"({entries[0][0]}..{entries[-1][0]}) failed; retrying them "
+                    f"one by one. Details: {exc}"
+                )[:1000],
+                payload={"locus_tags": [tag for tag, _ in entries]},
+            )
+            return []
+
+    items = [(entries[0][0], entries) for entries in batches]
+    predicted = 0
+    for _batch_key, saved in _run_phase(run_batch, items, workers):
+        predicted += len(saved)
+
+    leftovers = [
+        (tag, seq)
+        for tag, seq in candidates
+        if not os.path.exists(_candidate_pdb_path(folder_path, tag))
+    ]
+    message = (
+        f"Batched GPU pass done: {predicted} predicted, {len(leftovers)} left for the "
+        "per-protein pass."
+    )
+    print(f"ColabFold remote: {message}")
+    _record_remote_info(
+        run_id_raw,
+        stage_number=16,
+        message=message,
+        payload={"predicted": predicted, "leftover": len(leftovers)},
+    )
+    return predicted, leftovers
+
+
 def _run_phase(process_fn, items, workers):
     """Run process_fn(locus_tag, payload) over `items` (an iterable of
     (locus_tag, payload) pairs) at the given concurrency, sequentially when
@@ -729,6 +893,25 @@ def _run_candidate_attempt(
             sequence=sequence,
             mode=mode,
             fallback_reason=fallback_reason,
+        )
+    finally:
+        _close_remote_session(ssh, scp_client, sftp)
+
+
+def _run_batch_attempt(config, run_id_raw, folder_path, genome, entries):
+    ssh, scp_client, sftp = _open_remote_session(config)
+    try:
+        return _run_remote_colabfold_job(
+            ssh=ssh,
+            scp_client=scp_client,
+            sftp=sftp,
+            config=config,
+            run_id_raw=run_id_raw,
+            folder_path=folder_path,
+            genome=genome,
+            entries=entries,
+            mode="gpu",
+            batch=True,
         )
     finally:
         _close_remote_session(ssh, scp_client, sftp)
