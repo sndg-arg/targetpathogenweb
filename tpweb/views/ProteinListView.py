@@ -83,11 +83,13 @@ from tpweb.services.pipeline_status import (
     get_pipeline_status,
 )
 from tpweb.services.formula_evaluator import (
+    available_variables_grouped,
     build_all_options_zero,
     build_expression_variables,
+    formula_uses_missing_params,
     safe_eval_expression,
 )
-from tpweb.services.score_params import visible_score_params_queryset
+from tpweb.services.score_params import genome_score_param_names, visible_score_params_queryset
 from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_ALPHAFOLD,
     PDB_EXPERIMENT_COLABFOLD,
@@ -1636,8 +1638,27 @@ class ProteinListView(View):
         current_formula_pk = getattr(formula, "pk", None)
         workspace_user_for_drawer = resolve_workspace_user(request.user)
         all_term_descriptions = build_all_term_descriptions()
+        # Base/shared formulas built on data this genome doesn't have (e.g. "Kp
+        # score" on Pseudomonas) would silently score every protein 0 -- hide
+        # them here. The user's own formulas and the active one always stay.
+        genome_param_names = genome_score_param_names(assembly_name)
+        var_to_param = {
+            entry["var"]: entry["param"]
+            for entries in available_variables_grouped(request.user).values()
+            for entry in entries
+        }
         formulas_for_drawer = []
         for f in formulas:
+            is_own_formula = f.user_id is not None and f.user_id == getattr(
+                workspace_user_for_drawer, "pk", None
+            )
+            if (
+                genome_param_names
+                and not is_own_formula
+                and f.pk != current_formula_pk
+                and formula_uses_missing_params(f, genome_param_names, var_to_param)
+            ):
+                continue
             formula_expression = f.get_current_formula()
             formulas_for_drawer.append(
                 {
@@ -1647,8 +1668,7 @@ class ProteinListView(View):
                     "is_current": f.pk == current_formula_pk,
                     "expression": formula_expression,
                     "term_help": annotate_formula_terms(formula_expression, all_term_descriptions),
-                    "is_user_formula": f.user_id is not None
-                    and f.user_id == getattr(workspace_user_for_drawer, "pk", None),
+                    "is_user_formula": is_own_formula,
                     "is_editable": bool((f.expression or "").strip()),
                 }
             )

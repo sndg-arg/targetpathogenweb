@@ -189,7 +189,9 @@ def _is_numeric_option(name: str) -> bool:
 
 
 def available_variables_grouped(
-    user=None, max_categorical_options=FORMULA_PALETTE_MAX_CATEGORICAL_OPTIONS
+    user=None,
+    max_categorical_options=FORMULA_PALETTE_MAX_CATEGORICAL_OPTIONS,
+    genome_param_names=None,
 ):
     """Return variables grouped by ScoreParam category for the UI palette.
 
@@ -217,12 +219,18 @@ def available_variables_grouped(
 
     groups = {}
     for param in param_qs:
+        # genome_param_names (see score_params.genome_score_param_names): only
+        # offer variables this genome actually has values for.
+        if genome_param_names is not None and param.name not in genome_param_names:
+            continue
         cat = param.category or "Other"
         pname = normalize_var_name(param.name)
         if is_numeric_score_param(param):
             if pname:
                 desc = param.description or f"{param.name} raw numeric value"
-                groups.setdefault(cat, []).append({"var": pname, "desc": desc, "kind": "numeric"})
+                groups.setdefault(cat, []).append(
+                    {"var": pname, "desc": desc, "kind": "numeric", "param": param.name}
+                )
             continue
         if not pname:
             continue
@@ -238,8 +246,26 @@ def available_variables_grouped(
         for opt, vname in palette_options:
             var = f"{pname}_{vname}"
             desc = opt.description or f"{param.name} = {opt.name}"
-            groups.setdefault(cat, []).append({"var": var, "desc": desc, "kind": "categorical"})
+            groups.setdefault(cat, []).append(
+                {"var": var, "desc": desc, "kind": "categorical", "param": param.name}
+            )
     return groups
+
+
+def formula_uses_missing_params(formula, genome_param_names, var_to_param):
+    """True if `formula` relies on a ScoreParam with no values in this genome.
+
+    Expression formulas are checked token by token against the palette's
+    variable -> param map (`var_to_param`, from available_variables_grouped);
+    term-based formulas against their terms' params directly."""
+    expression = (getattr(formula, "expression", "") or "").strip()
+    if expression:
+        for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", expression):
+            param_name = var_to_param.get(token.lower())
+            if param_name and param_name not in genome_param_names:
+                return True
+        return False
+    return any(term.score_param.name not in genome_param_names for term in formula.terms.all())
 
 
 def validate_expression_syntax(expr_str: str, user=None) -> dict:

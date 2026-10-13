@@ -5,6 +5,7 @@ from django.test import SimpleTestCase, TestCase
 from django.utils import timezone as django_timezone
 
 from tpweb.models.PipelineRun import PipelineRun
+from tpweb.services.formula_evaluator import formula_uses_missing_params
 from tpweb.services.genome_upload_status import reconcile_genome_uploads
 
 from tpweb.services.protein_annotations import _dbxref_label
@@ -106,3 +107,29 @@ class StaleUnlinkedPipelineRunTests(TestCase):
         self.assertEqual(stale.status, PipelineRun.STATUS_FAILED)
         self.assertIsNone(stale.launch_pid)
         self.assertEqual(fresh.status, PipelineRun.STATUS_RUNNING)
+
+
+class FormulaMissingParamsTests(SimpleTestCase):
+    var_to_param = {
+        "colabfold_druggability_score": "colabfold_druggability_score",
+        "druggability": "Druggability",
+        "hit_in_deg_y": "hit_in_deg",
+    }
+
+    def _formula(self, expression="", term_params=()):
+        terms = [SimpleNamespace(score_param=SimpleNamespace(name=name)) for name in term_params]
+        return SimpleNamespace(expression=expression, terms=SimpleNamespace(all=lambda: terms))
+
+    def test_expression_using_a_param_the_genome_lacks_is_flagged(self):
+        formula = self._formula("0.5 * colabfold_druggability_score + druggability")
+        self.assertTrue(formula_uses_missing_params(formula, {"Druggability"}, self.var_to_param))
+
+    def test_expression_fully_covered_by_the_genome_is_kept(self):
+        formula = self._formula("druggability + 2 * hit_in_deg_y")
+        self.assertFalse(
+            formula_uses_missing_params(formula, {"Druggability", "hit_in_deg"}, self.var_to_param)
+        )
+
+    def test_term_based_formula_checks_its_terms(self):
+        formula = self._formula(term_params=("Localization",))
+        self.assertTrue(formula_uses_missing_params(formula, {"Druggability"}, self.var_to_param))

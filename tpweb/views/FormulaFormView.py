@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.services.formula_evaluator import available_variables_grouped, validate_expression_syntax
+from tpweb.services.score_params import genome_score_param_names
 from tpweb.services.genome_workspace import (
     display_genome_name,
     genome_url_slug,
@@ -60,7 +61,11 @@ def FormulaFormView(request, genome):
         raise Http404("Genome not found")
 
     user = resolve_workspace_user(request.user)
-    variable_groups = available_variables_grouped(user)
+    # Only variables this genome has values for -- an empty set (nothing
+    # loaded yet) falls back to the full palette rather than an empty one.
+    variable_groups = available_variables_grouped(
+        user, genome_param_names=genome_score_param_names(assembly_name) or None
+    )
 
     # Edit mode: ?edit=<pk> (GET) / editing_pk (POST) on one of the user's own
     # expression-based formulas. Term-based legacy formulas (no expression)

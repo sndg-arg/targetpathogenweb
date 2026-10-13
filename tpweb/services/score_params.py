@@ -474,3 +474,34 @@ def resolve_score_param_for_import(column_name, owner=None, source_df=None):
 
     ScoreParam.initialize_custom_param(source_df, user=owner)
     return ScoreParam.objects.filter(**scoped_filters).order_by("id").first()
+
+
+GENOME_PARAM_NAMES_CACHE_TTL_SECONDS = 900
+
+
+def genome_score_param_names(assembly_name):
+    """Names of the ScoreParams that have at least one value loaded for this
+    genome's proteins. Used to keep the formula builder's variable palette and
+    the Scoring drawer's base formulas to what the genome actually has (e.g.
+    PAO1 was offered "Kp score" and pan-genome metabolism variables it has no
+    data for, which silently score 0). Cached per genome like the overview
+    aggregates in assembly_workspace -- data only changes on a pipeline run or
+    import."""
+    from django.core.cache import cache
+
+    from bioseq.models.Biodatabase import Biodatabase
+    from tpweb.models.ScoreParamValue import ScoreParamValue
+
+    cache_key = f"Target:genome_score_param_names:{assembly_name}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+    names = set(
+        ScoreParamValue.objects.filter(
+            bioentry__biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX
+        )
+        .values_list("score_param__name", flat=True)
+        .distinct()
+    )
+    cache.set(cache_key, names, GENOME_PARAM_NAMES_CACHE_TTL_SECONDS)
+    return names
