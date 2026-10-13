@@ -115,3 +115,29 @@
         init();
     }
 })();
+
+/* ── Breadcrumb "Back" link ────────────────────── */
+/* Uses the browser history when the previous page was on this site, so the
+ * page you return to keeps its filters, sort and scroll; otherwise (opened
+ * from a bookmark/shared link) falls back to the parent breadcrumb. Shown only
+ * when there is a parent crumb to go back to. */
+(function () {
+    var back = document.querySelector("[data-breadcrumb-back]");
+    if (!back) return;
+    var crumbLinks = back.parentElement.querySelectorAll(".tp-breadcrumb-link");
+    if (crumbLinks.length < 2) return;
+    var parentHref = crumbLinks[crumbLinks.length - 1].getAttribute("href");
+    back.setAttribute("href", parentHref);
+    back.hidden = false;
+    var cameFromSite = false;
+    try {
+        cameFromSite = !!document.referrer && new URL(document.referrer).origin === window.location.origin;
+    } catch (error) {
+        cameFromSite = false;
+    }
+    back.addEventListener("click", function (event) {
+        if (!cameFromSite || window.history.length < 2) return;
+        event.preventDefault();
+        window.history.back();
+    });
+})();
