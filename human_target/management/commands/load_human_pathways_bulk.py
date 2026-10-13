@@ -114,14 +114,22 @@ class Command(BaseCommand):
         proteins_qs = human_proteins_queryset()
         if accessions:
             proteins_qs = proteins_qs.filter(uniprot_accession__in=accessions)
-        proteins = list(proteins_qs)
-        if not proteins:
+        # .values_list(), not full HumanProtein instances: at full-proteome
+        # scale, materializing every row pulls in uniprot_raw (the complete
+        # original UniProt record, kept as an audit trail) and every other
+        # JSON field this command never touches -- confirmed via an OOM kill
+        # in production (~3.7GB for ~31,000 rows) before this fix. Only
+        # cross_references_raw is actually needed here.
+        protein_rows = list(
+            proteins_qs.values_list("id", "uniprot_accession", "cross_references_raw")
+        )
+        if not protein_rows:
             raise CommandError("No matching human proteins found.")
 
         gene_to_proteins = {}
-        for protein in proteins:
-            for gene_id in _gene_ids_from_cross_references(protein.cross_references_raw):
-                gene_to_proteins.setdefault(gene_id, []).append(protein)
+        for protein_id, accession, cross_refs in protein_rows:
+            for gene_id in _gene_ids_from_cross_references(cross_refs):
+                gene_to_proteins.setdefault(gene_id, []).append((protein_id, accession))
 
         if not gene_to_proteins:
             self.stdout.write(
@@ -132,7 +140,7 @@ class Command(BaseCommand):
             return
 
         self.stdout.write(
-            f"{len(proteins)} proteins, {len(gene_to_proteins)} distinct GeneIDs. "
+            f"{len(protein_rows)} proteins, {len(gene_to_proteins)} distinct GeneIDs. "
             "Fetching KEGG gene->pathway links ..."
         )
         try:
@@ -154,7 +162,7 @@ class Command(BaseCommand):
             return
 
         self.stdout.write(
-            f"{len(kegg_to_genes)} distinct pathways to fetch (vs. {len(proteins)} proteins)."
+            f"{len(kegg_to_genes)} distinct pathways to fetch (vs. {len(protein_rows)} proteins)."
         )
 
         linked = 0
@@ -202,9 +210,9 @@ class Command(BaseCommand):
                     if target_kegg_gene in node["kegg_ids"]:
                         highlighted_node_id = node["id"]
                         break
-                for protein in gene_to_proteins[gene_id]:
+                for protein_id, _accession in gene_to_proteins[gene_id]:
                     HumanProteinPathway.objects.update_or_create(
-                        human_protein=protein,
+                        human_protein_id=protein_id,
                         pathway=pathway,
                         defaults={"highlighted_node_id": highlighted_node_id},
                     )

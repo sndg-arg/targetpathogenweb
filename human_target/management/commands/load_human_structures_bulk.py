@@ -124,17 +124,26 @@ class Command(BaseCommand):
             with open(options["accession_file"], encoding="utf-8") as f:
                 accessions.extend(line.strip() for line in f if line.strip())
 
-        proteins_qs = human_proteins_queryset().select_related("bioentry")
+        proteins_qs = human_proteins_queryset()
         if accessions:
             proteins_qs = proteins_qs.filter(uniprot_accession__in=accessions)
-        proteins = list(proteins_qs)
-        if not proteins:
+        # .values_list(), not full HumanProtein instances: at full-proteome
+        # scale, materializing every row pulls in uniprot_raw (the complete
+        # original UniProt record, kept as an audit trail) and every other
+        # JSON field this command never touches -- confirmed via an OOM kill
+        # in production (~3.7GB for ~31,000 rows) in the sibling pathways
+        # command before the same fix was applied there. Only
+        # cross_references_raw and the bioentry FK id are actually needed.
+        rows = list(
+            proteins_qs.values_list("uniprot_accession", "cross_references_raw", "bioentry_id")
+        )
+        if not rows:
             raise CommandError("No matching human proteins found.")
 
         if not options["skip_alphafold"]:
-            self._load_alphafold(proteins, options)
+            self._load_alphafold(rows, options)
         if not options["skip_experimental"]:
-            self._load_experimental(proteins, options)
+            self._load_experimental(rows, options)
 
     def _call_load_af_model(self, code, path, accession, experiment, options):
         try:
@@ -155,21 +164,19 @@ class Command(BaseCommand):
             self.stderr.write(f"  {code} for {accession} failed: {exc}")
             return False
 
-    def _load_alphafold(self, proteins, options):
+    def _load_alphafold(self, rows, options):
         self.stdout.write(f"Indexing {options['alphafold_dir']} ...")
         index = _index_alphafold_dir(options["alphafold_dir"])
         self.stdout.write(f"  {len(index)} AlphaFold model files found.")
 
         loaded = 0
         missing = 0
-        total = len(proteins)
-        for i, protein in enumerate(proteins, start=1):
-            path = index.get(protein.uniprot_accession)
+        total = len(rows)
+        for i, (accession, _cross_refs, _bioentry_id) in enumerate(rows, start=1):
+            path = index.get(accession)
             if path is None:
                 missing += 1
-            elif self._call_load_af_model(
-                f"AF_{protein.uniprot_accession}", path, protein.uniprot_accession, "AF", options
-            ):
+            elif self._call_load_af_model(f"AF_{accession}", path, accession, "AF", options):
                 loaded += 1
 
             if i % PROGRESS_EVERY == 0 or i == total:
@@ -179,11 +186,11 @@ class Command(BaseCommand):
             self.style.SUCCESS(f"AlphaFold: loaded={loaded} missing={missing} of {total}")
         )
 
-    def _load_experimental(self, proteins, options):
+    def _load_experimental(self, rows, options):
         pdb_to_accessions = {}
-        for protein in proteins:
-            for pdb_id in _pdb_ids_from_cross_references(protein.cross_references_raw):
-                pdb_to_accessions.setdefault(pdb_id, []).append(protein.uniprot_accession)
+        for accession, cross_refs, _bioentry_id in rows:
+            for pdb_id in _pdb_ids_from_cross_references(cross_refs):
+                pdb_to_accessions.setdefault(pdb_id, []).append(accession)
 
         if not pdb_to_accessions:
             self.stdout.write(
@@ -191,11 +198,9 @@ class Command(BaseCommand):
             )
             return
 
-        accession_to_bioentry = {p.uniprot_accession: p.bioentry for p in proteins}
+        accession_to_bioentry_id = {accession: bioentry_id for accession, _, bioentry_id in rows}
         total = len(pdb_to_accessions)
-        self.stdout.write(
-            f"{total} distinct experimental PDB entries across {len(proteins)} proteins."
-        )
+        self.stdout.write(f"{total} distinct experimental PDB entries across {len(rows)} proteins.")
 
         linked = 0
         failed = 0
@@ -229,7 +234,7 @@ class Command(BaseCommand):
                     # own bookkeeping.
                     ok = self._call_load_af_model(pdb_id, cif_path, accession, "EX", options)
                     ExperimentalStructureXref.objects.update_or_create(
-                        bioentry=accession_to_bioentry[accession],
+                        bioentry_id=accession_to_bioentry_id[accession],
                         pdb_id=pdb_id,
                         defaults={"method": method},
                     )
