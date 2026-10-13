@@ -1641,6 +1641,11 @@ a.tp-chip--go:hover {
 .tp-breadcrumb-back-icon svg {
     width: 100%;
     height: 100%;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 @media (prefers-reduced-motion: reduce) {
