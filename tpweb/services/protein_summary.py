@@ -178,6 +178,8 @@ def build_target_profile(raw_scores, microbiome_context=None):
         else:
             tone = "neutral"
         display = val.replace("_", " ").replace("no hit", "No hit").replace("no_hit", "No hit")
+        if display in {"Y", "N"}:
+            display = "Yes" if display == "Y" else "No"
         display_kind = ""
         percentage = None
         if name == "gut_microbiome_offtarget" and microbiome_context:
@@ -411,6 +413,7 @@ def _resolve_fpocket_structure_by_max_score(structures):
         "code": best_rs.pdb.code,
         "source": source_key,
         "label": structure_source_label(source_key),
+        "pocket": best_rs.name or "",
     }
 
 
@@ -1271,6 +1274,26 @@ def build_protein_executive_context(
         druggability = None
 
     selected_pocket_evidence = build_selected_pocket_evidence(raw_scores)
+    # Classic-pipeline genomes don't record which structure/pocket produced the
+    # FPocket score, so the evidence card showed "Structure – / Pocket –" while
+    # the header already named the structure. Reuse that same resolution, so
+    # the card says where the number comes from and flags when it isn't the
+    # structure shown in the viewer (annotate_selected_source_status below).
+    if (
+        selected_pocket_evidence
+        and druggability
+        and druggability[2] == "FPocket"
+        and isinstance(druggability[3], dict)
+        and not selected_pocket_evidence["fpocket"]["structure"]
+    ):
+        resolved = druggability[3]
+        selected_pocket_evidence["fpocket"]["structure"] = resolved.get("code") or ""
+        if not selected_pocket_evidence["fpocket"]["pocket"] and resolved.get("pocket"):
+            selected_pocket_evidence["fpocket"]["pocket"] = _format_pocket_label(
+                f"Pocket {resolved['pocket']}"
+                if str(resolved["pocket"]).isdigit()
+                else resolved["pocket"]
+            )
     annotate_selected_source_status(selected_pocket_evidence, structures)
     conservation_profile = build_conservation_profile(raw_scores)
     microbiome_context = build_microbiome_context(raw_scores)
