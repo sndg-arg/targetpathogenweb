@@ -540,8 +540,13 @@ class Command(BaseCommand):
                     overwrite=overwrite,
                 )
             except SystemExit as exc:
+                # load_af_model raises this both on a real failure (missing
+                # file/bioentry) and on its own re-link-an-existing-row
+                # branch (expected whenever this code was already loaded for
+                # a different accession) -- the latter still means the
+                # structure is correctly linked, so the EX xref write below
+                # must not be skipped just because this raised.
                 self.stderr.write(f"  structure {code} for {accession}: {exc}")
-                continue
             except CommandError as exc:
                 self.stderr.write(f"  structure {code} for {accession} failed: {exc}")
                 continue

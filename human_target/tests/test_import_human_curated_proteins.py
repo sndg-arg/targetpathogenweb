@@ -21,6 +21,8 @@ from bioseq.models.BioentryDbxref import BioentryDbxref
 from human_target.models.HumanPathway import HumanPathway
 from human_target.models.HumanProtein import HumanProtein
 from human_target.models.HumanProteinPathway import HumanProteinPathway
+from tpweb.models.BioentryStructure import ExperimentalStructureXref
+from tpweb.models.pdb import PDB
 from human_target.management.commands.import_human_curated_proteins import (
     Command,
     _build_human_protein_fields,
@@ -512,3 +514,36 @@ class WriteBiosequenceTests(TestCase):
         biosequence = Biosequence.objects.get(bioentry=bioentry)
         self.assertEqual(biosequence.seq, "MRGARGAWDFLCVLLLLLRVQTGSS")
         self.assertEqual(biosequence.length, 25)
+
+
+class LoadStructuresTests(TestCase):
+    """load_af_model raises SystemExit both on a real failure and on its own
+    re-link-an-existing-row branch -- the EX xref write must still happen on
+    the latter, or every protein sharing an already-loaded PDB entry with an
+    earlier one would end up linked but missing from its own bookkeeping."""
+
+    def _make_human_protein(self, accession):
+        biodatabase, _ = Biodatabase.objects.get_or_create(name="human_curated_prots")
+        bioentry = Bioentry.objects.create(
+            biodatabase=biodatabase, name=accession, accession=accession, identifier=accession
+        )
+        return bioentry, HumanProtein.objects.create(bioentry=bioentry, uniprot_accession=accession)
+
+    def test_ex_xref_is_written_when_load_af_model_relinks_an_existing_row(self):
+        bioentry, _human_protein = self._make_human_protein("P10722")
+        PDB.objects.create(code="1ABC", experiment="EX", text="")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            protein_dir = Path(tmp)
+            xray_dir = protein_dir / "PDB-X-Ray"
+            xray_dir.mkdir()
+            (xray_dir / "P10722_1ABC.cif").write_text("x", encoding="utf-8")
+
+            Command()._load_structures(
+                protein_dir, "P10722", bioentry, "/app/targetpathogenweb/data", False
+            )
+
+        self.assertTrue(bioentry.structures.filter(pdb__code="1ABC").exists())
+        self.assertTrue(
+            ExperimentalStructureXref.objects.filter(bioentry=bioentry, pdb_id="1ABC").exists()
+        )

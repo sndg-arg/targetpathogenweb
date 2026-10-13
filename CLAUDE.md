@@ -303,8 +303,8 @@ shared components) — zero data/functionality crossover.
   - **Bgee**: bulk per-species TSV exists at `bgee.org/download/gene-expression-calls`, but the
     exact current Homo sapiens download link was **not** confirmed this session (403 on an
     automated fetch) — get it by hand before running that part of the pipeline.
-  - **AlphaFill**: no bulk path found — deferred/optional (`--with-alphafill`, default off) rather
-    than 20,400 sequential rate-limited calls for a secondary enrichment layer.
+  - **AlphaFill**: no bulk path found — deferred entirely for now rather than ~20,400 sequential
+    rate-limited calls for a secondary enrichment layer; would be its own opt-in command later.
   - One-time bulk download: `scripts/cluster/fetch_human_proteome_bulk.sh`, run by hand over SSH on
     the login node (**neocranex**, not nodo0, not a SLURM compute node — mirrors FastTarget's
     one-time cluster setup), staging into the 2TB IT assigned there
@@ -317,6 +317,21 @@ shared components) — zero data/functionality crossover.
     `bioseq.models.Biosequence` row per protein (`seq`/`length`) — needed so the bacterial-shared
     `dump_genome_proteins_fasta` command (for the eventual full-proteome LigQ_2 run) can find a
     sequence for human proteins at all; `import_human_curated_proteins` was patched to do the same.
+  - **Structures — implemented**: `python manage.py load_human_structures_bulk --alphafold-dir
+    /path/to/extracted [--accession ... | --accession-file PATH] [--datadir PATH] [--overwrite]
+    [--skip-alphafold] [--skip-experimental]`. AlphaFold-own-model: the extracted bulk archive
+    (from `fetch_human_proteome_bulk.sh`) is indexed once by filename
+    (`AF-<accession>-F1-model_v<N>.cif[.gz]`), not globbed per accession. Experimental PDB: one
+    `files.rcsb.org/download/<id>.cif` fetch per *distinct* PDB id referenced by our proteins' own
+    `cross_references_raw` (no extra call to look the IDs up), downloaded once and linked to every
+    protein sharing it — reuses `load_af_model` unchanged, same as the pilot, including its
+    re-link-on-existing-row branch (now load-bearing at this scale, since sharing one PDB entry
+    across many human proteins is the common case, not the exception). That branch also exposed a
+    latent bug in the pilot's own `_load_structures`: it skipped writing `ExperimentalStructureXref`
+    whenever `load_af_model` raised `SystemExit` at all, which includes the *successful* re-link
+    case — harmless at 10-protein pilot scale (PDB entries essentially never collide), would have
+    silently dropped the xref for every protein past the first to share one at bulk scale. Fixed in
+    both places: the xref write only skips on a real `CommandError`, not a re-link `SystemExit`.
   - Full plan (phased, pause-and-review between each step, row-count/disk-footprint estimates):
     see the session's saved plan file.
 
