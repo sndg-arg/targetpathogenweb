@@ -913,9 +913,13 @@ a.filter-pill .filter-pill-remove {
     min-width: 320px;
 }
 
+/* Gene column fit to content, same as Protein (gene names are short; the
+   old 150px minimum left mostly empty space). .gene-col still caps very
+   long multi-gene lists with an ellipsis. */
 .protein-table thead th:nth-child(4),
 .protein-table tbody td:nth-child(4) {
-    min-width: 150px;
+    width: 1%;
+    white-space: nowrap;
 }
 
 .protein-table thead th:nth-child(n + 5),
