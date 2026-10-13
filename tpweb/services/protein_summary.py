@@ -414,6 +414,7 @@ def _resolve_fpocket_structure_by_max_score(structures):
         "source": source_key,
         "label": structure_source_label(source_key),
         "pocket": best_rs.name or "",
+        "pdb_id": best_rs.pdb.id,
     }
 
 
@@ -1288,6 +1289,7 @@ def build_protein_executive_context(
     ):
         resolved = druggability[3]
         selected_pocket_evidence["fpocket"]["structure"] = resolved.get("code") or ""
+        selected_pocket_evidence["fpocket"]["viewer_pdb_id"] = resolved.get("pdb_id")
         if not selected_pocket_evidence["fpocket"]["pocket"] and resolved.get("pocket"):
             selected_pocket_evidence["fpocket"]["pocket"] = _format_pocket_label(
                 f"Pocket {resolved['pocket']}"

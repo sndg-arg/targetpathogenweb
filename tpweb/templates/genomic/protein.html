@@ -313,6 +313,14 @@
                         {% trans "Best-ranked pocket identifier from FPocket" as fpocket_pocket_tooltip %}
                         {% trans "Druggability (FPocket)" as fpocket_label %}
                         {% include "components/structure/pocket_evidence_card.html" with tool_key="fpocket" tool_label=fpocket_label tool_tooltip=fpocket_tooltip score=selected_pocket_evidence.fpocket.score structure=selected_pocket_evidence.fpocket.structure pocket=selected_pocket_evidence.fpocket.pocket structure_tooltip=fpocket_structure_tooltip pocket_tooltip=fpocket_pocket_tooltip %}
+                        {% if selected_pocket_evidence.fpocket.viewer_pdb_id and not selected_pocket_evidence.selected_source_visible %}
+                        {# The best FPocket pocket can sit on a structure other than the one #}
+                        {# shown below (that one is picked by sequence coverage) -- give a #}
+                        {# direct way to see it instead of an unexplained mismatch. #}
+                        <a class="btn tp-btn tp-btn--outline tp-btn--sm target-evidence-viewer-link" href="{% url 'tpwebapp:structure' selected_pocket_evidence.fpocket.viewer_pdb_id %}?protein_id={{ protein.id }}">
+                            {% blocktrans with code=selected_pocket_evidence.fpocket.structure %}See this pocket on {{ code }} →{% endblocktrans %}
+                        </a>
+                        {% endif %}
                         {% if selected_pocket_evidence.colabfold.fpocket_score or selected_pocket_evidence.colabfold.p2rank_score %}
                         <div class="target-evidence-card target-evidence-card--secondary" title="{% trans "Pocket scores computed on the ColabFold-predicted model. Compare with the selected scores above to assess consistency across structure sources." %}">
                             <span class="target-evidence-label">{% trans "ColabFold model" %}</span>
