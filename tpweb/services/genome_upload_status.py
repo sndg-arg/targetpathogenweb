@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db.models import Q
 from django.utils import timezone
 
@@ -72,6 +74,43 @@ def _latest_run_for_upload(job):
     return run
 
 
+STALE_UNLINKED_RUN_ERROR = (
+    "Pipeline orchestrator stopped responding -- no progress for "
+    f"over {int(STALE_PIPELINE_RUN_GRACE_SECONDS // 3600)} hours."
+)
+
+
+def fail_stale_unlinked_pipeline_runs(now=None):
+    """Mark RUNNING PipelineRuns with no GenomeUpload and no progress for over
+    STALE_PIPELINE_RUN_GRACE_SECONDS as FAILED.
+
+    Runs launched straight from the orchestrator CLI (resumes, curated
+    imports) have no GenomeUpload, so the per-upload loop in
+    reconcile_genome_uploads never looked at them: a dead one stayed
+    "running" indefinitely and kept the banner/Genomes list showing it as in
+    progress. Their launch_pid is deliberately NOT signalled -- it was
+    recorded inside whichever container launched them, and a day later it may
+    belong to an unrelated process. Returns the number of runs updated."""
+    now = now or timezone.now()
+    cutoff = now - timedelta(seconds=STALE_PIPELINE_RUN_GRACE_SECONDS)
+    stale_runs = PipelineRun.objects.filter(
+        status=PipelineRun.STATUS_RUNNING,
+        genome_upload_id__isnull=True,
+        updated_at__lt=cutoff,
+    )
+    count = 0
+    for run in stale_runs:
+        run.status = PipelineRun.STATUS_FAILED
+        run.error_message = STALE_UNLINKED_RUN_ERROR
+        run.finished_at = now
+        run.launch_pid = None
+        run.save(
+            update_fields=["status", "error_message", "finished_at", "launch_pid", "updated_at"]
+        )
+        count += 1
+    return count
+
+
 def reconcile_genome_uploads(pipeline_status=None, owner=None):
     """Bring GenomeUpload rows in sync with PipelineRun.
 
@@ -85,6 +124,8 @@ def reconcile_genome_uploads(pipeline_status=None, owner=None):
     with existing callers but is intentionally ignored.
     """
     del pipeline_status  # unused — kept for backwards compatibility
+
+    fail_stale_unlinked_pipeline_runs()
 
     queryset = GenomeUpload.objects.all()
     if owner is not None:

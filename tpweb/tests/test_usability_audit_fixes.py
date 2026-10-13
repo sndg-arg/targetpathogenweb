@@ -1,6 +1,11 @@
+from datetime import timedelta
 from types import SimpleNamespace
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
+from django.utils import timezone as django_timezone
+
+from tpweb.models.PipelineRun import PipelineRun
+from tpweb.services.genome_upload_status import reconcile_genome_uploads
 
 from tpweb.services.protein_annotations import _dbxref_label
 from tpweb.services.protein_formula import structure_dependent_columns
@@ -73,3 +78,31 @@ class StructureDependentColumnsTests(SimpleTestCase):
             structure_dependent_columns(score_dict),
             {"Druggability", "p2rank_probability", "colabfold_plddt"},
         )
+
+
+class StaleUnlinkedPipelineRunTests(TestCase):
+    def _run(self, accession, age_hours):
+        run = PipelineRun.objects.create(
+            genome_upload=None,
+            internal_accession=accession,
+            source_accession=accession,
+            gram="n",
+            status=PipelineRun.STATUS_RUNNING,
+        )
+        # auto_now would overwrite updated_at on save(); set it directly.
+        PipelineRun.objects.filter(pk=run.pk).update(
+            updated_at=django_timezone.now() - timedelta(hours=age_hours)
+        )
+        return run
+
+    def test_stale_run_without_upload_is_failed_and_fresh_one_is_kept(self):
+        stale = self._run("public__STALE", age_hours=30)
+        fresh = self._run("public__FRESH", age_hours=2)
+
+        reconcile_genome_uploads()
+
+        stale.refresh_from_db()
+        fresh.refresh_from_db()
+        self.assertEqual(stale.status, PipelineRun.STATUS_FAILED)
+        self.assertIsNone(stale.launch_pid)
+        self.assertEqual(fresh.status, PipelineRun.STATUS_RUNNING)
