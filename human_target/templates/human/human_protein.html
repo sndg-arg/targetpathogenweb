@@ -10,7 +10,13 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260907-gates-priority">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261012-xref-overflow">
+    {# Serif headline face for this page's editorial register only -- see the
+       redesign note at the top of human-protein-detail.css. Not added to
+       masterpage.html, so the bacterial side never loads it. #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261012-editorial-redesign">
 {% endblock %}
 
 {% block breadcrumbs %}
