@@ -69,6 +69,7 @@ from tpweb.services.protein_serializer import (
     score_param_value_map,
 )
 from tpweb.services.report_sources import build_report_sources
+from tpweb.templatetags.custom_tags import score_metric_display
 from tpweb.services.csv_exports import (
     build_export_url,
     build_view_export_url,
@@ -1016,7 +1017,18 @@ class ProteinListView(View):
 
     def _render_report(self, request, assembly_name, sections):
         view_section, table_section, sources_section, references_section = sections
-        all_rows = table_section["rows"]
+        # Score columns are stored as raw strings (an e-value can be a
+        # 60-character "0.000…"); format them exactly like the on-screen
+        # table does. The Excel export keeps the raw values.
+        headers = table_section["headers"]
+        fixed = {"Rank", *self.FIXED_COLUMN_LABELS} - {"Score"}
+        all_rows = [
+            [
+                value if header in fixed else score_metric_display(value, header)
+                for header, value in zip(headers, row, strict=False)
+            ]
+            for row in table_section["rows"]
+        ]
         return render(
             request,
             "search/protein_report.html",
