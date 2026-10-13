@@ -35,9 +35,17 @@
                     <p class="hero-subtitle">{% trans "Search, filter, and prioritize proteins." %}</p>
                 </div>
                 <div class="tp-view-head-actions">
-                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
+                    {# Same filtered/sorted/scored view, two formats: Excel (every row + #}
+                    {# a Data sources sheet) or a printable report with sources and references. #}
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link"
+                       title="{% trans 'Excel workbook: current view, every protein, data sources and references' %}">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
-                        {% trans "Export view" %}
+                        {% trans "Excel" %}
+                    </a>
+                    <a href="{{ report_url }}" target="_blank" rel="noopener" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link"
+                       title="{% trans 'Printable report with data sources and references — save it as PDF from the print dialog' %}">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span>
+                        {% trans "Report (PDF)" %}
                     </a>
                 </div>
             </div>

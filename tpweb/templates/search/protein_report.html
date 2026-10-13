@@ -1,0 +1,93 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/protein-report.css' %}?v=20261012-report">
+{% endblock %}
+
+{% block body %}
+    <article class="protein-report">
+        <header class="protein-report-head">
+            <div>
+                <p class="protein-report-eyebrow">{% trans "Target Pathogen · Protein prioritization report" %}</p>
+                <h1>{{ genome_label }}</h1>
+                <p class="protein-report-meta">
+                    {% blocktrans with date=generated_at|date:"Y-m-d H:i" %}Generated {{ date }}{% endblocktrans %}
+                    {% if user.is_authenticated %} · {{ user.get_username }}{% endif %}
+                </p>
+            </div>
+            <div class="protein-report-actions">
+                <button type="button" class="btn tp-btn tp-btn--primary tp-btn-with-icon" onclick="window.print()">
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                    {% trans "Print / Save as PDF" %}
+                </button>
+                <a href="{{ excel_url }}" class="btn tp-btn tp-btn--neutral">{% trans "Excel (all rows)" %}</a>
+            </div>
+        </header>
+
+        <section class="protein-report-section">
+            <h2>{% trans "Search criteria" %}</h2>
+            <dl class="protein-report-criteria">
+                {% for field, value in view_rows %}
+                    <div>
+                        <dt>{{ field }}</dt>
+                        <dd>{{ value }}</dd>
+                    </div>
+                {% endfor %}
+            </dl>
+        </section>
+
+        <section class="protein-report-section">
+            <h2>{% trans "Proteins" %}</h2>
+            {% if truncated %}
+                <p class="protein-report-note">
+                    {% blocktrans with shown=max_rows total=total_rows %}Showing the top {{ shown }} of {{ total }} proteins. The Excel export contains every row.{% endblocktrans %}
+                </p>
+            {% endif %}
+            <div class="protein-report-table-wrap">
+                <table class="protein-report-table">
+                    <thead>
+                        <tr>{% for header in table_headers %}<th>{{ header }}</th>{% endfor %}</tr>
+                    </thead>
+                    <tbody>
+                        {% for row in table_rows %}
+                            <tr>{% for value in row %}<td>{{ value }}</td>{% endfor %}</tr>
+                        {% empty %}
+                            <tr><td colspan="{{ table_headers|length }}">{% trans "No proteins match these criteria." %}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="protein-report-section protein-report-section--sources">
+            <h2>{% trans "Data sources" %}</h2>
+            <table class="protein-report-table protein-report-table--sources">
+                <thead>
+                    <tr>
+                        <th>{% trans "Column" %}</th>
+                        <th>{% trans "Source / tool" %}</th>
+                        <th>{% trans "What it is" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for column, source, description in source_rows %}
+                        <tr><td>{{ column }}</td><td>{{ source }}</td><td>{{ description }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="protein-report-section">
+            <h2>{% trans "References" %}</h2>
+            <ol class="protein-report-references">
+                {% for reference in reference_rows %}<li>{{ reference.0 }}</li>{% endfor %}
+            </ol>
+            <p class="protein-report-note">
+                {% trans "All scores are computational predictions, not experimental evidence. Full methodology:" %}
+                <a href="{% url 'tpwebapp:data_sources' %}">{% trans "Data sources" %}</a>.
+            </p>
+        </section>
+    </article>
+{% endblock %}

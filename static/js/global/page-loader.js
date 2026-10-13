@@ -181,6 +181,9 @@
 
     function shouldSkipUrl(url) {
         if (!url) return true;
+        // ?export=... answers with a file download, not a new page -- the
+        // overlay would never be cleared (same failure as the VMD link).
+        if (url.searchParams && url.searchParams.has("export")) return true;
         if (url.protocol && !["http:", "https:"].includes(url.protocol)) return true;
         if (url.origin !== window.location.origin) return true;
         if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) return true;

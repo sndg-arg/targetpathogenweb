@@ -8,6 +8,7 @@ from bioseq.models.BioentryQualifierValue import BioentryQualifierValue
 from django.http import JsonResponse
 from django.http import Http404
 from django.urls import reverse
+from django.utils import timezone
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -67,6 +68,7 @@ from tpweb.services.protein_serializer import (
     compute_score_value,
     score_param_value_map,
 )
+from tpweb.services.report_sources import build_report_sources
 from tpweb.services.csv_exports import (
     build_export_url,
     build_view_export_url,
@@ -1008,6 +1010,32 @@ class ProteinListView(View):
 
         return proteins_dto, tdatas
 
+    # The printable report is meant to be read (and saved as PDF), not to
+    # carry a whole proteome -- the Excel export has every row.
+    REPORT_MAX_ROWS = 500
+
+    def _render_report(self, request, assembly_name, sections):
+        view_section, table_section, sources_section, references_section = sections
+        all_rows = table_section["rows"]
+        return render(
+            request,
+            "search/protein_report.html",
+            {
+                "genome": genome_url_slug(assembly_name),
+                "genome_label": display_genome_name(assembly_name),
+                "generated_at": timezone.now(),
+                "view_rows": view_section["rows"],
+                "table_headers": table_section["headers"],
+                "table_rows": all_rows[: self.REPORT_MAX_ROWS],
+                "total_rows": len(all_rows),
+                "truncated": len(all_rows) > self.REPORT_MAX_ROWS,
+                "max_rows": self.REPORT_MAX_ROWS,
+                "source_rows": sources_section["rows"],
+                "reference_rows": references_section["rows"],
+                "excel_url": build_view_export_url(request, strip_params=("page",)),
+            },
+        )
+
     @staticmethod
     def _view_export_sections(
         assembly_name,
@@ -1058,6 +1086,7 @@ class ProteinListView(View):
             "GO",
             "Metabolism",
         ] + list(tcolumns)
+        source_rows, reference_rows = build_report_sources(data_headers)
 
         return [
             {
@@ -1069,6 +1098,16 @@ class ProteinListView(View):
                 "title": "Protein table",
                 "headers": data_headers,
                 "rows": rows,
+            },
+            {
+                "title": "Data sources",
+                "headers": ["Column", "Source / tool", "What it is"],
+                "rows": source_rows,
+            },
+            {
+                "title": "References",
+                "headers": ["Reference"],
+                "rows": reference_rows,
             },
         ]
 
@@ -1803,7 +1842,7 @@ class ProteinListView(View):
         filtered_protein_count = len(ranked_proteins)
 
         export_mode = request.GET.get("export")
-        if export_mode in {"csv", "view_csv"}:
+        if export_mode in {"csv", "view_csv", "report"}:
             export_ids = [protein["id"] for protein in ranked_proteins]
             export_proteins, export_tdatas = self._build_table_rows(
                 assembly_name,
@@ -1840,7 +1879,7 @@ class ProteinListView(View):
                         *[metric_values.get(column, "-") for column in tcolumns],
                     ]
                 )
-            if export_mode == "view_csv":
+            if export_mode in {"view_csv", "report"}:
                 sections = self._view_export_sections(
                     assembly_name=assembly_name,
                     biodb_description=bdb.description if bdb.description else "",
@@ -1861,6 +1900,8 @@ class ProteinListView(View):
                     rows=rows,
                     total_count=len(rows),
                 )
+                if export_mode == "report":
+                    return self._render_report(request, assembly_name, sections)
                 return xlsx_sections_response(
                     f"{display_genome_name(assembly_name)}-protein-view",
                     sections,
@@ -2114,6 +2155,9 @@ class ProteinListView(View):
                     if label != "Score" or formula is not None
                 ],
                 "export_url": build_export_url(request, strip_params=("page",)),
+                "report_url": build_export_url(
+                    request, export_value="report", strip_params=("page",)
+                ),
                 "view_export_url": build_view_export_url(request, strip_params=("page",)),
                 "sort_col": effective_sort_col,
                 "sort_dir": effective_sort_dir,

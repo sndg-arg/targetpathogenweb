@@ -2200,3 +2200,22 @@ class PocketScoreLabelTests(SimpleTestCase):
         self.assertEqual(
             pocket_score_label(0.82, "fpocket"), "0.82 · High — FPocket druggability (0–1)"
         )
+
+
+class ReportSourcesTests(TestCase):
+    def test_sources_and_references_follow_the_exported_columns(self):
+        from tpweb.services.report_sources import REFERENCES, build_report_sources
+
+        source_rows, reference_rows = build_report_sources(
+            ["Protein", "Structure", "human_identity"]
+        )
+
+        self.assertEqual(
+            [row[0] for row in source_rows], ["Protein", "Structure", "Human identity (%)"]
+        )
+        self.assertIn("DIAMOND", source_rows[2][1])
+        references = [row[0] for row in reference_rows]
+        self.assertEqual(references[0], REFERENCES["genbank"])
+        self.assertIn(REFERENCES["alphafold_db"], references)
+        self.assertIn(REFERENCES["diamond"], references)
+        self.assertNotIn(REFERENCES["psortb"], references)
