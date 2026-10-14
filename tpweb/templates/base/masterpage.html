@@ -1381,12 +1381,12 @@
                 align-items: center;
                 gap: 6px;
                 flex-wrap: wrap;
-                /* Centered in the space between brand and the account
-                   controls, instead of hugging the logo -- left-hugged, all
-                   the bar's visual weight sat on the left with a bare gap
-                   before the account widget on wide screens. */
+                /* Grouped on the right with the account controls. Centered
+                   was fine with six links; with four it left a wide empty
+                   band on each side of them. */
                 flex: 1;
-                justify-content: center;
+                justify-content: flex-end;
+                margin-right: 18px;
             }
 
             .tp-topbar-desktop-link {
