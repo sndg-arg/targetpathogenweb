@@ -29,7 +29,7 @@ VISIBILITY_LABELS = {
     VISIBILITY_PROJECT: "Project members",
     VISIBILITY_PUBLIC: "Everyone who can see this genome",
 }
-RESTRICTED_GENOME_SHARED_LABEL = "Project members (this genome is restricted)"
+RESTRICTED_GENOME_SHARED_LABEL = "Project members (restricted genome)"
 
 SHARED_COLUMNS_CATEGORY = "Shared by users"
 
@@ -100,7 +100,8 @@ def name_conflicts(owner, genome_name, column_names):
 
 def uploaded_column_names(uploaded_file):
     """Header columns after `gene`, read without consuming the upload."""
-    separator = "," if str(getattr(uploaded_file, "name", "")).lower().endswith(".csv") else "	"
+    is_csv = str(getattr(uploaded_file, "name", "")).lower().endswith(".csv")
+    separator = "," if is_csv else "\t"
     uploaded_file.seek(0)
     first_line = uploaded_file.readline()
     uploaded_file.seek(0)

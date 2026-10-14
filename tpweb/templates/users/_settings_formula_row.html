@@ -1,0 +1,19 @@
+{% load i18n %}
+<li class="settings-row">
+    <div class="settings-row-main">
+        <span class="settings-item-name">{{ row.obj.name }}</span>
+        {% if show_owner %}<span class="settings-item-meta">{% trans "Scoring formula" %} · {{ row.obj.user.name|default:row.obj.user.get_username }}</span>{% endif %}
+    </div>
+    <div class="settings-row-controls">
+        <form method="post" action="{% url 'tpwebapp:settings' %}" class="settings-visibility-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="set_formula_visibility">
+            <input type="hidden" name="formula_id" value="{{ row.obj.pk }}">
+            <select name="visibility" class="form-control tp-ui-control" aria-label="{% blocktrans with name=row.obj.name %}Who can see {{ name }}{% endblocktrans %}" onchange="this.form.submit()">
+                {% for value, label in formula_visibility_choices %}
+                <option value="{{ value }}" {% if value == row.visibility %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+</li>

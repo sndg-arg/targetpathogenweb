@@ -25,6 +25,29 @@ from tpweb.services.visibility_settings import (
 from tpweb.views.mixins import PermissionLockedMixin
 
 
+def _group_by_owner(formula_rows, param_rows):
+    """Admin overview: one collapsible block per user instead of one long
+    table of every user's items."""
+    groups = {}
+    for kind, rows in (("formulas", formula_rows), ("columns", param_rows)):
+        for row in rows:
+            owner = row["obj"].user
+            group = groups.setdefault(
+                owner.pk,
+                {
+                    "label": (owner.name or "").strip() or owner.get_username(),
+                    "formulas": [],
+                    "columns": [],
+                },
+            )
+            group[kind].append(row)
+    for group in groups.values():
+        group["shared_count"] = sum(
+            1 for row in group["formulas"] + group["columns"] if row["visibility"] != "private"
+        )
+    return sorted(groups.values(), key=lambda group: group["label"].casefold())
+
+
 class SettingsView(PermissionLockedMixin, View):
     """Owner-controlled visibility for scoring formulas and custom params,
     plus (superuser-only) a supervising overview of every user's items and
@@ -64,10 +87,16 @@ class SettingsView(PermissionLockedMixin, View):
             all_formula_rows, all_param_rows = self._rows(
                 all_shareable_formulas(), all_shareable_custom_params()
             )
+            shared_formula_rows = [
+                row for row in all_formula_rows if row["visibility"] != "private"
+            ]
+            shared_param_rows = [row for row in all_param_rows if row["visibility"] != "private"]
             context.update(
                 {
-                    "all_formula_rows": all_formula_rows,
-                    "all_param_rows": all_param_rows,
+                    "shared_formula_rows": shared_formula_rows,
+                    "shared_param_rows": shared_param_rows,
+                    "shared_total": len(shared_formula_rows) + len(shared_param_rows),
+                    "user_groups": _group_by_owner(all_formula_rows, all_param_rows),
                     "restricted_genomes": [
                         {"obj": rg, "label": display_genome_name(rg.genome_name)}
                         for rg in RestrictedGenome.objects.select_related("restricted_by")

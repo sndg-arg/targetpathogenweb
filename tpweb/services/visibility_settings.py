@@ -8,16 +8,21 @@ shared per genome, see tpweb.services.custom_param_sharing.
 
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam
-from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME, resolve_workspace_user
+from tpweb.services.workspace import (
+    PUBLIC_WORKSPACE_USERNAME,
+    get_public_workspace_user,
+    resolve_workspace_user,
+)
 
 VISIBILITY_PRIVATE = "private"
 VISIBILITY_GATES = "gates"
 VISIBILITY_PUBLIC = "public"
 
+# Same wording as uploaded columns (custom_param_sharing.VISIBILITY_LABELS).
 FORMULA_VISIBILITY_CHOICES = [
-    (VISIBILITY_PRIVATE, "Private (only me)"),
-    (VISIBILITY_GATES, "Shared with project members"),
-    (VISIBILITY_PUBLIC, "Public (every signed-in user)"),
+    (VISIBILITY_PRIVATE, "Only me"),
+    (VISIBILITY_GATES, "Project members"),
+    (VISIBILITY_PUBLIC, "Everyone signed in"),
 ]
 
 
@@ -44,9 +49,34 @@ def set_formula_visibility(formula, user, visibility):
     return True
 
 
+def _builtin_formula_expressions():
+    """The base formulas (Druggability, Localization, ...) as the public
+    workspace has them. Older accounts got their own seeded copy of each."""
+    return {
+        formula.name: (formula.expression or "").strip()
+        for formula in ScoreFormula.objects.filter(user=get_public_workspace_user())
+    }
+
+
+def _without_builtin_copies(formulas):
+    """Drops untouched copies of the base formulas -- every user has one and
+    there's nothing of theirs to share in it (they made dozens of rows of
+    noise on the Settings page). An edited copy stays."""
+    builtin = _builtin_formula_expressions()
+    kept = []
+    for formula in formulas:
+        expression = (formula.expression or "").strip()
+        is_copy = formula.name in builtin and expression in ("", builtin[formula.name])
+        if not is_copy:
+            kept.append(formula)
+    return kept
+
+
 def formulas_owned_by(user):
     workspace_user = resolve_workspace_user(user)
-    return ScoreFormula.objects.filter(user=workspace_user).order_by("name", "id")
+    return _without_builtin_copies(
+        ScoreFormula.objects.filter(user=workspace_user).order_by("name", "id")
+    )
 
 
 def custom_params_owned_by(user):
@@ -57,7 +87,7 @@ def custom_params_owned_by(user):
 def all_shareable_formulas():
     """Every real (non-anonymous-workspace) user's own formula, for the
     superuser overview table."""
-    return (
+    return _without_builtin_copies(
         ScoreFormula.objects.filter(user__isnull=False)
         .exclude(user__username=PUBLIC_WORKSPACE_USERNAME)
         .select_related("user")

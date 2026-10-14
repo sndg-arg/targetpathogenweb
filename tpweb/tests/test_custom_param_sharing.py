@@ -167,3 +167,23 @@ class CustomParamSharingTests(TestCase):
         label_shared_columns(params, self.basic)
         self.assertEqual(params[0].category, "Shared by users")
         self.assertEqual(params[0].description, "Shared by owner. Lab assay")
+
+
+class SettingsFormulaListTests(TestCase):
+    def test_untouched_copies_of_the_built_in_formulas_are_left_out(self):
+        from tpweb.models.ScoreFormula import ScoreFormula
+        from tpweb.services.visibility_settings import formulas_owned_by
+        from tpweb.services.workspace import get_public_workspace_user
+
+        user = get_user_model().objects.create_user("student", password="x")
+        ScoreFormula.objects.update_or_create(
+            name="Druggability",
+            user=get_public_workspace_user(),
+            defaults={"expression": "Druggability"},
+        )
+        ScoreFormula.objects.get_or_create(name="Localization", user=get_public_workspace_user())
+        ScoreFormula.objects.create(name="Druggability", user=user, expression="Druggability")
+        ScoreFormula.objects.create(name="Localization", user=user, expression="")
+        ScoreFormula.objects.create(name="My score", user=user, expression="Druggability * 2")
+
+        self.assertEqual([f.name for f in formulas_owned_by(user)], ["My score"])

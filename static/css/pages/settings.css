@@ -1,10 +1,9 @@
-/* ── Settings — visibility controls for scoring formulas, custom params,
-   and (owner-only) restricted genomes. Same grid-row list idiom as
-   user-management.css's .user-mgmt-list, under its own page-scoped class
-   names per the one-CSS-file-per-page rule. ── */
+/* ── Settings — who can see each scoring formula and uploaded column, plus
+   (admin only) everyone's items and the restricted-genomes list. Plain rows
+   with the name on the left and the control on the right, instead of the
+   old header-bar tables. ── */
 
 .settings-page {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
     color: var(--tp-color-text-primary);
     margin: 0;
 }
@@ -13,81 +12,132 @@
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
+.settings-page h1,
+.settings-page h2,
+.settings-page h3 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    letter-spacing: -0.01em;
+}
+
 .settings-hero,
 .settings-section {
     padding: 28px 18px;
 }
 
+.settings-hero h1 {
+    margin: 0;
+    font-size: var(--tp-heading-lg);
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--tp-color-brand-900);
+}
+
 .settings-hero-description {
-    margin: 8px 0 0;
+    margin: 10px 0 0;
+    max-width: 760px;
     color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-md);
+    font-size: 1.03rem;
+    line-height: 1.52;
+}
+
+.settings-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    margin: 16px 0 0;
+    font-size: var(--tp-font-size-sm);
+}
+
+.settings-legend div {
+    display: flex;
+    gap: 6px;
+}
+
+.settings-legend dt {
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+.settings-legend dd {
+    margin: 0;
+    color: var(--tp-color-text-muted);
+}
+
+.settings-eyebrow {
+    margin: 0 0 6px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .settings-section-title {
-    margin: 8px 0 0;
-    font-size: var(--tp-font-size-lg);
-}
-
-.settings-list {
-    max-width: 900px;
-    border-top: 1px solid var(--tp-color-border-soft);
-}
-
-.settings-list-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 220px;
-    align-items: center;
-    column-gap: 16px;
-    padding: 12px 18px;
-    background: var(--tp-color-surface);
-}
-
-.settings-list--3col .settings-list-row {
-    grid-template-columns: minmax(0, 1fr) 160px 140px;
-}
-
-.settings-list--4col {
-    max-width: 1040px;
-}
-
-.settings-list--4col .settings-list-row {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 180px) 240px 84px;
-}
-
-.settings-list--4col.settings-list--owner .settings-list-row {
-    grid-template-columns: minmax(0, 160px) minmax(0, 1fr) minmax(0, 180px) 240px;
-}
-
-.settings-list-row + .settings-list-row {
-    border-top: 1px solid var(--tp-color-border-soft);
-}
-
-.settings-list-row--head {
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-label);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0;
+    font-size: var(--tp-font-size-xl);
     font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+}
+
+.settings-section-description {
+    margin: 6px 0 0;
+    max-width: 760px;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.settings-section-description a,
+.settings-note a {
+    color: var(--tp-color-link);
+}
+
+.settings-subtitle {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 26px 0 0;
+    font-size: var(--tp-font-size-md);
+    font-weight: 600;
+}
+
+.settings-count {
+    color: var(--tp-color-text-muted);
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+/* ── Rows ── */
+
+.settings-rows {
+    max-width: 880px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-row:last-child {
     border-bottom: 1px solid var(--tp-color-border-soft);
 }
 
-.settings-list-cell {
+.settings-row-main {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    gap: 2px;
     min-width: 0;
-}
-
-.settings-list-cell--meta {
-    color: var(--tp-color-text-secondary);
-    font-size: 0.9rem;
-}
-
-.settings-list-cell--visibility,
-.settings-list-cell--actions {
-    justify-content: flex-end;
 }
 
 .settings-item-name {
@@ -97,46 +147,114 @@
     white-space: nowrap;
 }
 
-.settings-visibility-form select {
-    min-width: 200px;
+.settings-item-meta {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
 }
 
+.settings-item-meta strong {
+    color: var(--tp-color-text-secondary);
+    font-weight: 600;
+}
+
+.settings-row-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.settings-row-controls form {
+    margin: 0;
+}
+
+/* The select is swapped for the site's custom dropdown (custom-select.js),
+   which fills its container -- so the width lives on the form. */
+.settings-visibility-form {
+    width: 300px;
+    max-width: 100%;
+}
+
+.settings-visibility-form select {
+    width: 100%;
+    font-size: var(--tp-font-size-sm);
+}
+
+.settings-empty,
 .settings-note {
-    margin: 14px 0 0;
+    margin: 10px 0 0;
+    max-width: 760px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
-.settings-note a {
-    color: var(--tp-color-link);
+/* ── Admin: one collapsible block per user ── */
+
+.settings-users {
+    max-width: 880px;
+    margin-top: 10px;
+    border-top: 1px solid var(--tp-color-border-soft);
 }
 
-.settings-note a:hover {
-    color: var(--tp-color-link-hover);
+.settings-user {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-user summary {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    padding: 11px 0;
+    cursor: pointer;
+    list-style: none;
+}
+
+.settings-user summary::-webkit-details-marker {
+    display: none;
+}
+
+.settings-user summary::before {
+    content: "▸";
+    color: var(--tp-color-text-muted);
+    font-size: 0.8em;
+    transition: transform 0.15s ease;
+}
+
+.settings-user[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.settings-user-name {
+    font-weight: 600;
+}
+
+.settings-user .settings-rows {
+    margin: 0 0 12px 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .settings-user summary::before {
+        transition: none;
+    }
 }
 
 @media (max-width: 640px) {
-    .settings-list-row,
-    .settings-list--3col .settings-list-row,
-    .settings-list--4col .settings-list-row,
-    .settings-list--4col.settings-list--owner .settings-list-row {
-        grid-template-columns: 1fr;
-        row-gap: 8px;
-        padding: 14px 16px;
+    .settings-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
     }
 
-    .settings-list-row--head {
-        display: none;
-    }
-
-    .settings-list-cell--visibility,
-    .settings-list-cell--actions {
-        justify-content: flex-start;
-    }
-
-    .settings-visibility-form select {
+    .settings-row-controls {
+        flex-shrink: 1;
         min-width: 0;
-        width: 100%;
+    }
+
+    .settings-visibility-form {
+        flex: 1;
+        width: auto;
+        min-width: 0;
     }
 }
