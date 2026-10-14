@@ -1381,9 +1381,8 @@
                 align-items: center;
                 gap: 6px;
                 flex-wrap: wrap;
-                /* Grouped on the right with the account controls. Centered
-                   was fine with six links; with four it left a wide empty
-                   band on each side of them. */
+                /* Grouped on the right with the account controls -- centered,
+                   the short link row left a wide empty band on each side. */
                 flex: 1;
                 justify-content: flex-end;
                 margin-right: 18px;
@@ -2402,6 +2401,10 @@
             <span class="tp-topbar-desktop-wordmark">{% trans "Target Pathogen" %}</span>
         </a>
         <div class="tp-topbar-desktop-nav">
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}" aria-label="{% trans 'Home' %}" href="{% url 'tpwebapp:index' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>
+                <span>{% trans "Home" %}</span>
+            </a>
             <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' or request.resolver_match.url_name == 'customparam' or request.resolver_match.url_name == 'formula_form' %}active{% endif %}" aria-label="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span>
                 <span>{% trans "Genomes" %}</span>
@@ -2520,6 +2523,9 @@
         <div class="collapse navbar-collapse" id="navbarCollapse">
             {% with url_name=request.resolver_match.url_name %}
             <ul class="navbar-nav mr-auto mb-2 mb-md-0">
+                <li class="nav-item">
+                    <a class="nav-link{% if url_name == 'index' %} is-active{% endif %}" {% if url_name == 'index' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:index' %}">{% trans "Home" %}</a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' or url_name == 'formula_form' or url_name == 'customparam' %} is-active{% endif %}" {% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
                 </li>
