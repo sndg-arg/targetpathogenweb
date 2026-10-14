@@ -1773,6 +1773,42 @@
                 display: none;
             }
 
+            /* Gear shortcut to Settings, same ghost-icon look as the theme switch. */
+            .tp-topbar-desktop-settings {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 auto;
+                padding: 8px;
+                border-radius: 9px;
+                color: rgba(231, 244, 249, 0.72);
+                transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                            color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+            }
+
+            .tp-topbar-desktop-settings:hover,
+            .tp-topbar-desktop-settings:focus-visible,
+            .tp-topbar-desktop-settings.active {
+                background: rgba(255, 255, 255, 0.12);
+                color: rgba(255, 255, 255, 0.95);
+            }
+
+            .tp-topbar-desktop-settings-icon {
+                display: inline-flex;
+                width: 16px;
+                height: 16px;
+            }
+
+            .tp-topbar-desktop-settings-icon svg {
+                width: 100%;
+                height: 100%;
+                transition: transform 0.4s var(--tp-ui-ease-standard);
+            }
+
+            .tp-topbar-desktop-settings:hover .tp-topbar-desktop-settings-icon svg {
+                transform: rotate(60deg);
+            }
+
             .tp-main {
                 max-width: none;
                 margin: 0;
@@ -1790,7 +1826,8 @@
         @media (prefers-reduced-motion: reduce) {
             .btn,
             a,
-            .tp-topbar-desktop-link {
+            .tp-topbar-desktop-link,
+            .tp-topbar-desktop-settings-icon svg {
                 transition: none;
             }
         }
@@ -2394,7 +2431,7 @@
                         </a>
                         {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
                         <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" href="{% url 'tpwebapp:settings' %}">
-                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
+                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/gear.html" %}</span>
                             {% trans "Settings" %}
                         </a>
                         {% endif %}
@@ -2437,6 +2474,11 @@
                     <span class="tp-topbar-desktop-login-icon" aria-hidden="true">{% include "components/icons/log_in.html" %}</span>
                     {% trans "Login" %}
                 </a>
+            {% endif %}
+            {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
+            <a class="tp-topbar-desktop-settings {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" href="{% url 'tpwebapp:settings' %}" aria-label="{% trans 'Settings' %}" title="{% trans 'Settings: who can see your formulas and data' %}">
+                <span class="tp-topbar-desktop-settings-icon" aria-hidden="true">{% include "components/icons/gear.html" %}</span>
+            </a>
             {% endif %}
             <span class="tp-topbar-desktop-divider" aria-hidden="true"></span>
             <button id="tp-theme-toggle" class="tp-theme-toggle tp-theme-toggle--icon-only" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
