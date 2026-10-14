@@ -203,8 +203,8 @@ def delete_column(score_param, genome_name, user):
 def owner_label(user):
     if user is None:
         return ""
-    full_name = (getattr(user, "name", "") or user.get_full_name() or "").strip()
-    return full_name or user.get_username()
+    # TPUser drops first_name/last_name (get_full_name() gives "None None").
+    return (getattr(user, "name", "") or "").strip() or user.get_username()
 
 
 def label_shared_columns(score_params, workspace_user):
