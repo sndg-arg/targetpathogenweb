@@ -54,8 +54,8 @@ class SettingsView(PermissionLockedMixin, View):
     the existing restricted-genomes list. Any approved user who can manage
     formulas/custom params can reach this page -- that's every role today
     (see tpweb.services.user_permissions.PROFILE_PRESETS) -- to decide
-    their own items' visibility; a superuser can additionally override
-    anyone's."""
+    their own items' visibility. A superuser sees everyone's items here
+    read-only -- only the owner can change who sees them."""
 
     template_name = "users/settings.html"
     page_title = "Settings"
@@ -68,9 +68,13 @@ class SettingsView(PermissionLockedMixin, View):
         )
 
     def _rows(self, formulas, params):
-        formula_rows = [
-            {"obj": formula, "visibility": formula_visibility(formula)} for formula in formulas
-        ]
+        labels = dict(FORMULA_VISIBILITY_CHOICES)
+        formula_rows = []
+        for formula in formulas:
+            visibility = formula_visibility(formula)
+            formula_rows.append(
+                {"obj": formula, "visibility": visibility, "visibility_label": labels[visibility]}
+            )
         return formula_rows, column_rows(params)
 
     def get(self, request, *args, **kwargs):

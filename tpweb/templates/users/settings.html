@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261014-settings-redesign">
+    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261014-admin-readonly">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -56,13 +56,13 @@
     <section class="settings-section">
         <p class="settings-eyebrow">{% trans "Admin only" %}</p>
         <h2 class="settings-section-title">{% trans "Everyone's formulas and data" %}</h2>
-        <p class="settings-section-description">{% trans "You can change anyone's visibility here. Built-in formula copies are left out." %}</p>
+        <p class="settings-section-description">{% trans "Read-only: only the owner can change who sees their formulas and data. Built-in formula copies are left out." %}</p>
 
         <h3 class="settings-subtitle">{% trans "Shared right now" %} <span class="settings-count">{{ shared_total }}</span></h3>
         {% if shared_formula_rows or shared_param_rows %}
         <ul class="settings-rows">
-            {% for row in shared_formula_rows %}{% include "users/_settings_formula_row.html" with show_owner=True %}{% endfor %}
-            {% for row in shared_param_rows %}{% include "users/_settings_column_row.html" with show_owner=True %}{% endfor %}
+            {% for row in shared_formula_rows %}{% include "users/_settings_formula_row.html" with show_owner=True readonly=True %}{% endfor %}
+            {% for row in shared_param_rows %}{% include "users/_settings_column_row.html" with show_owner=True readonly=True %}{% endfor %}
         </ul>
         {% else %}
         <p class="settings-empty">{% trans "Nothing is shared right now." %}</p>
@@ -82,8 +82,8 @@
                     </span>
                 </summary>
                 <ul class="settings-rows">
-                    {% for row in group.formulas %}{% include "users/_settings_formula_row.html" %}{% endfor %}
-                    {% for row in group.columns %}{% include "users/_settings_column_row.html" %}{% endfor %}
+                    {% for row in group.formulas %}{% include "users/_settings_formula_row.html" with readonly=True %}{% endfor %}
+                    {% for row in group.columns %}{% include "users/_settings_column_row.html" with readonly=True %}{% endfor %}
                 </ul>
             </details>
             {% endfor %}

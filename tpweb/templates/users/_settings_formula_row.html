@@ -5,6 +5,9 @@
         {% if show_owner %}<span class="settings-item-meta">{% trans "Scoring formula" %} · {{ row.obj.user.name|default:row.obj.user.get_username }}</span>{% endif %}
     </div>
     <div class="settings-row-controls">
+        {% if readonly %}
+        <span class="settings-visibility-label">{{ row.visibility_label }}</span>
+        {% else %}
         <form method="post" action="{% url 'tpwebapp:settings' %}" class="settings-visibility-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="set_formula_visibility">
@@ -15,5 +18,6 @@
                 {% endfor %}
             </select>
         </form>
+        {% endif %}
     </div>
 </li>

@@ -164,27 +164,30 @@ def column_rows(params):
             visibility = shares.get((param.pk, genome_name), VISIBILITY_PRIVATE)
             if is_restricted and visibility == VISIBILITY_PROJECT:
                 visibility = VISIBILITY_PUBLIC
+            choices = (
+                [
+                    (VISIBILITY_PRIVATE, VISIBILITY_LABELS[VISIBILITY_PRIVATE]),
+                    (VISIBILITY_PUBLIC, RESTRICTED_GENOME_SHARED_LABEL),
+                ]
+                if is_restricted
+                else list(VISIBILITY_LABELS.items())
+            )
             rows.append(
                 {
                     "obj": param,
                     "genome_name": genome_name,
                     "genome_label": display_genome_name(genome_name),
                     "visibility": visibility,
-                    "choices": (
-                        [
-                            (VISIBILITY_PRIVATE, VISIBILITY_LABELS[VISIBILITY_PRIVATE]),
-                            (VISIBILITY_PUBLIC, RESTRICTED_GENOME_SHARED_LABEL),
-                        ]
-                        if is_restricted
-                        else list(VISIBILITY_LABELS.items())
-                    ),
+                    "visibility_label": dict(choices).get(visibility, visibility),
+                    "choices": choices,
                 }
             )
     return rows
 
 
 def _can_manage(user, score_param):
-    return bool(user) and (user.is_superuser or user.pk == score_param.user_id)
+    # Owner only -- an admin sees other people's columns but can't change them.
+    return bool(user) and user.pk == score_param.user_id
 
 
 def update_column_visibility(score_param, genome_name, user, visibility):

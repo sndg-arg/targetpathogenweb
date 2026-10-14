@@ -2,7 +2,7 @@
 the owner listings of formulas and uploaded columns -- backs the Settings
 page (tpweb/views/SettingsView.py). The owner decides their own items'
 visibility at creation or later from this page; a superuser additionally
-sees every user's items here to review or override. Uploaded columns are
+sees every user's items here, read-only. Uploaded columns are
 shared per genome, see tpweb.services.custom_param_sharing.
 """
 
@@ -35,12 +35,13 @@ def formula_visibility(formula):
 
 
 def _can_manage(user, owner_id):
-    return bool(user) and (user.is_superuser or user.pk == owner_id)
+    # Owner only -- not even a superuser changes someone else's sharing.
+    return bool(user) and user.pk == owner_id
 
 
 def set_formula_visibility(formula, user, visibility):
-    """Returns False (no-op) if `user` doesn't own `formula` and isn't a
-    superuser -- callers should treat that as a permission error."""
+    """Returns False (no-op) if `user` doesn't own `formula` -- callers
+    should treat that as a permission error."""
     if not _can_manage(user, formula.user_id):
         return False
     formula.public = visibility == VISIBILITY_PUBLIC

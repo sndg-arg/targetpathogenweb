@@ -5,6 +5,9 @@
         <span class="settings-item-meta">{% if show_owner %}{% blocktrans with genome=row.genome_label owner=row.obj.user.name|default:row.obj.user.get_username %}Uploaded column on {{ genome }} · {{ owner }}{% endblocktrans %}{% else %}{% blocktrans with genome=row.genome_label %}On {{ genome }}{% endblocktrans %}{% endif %}</span>
     </div>
     <div class="settings-row-controls">
+        {% if readonly %}
+        <span class="settings-visibility-label">{{ row.visibility_label }}</span>
+        {% else %}
         <form method="post" action="{% url 'tpwebapp:settings' %}" class="settings-visibility-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="set_param_visibility">
@@ -16,6 +19,7 @@
                 {% endfor %}
             </select>
         </form>
+        {% endif %}
         {% if show_delete %}
         <form method="post" action="{% url 'tpwebapp:settings' %}" onsubmit="return confirm(this.dataset.confirm);" data-confirm="{% blocktrans with name=row.obj.name genome=row.genome_label %}Delete {{ name }} from {{ genome }}? Anyone you shared it with will stop seeing it too.{% endblocktrans %}">
             {% csrf_token %}

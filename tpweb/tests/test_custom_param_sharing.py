@@ -216,3 +216,23 @@ class PrivateColumnLeakTests(SharingFixture, TestCase):
             defaults={"type": "N", "default_operation": ">=", "default_value": "0"},
         )
         self.assertEqual(built_in_name_conflicts(["Druggability", "lab_score"]), ["Druggability"])
+
+
+class OwnerOnlySharingTests(SharingFixture, TestCase):
+    def test_a_superuser_cannot_change_or_delete_someone_elses_column(self):
+        from tpweb.services.custom_param_sharing import update_column_visibility
+
+        admin = get_user_model().objects.create_superuser("boss", password="x")
+        self.assertFalse(update_column_visibility(self.param, GENOME, admin, VISIBILITY_PUBLIC))
+        self.assertFalse(delete_column(self.param, GENOME, admin))
+        self.assertTrue(update_column_visibility(self.param, GENOME, self.owner, VISIBILITY_PUBLIC))
+
+    def test_a_superuser_cannot_change_someone_elses_formula(self):
+        from tpweb.models.ScoreFormula import ScoreFormula
+        from tpweb.services.visibility_settings import set_formula_visibility
+
+        admin = get_user_model().objects.create_superuser("boss", password="x")
+        formula = ScoreFormula.objects.create(name="Mine", user=self.owner, expression="1")
+        self.assertFalse(set_formula_visibility(formula, admin, "public"))
+        formula.refresh_from_db()
+        self.assertFalse(formula.public)

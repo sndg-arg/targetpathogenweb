@@ -180,6 +180,13 @@
     font-size: var(--tp-font-size-sm);
 }
 
+.settings-visibility-label {
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
 .settings-empty,
 .settings-note {
     margin: 10px 0 0;
