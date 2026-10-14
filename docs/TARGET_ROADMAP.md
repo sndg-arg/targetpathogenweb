@@ -494,6 +494,14 @@ Permitir columnas custom por genoma o analisis.
 - Validacion al importar.
 - Provenance de quien cargo cada columna.
 
+**Hecho (13/10).** Compartir por genoma al subir (solo yo / miembros del proyecto / todos los que ven
+el genoma; en genomas restringidos las dos ultimas son lo mismo), descripcion obligatoria al
+compartir, grupo "Shared by users" en Columns/Filters con autor, sin agregarse solo a la tabla.
+Settings permite cambiar visibilidad y borrar por genoma; borrar la saca para todos. Nombres
+repetidos: la columna propia gana y no se puede compartir un nombre ya compartido por otro.
+
+**Pendiente.** Pagina por genoma con los datos cargados por usuarios (detalle, descarga del TSV).
+
 ### Auditoria y migracion de funcionalidades del Target viejo
 
 Revisar el Target viejo y documentar que conviene migrar o reinterpretar.
