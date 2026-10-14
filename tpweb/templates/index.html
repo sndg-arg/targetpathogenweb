@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261014-settings-link">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261014-settings-button">
 {% endblock %}
 
 {% block body %}
@@ -30,14 +30,13 @@
                     {% trans "BLAST a genome" as run_blast_label %}
                     {% trans "Nucleotide BLAST against a genome you choose. For protein BLAST, open a genome page." as run_blast_title %}
                     {% include "components/buttons/action.html" with variant="outline" href=run_blast_href label=run_blast_label title=run_blast_title icon_template="components/icons/play.html" %}
+                    {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
+                    {% url 'tpwebapp:settings' as settings_href %}
+                    {% trans "Settings" as settings_label %}
+                    {% trans "Choose who can see your formulas and uploaded data" as settings_title %}
+                    {% include "components/buttons/action.html" with variant="outline" href=settings_href label=settings_label title=settings_title icon_template="components/icons/gear.html" %}
+                    {% endif %}
                 </div>
-                {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
-                <a class="home-settings-link" href="{% url 'tpwebapp:settings' %}">
-                    <span class="home-settings-link-icon" aria-hidden="true">{% include "components/icons/gear.html" %}</span>
-                    {% trans "Settings: choose who can see your formulas and uploaded data" %}
-                    <span aria-hidden="true">→</span>
-                </a>
-                {% endif %}
             </div>
         </section>
 
