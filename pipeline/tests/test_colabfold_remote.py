@@ -36,6 +36,7 @@ def _config(**overrides):
         gpu_pending_wait_seconds=0,
         cpu_pending_wait_seconds=0,
         remote_completion_grace_seconds=120,
+        ssh_outage_wait_seconds=600,
         conda_prefix="/home/shared/miniconda3.8",
         conda_env="colabfold",
         num_recycles=3,
@@ -291,6 +292,9 @@ class RunRemoteColabfoldBatchSwitchTests(unittest.TestCase):
             ),
             mock.patch.object(cfr, "_find_candidates", return_value=candidates),
             mock.patch.object(cfr, "_assert_ssh_reachable"),
+            mock.patch.object(
+                cfr, "_recover_remote_outputs", side_effect=lambda c, f, g, cands: cands
+            ),
             mock.patch.object(cfr, "_run_batched_gpu_pass", return_value=batch_result) as batched,
             mock.patch.object(
                 cfr, "_process_candidate_gpu_phase", return_value=None
@@ -320,6 +324,110 @@ class RunRemoteColabfoldBatchSwitchTests(unittest.TestCase):
 
         per_protein.assert_not_called()
         self.assertEqual(predicted, 2)
+
+
+class ConnectionResilienceTests(unittest.TestCase):
+    """The 2026-10-13 night run lost SSH to the cluster for a few minutes and
+    every in-flight and queued batch failed in the same minute (5074 proteins
+    dumped back to the slow per-protein pass). These pin the fix."""
+
+    def test_network_errors_are_connection_errors_but_job_failures_are_not(self):
+        # socket.timeout is TimeoutError since 3.10 -- what "timed out" was.
+        self.assertTrue(cfr._is_connection_error(TimeoutError("timed out")))
+        self.assertTrue(cfr._is_connection_error(OSError("Unable to connect to port 22")))
+        self.assertTrue(cfr._is_connection_error(EOFError()))
+        self.assertFalse(cfr._is_connection_error(cfr.ColabFoldJobError("job timed out")))
+        self.assertFalse(cfr._is_connection_error(RuntimeError("FAILED / 127:0")))
+
+    def test_open_session_waits_out_an_outage(self):
+        session = (object(), object(), object())
+        with (
+            mock.patch.object(
+                cfr, "_open_remote_session", side_effect=[OSError("down"), OSError("down"), session]
+            ),
+            mock.patch.object(cfr.time, "sleep") as sleep,
+        ):
+            self.assertIs(cfr._open_session_waiting(_config(), retry_seconds=60), session)
+        self.assertEqual(sleep.call_count, 2)
+
+    def test_open_session_gives_up_after_the_outage_budget(self):
+        with (
+            mock.patch.object(cfr, "_open_remote_session", side_effect=OSError("down")),
+            mock.patch.object(cfr.time, "sleep"),
+            self.assertRaises(OSError),
+        ):
+            cfr._open_session_waiting(_config(ssh_outage_wait_seconds=120), retry_seconds=60)
+
+    def test_job_reconnects_mid_poll_instead_of_abandoning_the_batch(self):
+        class _DroppingRemote(_FakeRemote):
+            def exec_command(self, command):
+                if command.startswith("test -f"):
+                    raise OSError("Unable to connect to port 22")
+                return super().exec_command(command)
+
+        dropping = _DroppingRemote([])
+        healthy = _FakeRemote(["P1_unrelaxed_rank_001_alphafold2_ptm_model_1_seed_000.pdb"])
+        with (
+            tempfile.TemporaryDirectory() as folder,
+            mock.patch.object(cfr, "_record_remote_job"),
+            mock.patch.object(cfr, "_record_remote_info"),
+            mock.patch.object(
+                cfr, "_open_session_waiting", return_value=(healthy, healthy, healthy)
+            ) as reopen,
+        ):
+            saved = cfr._run_remote_colabfold_job(
+                ssh=dropping,
+                scp_client=dropping,
+                sftp=dropping,
+                config=_config(),
+                run_id_raw="",
+                folder_path=folder,
+                genome="public__G",
+                entries=[("P1", "MKV")],
+                mode="gpu",
+                batch=True,
+            )
+
+        reopen.assert_called_once()
+        self.assertEqual(saved, ["P1"])
+        self.assertFalse(any(c.startswith("scancel") for c in healthy.commands))
+
+    def test_per_protein_pass_skips_proteins_that_already_have_a_structure(self):
+        with (
+            tempfile.TemporaryDirectory() as folder,
+            mock.patch.object(cfr, "_run_candidate_attempt") as attempt,
+        ):
+            _write_pdb(folder, "P1")
+            result = cfr._process_candidate_gpu_phase(_config(), "P1", "MKV", folder, "G", "")
+
+        self.assertIsNone(result)
+        attempt.assert_not_called()
+
+
+class RecoverRemoteOutputsTests(unittest.TestCase):
+    def test_pulls_finished_pdbs_an_interrupted_run_left_on_the_cluster(self):
+        root = "/home/agutson/tpw_colabfold"
+        listing = "\n".join(
+            [
+                f"{root}/public__G_b25_P1_gpu_x/output/P1_unrelaxed_rank_001_m.pdb",
+                f"{root}/public__G_b25_P1_gpu_x/output/P2_unrelaxed_rank_001_m.pdb",
+                f"{root}/public__G_P9_gpu_y/output/P9_unrelaxed_rank_001_m.pdb",
+            ]
+        )
+        remote = _FakeRemote([])
+        remote.exec_command = lambda command: (None, _FakeStream(listing), _FakeStream())
+        candidates = [("P1", "MKV"), ("P2", "MKVL"), ("P3", "MKVLA")]
+
+        with (
+            tempfile.TemporaryDirectory() as folder,
+            mock.patch.object(cfr, "_open_session_waiting", return_value=(remote, remote, remote)),
+        ):
+            _write_pdb(folder, "P2")  # already local: left alone
+            leftovers = cfr._recover_remote_outputs(_config(), folder, "public__G", candidates)
+            self.assertTrue(os.path.exists(cfr._candidate_pdb_path(folder, "P1")))
+            self.assertFalse(os.path.exists(cfr._candidate_pdb_path(folder, "P9")))
+
+        self.assertEqual([tag for tag, _ in leftovers], ["P3"])
 
 
 if __name__ == "__main__":

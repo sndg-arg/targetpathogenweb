@@ -119,6 +119,8 @@ conda env: `interproscan`. Key fix: `set -u` must come AFTER `conda activate`.
   2. **CPU catch-up pass**: runs only after the GPU pass fully finishes, over exactly the deferred proteins, with its own concurrency (`TPW_COLABFOLD_CPU_MAX_PARALLEL`, defaults to the same value as `TPW_COLABFOLD_MAX_PARALLEL`). Isolated on purpose so it can't block the fast pass.
   - `TPW_COLABFOLD_STRICT=1` makes a GPU failure a hard failure for that protein instead of deferring it to the CPU pass (that protein ends up with no structure; stage 16 itself still finishes and reports every such failure at the end, it does not abort on the first one).
   - Persists `job_id` and `remote_job_dir` in `PipelineRun` per attempt. On timeout/failure, does `scancel` to avoid orphan GPU jobs.
+  - **SSH outages are ridden out, not treated as job failures**: a dropped/unreachable connection (`_is_connection_error`) reconnects and keeps polling the same SLURM job, and opening a session waits up to `TPW_COLABFOLD_SSH_OUTAGE_WAIT_SEC` (default 21600). Before this, a few minutes of cluster SSH downtime one night failed every in-flight and queued batch in the same minute (5074 proteins dumped back to the per-protein pass). Job-side failures/timeouts raise `ColabFoldJobError` so they're never mistaken for a network timeout (`socket.timeout` *is* `TimeoutError` in 3.10).
+  - **Every stage-16 start first recovers orphaned outputs** (`_recover_remote_outputs`): rank_001 PDBs an interrupted run's jobs finished on the cluster but never copied back are pulled into the workspace before anything is resubmitted.
 - **Remote config** (env vars, all have defaults):
   - `TPW_COLABFOLD_USE_REMOTE=1` — activate remote mode
   - `TPW_COLABFOLD_CONDA_PREFIX` — default `/home/shared/miniconda3.8`

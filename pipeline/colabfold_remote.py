@@ -23,11 +23,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime
 
+import paramiko
 from slurm_remote_command import (
     REMOTE_FAILURE_PREFIXES,
     _assert_ssh_reachable,
     _close_remote_session,
     _config_text,
+    _exec_remote,
     _env_int,
     _env_text,
     _open_remote_session,
@@ -89,6 +91,7 @@ class ColabFoldRemoteConfig:
     gpu_pending_wait_seconds: int
     cpu_pending_wait_seconds: int
     remote_completion_grace_seconds: int
+    ssh_outage_wait_seconds: int
     conda_prefix: str
     conda_env: str
     num_recycles: int
@@ -167,6 +170,10 @@ def _build_colabfold_config(cfg_dict):
             "TPW_COLABFOLD_REMOTE_COMPLETION_GRACE_SEC",
             default=120,
         ),
+        # How long to keep retrying while the cluster's SSH is unreachable
+        # before giving up on a job. A short outage (observed: ~minutes at
+        # night) used to fail every in-flight and queued batch at once.
+        ssh_outage_wait_seconds=_env_int("TPW_COLABFOLD_SSH_OUTAGE_WAIT_SEC", default=21600),
         conda_prefix=_env_text("TPW_COLABFOLD_CONDA_PREFIX", default="/home/shared/miniconda3.8"),
         conda_env=_env_text("TPW_COLABFOLD_CONDA_ENV", default="colabfold"),
         num_recycles=_env_int("TPW_COLABFOLD_NUM_RECYCLES", default=3),
@@ -233,6 +240,37 @@ def _read_fasta_gz(faa_gz_path):
         sequences[current_tag] = "".join(current_seq)
 
     return sequences
+
+
+class ColabFoldJobError(RuntimeError):
+    """A ColabFold job genuinely failed or timed out on the cluster side --
+    as opposed to a dropped SSH connection, which is retried. Subclasses
+    RuntimeError (not the builtin TimeoutError) on purpose: in Python 3.10
+    socket.timeout *is* TimeoutError, so a job timeout raised as
+    TimeoutError would be indistinguishable from a network timeout."""
+
+
+def _is_connection_error(exc):
+    return isinstance(exc, OSError | EOFError | paramiko.SSHException) and not isinstance(
+        exc, ColabFoldJobError
+    )
+
+
+def _open_session_waiting(config, *, retry_seconds=60):
+    """_open_remote_session, but rides out a cluster SSH outage of up to
+    config.ssh_outage_wait_seconds instead of failing immediately."""
+    waited = 0
+    while True:
+        try:
+            return _open_remote_session(config)
+        except Exception as exc:
+            if not _is_connection_error(exc) or waited >= config.ssh_outage_wait_seconds:
+                raise
+            print(
+                f"ColabFold remote: cluster SSH unreachable ({exc}); retrying in {retry_seconds}s"
+            )
+            time.sleep(retry_seconds)
+            waited += retry_seconds
 
 
 def _find_candidates(folder_path, genome):
@@ -335,13 +373,23 @@ def _run_remote_colabfold_job(
 
     job_id = None
     finished = False
+    # Replaced in place by _reconnect() if the connection drops mid-job, so
+    # an SSH outage while waiting on SLURM doesn't abandon the running job.
+    session = {"ssh": ssh, "scp": scp_client, "sftp": sftp}
+    reopened = []
 
     def _run_remote(command):
-        stdin, stdout, stderr = ssh.exec_command(command)
+        stdin, stdout, stderr = session["ssh"].exec_command(command)
         exit_code = stdout.channel.recv_exit_status()
         out = stdout.read().decode("utf-8", errors="replace").strip()
         err = stderr.read().decode("utf-8", errors="replace").strip()
         return exit_code, out, err
+
+    def _reconnect(exc):
+        print(f"ColabFold remote: connection lost while handling {label} ({exc}); reconnecting")
+        new_session = _open_session_waiting(config)
+        reopened.append(new_session)
+        session["ssh"], session["scp"], session["sftp"] = new_session
 
     safe_genome = "".join(ch if ch.isalnum() or ch in ("_", "-") else "_" for ch in genome)
     safe_locus = "".join(ch if ch.isalnum() or ch in ("_", "-") else "_" for ch in job_tag)
@@ -505,14 +553,24 @@ def _run_remote_colabfold_job(
             )
 
             while not finished and waited_seconds <= config.remote_wait_seconds:
-                done_exit, _, _ = _run_remote(f"test -f {shlex.quote(remote_done_marker)}")
-                if done_exit == 0:
-                    finished = True
-                    continue
+                try:
+                    done_exit, _, _ = _run_remote(f"test -f {shlex.quote(remote_done_marker)}")
+                    if done_exit == 0:
+                        finished = True
+                        continue
 
-                _, state_out, state_err = _run_remote(
-                    f"sacct -j {shlex.quote(job_id)} --format=JobID,State,ExitCode -P -n | head -n 1"
-                )
+                    _, state_out, state_err = _run_remote(
+                        f"sacct -j {shlex.quote(job_id)} --format=JobID,State,ExitCode -P -n"
+                        " | head -n 1"
+                    )
+                    _, queue_out, _ = _run_remote(
+                        f"squeue -j {shlex.quote(job_id)} -h -o '%T|%R' 2>/dev/null | head -n 1"
+                    )
+                except Exception as exc:
+                    if not _is_connection_error(exc):
+                        raise
+                    _reconnect(exc)
+                    continue
                 state_line = state_out.splitlines()[0].strip() if state_out.strip() else ""
                 state_parts = state_line.split("|") if state_line else []
 
@@ -520,9 +578,6 @@ def _run_remote_colabfold_job(
                     _, remote_state, remote_exit_code = state_parts[:3]
                     last_state = remote_state or last_state
                     normalized = remote_state.upper()
-                    _, queue_out, _ = _run_remote(
-                        f"squeue -j {shlex.quote(job_id)} -h -o '%T|%R' 2>/dev/null | head -n 1"
-                    )
                     queue_line = queue_out.splitlines()[0].strip() if queue_out.strip() else ""
                     queue_parts = queue_line.split("|", 1) if queue_line else []
                     queue_reason = queue_parts[1].strip() if len(queue_parts) == 2 else ""
@@ -543,7 +598,7 @@ def _run_remote_colabfold_job(
                         and normalized.startswith("PENDING")
                         and waited_seconds >= pending_wait_limit
                     ):
-                        raise TimeoutError(
+                        raise ColabFoldJobError(
                             f"ColabFold job for {label} stayed PENDING for "
                             f"{waited_seconds}s, exceeding {mode_label} pending wait limit "
                             f"{pending_wait_limit}s"
@@ -562,7 +617,7 @@ def _run_remote_colabfold_job(
                         friendly = classify_slurm_resource_message(details, tool_label="ColabFold")
                         if friendly:
                             details = f"{friendly} SLURM details: {details}"
-                        raise RuntimeError(
+                        raise ColabFoldJobError(
                             f"Remote ColabFold failed for {label} "
                             f"({remote_state} / {remote_exit_code}): {details}"
                         )
@@ -580,7 +635,7 @@ def _run_remote_colabfold_job(
                                 f"tail -n 120 {shlex.quote(remote_stderr)} 2>/dev/null || true"
                             )
                             details = slurm_err_text or slurm_out_text or "no remote output"
-                            raise RuntimeError(
+                            raise ColabFoldJobError(
                                 f"Remote ColabFold finished for {label} but DONE marker not found "
                                 f"after {config.remote_completion_grace_seconds}s grace period. "
                                 f"Details: {details}"
@@ -594,15 +649,23 @@ def _run_remote_colabfold_job(
                 waited_seconds += config.remote_poll_seconds
 
             if not finished:
-                raise TimeoutError(
+                raise ColabFoldJobError(
                     f"ColabFold output not retrieved for {label} after "
                     f"{waited_seconds}s (last remote state: {last_state})"
                 )
 
             local_results_dir = os.path.join(local_tmpdir, "output")
             os.makedirs(local_results_dir, exist_ok=True)
+            for attempt in range(3):
+                try:
+                    _fetch_job_outputs(session, remote_output_dir, local_results_dir, batch=batch)
+                    break
+                except Exception as exc:
+                    if not _is_connection_error(exc) or attempt == 2:
+                        raise
+                    _reconnect(exc)
+
             if not batch:
-                scp_client.get(remote_output_dir, local_results_dir, recursive=True)
                 actual_results = os.path.join(local_results_dir, "output")
                 if not os.path.isdir(actual_results):
                     actual_results = local_results_dir
@@ -610,17 +673,6 @@ def _run_remote_colabfold_job(
                 _copy_predicted_pdb(actual_results, folder_path, locus_tag)
                 print(f"  ColabFold remote ({mode_label}): saved structure for {locus_tag}")
                 return [locus_tag]
-
-            # Batch: fetch only the rank_001 PDBs -- the full output dir
-            # (MSAs, PAE JSONs, plots) for dozens of proteins is mostly
-            # unused weight.
-            try:
-                remote_names = sftp.listdir(remote_output_dir)
-            except FileNotFoundError:
-                remote_names = []
-            for name in remote_names:
-                if "rank_001" in name and name.endswith(".pdb"):
-                    sftp.get(f"{remote_output_dir}/{name}", os.path.join(local_results_dir, name))
 
             saved = []
             for entry_tag, _ in entries:
@@ -641,6 +693,26 @@ def _run_remote_colabfold_job(
                 print(f"ColabFold remote: cancelled orphan SLURM job {job_id}")
             except Exception:
                 pass
+        for extra in reopened:
+            _close_remote_session(*extra)
+
+
+def _fetch_job_outputs(session, remote_output_dir, local_results_dir, *, batch):
+    """Single job: the whole output dir, as before. Batch: only the
+    rank_001 PDBs -- MSAs, PAE JSONs and plots for dozens of proteins are
+    mostly unused weight."""
+    if not batch:
+        session["scp"].get(remote_output_dir, local_results_dir, recursive=True)
+        return
+    try:
+        remote_names = session["sftp"].listdir(remote_output_dir)
+    except FileNotFoundError:
+        remote_names = []
+    for name in remote_names:
+        if "rank_001" in name and name.endswith(".pdb"):
+            session["sftp"].get(
+                f"{remote_output_dir}/{name}", os.path.join(local_results_dir, name)
+            )
 
 
 def _run_remote_colabfold_candidate(*, locus_tag, sequence, **kwargs):
@@ -698,6 +770,11 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
     _assert_ssh_reachable(config.ssh_host, config.ssh_port, config.ssh_connect_timeout)
 
     run_id_raw = str(os.getenv("TPW_PIPELINE_RUN_ID") or "").strip()
+
+    candidates = _recover_remote_outputs(config, folder_path, genome, candidates)
+    if not candidates:
+        print("ColabFold stage 16 done: every missing structure was recovered from the cluster")
+        return 0
 
     predicted = 0
     if config.batch_size > 1:
@@ -772,6 +849,48 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
     return predicted
 
 
+def _recover_remote_outputs(config, folder_path, genome, candidates):
+    """Pull rank_001 PDBs a previous, interrupted run left on the cluster.
+
+    A batch whose orchestrator lost the connection (or was killed/restarted)
+    keeps running on SLURM and writes its PDBs into its job dir, but nobody
+    copies them back -- the next run would just predict those proteins again.
+    Returns the candidates still missing afterwards."""
+    wanted = {tag for tag, _ in candidates}
+    safe_genome = "".join(ch if ch.isalnum() or ch in ("_", "-") else "_" for ch in genome)
+    root = f"{config.ssh_rootfolder.rstrip('/')}/tpw_colabfold"
+    pattern = f"{root}/{safe_genome}_*/output/*_rank_001_*.pdb"
+
+    ssh, scp_client, sftp = _open_session_waiting(config)
+    recovered = 0
+    try:
+        _, out, _ = _exec_remote(ssh, f"ls -1 {pattern} 2>/dev/null || true")
+        for remote_path in out.splitlines():
+            name = os.path.basename(remote_path.strip())
+            for marker in ("_unrelaxed_rank_001", "_relaxed_rank_001"):
+                if marker in name:
+                    tag = name.split(marker, 1)[0]
+                    break
+            else:
+                continue
+            if tag not in wanted or os.path.exists(_candidate_pdb_path(folder_path, tag)):
+                continue
+            locus_dir = os.path.join(folder_path, "alphafold", tag)
+            os.makedirs(locus_dir, exist_ok=True)
+            sftp.get(remote_path.strip(), _candidate_pdb_path(folder_path, tag))
+            recovered += 1
+    finally:
+        _close_remote_session(ssh, scp_client, sftp)
+
+    if recovered:
+        print(f"ColabFold remote: recovered {recovered} structures left on the cluster")
+    return [
+        (tag, seq)
+        for tag, seq in candidates
+        if not os.path.exists(_candidate_pdb_path(folder_path, tag))
+    ]
+
+
 def _make_length_batches(entries, batch_size):
     """Chunk (locus_tag, sequence) pairs into batches of similar length, so
     each colabfold_batch run recompiles the model as little as possible."""
@@ -804,14 +923,16 @@ def _run_batched_gpu_pass(config, candidates, folder_path, genome, run_id_raw):
         except Exception as exc:
             # Whole-batch failure (bad node, timeout, SLURM error): its
             # proteins just go through the per-protein pass instead.
+            message = (
+                f"Batched ColabFold job for {len(entries)} proteins "
+                f"({entries[0][0]}..{entries[-1][0]}) failed; retrying them "
+                f"one by one. Details: {exc}"
+            )[:1000]
+            print(f"ColabFold remote: {message}")
             _record_remote_info(
                 run_id_raw,
                 stage_number=16,
-                message=(
-                    f"Batched ColabFold job for {len(entries)} proteins "
-                    f"({entries[0][0]}..{entries[-1][0]}) failed; retrying them "
-                    f"one by one. Details: {exc}"
-                )[:1000],
+                message=message,
                 payload={"locus_tags": [tag for tag, _ in entries]},
             )
             return []
@@ -879,7 +1000,7 @@ def _record_retry(run_id_raw, locus_tag, message, payload=None):
 def _run_candidate_attempt(
     config, run_id_raw, folder_path, genome, locus_tag, sequence, mode, fallback_reason
 ):
-    ssh, scp_client, sftp = _open_remote_session(config)
+    ssh, scp_client, sftp = _open_session_waiting(config)
     try:
         _run_remote_colabfold_candidate(
             ssh=ssh,
@@ -899,7 +1020,7 @@ def _run_candidate_attempt(
 
 
 def _run_batch_attempt(config, run_id_raw, folder_path, genome, entries):
-    ssh, scp_client, sftp = _open_remote_session(config)
+    ssh, scp_client, sftp = _open_session_waiting(config)
     try:
         return _run_remote_colabfold_job(
             ssh=ssh,
@@ -927,6 +1048,8 @@ def _process_candidate_gpu_phase(config, locus_tag, sequence, folder_path, genom
     only in strict mode, where a GPU failure is a hard failure rather than a
     deferral (unchanged from the pre-two-pass behavior)."""
     pdb_path = _candidate_pdb_path(folder_path, locus_tag)
+    if os.path.exists(pdb_path):
+        return None  # e.g. recovered from an earlier run's batch output
 
     if config.max_sequence_length > 0 and len(sequence) > config.max_sequence_length:
         return (
@@ -971,6 +1094,8 @@ def _process_candidate_cpu_catchup(
     """CPU catch-up attempt (with retries) for a candidate the GPU phase
     deferred. Returns ``None`` on success, or a short error string."""
     pdb_path = _candidate_pdb_path(folder_path, locus_tag)
+    if os.path.exists(pdb_path):
+        return None
     _record_remote_info(
         run_id_raw,
         stage_number=16,
