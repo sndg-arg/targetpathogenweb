@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261014-hero-quiet">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261014-account-links">
 {% endblock %}
 
 {% block body %}
@@ -264,9 +264,9 @@
         <section class="home-workspace" aria-label="{% trans 'Your account' %}">
             <p class="tp-ui-field-label">{% trans "Your account" %}</p>
             <div class="home-workspace-links">
-                <a class="home-hero-link" href="{% url 'tpwebapp:profile' %}">{% trans "My profile" %} <span aria-hidden="true">→</span></a>
+                <a class="home-account-link" href="{% url 'tpwebapp:profile' %}">{% trans "My profile" %}</a>
                 {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
-                <a class="home-hero-link" href="{% url 'tpwebapp:settings' %}">{% trans "Settings · who can see your formulas and data" %} <span aria-hidden="true">→</span></a>
+                <a class="home-account-link" href="{% url 'tpwebapp:settings' %}" title="{% trans 'Choose who can see your formulas and uploaded data' %}">{% trans "Settings" %}</a>
                 {% endif %}
             </div>
         </section>

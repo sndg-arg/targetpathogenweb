@@ -283,12 +283,30 @@
 .home-workspace-links {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 28px;
+    align-items: baseline;
     margin-top: 8px;
+    font-size: var(--tp-font-size-sm);
 }
 
-.home-workspace .home-hero-link {
-    font-size: var(--tp-font-size-sm);
+/* Footer-style: plain links divided by a middle dot, no arrows. */
+.home-account-link {
+    color: var(--tp-color-text-secondary);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.home-account-link + .home-account-link::before {
+    content: "·";
+    display: inline-block;
+    margin: 0 12px;
+    color: var(--tp-color-text-muted);
+}
+
+.home-account-link:hover,
+.home-account-link:focus-visible {
+    color: var(--home-accent-deep);
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
