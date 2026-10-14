@@ -89,6 +89,7 @@ from tpweb.services.formula_evaluator import (
     formula_uses_missing_params,
     safe_eval_expression,
 )
+from tpweb.services.custom_param_sharing import SHARED_COLUMNS_CATEGORY, label_shared_columns
 from tpweb.services.score_params import genome_score_param_names, visible_score_params_queryset
 from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_ALPHAFOLD,
@@ -731,6 +732,7 @@ class ProteinListView(View):
             "Localization",
             "Protein",
             "Custom",
+            SHARED_COLUMNS_CATEGORY,
             "Other",
         ]
 
@@ -1692,8 +1694,11 @@ class ProteinListView(View):
         active_preset_name = next((p["name"] for p in filter_presets if p["is_last_applied"]), "")
 
         all_visible_score_params = list(
-            visible_score_params_queryset(request.user).prefetch_related("choices")
+            visible_score_params_queryset(request.user, genome_name=assembly_name)
+            .select_related("user")
+            .prefetch_related("choices")
         )
+        label_shared_columns(all_visible_score_params, workspace_user)
         visible_score_param_by_name = {
             score_param.name: score_param for score_param in all_visible_score_params
         }

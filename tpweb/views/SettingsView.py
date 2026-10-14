@@ -6,19 +6,21 @@ from django.views import View
 from tpweb.models.RestrictedGenome import RestrictedGenome
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam
+from tpweb.services.custom_param_sharing import (
+    column_rows,
+    delete_column,
+    update_column_visibility,
+)
 from tpweb.services.genome_workspace import display_genome_name
 from tpweb.services.genomes import set_genome_restricted
 from tpweb.services.visibility_settings import (
     FORMULA_VISIBILITY_CHOICES,
-    PARAM_VISIBILITY_CHOICES,
     all_shareable_custom_params,
     all_shareable_formulas,
     custom_params_owned_by,
     formula_visibility,
     formulas_owned_by,
-    param_visibility,
     set_formula_visibility,
-    set_param_visibility,
 )
 from tpweb.views.mixins import PermissionLockedMixin
 
@@ -46,8 +48,7 @@ class SettingsView(PermissionLockedMixin, View):
         formula_rows = [
             {"obj": formula, "visibility": formula_visibility(formula)} for formula in formulas
         ]
-        param_rows = [{"obj": param, "visibility": param_visibility(param)} for param in params]
-        return formula_rows, param_rows
+        return formula_rows, column_rows(params)
 
     def get(self, request, *args, **kwargs):
         my_formula_rows, my_param_rows = self._rows(
@@ -57,7 +58,6 @@ class SettingsView(PermissionLockedMixin, View):
             "my_formula_rows": my_formula_rows,
             "my_param_rows": my_param_rows,
             "formula_visibility_choices": FORMULA_VISIBILITY_CHOICES,
-            "param_visibility_choices": PARAM_VISIBILITY_CHOICES,
             "is_superuser_view": request.user.is_superuser,
         }
         if request.user.is_superuser:
@@ -87,11 +87,27 @@ class SettingsView(PermissionLockedMixin, View):
                 messages.success(request, f"Updated visibility for {formula.name}.")
         elif action == "set_param_visibility":
             param = ScoreParam.objects.filter(pk=request.POST.get("param_id")).first()
+            genome_name = request.POST.get("genome_name", "").strip()
             visibility = request.POST.get("visibility")
-            if param is None or not set_param_visibility(param, request.user, visibility):
-                messages.error(request, "Couldn't update that custom param's visibility.")
+            if param is None or not update_column_visibility(
+                param, genome_name, request.user, visibility
+            ):
+                messages.error(request, "Couldn't update that column's visibility.")
             else:
-                messages.success(request, f"Updated visibility for {param.name}.")
+                messages.success(
+                    request,
+                    f"Updated who can see {param.name} on {display_genome_name(genome_name)}.",
+                )
+        elif action == "delete_param":
+            param = ScoreParam.objects.filter(pk=request.POST.get("param_id")).first()
+            genome_name = request.POST.get("genome_name", "").strip()
+            name = param.name if param else ""
+            if param is None or not delete_column(param, genome_name, request.user):
+                messages.error(request, "Couldn't delete that column.")
+            else:
+                messages.success(
+                    request, f"Deleted {name} from {display_genome_name(genome_name)}."
+                )
         elif action == "unrestrict_genome" and request.user.is_superuser:
             genome_name = request.POST.get("genome_name", "").strip()
             if genome_name:

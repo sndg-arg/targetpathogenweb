@@ -47,6 +47,18 @@
     grid-template-columns: minmax(0, 1fr) 160px 140px;
 }
 
+.settings-list--4col {
+    max-width: 1040px;
+}
+
+.settings-list--4col .settings-list-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 180px) 240px 84px;
+}
+
+.settings-list--4col.settings-list--owner .settings-list-row {
+    grid-template-columns: minmax(0, 160px) minmax(0, 1fr) minmax(0, 180px) 240px;
+}
+
 .settings-list-row + .settings-list-row {
     border-top: 1px solid var(--tp-color-border-soft);
 }
@@ -106,7 +118,9 @@
 
 @media (max-width: 640px) {
     .settings-list-row,
-    .settings-list--3col .settings-list-row {
+    .settings-list--3col .settings-list-row,
+    .settings-list--4col .settings-list-row,
+    .settings-list--4col.settings-list--owner .settings-list-row {
         grid-template-columns: 1fr;
         row-gap: 8px;
         padding: 14px 16px;

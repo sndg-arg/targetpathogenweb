@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261006-settings1">
+    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261013-column-sharing">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -77,26 +77,39 @@
             <span class="tp-chip tp-chip--count tp-chip--sm">{{ my_param_rows|length }}</span>
         </div>
         {% if my_param_rows %}
-        <div class="settings-list" role="table" aria-label="{% trans 'My uploaded data' %}">
+        <div class="settings-list settings-list--4col" role="table" aria-label="{% trans 'My uploaded data' %}">
             <div class="settings-list-row settings-list-row--head" role="row">
-                <span class="settings-list-cell" role="columnheader">{% trans "Name" %}</span>
-                <span class="settings-list-cell settings-list-cell--visibility" role="columnheader">{% trans "Visibility" %}</span>
+                <span class="settings-list-cell" role="columnheader">{% trans "Column" %}</span>
+                <span class="settings-list-cell" role="columnheader">{% trans "Genome" %}</span>
+                <span class="settings-list-cell settings-list-cell--visibility" role="columnheader">{% trans "Who can see it" %}</span>
+                <span class="settings-list-cell settings-list-cell--actions" role="columnheader"><span class="sr-only">{% trans "Actions" %}</span></span>
             </div>
             {% for row in my_param_rows %}
             <div class="settings-list-row" role="row">
                 <div class="settings-list-cell" role="cell">
                     <span class="settings-item-name">{{ row.obj.name }}</span>
                 </div>
+                <div class="settings-list-cell settings-list-cell--meta" role="cell">{{ row.genome_label }}</div>
                 <div class="settings-list-cell settings-list-cell--visibility" role="cell">
                     <form method="post" action="{% url 'tpwebapp:settings' %}" class="settings-visibility-form">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="set_param_visibility">
                         <input type="hidden" name="param_id" value="{{ row.obj.pk }}">
-                        <select name="visibility" class="form-control tp-ui-control" onchange="this.form.submit()">
-                            {% for value, label in param_visibility_choices %}
+                        <input type="hidden" name="genome_name" value="{{ row.genome_name }}">
+                        <select name="visibility" class="form-control tp-ui-control" aria-label="{% trans 'Who can see it' %}" onchange="this.form.submit()">
+                            {% for value, label in row.choices %}
                             <option value="{{ value }}" {% if value == row.visibility %}selected{% endif %}>{{ label }}</option>
                             {% endfor %}
                         </select>
+                    </form>
+                </div>
+                <div class="settings-list-cell settings-list-cell--actions" role="cell">
+                    <form method="post" action="{% url 'tpwebapp:settings' %}" onsubmit="return confirm(this.dataset.confirm);" data-confirm="{% blocktrans with name=row.obj.name genome=row.genome_label %}Delete {{ name }} from {{ genome }}? Anyone you shared it with will stop seeing it too.{% endblocktrans %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_param">
+                        <input type="hidden" name="param_id" value="{{ row.obj.pk }}">
+                        <input type="hidden" name="genome_name" value="{{ row.genome_name }}">
+                        <button type="submit" class="btn tp-btn tp-btn--outline tp-btn--sm">{% trans "Delete" %}</button>
                     </form>
                 </div>
             </div>
@@ -105,7 +118,7 @@
         {% else %}
         <p class="tp-state-note tp-state-note--empty">{% trans "You haven't uploaded a data file yet." %}</p>
         {% endif %}
-        <p class="settings-note">{% trans "Sharing a data file lets other project members see and use it. Only you can upload new values." %}</p>
+        <p class="settings-note">{% trans "Shared columns show up for others as an extra option under Columns, Filters and Make my own score on that genome. Only you can change or delete them." %}</p>
     </section>
 
     {% if is_superuser_view %}
@@ -157,23 +170,26 @@
             <span class="tp-chip tp-chip--count tp-chip--sm">{{ all_param_rows|length }}</span>
         </div>
         {% if all_param_rows %}
-        <div class="settings-list settings-list--3col" role="table" aria-label="{% trans 'Every custom param' %}">
+        <div class="settings-list settings-list--4col settings-list--owner" role="table" aria-label="{% trans 'Every custom param' %}">
             <div class="settings-list-row settings-list-row--head" role="row">
                 <span class="settings-list-cell" role="columnheader">{% trans "Owner" %}</span>
-                <span class="settings-list-cell" role="columnheader">{% trans "Name" %}</span>
-                <span class="settings-list-cell settings-list-cell--visibility" role="columnheader">{% trans "Visibility" %}</span>
+                <span class="settings-list-cell" role="columnheader">{% trans "Column" %}</span>
+                <span class="settings-list-cell" role="columnheader">{% trans "Genome" %}</span>
+                <span class="settings-list-cell settings-list-cell--visibility" role="columnheader">{% trans "Who can see it" %}</span>
             </div>
             {% for row in all_param_rows %}
             <div class="settings-list-row" role="row">
                 <div class="settings-list-cell settings-list-cell--meta" role="cell">{{ row.obj.user.name|default:row.obj.user.get_username }}</div>
                 <div class="settings-list-cell" role="cell"><span class="settings-item-name">{{ row.obj.name }}</span></div>
+                <div class="settings-list-cell settings-list-cell--meta" role="cell">{{ row.genome_label }}</div>
                 <div class="settings-list-cell settings-list-cell--visibility" role="cell">
                     <form method="post" action="{% url 'tpwebapp:settings' %}" class="settings-visibility-form">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="set_param_visibility">
                         <input type="hidden" name="param_id" value="{{ row.obj.pk }}">
-                        <select name="visibility" class="form-control tp-ui-control" onchange="this.form.submit()">
-                            {% for value, label in param_visibility_choices %}
+                        <input type="hidden" name="genome_name" value="{{ row.genome_name }}">
+                        <select name="visibility" class="form-control tp-ui-control" aria-label="{% trans 'Who can see it' %}" onchange="this.form.submit()">
+                            {% for value, label in row.choices %}
                             <option value="{{ value }}" {% if value == row.visibility %}selected{% endif %}>{{ label }}</option>
                             {% endfor %}
                         </select>

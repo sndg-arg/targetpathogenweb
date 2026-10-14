@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20261013-fused-layout">
+    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20261013-column-sharing">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -74,6 +74,26 @@
                         {% endif %}
                     </div>
 
+                    <fieldset class="tp-ui-field customparam-field customparam-visibility">
+                        <legend class="tp-ui-field-label">{% trans "Who can see these columns" %}</legend>
+                        {% for choice in form.visibility %}
+                            <label class="customparam-visibility-option">
+                                {{ choice.tag }}
+                                <span>{{ choice.choice_label }}</span>
+                            </label>
+                        {% endfor %}
+                        <p class="customparam-field-help">{% trans "Shared columns show up for others as an extra option under Columns, Filters and Make my own score on this genome — never added to their table on their own. You can change this or delete the column later in Settings." %}</p>
+                    </fieldset>
+
+                    <div class="tp-ui-field customparam-field customparam-description" data-customparam-description>
+                        <label class="tp-ui-field-label" for="{{ form.description.id_for_label }}">{% trans "Description" %}</label>
+                        {{ form.description }}
+                        <p class="customparam-field-help">{% trans "Required when sharing: what the values measure, where they come from, and whether higher is better." %}</p>
+                        {% if form.description.errors %}
+                            <p class="customparam-field-error">{{ form.description.errors|striptags }}</p>
+                        {% endif %}
+                    </div>
+
                     <div class="customparam-actions">
                         {% if file_exists %}
                             <button type="button" class="btn tp-btn tp-btn--danger tp-btn-with-icon" onclick="confirmOverwrite()">
@@ -135,5 +155,23 @@
             form.overwrite.value = "true";
             form.submit();
         }
+
+        (function () {
+            var form = document.getElementById("add-custom-param-form");
+            var description = form && form.querySelector("[data-customparam-description]");
+            if (!description) return;
+            var hasError = !!description.querySelector(".customparam-field-error");
+            function sync() {
+                var checked = form.querySelector('input[name="visibility"]:checked');
+                description.hidden = !hasError && (!checked || checked.value === "private");
+            }
+            form.querySelectorAll('input[name="visibility"]').forEach(function (input) {
+                input.addEventListener("change", function () {
+                    hasError = false;
+                    sync();
+                });
+            });
+            sync();
+        })();
     </script>
 {% endblock %}

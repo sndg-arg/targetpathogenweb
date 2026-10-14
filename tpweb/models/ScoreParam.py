@@ -20,12 +20,9 @@ class ScoreParam(models.Model):
         related_name="owned_score_params",
         on_delete=models.CASCADE,
     )
-    # Custom params only (see category == "Custom") -- when True, every
-    # Gates role (consumer/collaborator) can see this column, use it in
-    # formulas/filters, and upload more TSV data into it alongside the
-    # owner, instead of it staying private to `user`. Toggled from the
-    # Settings page; see score_params.visible_score_params_queryset() and
-    # resolve_score_param_for_import() for the two places this is read.
+    # No longer read: sharing an uploaded column is per genome now
+    # (CustomParamShare, see tpweb.services.custom_param_sharing). Migration
+    # 0092 turned every True here into project-member shares.
     shared_with_gates = models.BooleanField(default=False)
 
     class Meta:

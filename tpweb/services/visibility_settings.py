@@ -1,12 +1,9 @@
-"""Owner-controlled public/Gates-shared visibility for ScoreFormula and
-ScoreParam ("custom params") -- backs the Settings page
-(tpweb/views/SettingsView.py). The owner decides their own items'
+"""Owner-controlled public/Gates-shared visibility for ScoreFormula, plus
+the owner listings of formulas and uploaded columns -- backs the Settings
+page (tpweb/views/SettingsView.py). The owner decides their own items'
 visibility at creation or later from this page; a superuser additionally
-sees every user's items here to review or override.
-
-Writing a shared ScoreParam's *values* stays owner-only regardless of
-visibility -- shared_with_gates only widens who can read/use the column
-in formulas and filters, see tpweb.services.score_params.
+sees every user's items here to review or override. Uploaded columns are
+shared per genome, see tpweb.services.custom_param_sharing.
 """
 
 from tpweb.models.ScoreFormula import ScoreFormula
@@ -23,11 +20,6 @@ FORMULA_VISIBILITY_CHOICES = [
     (VISIBILITY_PUBLIC, "Public (every signed-in user)"),
 ]
 
-PARAM_VISIBILITY_CHOICES = [
-    (VISIBILITY_PRIVATE, "Private (only me)"),
-    (VISIBILITY_GATES, "Shared with project members (read-only for them)"),
-]
-
 
 def formula_visibility(formula):
     if formula.public:
@@ -35,10 +27,6 @@ def formula_visibility(formula):
     if formula.shared_with_gates:
         return VISIBILITY_GATES
     return VISIBILITY_PRIVATE
-
-
-def param_visibility(score_param):
-    return VISIBILITY_GATES if score_param.shared_with_gates else VISIBILITY_PRIVATE
 
 
 def _can_manage(user, owner_id):
@@ -53,14 +41,6 @@ def set_formula_visibility(formula, user, visibility):
     formula.public = visibility == VISIBILITY_PUBLIC
     formula.shared_with_gates = visibility == VISIBILITY_GATES
     formula.save(update_fields=["public", "shared_with_gates"])
-    return True
-
-
-def set_param_visibility(score_param, user, visibility):
-    if not _can_manage(user, score_param.user_id):
-        return False
-    score_param.shared_with_gates = visibility == VISIBILITY_GATES
-    score_param.save(update_fields=["shared_with_gates"])
     return True
 
 

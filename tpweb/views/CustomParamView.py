@@ -10,6 +10,15 @@ from bioseq.models.Bioentry import Bioentry
 from tpweb.forms.CustomParamForm import CustomParamForm
 from tpweb.models import CustomParam
 from tpweb.services.custom_param_import import run_custom_param_import
+from tpweb.services.custom_param_sharing import (
+    VISIBILITY_PRIVATE,
+    VISIBILITY_PROJECT,
+    VISIBILITY_PUBLIC,
+    apply_upload_sharing,
+    name_conflicts,
+    uploaded_column_names,
+    visibility_choices,
+)
 from tpweb.services.workspace import resolve_workspace_user
 from tpweb.services.genome_workspace import (
     display_genome_name,
@@ -18,6 +27,11 @@ from tpweb.services.genome_workspace import (
 )
 
 logger = logging.getLogger(__name__)
+
+SHARED_NOTES = {
+    VISIBILITY_PROJECT: " Project members can add it from Columns.",
+    VISIBILITY_PUBLIC: " Others who can see this genome can add it from Columns.",
+}
 
 
 def _example_accessions(assembly_name, count=3):
@@ -72,10 +86,19 @@ def _import_and_respond(request, form, custom_param, assembly_name, overwrite=Fa
             _page_context(form, assembly_name, import_problems=result.problems),
         )
 
+    visibility = form.cleaned_data.get("visibility") or VISIBILITY_PRIVATE
+    apply_upload_sharing(
+        custom_param.owner,
+        assembly_name,
+        result.loaded_columns,
+        visibility,
+        form.cleaned_data.get("description", ""),
+    )
     columns = ", ".join(result.loaded_columns)
+    shared_note = SHARED_NOTES.get(visibility, "")
     messages.success(
         request,
-        f"Loaded {columns}. Find it under Filters (Custom) and in Make my own score.",
+        f"Loaded {columns}. Find it under Filters (Custom) and in Make my own score." + shared_note,
     )
     for problem in result.problems:
         messages.warning(request, problem)
@@ -91,14 +114,33 @@ def upload_form(request, genome):
     if not assembly_name:
         raise Http404("Genome not found")
     workspace_user = resolve_workspace_user(request.user)
+    choices = visibility_choices(assembly_name)
     if request.method != "POST":
         return render(
-            request, "genomic/customparam.html", _page_context(CustomParamForm(), assembly_name)
+            request,
+            "genomic/customparam.html",
+            _page_context(CustomParamForm(visibility_choices=choices), assembly_name),
         )
 
-    form = CustomParamForm(request.POST, request.FILES)
+    form = CustomParamForm(request.POST, request.FILES, visibility_choices=choices)
     if not form.is_valid():
         return render(request, "genomic/customparam.html", _page_context(form, assembly_name))
+
+    if form.cleaned_data["visibility"] != VISIBILITY_PRIVATE:
+        taken = name_conflicts(
+            workspace_user, assembly_name, uploaded_column_names(form.cleaned_data["tsv"])
+        )
+        if taken:
+            problem = (
+                "Someone else already shares a column with this name on this genome: "
+                + ", ".join(taken)
+                + ". Rename the column in your file, or keep it private."
+            )
+            return render(
+                request,
+                "genomic/customparam.html",
+                _page_context(form, assembly_name, import_problems=[problem]),
+            )
 
     custom_param = form.save(commit=False)
     custom_param.owner = workspace_user

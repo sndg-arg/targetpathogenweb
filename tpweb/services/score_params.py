@@ -1,7 +1,6 @@
 from django.db.models import Q
 
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
-from tpweb.services.genome_workspace import user_can_view_restricted_genomes
 from tpweb.services.score_param_types import is_categorical_score_param, is_numeric_score_param
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME, resolve_workspace_user
 
@@ -403,27 +402,37 @@ def ensure_system_score_params_exist():
         ensure_system_score_param(score_param_name)
 
 
-def score_param_visibility_filter(user):
+def score_param_visibility_filter(user, genome_name=None):
     """Q() of ScoreParam rows `user` may read: every non-Custom global
-    param, their own (any category), and any other Gates user's Custom
-    param explicitly marked shared_with_gates=True -- read-only, writing
-    stays scoped to the owner regardless (see CustomParamView.upload_form,
-    unaffected by this flag)."""
+    param, their own (any category), and other users' Custom columns shared
+    with them (see tpweb.services.custom_param_sharing) -- on `genome_name`
+    only, when given. Read-only: writing stays scoped to the owner. A shared
+    column named like one of the user's own is left out so names stay
+    unique in the table and in formulas."""
+    from tpweb.services.custom_param_sharing import shared_with_user_q
+
     workspace_user = resolve_workspace_user(user)
     visibility_filter = Q(user__isnull=True) & ~Q(category="Custom")
     visibility_filter |= Q(user=workspace_user)
 
     if workspace_user.username == PUBLIC_WORKSPACE_USERNAME:
         visibility_filter |= Q(user__isnull=True, category="Custom")
-    elif user_can_view_restricted_genomes(user):
-        visibility_filter |= Q(category="Custom", shared_with_gates=True)
+    else:
+        own_custom_names = ScoreParam.objects.filter(user=workspace_user, category="Custom").values(
+            "name"
+        )
+        visibility_filter |= (
+            shared_with_user_q(user, genome_name)
+            & ~Q(user=workspace_user)
+            & ~Q(name__in=own_custom_names)
+        )
 
     return visibility_filter
 
 
-def visible_score_params_queryset(user):
+def visible_score_params_queryset(user, genome_name=None):
     ensure_system_score_params_exist()
-    return ScoreParam.objects.filter(score_param_visibility_filter(user)).order_by(
+    return ScoreParam.objects.filter(score_param_visibility_filter(user, genome_name)).order_by(
         "category", "name", "id"
     )
 

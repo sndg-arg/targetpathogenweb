@@ -158,6 +158,42 @@
     border-radius: 12px;
 }
 
+.customparam-visibility {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.customparam-visibility legend {
+    margin-bottom: 2px;
+}
+
+.customparam-visibility-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: var(--tp-font-size-md);
+    font-weight: var(--tp-font-weight-normal);
+    color: var(--tp-color-text-primary);
+    cursor: pointer;
+}
+
+.customparam-visibility-option input {
+    margin: 0;
+    accent-color: var(--tp-color-brand-600);
+}
+
+.customparam-field textarea.form-control {
+    min-height: 0;
+    resize: vertical;
+}
+
+.customparam-description[hidden] {
+    display: none;
+}
+
 .customparam-field-help {
     margin: 0;
     color: var(--tp-color-text-muted);
