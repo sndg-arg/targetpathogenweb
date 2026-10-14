@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
@@ -14,6 +16,8 @@ from tpweb.services.genome_workspace import (
     genome_url_slug,
     resolve_genome_from_slug,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _example_accessions(assembly_name, count=3):
@@ -40,7 +44,22 @@ def _page_context(form, assembly_name, **extra):
 
 
 def _import_and_respond(request, form, custom_param, assembly_name, overwrite=False):
-    custom_param.save()
+    try:
+        custom_param.save()
+    except OSError:
+        logger.exception("Could not store custom evidence file for %s", assembly_name)
+        return render(
+            request,
+            "genomic/customparam.html",
+            _page_context(
+                form,
+                assembly_name,
+                import_problems=[
+                    "The server could not save the file. This is a server problem, "
+                    "not a problem with your file — please contact the administrators."
+                ],
+            ),
+        )
     result = run_custom_param_import(custom_param, overwrite=overwrite)
     if not result.ok:
         # Nothing usable was loaded -- drop the stored file so a corrected

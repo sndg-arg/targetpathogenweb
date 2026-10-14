@@ -25,6 +25,13 @@ if [ -d "$SSH_SOURCE_DIR" ]; then
   export HOME="$FAKE_HOME"
 fi
 
+# The web container runs as appuser but the data volume is created by this
+# (root) container, so web can't mkdir its own upload folders in it.
+if id appuser >/dev/null 2>&1; then
+  mkdir -p ./data/custom_params 2>/dev/null || true
+  chown appuser:appuser ./data/custom_params 2>/dev/null || true
+fi
+
 . /opt/conda/etc/profile.d/conda.sh
 conda activate tpv2
 
