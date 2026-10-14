@@ -201,6 +201,15 @@
     line-height: 1.4;
 }
 
+.customparam-field-help a {
+    color: var(--tp-color-link);
+    font-weight: 600;
+}
+
+.customparam-field-help a:hover {
+    color: var(--tp-color-link-hover);
+}
+
 .customparam-field-error {
     margin: 0;
     color: var(--tp-color-danger-ink);

@@ -2433,6 +2433,19 @@ a.filter-pill .filter-pill-remove {
     white-space: nowrap;
 }
 
+.scoring-mydata__manage {
+    color: var(--tp-color-link);
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.scoring-mydata__manage:hover,
+.scoring-mydata__manage:focus-visible {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+}
+
 .scoring-mydata__file--more {
     font-family: inherit;
 }

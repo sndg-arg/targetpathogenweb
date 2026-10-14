@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20261013-column-sharing">
+    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20261014-settings-link">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -82,7 +82,7 @@
                                 <span>{{ choice.choice_label }}</span>
                             </label>
                         {% endfor %}
-                        <p class="customparam-field-help">{% trans "Shared columns show up for others as an extra option under Columns, Filters and Make my own score on this genome — never added to their table on their own. You can change this or delete the column later in Settings." %}</p>
+                        <p class="customparam-field-help">{% trans "Shared columns show up for others as an extra option under Columns, Filters and Make my own score on this genome — never added to their table on their own. You can change this or delete the column later in" %} <a href="{% url 'tpwebapp:settings' %}">{% trans "Settings → My uploaded data" %}</a>.</p>
                     </fieldset>
 
                     <div class="tp-ui-field customparam-field customparam-description" data-customparam-description>
