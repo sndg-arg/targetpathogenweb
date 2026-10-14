@@ -55,7 +55,7 @@ class CustomParamFormSharingTests(SimpleTestCase):
         self.assertTrue(self._form(VISIBILITY_PRIVATE).is_valid())
 
 
-class CustomParamSharingTests(TestCase):
+class SharingFixture:
     def setUp(self):
         user_model = get_user_model()
         self.owner = user_model.objects.create_user("owner", password="x")
@@ -97,6 +97,8 @@ class CustomParamSharingTests(TestCase):
             )
         )
 
+
+class CustomParamSharingTests(SharingFixture, TestCase):
     def test_private_column_is_only_visible_to_its_owner(self):
         self.assertIn(self.param.pk, self._visible(self.owner))
         self.assertNotIn(self.param.pk, self._visible(self.member))
@@ -187,3 +189,30 @@ class SettingsFormulaListTests(TestCase):
         ScoreFormula.objects.create(name="My score", user=user, expression="Druggability * 2")
 
         self.assertEqual([f.name for f in formulas_owned_by(user)], ["My score"])
+
+
+class PrivateColumnLeakTests(SharingFixture, TestCase):
+    def test_a_formula_naming_someone_elses_private_column_does_not_read_it(self):
+        from tpweb.services.formula_evaluator import (
+            build_all_options_zero,
+            build_expression_variables,
+        )
+
+        protein = Bioentry.objects.prefetch_related("score_params__score_param").get(
+            pk=self.protein.pk
+        )
+        variables = build_expression_variables(protein, build_all_options_zero(self.basic))
+        self.assertNotIn("lab_score", variables)
+        owner_variables = build_expression_variables(protein, build_all_options_zero(self.owner))
+        self.assertEqual(owner_variables["lab_score"], 1.0)
+
+    def test_upload_names_matching_built_in_columns_are_reported(self):
+        from tpweb.services.custom_param_sharing import built_in_name_conflicts
+
+        ScoreParam.objects.get_or_create(
+            category="Pocket",
+            name="Druggability",
+            user=None,
+            defaults={"type": "N", "default_operation": ">=", "default_value": "0"},
+        )
+        self.assertEqual(built_in_name_conflicts(["Druggability", "lab_score"]), ["Druggability"])

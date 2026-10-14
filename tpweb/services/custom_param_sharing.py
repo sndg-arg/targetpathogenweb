@@ -98,6 +98,19 @@ def name_conflicts(owner, genome_name, column_names):
     )
 
 
+def built_in_name_conflicts(column_names):
+    """Upload columns named like a built-in (owner-less, non-Custom) column.
+    load_score_values resolves such a name to the built-in param, so the
+    upload would write into -- or with Replace, overwrite -- everyone's data."""
+    return sorted(
+        set(
+            ScoreParam.objects.filter(user__isnull=True, name__in=list(column_names))
+            .exclude(category="Custom")
+            .values_list("name", flat=True)
+        )
+    )
+
+
 def uploaded_column_names(uploaded_file):
     """Header columns after `gene`, read without consuming the upload."""
     is_csv = str(getattr(uploaded_file, "name", "")).lower().endswith(".csv")

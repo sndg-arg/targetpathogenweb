@@ -15,6 +15,7 @@ from tpweb.services.custom_param_sharing import (
     VISIBILITY_PROJECT,
     VISIBILITY_PUBLIC,
     apply_upload_sharing,
+    built_in_name_conflicts,
     name_conflicts,
     uploaded_column_names,
     visibility_choices,
@@ -126,21 +127,29 @@ def upload_form(request, genome):
     if not form.is_valid():
         return render(request, "genomic/customparam.html", _page_context(form, assembly_name))
 
-    if form.cleaned_data["visibility"] != VISIBILITY_PRIVATE:
-        taken = name_conflicts(
-            workspace_user, assembly_name, uploaded_column_names(form.cleaned_data["tsv"])
+    column_names = uploaded_column_names(form.cleaned_data["tsv"])
+    problems = []
+    built_in = built_in_name_conflicts(column_names)
+    if built_in:
+        problems.append(
+            "These names belong to built-in Target columns: "
+            + ", ".join(built_in)
+            + ". Rename them in your file so they don't overwrite the platform's data."
         )
+    if form.cleaned_data["visibility"] != VISIBILITY_PRIVATE:
+        taken = name_conflicts(workspace_user, assembly_name, column_names)
         if taken:
-            problem = (
+            problems.append(
                 "Someone else already shares a column with this name on this genome: "
                 + ", ".join(taken)
                 + ". Rename the column in your file, or keep it private."
             )
-            return render(
-                request,
-                "genomic/customparam.html",
-                _page_context(form, assembly_name, import_problems=[problem]),
-            )
+    if problems:
+        return render(
+            request,
+            "genomic/customparam.html",
+            _page_context(form, assembly_name, import_problems=problems),
+        )
 
     custom_param = form.save(commit=False)
     custom_param.owner = workspace_user

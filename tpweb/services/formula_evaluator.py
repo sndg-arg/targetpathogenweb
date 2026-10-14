@@ -120,6 +120,15 @@ def safe_eval_expression(expr_str: str, variables: dict) -> float:
     return _eval(tree)
 
 
+class ZeroCache(dict):
+    """{variable: 0.0} plus the ids of the ScoreParams the user may read, so
+    build_expression_variables() can ignore everything else. A protein's
+    score_params include other users' private uploaded columns; without this a
+    formula that happened to name one would be scored with its values."""
+
+    visible_param_ids = None
+
+
 def build_all_options_zero(user=None):
     """Return {variable_name: 0.0} for every visible variable for *user*.
 
@@ -138,8 +147,10 @@ def build_all_options_zero(user=None):
         param_visibility = Q(user__isnull=True)
         option_visibility = Q(score_param__user__isnull=True)
 
-    cache = {}
-    params = ScoreParam.objects.filter(param_visibility).order_by("category", "name", "id")
+    cache = ZeroCache()
+    params = list(ScoreParam.objects.filter(param_visibility).order_by("category", "name", "id"))
+    if user is not None:
+        cache.visible_param_ids = {param.pk for param in params}
     for param in params:
         if is_numeric_score_param(param):
             pk = normalize_var_name(param.name)
@@ -160,7 +171,10 @@ def build_expression_variables(protein, zero_cache: dict) -> dict:
     from tpweb.services.score_param_types import is_numeric_score_param
 
     variables = dict(zero_cache)
+    visible_param_ids = getattr(zero_cache, "visible_param_ids", None)
     for spv in protein.score_params.all():
+        if visible_param_ids is not None and spv.score_param_id not in visible_param_ids:
+            continue
         pk = normalize_var_name(spv.score_param.name)
         if not pk:
             continue
