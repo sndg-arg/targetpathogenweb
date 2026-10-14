@@ -2358,11 +2358,11 @@
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>
                 <span>Home</span>
             </a>
-            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' %}active{% endif %}" aria-label="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' or request.resolver_match.url_name == 'customparam' or request.resolver_match.url_name == 'formula_form' %}active{% endif %}" aria-label="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span>
                 <span>{% trans "Genomes" %}</span>
             </a>
-            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genome_upload' or request.resolver_match.url_name == 'customparam' %}active{% endif %}" aria-label="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genome_upload' %}active{% endif %}" aria-label="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
                 <span>{% trans "Upload" %}</span>
             </a>

@@ -38,7 +38,9 @@
     gap: 6px;
     margin: 0 0 8px;
     color: var(--tp-color-text-muted);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    /* Same sans uppercase eyebrow as Genomes/Proteins -- this page used the
+       monospace font here, one of the things that made it look unlike the
+       rest of the site. */
     font-size: var(--tp-font-label);
     font-weight: 500;
     letter-spacing: 0.08em;
@@ -69,7 +71,6 @@
 }
 
 .customparam-chip-id {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-weight: 600;
     color: var(--cp-accent-ink);
 }
@@ -81,25 +82,26 @@
     grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.9fr);
     gap: 18px;
     align-items: start;
-    /* The two cards inside keep their own border -- margin here aligns
-       that border with the 18px text inset the unboxed hero uses,
-       instead of sitting flush at the page's raw edge. */
+    /* Text inset matching the unboxed hero above it. */
     margin: 0 18px;
 }
 
-/* ── Cards ── */
+/* ── Columns ── */
 
+/* Form and guide sit directly on the page background, same as Upload
+   (genome-upload.css) and every other fused page -- they used to be two
+   bordered cards, which made this page look unlike the rest of the site.
+   See tpw-editorial-redesign. */
 .customparam-card {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface);
-    padding: 16px;
+    padding: 16px 0;
 }
 
+/* Vertical hairline between the paired form/guide columns. */
 .customparam-card--guide {
-    background: var(--tp-color-surface);
     display: grid;
     gap: 8px;
+    border-left: 1px solid var(--tp-color-border-soft);
+    padding-left: 18px;
 }
 
 .customparam-card-head {
@@ -313,15 +315,18 @@
     .customparam-layout {
         grid-template-columns: minmax(0, 1fr);
     }
+
+    /* Stacked: the seam between form and guide becomes horizontal. */
+    .customparam-card--guide {
+        border-left: 0;
+        border-top: 1px solid var(--tp-color-border-soft);
+        padding-left: 0;
+    }
 }
 
 @media (max-width: 768px) {
     .customparam-hero {
         padding: 18px 16px 16px;
-    }
-
-    .customparam-card {
-        padding: 14px;
     }
 
     .customparam-submit-row {
