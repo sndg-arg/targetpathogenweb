@@ -1288,7 +1288,13 @@ body.viewer-settings-open { overflow: hidden; }
        the sidebar header) buys real room before every fixed-size button
        has to fall back to the toolbar's own horizontal scroll. */
     flex: 0 1 auto;
-    min-width: 0;
+    /* Shrinks first, but never below a readable stub (method + start of the
+       code); past that the toolbar scrolls like for the other buttons. */
+    min-width: 120px;
+    /* The cap lives here, not on the button: when the picker shrinks, a
+       button with its own fixed max-width kept its width and slid under the
+       VMD button next to it. */
+    max-width: min(200px, 30vw);
 }
 
 .sv-struct-picker-btn {
@@ -1307,7 +1313,7 @@ body.viewer-settings-open { overflow: hidden; }
     letter-spacing: 0.01em;
     cursor: pointer;
     opacity: 0.88;
-    max-width: min(200px, 30vw);
+    max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     transition: background-color 0.13s, opacity 0.13s;

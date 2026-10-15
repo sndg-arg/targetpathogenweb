@@ -4797,10 +4797,24 @@ body.residue-modal-open {
     text-decoration: none;
 }
 
+/* Says where the link goes, in words: an arrow glyph next to a score read
+   as "this value is low / going down". */
 .metric-pill-jump {
+    margin-left: 6px;
     color: var(--tp-color-text-muted);
-    font-size: 0.8em;
+    font-family: inherit;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
+    letter-spacing: 0;
+    text-decoration: underline;
+    text-decoration-color: var(--tp-color-border-strong);
+    text-underline-offset: 3px;
+}
+
+.metric-pill--link:hover .metric-pill-jump,
+.metric-pill--link:focus-visible .metric-pill-jump {
+    color: var(--tp-color-link);
+    text-decoration-color: currentColor;
 }
 
 #binding-site-evidence {

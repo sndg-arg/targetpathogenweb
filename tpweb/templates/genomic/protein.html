@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261014-drugg-link">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261015-evidence-link">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -96,7 +96,7 @@
                     {% else %}
                     <span class="metric-label" title="{% blocktrans with source=druggability.2 %}{{ source }} pocket score on the selected structure. Higher values suggest a more druggable binding pocket.{% endblocktrans %}">{% if druggability.2 == "P2Rank" %}{% trans "Binding-site probability (P2Rank)" %}{% else %}{% blocktrans with source=druggability.2 %}Pocket druggability ({{ source }}){% endblocktrans %}{% endif %}</span>
                     {% endif %}
-                    <span class="metric-value">{{ druggability.0 }} <span class="metric-pill-jump" aria-hidden="true">↓</span></span>
+                    <span class="metric-value">{{ druggability.0 }} <span class="metric-pill-jump">{% trans "See evidence" %}</span></span>
                 </a>
                 {% endif %}
                 {% if metabolic_context.in_network %}
@@ -189,7 +189,6 @@
         {% endif %}
 
         <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
-            <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
             {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}<a href="#section-target-profile" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Prioritization" %}</a>{% endif %}
             {% if metabolic_context %}<a href="#section-metabolic-context" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Metabolism" %}</a>{% endif %}
             <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>

@@ -569,8 +569,20 @@
             font-size: var(--tp-font-size-md);
         }
 
+        /* ── Buttons: three variants, nothing else ─────────────────────
+           primary   -- the one main action of a view (filled brand)
+           secondary -- every other action (outlined)
+           danger    -- destructive actions (outlined; fills red on hover)
+           The older names (neutral, outline, clear, dark, light, success, info,
+           clear-caution, clear-warn) are kept only as aliases of these three so
+           existing markup keeps working. New markup: tp-btn--primary,
+           tp-btn--secondary or tp-btn--danger, optionally + tp-btn--sm. */
         .btn-primary,
-        .tp-btn--primary {
+        .tp-btn--primary,
+        .btn-success,
+        .tp-btn--success,
+        .btn-info,
+        .tp-btn--info {
             font-weight: 600;
             background: var(--tp-color-brand-800);
             background-color: var(--tp-color-brand-800) !important;
@@ -583,41 +595,13 @@
         .btn-primary:active,
         .tp-btn--primary:hover,
         .tp-btn--primary:focus,
-        .tp-btn--primary:active {
-            background: var(--tp-color-brand-900) !important;
-            background-color: var(--tp-color-brand-900) !important;
-            border-color: transparent !important;
-            color: var(--tp-color-on-accent) !important;
-        }
-
-        .btn-success,
-        .tp-btn--success {
-            background: var(--tp-color-sage-700);
-            background-color: var(--tp-color-sage-700) !important;
-            border-color: transparent !important;
-            color: var(--tp-color-on-accent) !important;
-        }
-
+        .tp-btn--primary:active,
         .btn-success:hover,
         .btn-success:focus,
         .btn-success:active,
         .tp-btn--success:hover,
         .tp-btn--success:focus,
-        .tp-btn--success:active {
-            background: color-mix(in srgb, var(--tp-color-sage-900) 85%, black) !important;
-            background-color: color-mix(in srgb, var(--tp-color-sage-900) 85%, black) !important;
-            border-color: transparent !important;
-            color: var(--tp-color-on-accent) !important;
-        }
-
-        .btn-info,
-        .tp-btn--info {
-            background: var(--tp-color-brand-800);
-            background-color: var(--tp-color-brand-800) !important;
-            border-color: transparent !important;
-            color: var(--tp-color-on-accent) !important;
-        }
-
+        .tp-btn--success:active,
         .btn-info:hover,
         .btn-info:focus,
         .btn-info:active,
@@ -630,14 +614,31 @@
             color: var(--tp-color-on-accent) !important;
         }
 
+        .btn-secondary,
+        .tp-btn--secondary,
         .btn-outline-info,
         .btn-outline-primary,
-        .tp-btn--outline {
+        .tp-btn--outline,
+        .btn-outline-secondary,
+        .tp-btn--neutral,
+        .btn-outline-dark,
+        .tp-btn--dark,
+        .btn-outline-light,
+        .tp-btn--light,
+        .btn.tp-btn--clear,
+        .tp-btn--clear {
             color: var(--tp-color-text-primary) !important;
             border-color: var(--tp-color-border-strong) !important;
             background: var(--tp-color-surface) !important;
+            box-shadow: none !important;
         }
 
+        .btn-secondary:hover,
+        .btn-secondary:focus,
+        .btn-secondary:active,
+        .tp-btn--secondary:hover,
+        .tp-btn--secondary:focus,
+        .tp-btn--secondary:active,
         .btn-outline-info:hover,
         .btn-outline-info:focus,
         .btn-outline-info:active,
@@ -646,46 +647,85 @@
         .btn-outline-primary:active,
         .tp-btn--outline:hover,
         .tp-btn--outline:focus,
-        .tp-btn--outline:active {
-            color: var(--tp-color-brand-800) !important;
-            border-color: var(--tp-color-brand-600) !important;
-            background: var(--tp-color-brand-050) !important;
-        }
-
-        .btn-secondary,
-        .tp-btn--secondary {
-            background: var(--tp-color-brand-800);
-            border-color: transparent !important;
-            color: var(--tp-color-on-accent) !important;
-        }
-
-        .btn-secondary:hover,
-        .btn-secondary:focus,
-        .btn-secondary:active,
-        .tp-btn--secondary:hover,
-        .tp-btn--secondary:focus,
-        .tp-btn--secondary:active {
-            background: var(--tp-color-brand-900) !important;
-            border-color: transparent !important;
-            color: var(--tp-color-on-accent) !important;
-        }
-
-        .btn-outline-secondary,
-        .tp-btn--neutral {
-            color: var(--tp-color-text-secondary);
-            border-color: var(--tp-color-border-strong);
-            background: var(--tp-color-surface);
-        }
-
+        .tp-btn--outline:active,
         .btn-outline-secondary:hover,
         .btn-outline-secondary:focus,
         .btn-outline-secondary:active,
         .tp-btn--neutral:hover,
         .tp-btn--neutral:focus,
-        .tp-btn--neutral:active {
-            color: var(--tp-color-brand-900) !important;
-            border-color: var(--tp-color-brand-300) !important;
-            background: var(--tp-accent-2-soft) !important;
+        .tp-btn--neutral:active,
+        .btn-outline-dark:hover,
+        .btn-outline-dark:focus,
+        .btn-outline-dark:active,
+        .tp-btn--dark:hover,
+        .tp-btn--dark:focus,
+        .tp-btn--dark:active,
+        .btn-outline-light:hover,
+        .btn-outline-light:focus,
+        .btn-outline-light:active,
+        .tp-btn--light:hover,
+        .tp-btn--light:focus,
+        .tp-btn--light:active,
+        .btn.tp-btn--clear:hover,
+        .btn.tp-btn--clear:focus,
+        .btn.tp-btn--clear:active,
+        .tp-btn--clear:hover,
+        .tp-btn--clear:focus,
+        .tp-btn--clear:active {
+            color: var(--tp-color-brand-800) !important;
+            border-color: var(--tp-color-brand-600) !important;
+            background: var(--tp-color-brand-050) !important;
+            box-shadow: none !important;
+        }
+
+        .btn-danger,
+        .tp-btn--danger,
+        .btn.tp-btn--clear.tp-btn--clear-caution,
+        .tp-btn--clear.tp-btn--clear-caution,
+        .btn.tp-btn--clear-warn,
+        .tp-btn--clear-warn {
+            color: var(--tp-color-danger-ink) !important;
+            border-color: var(--tp-color-danger-border) !important;
+            background: var(--tp-color-surface) !important;
+            box-shadow: none !important;
+        }
+
+        .btn-danger:hover,
+        .btn-danger:focus,
+        .btn-danger:active,
+        .tp-btn--danger:hover,
+        .tp-btn--danger:focus,
+        .tp-btn--danger:active,
+        .btn.tp-btn--clear.tp-btn--clear-caution:hover,
+        .btn.tp-btn--clear.tp-btn--clear-caution:focus,
+        .btn.tp-btn--clear.tp-btn--clear-caution:active,
+        .tp-btn--clear.tp-btn--clear-caution:hover,
+        .tp-btn--clear.tp-btn--clear-caution:focus,
+        .tp-btn--clear.tp-btn--clear-caution:active,
+        .btn.tp-btn--clear-warn:hover,
+        .btn.tp-btn--clear-warn:focus,
+        .btn.tp-btn--clear-warn:active,
+        .tp-btn--clear-warn:hover,
+        .tp-btn--clear-warn:focus,
+        .tp-btn--clear-warn:active {
+            color: var(--tp-color-on-accent) !important;
+            border-color: var(--tp-color-rose-700) !important;
+            background: var(--tp-color-rose-700) !important;
+            box-shadow: none !important;
+        }
+
+        .tp-btn--secondary:disabled,
+        .tp-btn--secondary.disabled,
+        .tp-btn--clear:disabled,
+        .tp-btn--clear.disabled,
+        .tp-btn--danger:disabled,
+        .tp-btn--danger.disabled,
+        .tp-btn--clear-warn:disabled,
+        .tp-btn--clear-warn.disabled {
+            color: var(--tp-color-text-soft) !important;
+            border-color: var(--tp-color-border-soft) !important;
+            background: var(--tp-color-surface-soft) !important;
+            opacity: 1;
         }
 
         /* Scoped by its real ancestor container (.tp-view-head-actions, used
@@ -713,60 +753,6 @@
             border-color: var(--tp-color-brand-600) !important;
             background: var(--tp-color-brand-100) !important;
             color: var(--tp-color-brand-900) !important;
-        }
-
-        .btn-outline-dark,
-        .tp-btn--dark {
-            color: var(--tp-color-nav-800);
-            border-color: var(--tp-color-border-strong);
-            background: var(--tp-color-surface);
-        }
-
-        .btn-outline-dark:hover,
-        .btn-outline-dark:focus,
-        .btn-outline-dark:active,
-        .tp-btn--dark:hover,
-        .tp-btn--dark:focus,
-        .tp-btn--dark:active {
-            color: var(--tp-color-nav-900) !important;
-            border-color: var(--tp-color-brand-300) !important;
-            background: var(--tp-color-brand-050) !important;
-        }
-
-        .btn-danger,
-        .tp-btn--danger {
-            background: var(--tp-color-rose-700);
-            border-color: var(--tp-color-danger-ink);
-            color: var(--tp-color-on-accent);
-        }
-
-        .btn-danger:hover,
-        .btn-danger:focus,
-        .btn-danger:active,
-        .tp-btn--danger:hover,
-        .tp-btn--danger:focus,
-        .tp-btn--danger:active {
-            background: var(--tp-color-rose-900) !important;
-            border-color: var(--tp-color-rose-900) !important;
-            color: var(--tp-color-on-accent) !important;
-        }
-
-        .btn-outline-light,
-        .tp-btn--light {
-            color: var(--tp-color-on-accent);
-            border-color: rgba(255, 255, 255, 0.55);
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .btn-outline-light:hover,
-        .btn-outline-light:focus,
-        .btn-outline-light:active,
-        .tp-btn--light:hover,
-        .tp-btn--light:focus,
-        .tp-btn--light:active {
-            color: var(--tp-color-on-accent) !important;
-            border-color: rgba(255, 255, 255, 0.76) !important;
-            background: rgba(255, 255, 255, 0.16) !important;
         }
 
         .btn:disabled,
@@ -808,117 +794,6 @@
             gap: 0.4rem;
             justify-content: center;
             line-height: 1.2;
-        }
-
-        .btn.tp-btn--clear,
-        .tp-btn--clear {
-            color: var(--tp-color-text-muted) !important;
-            border-color: var(--tp-color-border-strong) !important;
-            background: var(--tp-color-surface) !important;
-            box-shadow: none !important;
-        }
-
-        .btn.tp-btn--clear:hover,
-        .btn.tp-btn--clear:focus,
-        .btn.tp-btn--clear:active,
-        .tp-btn--clear:hover,
-        .tp-btn--clear:focus,
-        .tp-btn--clear:active {
-            color: var(--tp-color-text-secondary) !important;
-            border-color: var(--tp-color-brand-300) !important;
-            background: var(--tp-color-brand-050) !important;
-            box-shadow: none !important;
-        }
-
-        .btn.tp-btn--clear:disabled,
-        .btn.tp-btn--clear.disabled,
-        .tp-btn--clear:disabled,
-        .tp-btn--clear.disabled {
-            color: var(--tp-color-text-soft) !important;
-            border-color: var(--tp-color-border-soft) !important;
-            background: var(--tp-color-surface-soft) !important;
-            opacity: 1;
-        }
-
-        .btn.tp-btn--clear.tp-btn--clear-caution,
-        .tp-btn--clear.tp-btn--clear-caution {
-            color: var(--tp-color-text-muted) !important;
-            border-color: var(--tp-color-border-strong) !important;
-            background: var(--tp-color-surface) !important;
-            box-shadow: none !important;
-        }
-
-        .btn.tp-btn--clear.tp-btn--clear-caution .tp-btn-icon,
-        .tp-btn--clear.tp-btn--clear-caution .tp-btn-icon {
-            color: rgba(141, 47, 54, 0.84);
-        }
-
-        .btn.tp-btn--clear.tp-btn--clear-caution:hover,
-        .btn.tp-btn--clear.tp-btn--clear-caution:focus,
-        .btn.tp-btn--clear.tp-btn--clear-caution:active,
-        .tp-btn--clear.tp-btn--clear-caution:hover,
-        .tp-btn--clear.tp-btn--clear-caution:focus,
-        .tp-btn--clear.tp-btn--clear-caution:active {
-            color: var(--tp-color-danger-ink) !important;
-            border-color: var(--tp-color-danger-border) !important;
-            background: var(--tp-color-danger-bg) !important;
-            box-shadow: none !important;
-        }
-
-        .btn.tp-btn--clear.tp-btn--clear-caution:hover .tp-btn-icon,
-        .btn.tp-btn--clear.tp-btn--clear-caution:focus .tp-btn-icon,
-        .btn.tp-btn--clear.tp-btn--clear-caution:active .tp-btn-icon,
-        .tp-btn--clear.tp-btn--clear-caution:hover .tp-btn-icon,
-        .tp-btn--clear.tp-btn--clear-caution:focus .tp-btn-icon,
-        .tp-btn--clear.tp-btn--clear-caution:active .tp-btn-icon {
-            color: var(--tp-color-danger-ink);
-        }
-
-        .btn.tp-btn--clear.tp-btn--clear-caution:disabled,
-        .btn.tp-btn--clear.tp-btn--clear-caution.disabled,
-        .tp-btn--clear.tp-btn--clear-caution:disabled,
-        .tp-btn--clear.tp-btn--clear-caution.disabled {
-            color: var(--tp-color-text-soft) !important;
-            border-color: var(--tp-color-border-soft) !important;
-            background: var(--tp-color-surface-soft) !important;
-            opacity: 1;
-        }
-
-        .btn.tp-btn--clear.tp-btn--clear-caution:disabled .tp-btn-icon,
-        .btn.tp-btn--clear.tp-btn--clear-caution.disabled .tp-btn-icon,
-        .tp-btn--clear.tp-btn--clear-caution:disabled .tp-btn-icon,
-        .tp-btn--clear.tp-btn--clear-caution.disabled .tp-btn-icon {
-            color: rgba(141, 47, 54, 0.38);
-        }
-
-        .btn.tp-btn--clear-warn,
-        .tp-btn--clear-warn {
-            color: var(--tp-color-amber-900) !important;
-            border-color: var(--tp-color-amber-200) !important;
-            background: var(--tp-color-amber-050) !important;
-            box-shadow: none !important;
-        }
-
-        .btn.tp-btn--clear-warn:hover,
-        .btn.tp-btn--clear-warn:focus,
-        .btn.tp-btn--clear-warn:active,
-        .tp-btn--clear-warn:hover,
-        .tp-btn--clear-warn:focus,
-        .tp-btn--clear-warn:active {
-            color: var(--tp-color-amber-900) !important;
-            border-color: var(--tp-color-amber-500) !important;
-            background: var(--tp-color-amber-100) !important;
-            box-shadow: none !important;
-        }
-
-        .btn.tp-btn--clear-warn:disabled,
-        .btn.tp-btn--clear-warn.disabled,
-        .tp-btn--clear-warn:disabled,
-        .tp-btn--clear-warn.disabled {
-            color: rgba(111, 74, 20, 0.62) !important;
-            border-color: rgba(236, 213, 167, 0.82) !important;
-            background: var(--tp-color-amber-050) !important;
-            opacity: 1;
         }
 
         .tp-btn-icon {
@@ -1972,9 +1847,13 @@
             box-shadow: var(--tp-shadow-xs) !important;
         }
 
-        /* primary button — dark mode: use darker brand for white-text contrast */
+        /* Buttons, dark mode -- the same three variants. */
         .tp-dark .btn-primary,
-        .tp-dark .tp-btn--primary {
+        .tp-dark .tp-btn--primary,
+        .tp-dark .btn-success,
+        .tp-dark .tp-btn--success,
+        .tp-dark .btn-info,
+        .tp-dark .tp-btn--info {
             background: var(--tp-color-brand-300) !important;
             background-color: var(--tp-color-brand-300) !important;
             border-color: var(--tp-color-brand-200) !important;
@@ -1986,62 +1865,50 @@
         .tp-dark .btn-primary:active,
         .tp-dark .tp-btn--primary:hover,
         .tp-dark .tp-btn--primary:focus,
-        .tp-dark .tp-btn--primary:active {
+        .tp-dark .tp-btn--primary:active,
+        .tp-dark .btn-success:hover,
+        .tp-dark .btn-success:focus,
+        .tp-dark .btn-success:active,
+        .tp-dark .tp-btn--success:hover,
+        .tp-dark .tp-btn--success:focus,
+        .tp-dark .tp-btn--success:active,
+        .tp-dark .btn-info:hover,
+        .tp-dark .btn-info:focus,
+        .tp-dark .btn-info:active,
+        .tp-dark .tp-btn--info:hover,
+        .tp-dark .tp-btn--info:focus,
+        .tp-dark .tp-btn--info:active {
             background: var(--tp-color-brand-200) !important;
             background-color: var(--tp-color-brand-200) !important;
             border-color: var(--tp-color-brand-200) !important;
             color: #ffffff !important;
         }
 
-        /* neutral button variant */
-        .tp-dark .btn-outline-secondary,
-        .tp-dark .tp-btn--neutral {
-            color: var(--tp-color-text-primary) !important;
-            border-color: var(--tp-color-border-strong) !important;
-            background: var(--tp-color-surface-soft) !important;
-        }
-
-        .tp-dark .btn-outline-secondary:hover,
-        .tp-dark .btn-outline-secondary:focus,
-        .tp-dark .btn-outline-secondary:active,
-        .tp-dark .tp-btn--neutral:hover,
-        .tp-dark .tp-btn--neutral:focus,
-        .tp-dark .tp-btn--neutral:active {
-            color: var(--tp-color-text-primary) !important;
-            border-color: var(--tp-color-brand-600) !important;
-            background: var(--tp-color-surface-panel) !important;
-        }
-
-        /* dark button variant */
-        .tp-dark .btn-outline-dark,
-        .tp-dark .tp-btn--dark {
-            color: var(--tp-color-text-primary) !important;
-            border-color: var(--tp-color-border-strong) !important;
-            background: var(--tp-color-surface-soft) !important;
-        }
-
-        .tp-dark .btn-outline-dark:hover,
-        .tp-dark .btn-outline-dark:focus,
-        .tp-dark .btn-outline-dark:active,
-        .tp-dark .tp-btn--dark:hover,
-        .tp-dark .tp-btn--dark:focus,
-        .tp-dark .tp-btn--dark:active {
-            color: var(--tp-color-text-primary) !important;
-            border-color: var(--tp-color-brand-600) !important;
-            background: var(--tp-color-surface-panel) !important;
-        }
-
-        /* outline button — dark resting state */
+        .tp-dark .btn-secondary,
+        .tp-dark .tp-btn--secondary,
         .tp-dark .btn-outline-info,
         .tp-dark .btn-outline-primary,
-        .tp-dark .tp-btn--outline {
+        .tp-dark .tp-btn--outline,
+        .tp-dark .btn-outline-secondary,
+        .tp-dark .tp-btn--neutral,
+        .tp-dark .btn-outline-dark,
+        .tp-dark .tp-btn--dark,
+        .tp-dark .btn-outline-light,
+        .tp-dark .tp-btn--light,
+        .tp-dark .btn.tp-btn--clear,
+        .tp-dark .tp-btn--clear {
             color: var(--tp-color-text-primary) !important;
             border-color: var(--tp-color-border-strong) !important;
             background: var(--tp-color-surface-soft) !important;
             box-shadow: none !important;
         }
 
-        /* outline button — dark hover */
+        .tp-dark .btn-secondary:hover,
+        .tp-dark .btn-secondary:focus,
+        .tp-dark .btn-secondary:active,
+        .tp-dark .tp-btn--secondary:hover,
+        .tp-dark .tp-btn--secondary:focus,
+        .tp-dark .tp-btn--secondary:active,
         .tp-dark .btn-outline-info:hover,
         .tp-dark .btn-outline-info:focus,
         .tp-dark .btn-outline-info:active,
@@ -2050,10 +1917,45 @@
         .tp-dark .btn-outline-primary:active,
         .tp-dark .tp-btn--outline:hover,
         .tp-dark .tp-btn--outline:focus,
-        .tp-dark .tp-btn--outline:active {
+        .tp-dark .tp-btn--outline:active,
+        .tp-dark .btn-outline-secondary:hover,
+        .tp-dark .btn-outline-secondary:focus,
+        .tp-dark .btn-outline-secondary:active,
+        .tp-dark .tp-btn--neutral:hover,
+        .tp-dark .tp-btn--neutral:focus,
+        .tp-dark .tp-btn--neutral:active,
+        .tp-dark .btn-outline-dark:hover,
+        .tp-dark .btn-outline-dark:focus,
+        .tp-dark .btn-outline-dark:active,
+        .tp-dark .tp-btn--dark:hover,
+        .tp-dark .tp-btn--dark:focus,
+        .tp-dark .tp-btn--dark:active,
+        .tp-dark .btn-outline-light:hover,
+        .tp-dark .btn-outline-light:focus,
+        .tp-dark .btn-outline-light:active,
+        .tp-dark .tp-btn--light:hover,
+        .tp-dark .tp-btn--light:focus,
+        .tp-dark .tp-btn--light:active,
+        .tp-dark .btn.tp-btn--clear:hover,
+        .tp-dark .btn.tp-btn--clear:focus,
+        .tp-dark .btn.tp-btn--clear:active,
+        .tp-dark .tp-btn--clear:hover,
+        .tp-dark .tp-btn--clear:focus,
+        .tp-dark .tp-btn--clear:active {
             color: var(--tp-color-brand-900) !important;
             border-color: var(--tp-color-brand-600) !important;
             background: color-mix(in srgb, var(--tp-color-brand-600) 14%, var(--tp-color-surface-muted)) !important;
+        }
+
+        .tp-dark .btn-danger,
+        .tp-dark .tp-btn--danger,
+        .tp-dark .btn.tp-btn--clear.tp-btn--clear-caution,
+        .tp-dark .tp-btn--clear.tp-btn--clear-caution,
+        .tp-dark .btn.tp-btn--clear-warn,
+        .tp-dark .tp-btn--clear-warn {
+            color: var(--tp-color-danger-ink) !important;
+            border-color: var(--tp-color-danger-border) !important;
+            background: var(--tp-color-surface-soft) !important;
         }
 
         /* headings / components using nav-800 for text */
@@ -2487,12 +2389,6 @@
                 <span>{% trans "BLAST genome" %}</span>
             </a>
             {% with url_name=request.resolver_match.url_name %}
-            {% if perms.tpweb.can_view_human_targets %}
-            <a class="tp-topbar-desktop-link {% if url_name == 'human_protein_list' or url_name == 'human_protein' %}active{% endif %}" aria-label="{% trans 'Human Targets' %}" href="{% url 'human_target:human_protein_list' %}">
-                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span>
-                <span>{% trans "Human Targets" %}</span>
-            </a>
-            {% endif %}
             <div class="dropdown tp-topbar-desktop-about">
                 <button class="tp-topbar-desktop-link tp-topbar-desktop-link--menu {% if url_name == 'data_sources' or url_name == 'about_us' %}active{% endif %}" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/info.html" %}</span>
@@ -2525,6 +2421,12 @@
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
                             {% trans "My profile" %}
                         </a>
+                        {% if perms.tpweb.can_view_human_targets %}
+                        <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.app_name == 'human_target' %}active{% endif %}" href="{% url 'human_target:human_protein_list' %}">
+                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span>
+                            {% trans "Human Targets" %}
+                        </a>
+                        {% endif %}
                         {% if user.is_superuser %}
                         <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'activity_dashboard' %}active{% endif %}" href="{% url 'tpwebapp:activity_dashboard' %}">
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/eye.html" %}</span>
@@ -2606,11 +2508,6 @@
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'form' or url_name == 'blast_res' %} is-active{% endif %}" {% if url_name == 'form' or url_name == 'blast_res' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:form' %}">{% trans "BLAST genome" %}</a>
                 </li>
-                {% if perms.tpweb.can_view_human_targets %}
-                <li class="nav-item">
-                    <a class="nav-link{% if url_name == 'human_protein_list' or url_name == 'human_protein' %} is-active{% endif %}" {% if url_name == 'human_protein_list' or url_name == 'human_protein' %}aria-current="page"{% endif %} href="{% url 'human_target:human_protein_list' %}">{% trans "Human Targets" %}</a>
-                </li>
-                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'data_sources' %} is-active{% endif %}" {% if url_name == 'data_sources' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:data_sources' %}">{% trans "Methodology" %}</a>
                 </li>
@@ -2640,6 +2537,9 @@
                         </a>
                         <div id="user_dropdown_menu" class="dropdown-menu">
                             <a class="dropdown-item" href="{% url 'tpwebapp:profile' %}">{% trans "My profile" %}</a>
+                            {% if perms.tpweb.can_view_human_targets %}
+                            <a class="dropdown-item" href="{% url 'human_target:human_protein_list' %}">{% trans "Human Targets" %}</a>
+                            {% endif %}
                             {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
                             <a class="dropdown-item" href="{% url 'tpwebapp:settings' %}">{% trans "Settings" %}</a>
                             {% endif %}

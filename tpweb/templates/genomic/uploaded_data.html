@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/uploaded-data.css' %}?v=20261014-uploaded-data">
+    <link rel="stylesheet" href="{% static 'css/pages/uploaded-data.css' %}?v=20261015-uploaded-data">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -26,7 +26,8 @@
     <section class="uploaded-data-hero">
         <p class="uploaded-data-eyebrow">{{ assembly_label }}</p>
         <h1>{% trans "Uploaded data" %}</h1>
-        <p class="uploaded-data-subtitle">{% trans "Columns added with Add my own data that you can see on this genome: your own, and the ones other users shared. Add any of them to the protein table from Columns." %}</p>
+        <p class="uploaded-data-subtitle">{% trans "Extra per-protein columns that people uploaded for this genome with Add my own data, such as lab measurements or a list of genes of interest. Yours and the ones shared with you are listed here; add any of them to the protein table from Columns." %}</p>
+        {% if columns %}
         <div class="uploaded-data-actions">
             <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'tpwebapp:protein_list' genome=genome %}">
                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
@@ -37,6 +38,7 @@
             <a class="uploaded-data-link" href="{% url 'tpwebapp:settings' %}">{% trans "Share or delete yours in Settings" %}</a>
             {% endif %}
         </div>
+        {% endif %}
     </section>
 
     <section class="uploaded-data-section">
@@ -61,7 +63,19 @@
             {% endfor %}
         </ul>
         {% else %}
-        <p class="uploaded-data-empty">{% trans "No uploaded data on this genome yet." %}{% if can_upload %} <a href="{% url 'tpwebapp:customparam' genome=genome %}">{% trans "Add your own" %}</a>.{% endif %}</p>
+        <div class="uploaded-data-empty">
+            <h2>{% trans "Nothing uploaded for this genome yet" %}</h2>
+            <p>{% trans "Upload a table with one value per protein (locus tag + value). It becomes a column you can show, filter on and use in your own score, and you choose who else can see it." %}</p>
+            <div class="uploaded-data-actions">
+                {% if can_upload %}
+                <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'tpwebapp:customparam' genome=genome %}">
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span>
+                    <span>{% trans "Add my own data" %}</span>
+                </a>
+                {% endif %}
+                <a class="uploaded-data-link" href="{% url 'tpwebapp:protein_list' genome=genome %}">{% trans "Back to the protein table" %}</a>
+            </div>
+        </div>
         {% endif %}
     </section>
 </div>

@@ -57,8 +57,14 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
   `background: var(--tp-color-surface)` — the 1px gaps read as thin dividers. See
   `.target-profile-grid` in `protein-detail.css`.
 - `.tp-chip` / `.tp-chip--{sm,meta,link,count,ec,go,...}` for small pill labels/links.
-- `.tp-btn` / `.tp-btn--{primary,neutral,outline}` + `.tp-btn--sm/md`, always paired with
-  `.btn` for base sizing.
+- Buttons: **three variants only** — `.tp-btn--primary` (the one main action of a view, filled),
+  `.tp-btn--secondary` (every other action, outlined), `.tp-btn--danger` (destructive, outlined,
+  fills red on hover) — plus `.tp-btn--sm/md` for size, always paired with `.btn .tp-btn`.
+  The older names (`neutral`, `outline`, `clear`, `dark`, `light`, `success`, `info`,
+  `clear-caution`, `clear-warn`, Bootstrap's `btn-outline-*`/`btn-success`/`btn-info`) are only
+  aliases kept in `masterpage.html` so old markup renders the same; never use them in new markup
+  and never add a fourth color/variant. Same idea for every other component (chips, notes,
+  cards): reuse the existing variant, don't invent a page-local look.
 - `.tp-state-note--{empty,error}` for "nothing here yet" / error inline messages.
 
 ## Cache-busters
