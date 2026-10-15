@@ -469,6 +469,24 @@
 }
 
 /* EC / GO switch in the hero (the GO explorer had no link anywhere). */
-.explorer-kind-switch {
-    margin: var(--tp-space-3) 0 var(--tp-space-2);
+.explorer-kind-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    margin: var(--tp-space-3) 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.explorer-kind-link {
+    color: var(--tp-color-link);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.explorer-kind-link:hover,
+.explorer-kind-link:focus-visible {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
 }
