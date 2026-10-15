@@ -113,7 +113,6 @@ class LoadHumanStructuresBulkTests(TestCase):
     def test_experimental_downloads_once_and_links_every_sharing_protein(self, mock_get):
         self._make_human_protein("P10721", pdb_ids=["1ABC"])
         self._make_human_protein("P10722", pdb_ids=["1ABC"])
-        PDB.objects.create(code="1ABC", experiment="EX", text="")
 
         call_command(
             "load_human_structures_bulk",
@@ -125,6 +124,51 @@ class LoadHumanStructuresBulkTests(TestCase):
         self.assertEqual(ExperimentalStructureXref.objects.filter(pdb_id="1ABC").count(), 2)
         xref = ExperimentalStructureXref.objects.get(pdb_id="1ABC", bioentry__accession="P10721")
         self.assertEqual(xref.method, "X-RAY DIFFRACTION")
+
+    @patch("human_target.management.commands.load_human_structures_bulk.requests.get")
+    def test_experimental_skips_download_when_pdb_already_loaded(self, mock_get):
+        # Resuming an interrupted run shouldn't re-download every entry
+        # already loaded by the previous attempt.
+        self._make_human_protein("P10721", pdb_ids=["1ABC"])
+        self._make_human_protein("P10722", pdb_ids=["1ABC"])
+        PDB.objects.create(code="1ABC", experiment="EX", text="")
+        ExperimentalStructureXref.objects.create(
+            bioentry=Bioentry.objects.get(accession="P10721"),
+            pdb_id="1ABC",
+            method="SOLUTION NMR",
+        )
+
+        call_command(
+            "load_human_structures_bulk",
+            skip_alphafold=True,
+            accession=["P10721", "P10722"],
+        )
+
+        mock_get.assert_not_called()
+        xref = ExperimentalStructureXref.objects.get(pdb_id="1ABC", bioentry__accession="P10722")
+        self.assertEqual(xref.method, "SOLUTION NMR")
+
+    @patch(
+        "human_target.management.commands.load_human_structures_bulk.requests.get",
+        return_value=_FakeResponse(_FAKE_CIF_WITH_METHOD),
+    )
+    def test_experimental_processes_distinct_entries_concurrently_and_aggregates_correctly(
+        self, mock_get
+    ):
+        self._make_human_protein("P10721", pdb_ids=["1ABC"])
+        self._make_human_protein("P10722", pdb_ids=["2XYZ"])
+        self._make_human_protein("P10723", pdb_ids=["3QRS"])
+
+        call_command(
+            "load_human_structures_bulk",
+            skip_alphafold=True,
+            accession=["P10721", "P10722", "P10723"],
+            workers=3,
+        )
+
+        self.assertEqual(mock_get.call_count, 3)
+        self.assertEqual(ExperimentalStructureXref.objects.count(), 3)
+        self.assertEqual(PDB.objects.filter(experiment="EX").count(), 3)
 
     @patch("human_target.management.commands.load_human_structures_bulk.requests.get")
     def test_experimental_with_no_pdb_xrefs_skips_without_calling_requests(self, mock_get):

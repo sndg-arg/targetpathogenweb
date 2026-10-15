@@ -327,8 +327,8 @@ shared components) — zero data/functionality crossover.
     sequence for human proteins at all; `import_human_curated_proteins` was patched to do the same.
   - **Structures — implemented**: `python manage.py load_human_structures_bulk --alphafold-dir
     /path/to/extracted [--accession ... | --accession-file PATH] [--datadir PATH] [--overwrite]
-    [--skip-alphafold] [--skip-experimental]`. AlphaFold-own-model: the extracted bulk archive
-    (from `fetch_human_proteome_bulk.sh`) is indexed once by filename
+    [--workers 4] [--skip-alphafold] [--skip-experimental]`. AlphaFold-own-model: the extracted
+    bulk archive (from `fetch_human_proteome_bulk.sh`) is indexed once by filename
     (`AF-<accession>-F1-model_v<N>.cif[.gz]`), not globbed per accession. Experimental PDB: one
     `files.rcsb.org/download/<id>.cif` fetch per *distinct* PDB id referenced by our proteins' own
     `cross_references_raw` (no extra call to look the IDs up), downloaded once and linked to every
@@ -340,6 +340,15 @@ shared components) — zero data/functionality crossover.
     case — harmless at 10-protein pilot scale (PDB entries essentially never collide), would have
     silently dropped the xref for every protein past the first to share one at bulk scale. Fixed in
     both places: the xref write only skips on a real `CommandError`, not a re-link `SystemExit`.
+    The experimental-PDB pass is the real bottleneck at full scale (~75K distinct PDB ids measured
+    against the full proteome) — fetched with `--workers` parallel threads (`ThreadPoolExecutor`,
+    default 4, same concurrency convention as the bacterial pipeline's own stage 15/17 workers) and
+    resumable: a PDB id already loaded by an earlier (possibly interrupted) run is detected up front
+    via a DB check and never re-downloaded, only re-linked for whichever proteins still need it —
+    safe to stop (`kill`) and restart this command at any time without losing or re-fetching
+    completed work. Running this inside a container that gets restarted (e.g. by `make up`/`make
+    build` for an unrelated change) silently kills the job and wipes its `/tmp` log — always confirm
+    with `ps aux | grep load_human_structures_bulk` after any container restart during a long run.
   - Full plan (phased, pause-and-review between each step, row-count/disk-footprint estimates):
     see the session's saved plan file.
 
