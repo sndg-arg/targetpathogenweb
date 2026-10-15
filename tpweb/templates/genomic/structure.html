@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261015-picker">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261015-protein-line">
 {% endblock %}
 
 {% block body %}
@@ -217,9 +217,12 @@
             <header class="sv-sidebar-head">
                 <h1 class="sv-sidebar-code" id="sv-sidebar-code">{{ structure.display_code|default:structure.code|upper }}</h1>
                 {% if source_protein_id %}
-                <p class="sv-sidebar-protein">
-                    <a href="{% url 'tpwebapp:protein' source_protein_id %}">{{ source_protein_accession|default:source_protein_label }}</a>{% if source_protein_description %} · {{ source_protein_description }}{% endif %}
+                {% with heading=structure.display_code|default:structure.code|upper acc=source_protein_accession|default:source_protein_label %}
+                {# Predicted models are named after the locus tag, so the heading already is the accession: show only the description then. #}
+                <p class="sv-sidebar-protein{% if heading == acc|upper and source_protein_description %} is-same-as-heading{% endif %}" id="sv-sidebar-protein" data-accession="{{ acc|upper }}">
+                    <a href="{% url 'tpwebapp:protein' source_protein_id %}"><span class="sv-sidebar-protein-acc">{{ acc }}</span>{% if source_protein_description %}<span class="sv-sidebar-protein-sep"> · </span><span class="sv-sidebar-protein-desc">{{ source_protein_description }}</span>{% endif %}</a>
                 </p>
+                {% endwith %}
                 {% endif %}
                 <div class="sv-sidebar-meta-row" id="sv-sidebar-meta">
                     {% for s in all_structures %}{% if s.is_active %}
@@ -1107,6 +1110,13 @@ function jsloaded() {
         var sidebarResEl    = document.getElementById("sv-sidebar-resolution");
 
         if (scodeEl)         scodeEl.textContent = code;
+        var proteinLineEl = document.getElementById("sv-sidebar-protein");
+        if (proteinLineEl && proteinLineEl.querySelector(".sv-sidebar-protein-desc")) {
+            proteinLineEl.classList.toggle(
+                "is-same-as-heading",
+                String(code).toUpperCase() === proteinLineEl.getAttribute("data-accession")
+            );
+        }
         if (methodEl)        { methodEl.textContent = method; methodEl.hidden = !method; }
         if (resEl)           { resEl.textContent = resolution ? resolution + " Å" : ""; resEl.hidden = !resolution; }
         if (sidebarMethodEl) { sidebarMethodEl.textContent = method; sidebarMethodEl.hidden = !method; }

@@ -472,6 +472,20 @@ body:has(.sv-root) { overflow: hidden; }
     text-decoration: underline;
 }
 
+.sv-sidebar-protein-desc {
+    color: var(--tp-color-text-secondary);
+    font-weight: 400;
+}
+
+.sv-sidebar-protein.is-same-as-heading .sv-sidebar-protein-desc {
+    color: var(--tp-color-link);
+}
+
+.sv-sidebar-protein.is-same-as-heading .sv-sidebar-protein-acc,
+.sv-sidebar-protein.is-same-as-heading .sv-sidebar-protein-sep {
+    display: none;
+}
+
 .sv-sidebar-meta-row {
     display: flex;
     flex-wrap: wrap;
