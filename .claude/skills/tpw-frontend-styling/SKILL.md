@@ -57,9 +57,17 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
   `background: var(--tp-color-surface)` — the 1px gaps read as thin dividers. See
   `.target-profile-grid` in `protein-detail.css`.
 - `.tp-chip` / `.tp-chip--{sm,meta,link,count,ec,go,...}` for small pill labels/links.
-- Buttons: **three variants only** — `.tp-btn--primary` (the one main action of a view, filled),
-  `.tp-btn--secondary` (every other action, outlined), `.tp-btn--danger` (destructive, outlined,
-  fills red on hover) — plus `.tp-btn--sm/md` for size, always paired with `.btn .tp-btn`.
+- Buttons: **four types, site-wide, no more** — `.tp-btn--primary` (the one main action of a
+  view, filled), `.tp-btn--secondary` (every other action, outlined), `.tp-btn--danger`
+  (destructive, outlined, fills red on hover), `.tp-btn--ghost` (icon-only / in-row actions such
+  as close, refresh, rename, no border until hover) — plus `.tp-btn--sm/md` for size, always
+  paired with `.btn .tp-btn`. Corners come from `--tp-btn-radius` (11px) / `--tp-btn-radius-sm`
+  (8px, compact controls); round 999px is only for icon-only ghost buttons. A page-specific
+  button class (e.g. `.metabolic-map-btn`, `.tp-table-export-btn`) may set size/layout, but its
+  colors must be exactly one of the four types (secondary = text-primary on surface with
+  border-strong; hover brand-800 text, brand-600 border, brand-050 fill). Toggle groups
+  (segmented controls, viewer toolbar) and dropdown triggers are separate components, not
+  button types.
   The older names (`neutral`, `outline`, `clear`, `dark`, `light`, `success`, `info`,
   `clear-caution`, `clear-warn`, Bootstrap's `btn-outline-*`/`btn-success`/`btn-info`) are only
   aliases kept in `masterpage.html` so old markup renders the same; never use them in new markup

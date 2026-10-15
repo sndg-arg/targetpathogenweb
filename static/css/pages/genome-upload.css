@@ -245,10 +245,10 @@
 .genome-upload-field .tp-file-input::file-selector-button {
     margin-right: 10px;
     padding: 8px 14px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--upload-accent-soft-2);
-    color: var(--upload-accent-ink);
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-btn-radius-sm);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
     font-weight: 600;
     font-size: var(--tp-font-size-sm);
     cursor: pointer;
@@ -256,7 +256,9 @@
 }
 
 .genome-upload-field .tp-file-input::file-selector-button:hover {
-    background: var(--upload-accent-border);
+    background: var(--tp-color-brand-050);
+    border-color: var(--tp-color-brand-600);
+    color: var(--tp-color-brand-800);
 }
 
 .genome-upload-field .tp-file-input:focus-visible {

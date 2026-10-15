@@ -265,9 +265,9 @@
     min-height: 34px;
     padding: 0 14px 0 10px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: 999px;
+    border-radius: var(--tp-btn-radius);
     background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     letter-spacing: 0;
@@ -296,7 +296,7 @@
 
 .tp-view-export-link:hover,
 .tp-view-export-link:focus-visible {
-    border-color: var(--tp-color-brand-300);
+    border-color: var(--tp-color-brand-600);
     color: var(--tp-color-brand-800);
     background: var(--tp-color-brand-050);
 }
@@ -1253,9 +1253,9 @@ a.tp-chip--go:hover {
     min-height: 34px;
     padding: 0 12px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: 999px;
+    border-radius: var(--tp-btn-radius);
     background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-primary);
     font-size: 0.82rem;
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -1269,9 +1269,9 @@ a.tp-chip--go:hover {
 }
 
 .tp-table-export-btn:hover {
-    color: var(--tp-color-brand-900);
+    color: var(--tp-color-brand-800);
     text-decoration: none;
-    border-color: var(--tp-color-brand-300);
+    border-color: var(--tp-color-brand-600);
     background: var(--tp-color-brand-050);
 }
 
@@ -1942,10 +1942,10 @@ a.tp-chip--go:hover {
 }
 
 .tp-file-input::file-selector-button {
-    border: 1px solid var(--view-accent-border, var(--tp-color-border-strong));
-    border-radius: var(--tp-ui-radius-control);
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-btn-radius-sm);
     background: var(--tp-color-surface);
-    color: var(--view-accent-ink, var(--tp-color-brand-800));
+    color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     line-height: 1;
@@ -1963,9 +1963,9 @@ a.tp-chip--go:hover {
 }
 
 .tp-file-input::file-selector-button:hover {
-    border-color: var(--view-accent, var(--tp-color-brand-600));
-    background: var(--view-accent-soft, var(--tp-color-brand-100));
-    color: var(--tp-color-link-hover);
+    border-color: var(--tp-color-brand-600);
+    background: var(--tp-color-brand-050);
+    color: var(--tp-color-brand-800);
 }
 
 .tp-file-input:focus-visible {

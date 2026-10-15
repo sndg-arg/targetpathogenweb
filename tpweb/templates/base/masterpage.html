@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261012-back-icon-stroke">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261015-button-variants">
     <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261013-mobile-fab">
     <style>
         :root {
@@ -198,6 +198,9 @@
             --tp-topbar-h: 76px;
             --tp-radius-lg: 26px;
             --tp-radius-md: 20px;
+            /* Buttons and button-like controls (compact ones use -sm). */
+            --tp-btn-radius: 11px;
+            --tp-btn-radius-sm: 8px;
             --tp-space-1: 4px;
             --tp-space-2: 8px;
             --tp-space-3: 12px;
@@ -531,7 +534,7 @@
             align-items: center;
             justify-content: center;
             gap: 0.45rem;
-            border-radius: 11px;
+            border-radius: var(--tp-btn-radius);
             font-weight: 500;
             line-height: 1;
             text-align: center;
@@ -569,14 +572,15 @@
             font-size: var(--tp-font-size-md);
         }
 
-        /* ── Buttons: three variants, nothing else ─────────────────────
+        /* ── Buttons: three variants + ghost, nothing else ─────────────────────
            primary   -- the one main action of a view (filled brand)
            secondary -- every other action (outlined)
            danger    -- destructive actions (outlined; fills red on hover)
            The older names (neutral, outline, clear, dark, light, success, info,
            clear-caution, clear-warn) are kept only as aliases of these three so
            existing markup keeps working. New markup: tp-btn--primary,
-           tp-btn--secondary or tp-btn--danger, optionally + tp-btn--sm. */
+           tp-btn--secondary or tp-btn--danger, optionally + tp-btn--sm. The
+           only other type is tp-btn--ghost (below), for icon/in-row actions. */
         .btn-primary,
         .tp-btn--primary,
         .btn-success,
@@ -714,8 +718,30 @@
             box-shadow: none !important;
         }
 
+        /* ghost -- the 4th and last type: icon-only or in-row actions (close,
+           refresh, rename, remove) with no border until hovered. */
+        .tp-btn--ghost {
+            color: var(--tp-color-text-muted) !important;
+            border-color: transparent !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        .tp-btn--ghost:hover,
+        .tp-btn--ghost:focus,
+        .tp-btn--ghost:active {
+            color: var(--tp-color-brand-800) !important;
+            border-color: transparent !important;
+            background: var(--tp-color-brand-050) !important;
+            box-shadow: none !important;
+        }
+
         .tp-btn--secondary:disabled,
         .tp-btn--secondary.disabled,
+        .tp-btn--outline:disabled,
+        .tp-btn--outline.disabled,
+        .tp-btn--neutral:disabled,
+        .tp-btn--neutral.disabled,
         .tp-btn--clear:disabled,
         .tp-btn--clear.disabled,
         .tp-btn--danger:disabled,
@@ -740,10 +766,10 @@
             min-height: 34px;
             padding: 0 14px 0 10px;
             gap: 7px;
-            border: 1px solid var(--tp-color-brand-300) !important;
-            border-radius: 999px !important;
-            background: var(--tp-color-brand-050) !important;
-            color: var(--tp-color-brand-800) !important;
+            border: 1px solid var(--tp-color-border-strong) !important;
+            border-radius: var(--tp-btn-radius) !important;
+            background: var(--tp-color-surface) !important;
+            color: var(--tp-color-text-primary) !important;
             font-size: var(--tp-font-size-sm);
             font-weight: 600;
         }
@@ -751,8 +777,8 @@
         .tp-view-head-actions .tp-view-export-link.tp-view-export-link:hover,
         .tp-view-head-actions .tp-view-export-link.tp-view-export-link:focus {
             border-color: var(--tp-color-brand-600) !important;
-            background: var(--tp-color-brand-100) !important;
-            color: var(--tp-color-brand-900) !important;
+            background: var(--tp-color-brand-050) !important;
+            color: var(--tp-color-brand-800) !important;
         }
 
         .btn:disabled,
@@ -1847,7 +1873,7 @@
             box-shadow: var(--tp-shadow-xs) !important;
         }
 
-        /* Buttons, dark mode -- the same three variants. */
+        /* Buttons, dark mode -- same variants (ghost needs no override). */
         .tp-dark .btn-primary,
         .tp-dark .tp-btn--primary,
         .tp-dark .btn-success,

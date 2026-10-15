@@ -108,19 +108,18 @@
     gap: 5px;
     padding: 4px 10px 4px 6px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: 999px;
+    border-radius: var(--tp-btn-radius);
     background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-primary);
     font-size: 0.74rem;
-    font-weight: 700;
+    font-weight: 600;
     transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
 .metabolic-network-genome-back-btn:hover {
-    border-color: var(--tp-color-brand-300);
-    color: var(--tp-color-text-primary);
-    background: var(--tp-color-surface-soft);
-    transform: translateX(-1px);
+    border-color: var(--tp-color-brand-600);
+    color: var(--tp-color-brand-800);
+    background: var(--tp-color-brand-050);
 }
 
 .metabolic-network-genome-breadcrumb-sep {
@@ -307,20 +306,19 @@
     height: 28px;
     padding: 0 10px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: 6px;
+    border-radius: var(--tp-btn-radius-sm);
     background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-primary);
     font-size: 0.76rem;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1;
     transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
 .metabolic-map-btn:hover {
-    border-color: var(--tp-color-brand-300);
-    color: var(--tp-color-text-primary);
-    background: var(--tp-color-surface-soft);
-    transform: translateY(-1px);
+    border-color: var(--tp-color-brand-600);
+    color: var(--tp-color-brand-800);
+    background: var(--tp-color-brand-050);
 }
 
 .metabolic-network-genome-inspector {

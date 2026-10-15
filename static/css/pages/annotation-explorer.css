@@ -409,27 +409,27 @@
     justify-content: center;
     min-width: 92px;
     padding: 0.52rem 0.95rem;
-    border-radius: 10px;
-    border: 1.5px solid var(--tp-color-border) !important;
+    border-radius: var(--tp-btn-radius);
+    border: 1px solid var(--tp-color-border-strong) !important;
     font-weight: 500;
-    color: var(--tp-color-brand-900) !important;
-    background: var(--tp-color-surface-soft) !important;
+    color: var(--tp-color-text-primary) !important;
+    background: var(--tp-color-surface) !important;
 }
 
 .explorer-table-shell .explorer-select-btn.is-active,
 .explorer-table-shell .js-select-annotation.is-active {
-    color: var(--tp-color-brand-900);
-    border-color: var(--tp-color-brand-300);
-    background: var(--tp-color-brand-050);
+    color: var(--tp-color-on-accent);
+    border-color: transparent;
+    background: var(--tp-color-brand-800);
 }
 
 .explorer-table-shell .explorer-select-btn:hover,
 .explorer-table-shell .explorer-select-btn:focus-visible,
 .explorer-table-shell .js-select-annotation:hover,
 .explorer-table-shell .js-select-annotation:focus-visible {
-    border-color: var(--tp-color-brand-300) !important;
+    border-color: var(--tp-color-brand-600) !important;
     background: var(--tp-color-brand-050) !important;
-    color: var(--tp-color-brand-900) !important;
+    color: var(--tp-color-brand-800) !important;
 }
 
 .explorer-action-link {

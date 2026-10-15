@@ -1101,27 +1101,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 
-.protein-page .features-reset-btn.tp-btn--outline:disabled,
-.protein-page .features-reset-btn.tp-btn--outline.disabled {
-    color: var(--tp-color-text-soft) !important;
-    border-color: var(--tp-color-border-soft) !important;
-    background: var(--tp-color-surface-soft) !important;
-    box-shadow: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-    cursor: not-allowed !important;
-}
-
-.protein-page .features-reset-btn.tp-btn--outline:disabled:hover,
-.protein-page .features-reset-btn.tp-btn--outline:disabled:focus-visible,
-.protein-page .features-reset-btn.tp-btn--outline.disabled:hover,
-.protein-page .features-reset-btn.tp-btn--outline.disabled:focus-visible {
-    color: var(--tp-color-text-soft) !important;
-    border-color: var(--tp-color-border-soft) !important;
-    background: var(--tp-color-surface-soft) !important;
-    box-shadow: none !important;
-}
-
 .table-shell td {
     vertical-align: middle;
 }
@@ -1851,7 +1830,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .structure-actions .btn {
-    border-radius: 10px;
     min-height: var(--tp-ui-control-height);
     padding: 0.48rem 0.92rem;
     display: inline-flex;
@@ -2013,19 +1991,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     flex-shrink: 0;
     font-size: var(--tp-font-label);
     color: var(--tp-color-text-muted);
-}
-
-.protein-page .structure-download-btn.tp-btn--neutral {
-    color: var(--tp-color-text-primary) !important;
-    border-color: var(--tp-color-border-strong) !important;
-    background: var(--tp-color-surface) !important;
-}
-
-.protein-page .structure-download-btn.tp-btn--neutral:hover,
-.protein-page .structure-download-btn.tp-btn--neutral:focus-visible {
-    color: var(--tp-color-brand-800) !important;
-    border-color: var(--tp-color-brand-600) !important;
-    background: var(--tp-color-brand-050) !important;
 }
 
 .structure-icon {
@@ -3400,30 +3365,6 @@ body.residue-modal-open {
     color: var(--tp-color-text-secondary) !important;
 }
 
-/* Outline buttons — dark resting state (elevated above page bg) */
-.tp-dark .protein-page .btn-copy-seq.tp-btn--outline,
-.tp-dark .protein-page .features-reset-btn.tp-btn--outline,
-.tp-dark .protein-page #copy-residue-list.tp-btn--outline,
-.tp-dark .protein-page .structure-action-btn.tp-btn--outline {
-    color: var(--tp-color-text-primary) !important;
-    border-color: var(--tp-color-border-strong) !important;
-    background: var(--tp-color-surface-soft) !important;
-    box-shadow: none !important;
-}
-
-.tp-dark .protein-page .btn-copy-seq.tp-btn--outline:hover,
-.tp-dark .protein-page .btn-copy-seq.tp-btn--outline:focus-visible,
-.tp-dark .protein-page .features-reset-btn.tp-btn--outline:hover,
-.tp-dark .protein-page .features-reset-btn.tp-btn--outline:focus-visible,
-.tp-dark .protein-page #copy-residue-list.tp-btn--outline:hover,
-.tp-dark .protein-page #copy-residue-list.tp-btn--outline:focus-visible,
-.tp-dark .protein-page .structure-action-btn.tp-btn--outline:hover,
-.tp-dark .protein-page .structure-action-btn.tp-btn--outline:focus-visible {
-    color: var(--tp-color-brand-900) !important;
-    border-color: var(--tp-color-brand-600) !important;
-    background: color-mix(in srgb, var(--tp-color-brand-600) 14%, var(--tp-color-surface-muted)) !important;
-}
-
 /* Structure viewport — subtle accent glow */
 .tp-dark .structure-viewport-wrap {
     background: var(--tp-color-surface);
@@ -3952,10 +3893,10 @@ body.residue-modal-open {
     height: 26px;
     margin-left: 8px;
     padding: 0 11px;
-    border: 1px solid var(--tp-color-border);
-    border-radius: 6px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-btn-radius-sm);
     background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-primary);
     font-size: var(--tp-font-label);
     font-weight: 600;
     font-family: inherit;
@@ -3967,8 +3908,8 @@ body.residue-modal-open {
 }
 
 .experimental-switch-btn:hover {
-    border-color: var(--tp-color-brand-500);
-    background: color-mix(in srgb, var(--tp-color-brand-500) 8%, var(--tp-color-surface));
+    border-color: var(--tp-color-brand-600);
+    background: var(--tp-color-brand-050);
     color: var(--tp-color-brand-800);
 }
 
@@ -3998,7 +3939,7 @@ body.residue-modal-open {
 
 .tp-dark .experimental-switch-btn {
     background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border);
+    border-color: var(--tp-color-border-strong);
 }
 
 /* Legacy class — kept for JS compat */
@@ -4557,20 +4498,19 @@ body.residue-modal-open {
     height: 28px;
     padding: 0 10px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: 6px;
+    border-radius: var(--tp-btn-radius-sm);
     background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-primary);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1;
     transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
 .metabolic-map-btn:hover {
-    border-color: var(--tp-color-brand-300);
-    color: var(--tp-color-text-primary);
-    background: var(--tp-color-surface-soft);
-    transform: translateY(-1px);
+    border-color: var(--tp-color-brand-600);
+    color: var(--tp-color-brand-800);
+    background: var(--tp-color-brand-050);
 }
 
 #metabolic-network-cy {

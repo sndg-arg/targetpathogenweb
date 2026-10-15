@@ -417,10 +417,10 @@ a.filter-pill .filter-pill-remove {
     padding: 8px 14px;
     text-align: left;
     color: var(--tp-color-text-primary) !important;
-    border: 1px solid var(--tp-color-border) !important;
+    border: 1px solid var(--tp-color-border-strong) !important;
     background: var(--tp-color-surface) !important;
-    border-radius: 10px;
-    box-shadow: var(--tp-shadow-xs) !important;
+    border-radius: var(--tp-btn-radius);
+    box-shadow: none !important;
     transition:
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -455,10 +455,9 @@ a.filter-pill .filter-pill-remove {
 .toolbar-controls-left .toolbar-action-btn:hover,
 .toolbar-controls-left .toolbar-action-btn:focus-visible {
     color: var(--tp-color-text-primary) !important;
-    border-color: var(--tp-color-border-accent) !important;
-    background: var(--tp-color-surface-soft) !important;
-    box-shadow: var(--tp-shadow-sm) !important;
-    transform: translateY(-1px);
+    border-color: var(--tp-color-brand-600) !important;
+    background: var(--tp-color-brand-050) !important;
+    box-shadow: none !important;
     outline: none;
 }
 
@@ -2635,9 +2634,9 @@ a.filter-pill .filter-pill-remove {
     width: 30px;
     height: 30px;
     border-radius: 8px;
-    border: 1px solid var(--tp-color-border-soft);
+    border: 1px solid var(--tp-color-border-strong);
     background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-primary);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -2648,9 +2647,9 @@ a.filter-pill .filter-pill-remove {
 
 .columns-icon-btn:hover,
 .columns-drag-handle:hover {
-    border-color: var(--tp-color-border);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-primary);
+    border-color: var(--tp-color-brand-600);
+    background: var(--tp-color-brand-050);
+    color: var(--tp-color-brand-800);
 }
 
 .columns-icon-btn:focus-visible,
@@ -2969,7 +2968,7 @@ a.filter-pill .filter-pill-remove {
 .filter-tray-clear-btn,
 .filter-tray-share-btn {
     padding: 5px 14px;
-    border-radius: 999px !important;
+    border-radius: var(--tp-btn-radius) !important;
     font-size: 0.82rem;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -4252,7 +4251,6 @@ a.filter-pill .filter-pill-remove {
     font-weight: 600;
     min-height: 0;
     height: auto;
-    border-radius: 8px;
     align-self: stretch;
 }
 
@@ -4309,8 +4307,8 @@ a.filter-pill .filter-pill-remove {
     align-items: stretch;
     gap: 5px;
     padding: 9px 12px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-btn-radius);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     text-align: left;
@@ -4320,8 +4318,8 @@ a.filter-pill .filter-pill-remove {
 
 .filter-preset-apply-btn:hover,
 .filter-preset-apply-btn:focus-visible {
-    border-color: var(--tp-color-brand-700);
-    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-brand-600);
+    background: var(--tp-color-brand-050);
     outline: none;
 }
 
@@ -4400,19 +4398,19 @@ a.filter-pill .filter-pill-remove {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border: 1px solid var(--tp-color-danger-border);
+    border-radius: var(--tp-btn-radius);
     background: var(--tp-color-surface);
-    color: var(--tp-color-text-muted);
+    color: var(--tp-color-danger-ink);
     cursor: pointer;
     transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
 .filter-preset-delete-btn:hover,
 .filter-preset-delete-btn:focus-visible {
-    background: var(--tp-color-danger-bg);
-    border-color: var(--tp-color-danger-border);
-    color: var(--tp-color-danger-ink);
+    background: var(--tp-color-rose-700);
+    border-color: var(--tp-color-rose-700);
+    color: var(--tp-color-on-accent);
     outline: none;
 }
 
