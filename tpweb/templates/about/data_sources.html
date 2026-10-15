@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261013-mobile-overflow">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261015-anchor-offset">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -763,6 +763,18 @@
         return section ? { link: link, section: section } : null;
     }).filter(Boolean);
     if (!targets.length) return;
+
+    // Anchor jumps land below the docked nav: its stuck top (site chrome)
+    // plus its own height, which changes with the viewport.
+    function updateAnchorOffset() {
+        var stuckTop = parseFloat(getComputedStyle(nav).top) || 0;
+        document.documentElement.style.setProperty(
+            '--ds-anchor-offset', Math.ceil(stuckTop + nav.offsetHeight + 16) + 'px'
+        );
+    }
+    window.addEventListener('resize', updateAnchorOffset);
+    window.addEventListener('load', updateAnchorOffset);
+    updateAnchorOffset();
 
     function updateActive() {
         var triggerLine = Math.round(window.innerHeight * 0.32);

@@ -93,6 +93,12 @@
 }
 .ds-quick-nav::-webkit-scrollbar { display: none; }
 
+/* Sections reached from the nav stop below it instead of under it
+   (--ds-anchor-offset is measured by the page script). */
+.ds-page [id] {
+    scroll-margin-top: var(--ds-anchor-offset, 140px);
+}
+
 /* The fixed desktop top bar AND the sticky breadcrumb bar under it both
    reserve real screen space -- --tp-sticky-chrome-h (theme-and-chrome.js)
    measures both together, so .ds-quick-nav docks below the breadcrumb bar
