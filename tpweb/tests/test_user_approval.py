@@ -505,6 +505,37 @@ class UserManagementViewTests(TestCase):
         self.assertContains(response, "Requested collaborator access")
         self.assertLess(body.index("mgmt-requester"), body.index("mgmt-plain"))
 
+    def test_approved_users_are_grouped_admin_collaborator_consumer_basic(self):
+        owner = User.objects.create_user(
+            username="mgmt-owner13", password="x", is_staff=True, is_superuser=True
+        )
+        # Created oldest-to-newest in the reverse of the expected order, so
+        # -date_joined alone would list them backwards.
+        User.objects.create_user(
+            username="mgmt-zz-basic", password="x", is_active=True, role=User.Role.BASIC
+        )
+        User.objects.create_user(
+            username="mgmt-zz-consumer",
+            password="x",
+            is_active=True,
+            role=User.Role.GATES_CONSUMER,
+        )
+        User.objects.create_user(
+            username="mgmt-zz-collab",
+            password="x",
+            is_active=True,
+            role=User.Role.GATES_COLLABORATOR,
+        )
+        self.client.force_login(owner)
+
+        body = self.client.get(reverse("tpwebapp:user_management")).content.decode()
+
+        positions = [
+            body.index(name)
+            for name in ["mgmt-owner13", "mgmt-zz-collab", "mgmt-zz-consumer", "mgmt-zz-basic"]
+        ]
+        self.assertEqual(positions, sorted(positions))
+
     def test_superuser_row_has_no_edit_permissions_button(self):
         owner = User.objects.create_user(
             username="mgmt-owner10", password="x", is_staff=True, is_superuser=True

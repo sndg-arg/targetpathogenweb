@@ -107,12 +107,21 @@ class UserManagementView(PermissionLockedMixin, View):
     def _context(self):
         base_qs = User.objects.exclude(username=PUBLIC_WORKSPACE_USERNAME)
         approved_users = list(base_qs.filter(is_active=True).order_by("-date_joined"))
-        # Self-serve signups now land here directly (no approval wait), so
-        # this roster can get large fast -- surface anyone still waiting on
-        # a collaborator-access request at the top rather than needing a
-        # separate filter UI to find them. list.sort() is stable, so the
-        # existing -date_joined order is preserved within each group.
-        approved_users.sort(key=lambda u: not u.wants_collaborator_access)
+        # Grouped by role: admins, then collaborators, consumers, and Basic
+        # last. Within a group, anyone waiting on a collaborator-access
+        # request comes first (self-serve signups make this list grow fast).
+        # list.sort() is stable, so -date_joined is kept inside each group.
+        role_rank = {
+            User.Role.GATES_COLLABORATOR: 1,
+            User.Role.GATES_CONSUMER: 2,
+            User.Role.BASIC: 3,
+        }
+        approved_users.sort(
+            key=lambda u: (
+                0 if u.is_superuser else role_rank.get(u.role, 3),
+                not u.wants_collaborator_access,
+            )
+        )
         return {
             "pending_users": base_qs.filter(is_active=False).order_by("-date_joined"),
             "approved_users": approved_users,
