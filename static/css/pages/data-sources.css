@@ -72,76 +72,10 @@
     max-width: 920px;
 }
 
-/* ── Sticky section nav ── */
-.ds-quick-nav {
-    position: sticky;
-    top: var(--tp-sticky-chrome-h, -2px);
-    z-index: 25;
-    align-self: stretch;
-    width: 100%;
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 6px;
-    overflow-x: auto;
-    /* Horizontal padding matches .ds-hero/.ds-panel's 18px so the first
-       nav link lines up with the hero/panel text above and below it. */
-    padding: 8px 18px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-surface-soft);
-    scrollbar-width: none;
-}
-.ds-quick-nav::-webkit-scrollbar { display: none; }
-
-/* Sections reached from the nav stop below it instead of under it
-   (--ds-anchor-offset is measured by the page script). */
+/* Section nav: the shared .quick-nav (ui-system.css). Sections it jumps
+   to stop below it instead of under it. */
 .ds-page [id] {
-    scroll-margin-top: var(--ds-anchor-offset, 140px);
-}
-
-/* The fixed desktop top bar AND the sticky breadcrumb bar under it both
-   reserve real screen space -- --tp-sticky-chrome-h (theme-and-chrome.js)
-   measures both together, so .ds-quick-nav docks below the breadcrumb bar
-   instead of sticking at nearly the same position and rendering behind
-   it. Falls back to the old topbar-only offset if JS hasn't run yet. */
-@media (min-width: 992px) {
-    .ds-quick-nav {
-        top: var(--tp-sticky-chrome-h, calc(var(--tp-topbar-h) - 2px));
-    }
-}
-
-.ds-quick-nav-link {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    white-space: nowrap;
-    padding: 0.38rem 0.9rem;
-    font-size: 0.82rem;
-    font-weight: 500;
-    border-radius: 999px;
-    border: 1px solid var(--tp-color-border);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
-    text-decoration: none;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
-}
-.ds-quick-nav-link:hover {
-    color: var(--tp-color-text-primary);
-    border-color: var(--tp-color-border-strong);
-    background: var(--tp-color-surface-muted);
-    text-decoration: none;
-}
-.ds-quick-nav-link.is-active {
-    color: var(--tp-color-link-hover);
-    border-color: var(--ds-accent-border);
-    border-width: 2px;
-    background: var(--tp-color-brand-100);
-    text-decoration: none;
-}
-.tp-dark .ds-quick-nav-link.is-active {
-    background: var(--tp-color-brand-200);
-    border-color: var(--tp-color-brand-300);
-    color: var(--tp-color-brand-900);
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 61px);
 }
 
 /* ── Panel common ── */

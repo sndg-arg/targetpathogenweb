@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261015-anchor-offset">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261015-shared-quick-nav">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -31,19 +31,19 @@
     </section>
 
     {# ── Sticky section nav ── #}
-    <nav class="ds-quick-nav" aria-label="{% trans 'Sections' %}">
-        <a class="ds-quick-nav-link" href="#interpretation">{% trans "How to read results" %}</a>
-        <a class="ds-quick-nav-link" href="#platform-capabilities">{% trans "Platform" %}</a>
-        <a class="ds-quick-nav-link" href="#pipeline">{% trans "Pipeline" %}</a>
-        <a class="ds-quick-nav-link" href="#pipeline-stages">{% trans "Stage-by-stage" %}</a>
-        <a class="ds-quick-nav-link" href="#protein-data">{% trans "Protein data" %}</a>
-        <a class="ds-quick-nav-link" href="#structure">{% trans "3D structure" %}</a>
-        <a class="ds-quick-nav-link" href="#binding-sites">{% trans "Binding sites" %}</a>
-        <a class="ds-quick-nav-link" href="#annotation">{% trans "Annotation" %}</a>
-        <a class="ds-quick-nav-link" href="#metabolism-methodology">{% trans "Metabolism" %}</a>
-        <a class="ds-quick-nav-link" href="#target-profile">{% trans "Target profile" %}</a>
-        <a class="ds-quick-nav-link" href="#ligands">{% trans "Ligands" %}</a>
-        <a class="ds-quick-nav-link" href="#drug-likeness">{% trans "Drug-likeness" %}</a>
+    <nav class="quick-nav" data-quick-nav aria-label="{% trans 'Sections' %}">
+        <a class="quick-nav-link" href="#interpretation">{% trans "How to read results" %}</a>
+        <a class="quick-nav-link" href="#platform-capabilities">{% trans "Platform" %}</a>
+        <a class="quick-nav-link" href="#pipeline">{% trans "Pipeline" %}</a>
+        <a class="quick-nav-link" href="#pipeline-stages">{% trans "Stage-by-stage" %}</a>
+        <a class="quick-nav-link" href="#protein-data">{% trans "Protein data" %}</a>
+        <a class="quick-nav-link" href="#structure">{% trans "3D structure" %}</a>
+        <a class="quick-nav-link" href="#binding-sites">{% trans "Binding sites" %}</a>
+        <a class="quick-nav-link" href="#annotation">{% trans "Annotation" %}</a>
+        <a class="quick-nav-link" href="#metabolism-methodology">{% trans "Metabolism" %}</a>
+        <a class="quick-nav-link" href="#target-profile">{% trans "Target profile" %}</a>
+        <a class="quick-nav-link" href="#ligands">{% trans "Ligands" %}</a>
+        <a class="quick-nav-link" href="#drug-likeness">{% trans "Drug-likeness" %}</a>
     </nav>
 
     {# ── How to read the results (first, before the architecture) ── #}
@@ -752,46 +752,5 @@
 
 </div>
 
-<script>
-(function () {
-    var nav = document.querySelector('.ds-quick-nav');
-    if (!nav) return;
-    var links = Array.from(nav.querySelectorAll('a[href^="#"]'));
-    if (!links.length) return;
-    var targets = links.map(function (link) {
-        var section = document.getElementById(link.getAttribute('href').slice(1));
-        return section ? { link: link, section: section } : null;
-    }).filter(Boolean);
-    if (!targets.length) return;
-
-    // Anchor jumps land below the docked nav: its stuck top (site chrome)
-    // plus its own height, which changes with the viewport.
-    function updateAnchorOffset() {
-        var stuckTop = parseFloat(getComputedStyle(nav).top) || 0;
-        document.documentElement.style.setProperty(
-            '--ds-anchor-offset', Math.ceil(stuckTop + nav.offsetHeight + 16) + 'px'
-        );
-    }
-    window.addEventListener('resize', updateAnchorOffset);
-    window.addEventListener('load', updateAnchorOffset);
-    updateAnchorOffset();
-
-    function updateActive() {
-        var triggerLine = Math.round(window.innerHeight * 0.32);
-        var active = targets[0];
-        for (var i = targets.length - 1; i >= 0; i--) {
-            if (targets[i].section.getBoundingClientRect().top <= triggerLine) {
-                active = targets[i];
-                break;
-            }
-        }
-        targets.forEach(function (t) {
-            t.link.classList.toggle('is-active', t === active);
-        });
-    }
-
-    window.addEventListener('scroll', updateActive, { passive: true });
-    updateActive();
-})();
-</script>
+<script src="{% static 'js/global/quick-nav.js' %}?v=20261015"></script>
 {% endblock %}

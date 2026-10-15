@@ -606,114 +606,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     transform: translateY(-50%);
 }
 
-/* Editorial tab strip, not a row of boxed buttons -- matches the top bar's
-   own "thin underline instead of a filled pill" active-tab language
-   (masterpage.html's .tp-topbar-desktop-link.active) instead of looking
-   like a distinct, dated app widget bolted onto the page.
-   Same surface as the sticky breadcrumb bar above it, bled out to both
-   viewport edges via border-image outset (paint-only, so no horizontal
-   page scroll) -- once stuck, the two read as one two-tier header instead
-   of a narrower, darker band with the page canvas showing at its sides.
-   The gradient's last 1px is the bottom hairline, bled out with it. */
-.quick-nav {
-    position: sticky;
-    top: -2px;
-    z-index: 25;
-    align-self: stretch;
-    width: auto;
-    max-width: 100%;
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: stretch;
-    gap: 28px;
-    justify-content: flex-start;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 0 18px;
-    border: none;
-    border-radius: 0;
-    background: var(--tp-color-surface-soft);
-    border-image:
-        linear-gradient(
-            to bottom,
-            var(--tp-color-surface-soft) calc(100% - 1px),
-            var(--tp-color-border-soft) 0
-        ) fill 0 / 0 / 0 100vmax;
-    margin: 0;
-}
-
-.quick-nav::-webkit-scrollbar {
-    display: none;
-}
-
-.quick-nav .quick-nav-link {
-    position: relative;
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    height: 44px;
-    padding: 0;
-    line-height: 1.1;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-weight: 600;
-    font-size: 0.85rem;
-    letter-spacing: 0.01em;
-    border-radius: 0 !important;
-    border: none !important;
-    background: transparent !important;
-    color: var(--tp-color-text-muted) !important;
-    box-shadow: none !important;
-    white-space: nowrap;
-    text-decoration: none !important;
-    transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-/* Underline grows from the centre instead of snapping in -- faint on
-   hover, full accent once the section is active. */
-.quick-nav .quick-nav-link::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 2px;
-    border-radius: 2px 2px 0 0;
-    background: currentColor;
-    opacity: 0;
-    transform: scaleX(0.4);
-    transition:
-        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.quick-nav .quick-nav-link:hover,
-.quick-nav .quick-nav-link:focus-visible {
-    color: var(--tp-color-text-primary) !important;
-    background: transparent !important;
-    text-decoration: none !important;
-}
-
-.quick-nav .quick-nav-link:hover::after,
-.quick-nav .quick-nav-link:focus-visible::after {
-    opacity: 0.28;
-    transform: scaleX(1);
-}
-
-.quick-nav .quick-nav-link.is-active,
-.quick-nav .quick-nav-link[aria-current="true"] {
-    color: var(--tp-color-link-hover) !important;
-    background: transparent !important;
-    text-decoration: none !important;
-}
-
-.quick-nav .quick-nav-link.is-active::after,
-.quick-nav .quick-nav-link[aria-current="true"]::after {
-    opacity: 1;
-    transform: scaleX(1);
-}
-
 /* human_protein.html nests its .protein-card sections directly here (no
    .protein-grid wrapper) -- 32px matches .protein-grid's gap below so
    both pages get the same generous section spacing instead of a
@@ -1099,7 +991,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     min-width: 154px;
     justify-content: center;
 }
-
 
 .table-shell td {
     vertical-align: middle;
@@ -2658,7 +2549,6 @@ body.binder-mol-modal-open {
     overflow: hidden;
 }
 
-
 .binder-tbl {
     width: 100%;
     border-collapse: collapse;
@@ -2967,7 +2857,6 @@ body.binder-mol-modal-open {
 
 /* .tp-chip--direct and .tp-chip--homolog live in ui-system.css */
 
-
 .binder-card--link {
     display: block;
     text-decoration: none;
@@ -3250,11 +3139,6 @@ body.residue-modal-open {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .quick-nav {
-        top: var(--tp-sticky-chrome-h, 66px);
-        width: 100%;
-    }
-
     .protein-card {
         padding: 12px;
     }
@@ -3265,18 +3149,6 @@ body.residue-modal-open {
 
     .structure-color-guide-grid {
         grid-template-columns: 1fr;
-    }
-}
-
-/* The fixed desktop top bar AND the sticky breadcrumb bar under it both
-   reserve real screen space -- --tp-sticky-chrome-h (theme-and-chrome.js)
-   measures both together, so .quick-nav docks below the breadcrumb bar
-   instead of sticking at nearly the same position and rendering behind
-   it (the breadcrumb bar's z-index is far higher). Falls back to the old
-   topbar-only offset if JS hasn't run yet. */
-@media (min-width: 992px) {
-    .quick-nav {
-        top: var(--tp-sticky-chrome-h, calc(var(--tp-topbar-h) - 2px));
     }
 }
 

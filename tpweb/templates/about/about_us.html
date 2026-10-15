@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261013-mobile-overflow">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261015-shared-quick-nav">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -29,13 +29,13 @@
         </div>
     </section>
 
-    <nav class="ds-quick-nav" aria-label="{% trans 'Sections' %}">
-        <a class="ds-quick-nav-link" href="#purpose">{% trans "Purpose" %}</a>
-        <a class="ds-quick-nav-link" href="#institution">{% trans "Institution" %}</a>
-        <a class="ds-quick-nav-link" href="#partners">{% trans "Partners" %}</a>
-        <a class="ds-quick-nav-link" href="#team">{% trans "Team" %}</a>
-        <a class="ds-quick-nav-link" href="#cite">{% trans "How to cite" %}</a>
-        <a class="ds-quick-nav-link" href="#contact">{% trans "Contact" %}</a>
+    <nav class="quick-nav" data-quick-nav aria-label="{% trans 'Sections' %}">
+        <a class="quick-nav-link" href="#purpose">{% trans "Purpose" %}</a>
+        <a class="quick-nav-link" href="#institution">{% trans "Institution" %}</a>
+        <a class="quick-nav-link" href="#partners">{% trans "Partners" %}</a>
+        <a class="quick-nav-link" href="#team">{% trans "Team" %}</a>
+        <a class="quick-nav-link" href="#cite">{% trans "How to cite" %}</a>
+        <a class="quick-nav-link" href="#contact">{% trans "Contact" %}</a>
     </nav>
 
     <section class="ds-panel" id="purpose">
@@ -189,40 +189,5 @@
 
 </div>
 
-<script>
-(function () {
-    var nav = document.querySelector('.ds-quick-nav');
-    if (!nav) return;
-    var links = Array.from(nav.querySelectorAll('a[href^="#"]'));
-    if (!links.length) return;
-    var targets = links.map(function (link) {
-        var section = document.getElementById(link.getAttribute('href').slice(1));
-        return section ? { link: link, section: section } : null;
-    }).filter(Boolean);
-    if (!targets.length) return;
-
-    function updateActive() {
-        var triggerLine = Math.round(window.innerHeight * 0.32);
-        var active = targets[0];
-        for (var i = targets.length - 1; i >= 0; i--) {
-            if (targets[i].section.getBoundingClientRect().top <= triggerLine) {
-                active = targets[i];
-                break;
-            }
-        }
-        targets.forEach(function (t) {
-            t.link.classList.toggle('is-active', t === active);
-        });
-    }
-
-    links.forEach(function (link) {
-        link.addEventListener('click', function () {
-            setTimeout(updateActive, 120);
-        });
-    });
-    window.addEventListener('scroll', updateActive, { passive: true });
-    window.addEventListener('resize', updateActive);
-    updateActive();
-})();
-</script>
+<script src="{% static 'js/global/quick-nav.js' %}?v=20261015"></script>
 {% endblock %}

@@ -117,7 +117,6 @@
     max-width: 920px;
 }
 
-
 .genome-hero .hero-chip-list {
     margin-top: 12px;
 }
@@ -262,110 +261,6 @@
     color: var(--tp-color-text-muted);
 }
 
-/* ── Quick-nav ────────────────────────────────────────────────────── */
-
-/* Editorial tab strip, not a row of boxed pills -- matches the top bar's
-   own "thin underline instead of a filled pill" active-tab language
-   (masterpage.html's .tp-topbar-desktop-link.active), and protein-detail.css's
-   .quick-nav (same redesign, applied here for site-wide consistency). */
-.genome-page .quick-nav {
-    position: sticky;
-    top: -2px;
-    z-index: 25;
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: stretch;
-    gap: 28px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 0 18px;
-    border: none;
-    border-radius: 0;
-    /* Full-bleed band matching the breadcrumb bar -- see protein-detail.css's
-       .quick-nav for why border-image (paint-only, no page scroll). */
-    background: var(--tp-color-surface-soft);
-    border-image:
-        linear-gradient(
-            to bottom,
-            var(--tp-color-surface-soft) calc(100% - 1px),
-            var(--tp-color-border-soft) 0
-        ) fill 0 / 0 / 0 100vmax;
-    margin: 0;
-}
-
-.genome-page .quick-nav::-webkit-scrollbar {
-    display: none;
-}
-
-.genome-page .quick-nav .quick-nav-link {
-    position: relative;
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    height: 44px;
-    padding: 0;
-    line-height: 1.1;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-weight: 600;
-    font-size: 0.85rem;
-    letter-spacing: 0.01em;
-    border-radius: 0 !important;
-    border: none !important;
-    background: transparent !important;
-    color: var(--tp-color-text-muted) !important;
-    box-shadow: none !important;
-    white-space: nowrap;
-    text-decoration: none !important;
-    transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.genome-page .quick-nav .quick-nav-link::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 2px;
-    border-radius: 2px 2px 0 0;
-    background: currentColor;
-    opacity: 0;
-    transform: scaleX(0.4);
-    transition:
-        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-/* Marks the one quick-nav tab that navigates to a different page instead
-   of scrolling to a section on this one (there's no in-page "Metabolism"
-   section to jump to) -- without it, this tab looked identical to the
-   real in-page anchors and clicking it felt like a bug. */
-.genome-page .quick-nav .quick-nav-link:hover,
-.genome-page .quick-nav .quick-nav-link:focus-visible {
-    color: var(--tp-color-text-primary) !important;
-    background: transparent !important;
-}
-
-.genome-page .quick-nav .quick-nav-link:hover::after,
-.genome-page .quick-nav .quick-nav-link:focus-visible::after {
-    opacity: 0.28;
-    transform: scaleX(1);
-}
-
-.genome-page .quick-nav .quick-nav-link.is-active,
-.genome-page .quick-nav .quick-nav-link[aria-current="true"] {
-    color: var(--tp-color-link-hover) !important;
-    background: transparent !important;
-    text-decoration: none !important;
-}
-
-.genome-page .quick-nav .quick-nav-link.is-active::after,
-.genome-page .quick-nav .quick-nav-link[aria-current="true"]::after {
-    opacity: 1;
-    transform: scaleX(1);
-}
-
 /* ── Grid + panels ────────────────────────────────────────────────── */
 
 /* Every direct child below is a full-width section (targets/evidence/browse/
@@ -474,21 +369,6 @@
        flush against whatever section sits above it. */
     margin-left: 18px;
     margin-right: 18px;
-}
-
-/* Dock below the sticky breadcrumb bar, not just the top bar -- see
-   protein-detail.css's .quick-nav (--tp-sticky-chrome-h is measured by
-   theme-and-chrome.js); fallbacks are the old topbar-only offsets. */
-@media (max-width: 991px) {
-    .genome-page .quick-nav {
-        top: var(--tp-sticky-chrome-h, 64px);
-    }
-}
-
-@media (min-width: 992px) {
-    .genome-page .quick-nav {
-        top: var(--tp-sticky-chrome-h, calc(var(--tp-topbar-h) - 2px));
-    }
 }
 
 @media (max-width: 980px) {
