@@ -12,8 +12,11 @@ module instead of from each other.
 
 from __future__ import annotations
 
+import hashlib
 import re
+from functools import lru_cache
 
+from django.core.cache import cache
 from django.db.models import Q
 from rdkit import Chem
 from rdkit.Chem import Crippen, Descriptors, Lipinski, rdMolDescriptors
@@ -164,10 +167,33 @@ def _pains_alert(mol):
         return False
 
 
+BINDER_PROPS_CACHE_TTL_SECONDS = 7 * 24 * 3600
+
+
 def _binder_table_properties(smiles):
-    """Small-molecule descriptors for binder tables; not a full ADMET prediction."""
+    """Small-molecule descriptors for binder tables; not a full ADMET prediction.
+
+    Cached per SMILES: the PAINS substructure scan alone took ~1.5 s for the
+    177 compounds of a single protein page, on every visit, for values that
+    only depend on the molecule. In-process first, then the shared cache so
+    every gunicorn worker benefits."""
     if not smiles:
         return {}
+    return dict(_cached_binder_table_properties(smiles))
+
+
+@lru_cache(maxsize=20000)
+def _cached_binder_table_properties(smiles):
+    cache_key = "Target:binder_props:" + hashlib.sha1(smiles.encode("utf-8")).hexdigest()
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+    props = _compute_binder_table_properties(smiles)
+    cache.set(cache_key, props, BINDER_PROPS_CACHE_TTL_SECONDS)
+    return props
+
+
+def _compute_binder_table_properties(smiles):
     try:
         mol = Chem.MolFromSmiles(smiles)
     except Exception:
