@@ -1,5 +1,6 @@
 {% extends "../base/masterpage.html" %}
 {% load i18n %}
+{% load custom_tags %}
 
 {% block body %}
 <div class="access-locked-page">
@@ -7,7 +8,7 @@
         <span class="access-locked-icon" aria-hidden="true">{% include "components/icons/key.html" %}</span>
         <span class="access-locked-eyebrow">{% trans "Restricted" %}</span>
         <h1>{{ page_title }}</h1>
-        <p>{{ locked_message }}</p>
+        <p>{{ locked_message|branded:user }}</p>
 
         {% if not user.is_authenticated %}
             <div class="access-locked-actions">

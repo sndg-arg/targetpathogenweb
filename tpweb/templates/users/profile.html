@@ -101,7 +101,7 @@
                 </div>
                 <div class="profile-capability-card{% if not can_view_restricted_genomes %} profile-capability-card--off{% endif %}">
                     <span class="profile-capability-card-icon" aria-hidden="true">{% if can_view_restricted_genomes %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
-                    <span class="profile-capability-card-label">{% trans "See collaborative-project genomes" %}</span>
+                    <span class="profile-capability-card-label">{% if gates_viewer %}{% trans "See Gates genomes" %}{% else %}{% trans "See collaborative-project genomes" %}{% endif %}</span>
                 </div>
             </div>
             {% if user.wants_collaborator_access %}

@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load custom_tags %}
 <li class="settings-row">
     <div class="settings-row-main">
         <span class="settings-item-name">{{ row.obj.name }}</span>
@@ -7,7 +8,7 @@
     </div>
     <div class="settings-row-controls">
         {% if readonly %}
-        <span class="settings-visibility-label">{{ row.visibility_label }}</span>
+        <span class="settings-visibility-label">{{ row.visibility_label|branded:user }}</span>
         {% else %}
         <form method="post" action="{% url 'tpwebapp:settings' %}" class="settings-visibility-form">
             {% csrf_token %}
@@ -15,7 +16,7 @@
             <input type="hidden" name="formula_id" value="{{ row.obj.pk }}">
             <select name="visibility" class="form-control tp-ui-control" aria-label="{% blocktrans with name=row.obj.name %}Who can see {{ name }}{% endblocktrans %}" onchange="this.form.submit()">
                 {% for value, label in formula_visibility_choices %}
-                <option value="{{ value }}" {% if value == row.visibility %}selected{% endif %}>{{ label }}</option>
+                <option value="{{ value }}" {% if value == row.visibility %}selected{% endif %}>{{ label|branded:user }}</option>
                 {% endfor %}
             </select>
         </form>

@@ -1,5 +1,6 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load custom_tags %}
 {% load static %}
 
 {% block head %}
@@ -49,7 +50,7 @@
                 <div class="uploaded-data-main">
                     <span class="uploaded-data-name">{{ row.obj.name }}</span>
                     <span class="uploaded-data-meta">
-                        {% if row.is_own %}{% trans "Yours" %} · {{ row.visibility_label }}{% else %}{% blocktrans with owner=row.owner_label %}Shared by {{ owner }}{% endblocktrans %}{% endif %}
+                        {% if row.is_own %}{% trans "Yours" %} · {{ row.visibility_label|branded:user }}{% else %}{% blocktrans with owner=row.owner_label %}Shared by {{ owner }}{% endblocktrans %}{% endif %}
                         · {{ row.kind }}
                         · {% blocktrans count n=row.protein_count %}{{ n }} protein{% plural %}{{ n }} proteins{% endblocktrans %}
                     </span>

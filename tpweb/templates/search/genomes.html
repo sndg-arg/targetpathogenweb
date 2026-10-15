@@ -154,7 +154,7 @@
                                                 <span class="tp-chip tp-chip--state finished tp-chip--sm genome-curated-badge" title="{% trans 'Includes expert-reviewed results imported from outside the pipeline.' %}">{% trans "Curated" %}</span>
                                             {% endif %}
                                             {% if genome.is_restricted %}
-                                                <span class="tp-chip tp-chip--state tp-chip--sm genome-restricted-badge" title="{% trans 'Only visible to project members.' %}">{% trans "Restricted" %}</span>
+                                                <span class="tp-chip tp-chip--state tp-chip--sm genome-restricted-badge" title="{% if gates_viewer %}{% trans 'Only visible to Gates members.' %}{% else %}{% trans 'Only visible to project members.' %}{% endif %}">{% trans "Restricted" %}</span>
                                             {% endif %}
                                         </div>
                                         {% if genome.current_genome_status_note %}

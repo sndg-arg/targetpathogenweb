@@ -8,13 +8,11 @@ from tpweb.forms.UserForms import ProfileForm
 from tpweb.services.agent_chat_quota import quota_for
 
 
-# What a user sees as their own role. The model's choice labels ("Gates
-# consumer", ...) stay as-is for the /users admin screen; a student doesn't
-# know what "Gates" means.
+# What a user sees as their own role. Gates roles keep their real names
+# ("Gates consumer", "Gates collaborator" -- they're in the project and know
+# it); only Basic gets a plainer label.
 PROFILE_ROLE_LABELS = {
     "basic": "Basic access",
-    "gates_consumer": "Project member",
-    "gates_collaborator": "Project collaborator",
 }
 
 

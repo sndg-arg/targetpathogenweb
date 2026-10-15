@@ -24,7 +24,7 @@
         <p class="settings-hero-description">{% trans "Everything you create is private until you share it. Pick who can see each formula and each uploaded column." %}</p>
         <dl class="settings-legend">
             <div><dt>{% trans "Only me" %}</dt><dd>{% trans "nobody else sees it" %}</dd></div>
-            <div><dt>{% trans "Project members" %}</dt><dd>{% trans "accounts approved for the project" %}</dd></div>
+            <div>{% if gates_viewer %}<dt>{% trans "Gates members" %}</dt><dd>{% trans "accounts approved for the Gates project" %}</dd>{% else %}<dt>{% trans "Project members" %}</dt><dd>{% trans "accounts approved for the project" %}</dd>{% endif %}</div>
             <div><dt>{% trans "Everyone" %}</dt><dd>{% trans "every signed-in user who can see that genome" %}</dd></div>
         </dl>
     </section>
@@ -98,7 +98,7 @@
         <h2 class="settings-section-title">{% trans "Restricted genomes" %} <span class="settings-count">{{ restricted_genomes|length }}</span></h2>
         <p class="settings-section-description">
             {% url 'tpwebapp:genomes_list' as genomes_url %}
-            {% blocktrans %}Only project members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}
+            {% if gates_viewer %}{% blocktrans %}Only Gates members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% else %}{% blocktrans %}Only project members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% endif %}
         </p>
         {% if restricted_genomes %}
         <ul class="settings-rows">

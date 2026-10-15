@@ -89,7 +89,7 @@ def FormulaFormView(request, genome):
                 reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)})
             )
 
-        form = FormulaForm(request.POST)
+        form = FormulaForm(request.POST, viewer=request.user)
         if form.is_valid():
             name = form.cleaned_data["formula_name"].strip()
             expression = form.cleaned_data["expression"].strip()
@@ -126,14 +126,15 @@ def FormulaFormView(request, genome):
                 )
     elif editing:
         form = FormulaForm(
+            viewer=request.user,
             initial={
                 "formula_name": editing.name,
                 "expression": editing.expression,
                 "visibility": formula_visibility(editing),
-            }
+            },
         )
     else:
-        form = FormulaForm()
+        form = FormulaForm(viewer=request.user)
 
     return render(
         request,

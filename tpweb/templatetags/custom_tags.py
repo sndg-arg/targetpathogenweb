@@ -117,3 +117,12 @@ def score_metric_tone(value, column_name):
     # something the table should imply (team decision, 2026-10).
 
     return ""
+
+
+@register.filter
+def branded(text, user):
+    """{{ text|branded:user }} -- names the project "Gates" for Gates roles and
+    admins (tpweb.services.project_branding)."""
+    from tpweb.services.project_branding import branded as _branded
+
+    return _branded(text, user)

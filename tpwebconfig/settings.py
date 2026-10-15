@@ -109,6 +109,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "tpweb.context_processors.contact",
+                "tpweb.context_processors.project_branding",
             ],
         },
     },

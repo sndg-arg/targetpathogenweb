@@ -401,7 +401,7 @@
                     {% endif %}
                     {% if gates_metabolic_priority %}
                     <div class="target-evidence-card" title="{% trans "Curated pan-genome metabolic model: how strongly this gene's ortholog mapping and its reaction are supported across the modeled Klebsiella strains. The curated replacement for the automatic BioCyc/Pathway Tools metrics below." %}">
-                        <span class="target-evidence-label">{% trans "Metabolic priority" %} <span class="tp-chip tp-chip--sm tp-chip--meta">{% trans "pan-genome model" %}</span></span>
+                        <span class="target-evidence-label">{% trans "Metabolic priority" %} <span class="tp-chip tp-chip--sm tp-chip--meta">{% if gates_viewer %}{% trans "Gates pan-genome model" %}{% else %}{% trans "pan-genome model" %}{% endif %}</span></span>
                         <span class="target-evidence-priority-badge target-evidence-priority-badge--{{ gates_metabolic_priority.tone }}">{{ gates_metabolic_priority.priority }}</span>
                         {% if gates_metabolic_priority.quadrant %}
                         <span class="target-evidence-subtext">{{ gates_metabolic_priority.quadrant }}</span>

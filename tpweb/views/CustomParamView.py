@@ -22,6 +22,7 @@ from tpweb.services.custom_param_sharing import (
     uploaded_column_names,
     visibility_choices,
 )
+from tpweb.services.project_branding import branded, branded_choices
 from tpweb.services.workspace import resolve_workspace_user
 from tpweb.services.genome_workspace import (
     display_genome_name,
@@ -98,7 +99,7 @@ def _import_and_respond(request, form, custom_param, assembly_name, overwrite=Fa
         form.cleaned_data.get("description", ""),
     )
     columns = ", ".join(result.loaded_columns)
-    shared_note = SHARED_NOTES.get(visibility, "")
+    shared_note = branded(SHARED_NOTES.get(visibility, ""), request.user)
     messages.success(
         request,
         f"Loaded {columns}. Find it under Filters (Custom) and in Make my own score." + shared_note,
@@ -117,7 +118,7 @@ def upload_form(request, genome):
     if not assembly_name:
         raise Http404("Genome not found")
     workspace_user = resolve_workspace_user(request.user)
-    choices = visibility_choices(assembly_name)
+    choices = branded_choices(visibility_choices(assembly_name), request.user)
     if request.method != "POST":
         return render(
             request,
