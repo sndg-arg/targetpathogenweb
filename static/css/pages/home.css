@@ -274,6 +274,38 @@
     transform: translateX(3px);
 }
 
+/* "How to start": three quiet numbered steps under the hero actions. */
+.home-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 26px;
+    margin: 22px 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.home-steps li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.home-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 999px;
+    color: var(--tp-color-text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
 /* Account shortcuts at the very end of Home, out of the hero. */
 .home-workspace {
     padding: 22px 18px 8px;

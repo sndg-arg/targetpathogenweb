@@ -128,7 +128,7 @@
                         <dd data-field="proteins">-</dd>
                         <dt title="{% trans "Reactions that are the sole producer or consumer of a metabolite - harder for the pathogen to route around if inhibited." %}">{% trans "Chokepoints" %}</dt>
                         <dd data-field="chokepoints">-</dd>
-                        <dt>{% trans "Best target score" %}</dt>
+                        <dt title="{% trans 'Highest score of any protein in this pathway: pocket druggability (0–1) + 0.15 if chokepoint + 0.1 × centrality, or your active scoring formula when one is selected.' %}">{% trans "Best target score" %}</dt>
                         <dd>
                             <span data-field="score">-</span>
                             <span class="metabolic-network-genome-score-bar"><span class="metabolic-network-genome-score-fill" data-field="score-bar"></span></span>

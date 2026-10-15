@@ -455,6 +455,23 @@ body:has(.sv-root) { overflow: hidden; }
     line-height: 1.2;
 }
 
+.sv-sidebar-protein {
+    margin: -2px 0 10px;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.4;
+}
+
+.sv-sidebar-protein a {
+    color: var(--tp-color-link);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.sv-sidebar-protein a:hover {
+    text-decoration: underline;
+}
+
 .sv-sidebar-meta-row {
     display: flex;
     flex-wrap: wrap;
@@ -545,7 +562,7 @@ body:has(.sv-root) { overflow: hidden; }
 .sv-pocket-inspector-toggle[aria-pressed="true"] {
     background: var(--structure-accent);
     border-color: var(--structure-accent);
-    color: #f8fdff;
+    color: var(--tp-color-on-accent);
     box-shadow: var(--tp-shadow-xs);
 }
 
@@ -860,8 +877,8 @@ body:has(.sv-root) { overflow: hidden; }
 .pocket-repr-btn[aria-pressed="true"] {
     background: var(--structure-accent);
     border-color: var(--structure-accent);
-    color: #f8fdff;
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, #fff 20%, transparent), var(--tp-shadow-xs);
+    color: var(--tp-color-on-accent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tp-color-on-accent) 20%, transparent), var(--tp-shadow-xs);
 }
 
 .pocket-card-actions {
@@ -1409,8 +1426,8 @@ body.viewer-settings-open { overflow: hidden; }
 .tp-dark .pocket-repr-btn[aria-pressed="true"],
 .tp-dark .sv-pocket-inspector-toggle[aria-pressed="true"] {
     background: color-mix(in srgb, var(--structure-accent) 84%, var(--tp-color-surface));
-    border-color: color-mix(in srgb, var(--structure-accent) 72%, #fff);
-    color: #f8fdff;
+    border-color: color-mix(in srgb, var(--structure-accent) 72%, var(--tp-color-on-accent));
+    color: var(--tp-color-on-accent);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--structure-accent) 45%, transparent), var(--tp-shadow-sm);
 }
 .tp-dark .residueset-row { background: var(--tp-color-surface); border-color: var(--tp-color-border); }

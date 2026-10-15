@@ -34,6 +34,7 @@
         <a class="ds-quick-nav-link" href="#institution">{% trans "Institution" %}</a>
         <a class="ds-quick-nav-link" href="#partners">{% trans "Partners" %}</a>
         <a class="ds-quick-nav-link" href="#team">{% trans "Team" %}</a>
+        <a class="ds-quick-nav-link" href="#contact">{% trans "Contact" %}</a>
     </nav>
 
     <section class="ds-panel" id="purpose">
@@ -158,6 +159,19 @@
                 {% include "about/_team_links.html" with linkedin="https://www.linkedin.com/in/joaquin-messano-543886140" %}
             </div>
         </div>
+    </section>
+
+    <section class="ds-panel" id="contact">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Contact" %}</p>
+                <h2 class="ds-panel-title">{% trans "Questions and access requests" %}</h2>
+            </div>
+        </div>
+        <p class="ds-body">
+            {% trans "For questions about the platform, access to collaborative-project genomes or a genome you need added, write to" %}
+            <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>{% trans " with your name and, if you are a student, your course." %}
+        </p>
     </section>
 
 </div>

@@ -73,6 +73,14 @@ def _without_builtin_copies(formulas):
     return kept
 
 
+def delete_own_formula(formula, user):
+    """Owner-only, like visibility."""
+    if not _can_manage(user, formula.user_id):
+        return False
+    formula.delete()
+    return True
+
+
 def formulas_owned_by(user):
     workspace_user = resolve_workspace_user(user)
     return _without_builtin_copies(

@@ -211,10 +211,48 @@ def delete_column(score_param, genome_name, user):
         bioentry__biodatabase__name=genome_name + Biodatabase.PROT_POSTFIX,
     ).delete()
     CustomParamShare.objects.filter(score_param=score_param, genome_name=genome_name).delete()
+    owner = score_param.user
     if not ScoreParamValue.objects.filter(score_param=score_param).exists():
         score_param.delete()
+    for upload in custom_files(owner, genome_name, live=False):
+        if not upload["live"]:
+            upload["obj"].tsv.delete(save=False)
+            upload["obj"].delete()
     _invalidate_genome_param_names(genome_name)
     return True
+
+
+def _file_column_names(custom_param):
+    try:
+        with custom_param.tsv.open("rb") as handle:
+            return uploaded_column_names(handle)
+    except (OSError, ValueError):
+        return []
+
+
+def custom_files(owner, genome_name, live=True):
+    """The owner's uploaded files for a genome, each with whether any of its
+    columns still has values there. A file whose columns were all deleted in
+    Settings shouldn't keep being listed as "added" in the Scoring drawer.
+    live=True returns only those that still count."""
+    from tpweb.models.CustomParamFile import CustomParam
+
+    live_names = set(
+        ScoreParamValue.objects.filter(
+            score_param__user=owner,
+            score_param__category="Custom",
+            bioentry__biodatabase__name=genome_name + Biodatabase.PROT_POSTFIX,
+        )
+        .values_list("score_param__name", flat=True)
+        .distinct()
+    )
+    uploads = []
+    for upload in CustomParam.objects.filter(owner=owner, accession=genome_name).order_by("tsv"):
+        columns = _file_column_names(upload)
+        is_live = any(column in live_names for column in columns)
+        if is_live or not live:
+            uploads.append({"obj": upload, "columns": columns, "live": is_live})
+    return uploads
 
 
 def owner_label(user):
@@ -238,3 +276,68 @@ def label_shared_columns(score_params, workspace_user):
             description = (score_param.description or "").strip()
             score_param.description = f"{author} {description}".strip()
     return score_params
+
+
+def genome_columns(user, genome_name):
+    """Every uploaded column the user can see on this genome -- their own and
+    the ones others shared -- for the genome's "Uploaded data" page."""
+    from django.db.models import Count
+
+    from tpweb.services.score_params import visible_score_params_queryset
+    from tpweb.services.workspace import resolve_workspace_user
+
+    workspace_user = resolve_workspace_user(user)
+    proteome_name = genome_name + Biodatabase.PROT_POSTFIX
+    params = (
+        visible_score_params_queryset(user, genome_name=genome_name)
+        .filter(category="Custom", scoreparamvalue__bioentry__biodatabase__name=proteome_name)
+        .annotate(protein_count=Count("scoreparamvalue", distinct=True))
+        .select_related("user")
+        .order_by("name", "id")
+    )
+    shares = {
+        share.score_param_id: share.visibility
+        for share in CustomParamShare.objects.filter(genome_name=genome_name)
+    }
+    rows = []
+    for param in params:
+        is_own = param.user_id == workspace_user.pk
+        rows.append(
+            {
+                "obj": param,
+                "is_own": is_own,
+                "owner_label": "" if is_own else owner_label(param.user),
+                "kind": "Numeric" if (param.type or "").upper().startswith("N") else "Categorical",
+                "protein_count": param.protein_count,
+                "visibility_label": VISIBILITY_LABELS.get(
+                    shares.get(param.pk, VISIBILITY_PRIVATE), ""
+                ),
+            }
+        )
+    return rows
+
+
+def column_values(user, genome_name, param_id):
+    """(param, [(accession, value), ...]) for one visible uploaded column on a
+    genome, or (None, []) if the user can't see it."""
+    from tpweb.services.score_params import visible_score_params_queryset
+
+    param = (
+        visible_score_params_queryset(user, genome_name=genome_name)
+        .filter(category="Custom", pk=param_id)
+        .first()
+    )
+    if param is None:
+        return None, []
+    values = (
+        ScoreParamValue.objects.filter(
+            score_param=param,
+            bioentry__biodatabase__name=genome_name + Biodatabase.PROT_POSTFIX,
+        )
+        .order_by("bioentry__accession")
+        .values_list("bioentry__accession", "value", "numeric_value")
+    )
+    return param, [
+        (accession, value if value not in (None, "") else numeric)
+        for accession, value, numeric in values
+    ]

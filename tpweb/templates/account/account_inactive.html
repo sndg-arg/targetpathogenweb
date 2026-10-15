@@ -7,5 +7,5 @@
 {% block inner %}
 <h1>{% translate "Account inactive" %}</h1>
 
-<p>{% translate "Your account access has been revoked. Contact the site owner if you think this is a mistake." %}</p>
+<p>{% translate "Your account access has been revoked. If you think this is a mistake, write to" %} <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
 {% endblock %}

@@ -1,0 +1,114 @@
+/* ── Uploaded data: every user-uploaded column visible on one genome. Same
+   plain-row idiom as settings.css. ── */
+
+.uploaded-data-page {
+    color: var(--tp-color-text-primary);
+}
+
+.uploaded-data-page > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.uploaded-data-hero,
+.uploaded-data-section {
+    padding: 28px 18px;
+}
+
+.uploaded-data-eyebrow {
+    margin: 0 0 8px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.uploaded-data-hero h1 {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: var(--tp-heading-lg);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--tp-color-brand-900);
+}
+
+.uploaded-data-subtitle {
+    margin: 10px 0 0;
+    max-width: 760px;
+    color: var(--tp-color-text-secondary);
+    font-size: 1.03rem;
+    line-height: 1.52;
+}
+
+.uploaded-data-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 24px;
+    margin-top: 20px;
+}
+
+.uploaded-data-link,
+.uploaded-data-empty a {
+    color: var(--tp-color-link);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.uploaded-data-link:hover,
+.uploaded-data-empty a:hover {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+}
+
+.uploaded-data-rows {
+    max-width: 960px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.uploaded-data-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 0;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.uploaded-data-row:last-child {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.uploaded-data-main {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.uploaded-data-name {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.uploaded-data-meta {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.uploaded-data-description {
+    margin: 4px 0 0;
+    max-width: 680px;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.uploaded-data-empty {
+    margin: 0;
+    color: var(--tp-color-text-muted);
+}

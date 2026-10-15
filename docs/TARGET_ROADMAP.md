@@ -266,19 +266,24 @@ FPocket; la paleta de variables y las formulas base se filtran por los datos del
 puede lanzar un segundo run del mismo genoma (`manage.py cancel_pipeline_run <id>` libera uno
 colgado); roles y opciones de compartir sin "Gates" en Profile/Settings.
 
+Tambien (14/10): boton "Show this pocket" que cambia el visor de la ficha a la estructura del
+mejor pocket; Human Targets en la barra principal y barra compacta entre 992 y 1280 px; BLAST
+unico (nucleotido/proteina) con resultados en tabla linkeada; pagina "Uploaded data" por genoma
+con descarga TSV; explorador EC/GO carga solo esas anotaciones y se cachea; textos de Methodology,
+Home, asistente, ligandos y Human Targets sin jerga; htmx servido localmente; blastp exige el
+permiso de BLAST. El visor 3D embebido no estaba roto (carga al llegar a la seccion).
+Migracion 0093 con los cambios de modelo que faltaban; email de contacto (`TPW_CONTACT_EMAIL`)
+en todos los textos de acceso restringido.
+Upload oculto sin permiso; pasos "por donde empezar" en Home; pie de pagina con contacto;
+"Sign in/Sign out" en todo el sitio; el visor completo muestra la proteina; la pastilla de
+drogabilidad lleva a Binding-site evidence; tooltips de Lipinski, PAINS y descriptores.
+Formula activa en palabras y escala de cada variable en el constructor; Settings muestra y borra
+formulas; valores faltantes como "—"; Human Targets con nombre como titulo; Methodology empieza
+por "How to read the results"; About us con contacto; tooltips de alcance en Genomes.
+
 **Pendiente para cerrar.**
 
-- La ficha de proteina muestra en el visor una estructura (la de mayor cobertura) distinta de la
-  que dio el mejor pocket: agregar un boton "Show this pocket" que cambie el visor a esa
-  estructura y abra el pocket.
-- Visor 3D embebido en la ficha queda en "Loading 3D structure..." aunque el archivo carga (el
-  visor completo funciona).
-- La barra superior de escritorio se parte en dos filas entre 992 y 1200 px; compactarla (y recien
-  ahi sumar "Human Targets" como link principal).
-- Migracion faltante de `tpweb` (el deploy avisa cambios de modelo sin migracion).
-- Email de contacto en los textos de acceso restringido ("ask a site administrator").
-- BLAST unificado (nucleotido/proteina en una pagina) y resultados de blastn en tabla con links.
-- Optimizar las vistas lentas: ficha de proteina 10-38 s, explorador EC 25-35 s.
+- Ficha de proteina lenta (10-38 s): medir consultas en Nodo0 y optimizar.
 
 ### Batch de pedidos de las biologas (6/08 + reporte previo)
 

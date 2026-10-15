@@ -202,10 +202,33 @@ def _is_numeric_option(name: str) -> bool:
         return False
 
 
+def numeric_variable_scale(param_name):
+    """Short scale hint for a numeric palette variable ("%", "0–1", "count",
+    "e-value") so the builder shows that variables live on very different
+    scales -- summing a 0-100 identity with a 0.001 centrality silently lets
+    one dominate. Empty when unknown."""
+    from tpweb.services.protein_list import humanize_identifier
+
+    name = str(param_name or "").lower()
+    label = humanize_identifier(param_name) or ""
+    if "evalue" in name or "e-value" in label.lower():
+        return "e-value"
+    if "(%)" in label or "identity" in name:
+        return "%"
+    if "0–100" in label or "plddt" in name:
+        return "0–100"
+    if "0–1" in label or "probability" in name or name.endswith("_norm"):
+        return "0–1"
+    if name.startswith("n_") or "count" in name or "edges" in name or "analyzed" in name:
+        return "count"
+    return ""
+
+
 def available_variables_grouped(
     user=None,
     max_categorical_options=FORMULA_PALETTE_MAX_CATEGORICAL_OPTIONS,
     genome_param_names=None,
+    hidden=None,
 ):
     """Return variables grouped by ScoreParam category for the UI palette.
 
@@ -243,7 +266,13 @@ def available_variables_grouped(
             if pname:
                 desc = param.description or f"{param.name} raw numeric value"
                 groups.setdefault(cat, []).append(
-                    {"var": pname, "desc": desc, "kind": "numeric", "param": param.name}
+                    {
+                        "var": pname,
+                        "desc": desc,
+                        "kind": "numeric",
+                        "param": param.name,
+                        "scale": numeric_variable_scale(param.name),
+                    }
                 )
             continue
         if not pname:
@@ -256,6 +285,12 @@ def available_variables_grouped(
             if vname:
                 palette_options.append((opt, vname))
         if len(palette_options) > max_categorical_options:
+            # Pass a list as `hidden` to learn what was left out, so the page
+            # can say so instead of the column silently missing.
+            if hidden is not None:
+                hidden.append(
+                    {"param": param.name, "category": cat, "options": len(palette_options)}
+                )
             continue
         for opt, vname in palette_options:
             var = f"{pname}_{vname}"

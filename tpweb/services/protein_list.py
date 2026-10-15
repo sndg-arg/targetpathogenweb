@@ -273,6 +273,21 @@ def _selected_parameter_display_value(parameter, humanize=False):
     return f"{operation} {_format_numeric_filter_value(value)}"
 
 
+def _looks_like_identifier(text):
+    """Locus tags, accessions and similar codes (KPN_00002, MGH78578_locus_tag,
+    PA0001) -- humanizing them ("Kpn 00002") breaks the identifier. A token
+    with a digit that isn't a known acronym like p2rank marks one."""
+    for token in re.split(r"[_\-\s]+", text):
+        token_l = token.lower()
+        if (
+            any(ch.isdigit() for ch in token_l)
+            and token_l not in ACRONYM_TOKENS
+            and token_l not in TOKEN_REPLACEMENTS
+        ):
+            return True
+    return False
+
+
 def humanize_identifier(value):
     text = str(value or "").strip()
     if not text:
@@ -280,6 +295,8 @@ def humanize_identifier(value):
     exact_replacement = EXACT_REPLACEMENTS.get(text.lower())
     if exact_replacement:
         return exact_replacement
+    if _looks_like_identifier(text):
+        return text
     text = re.sub(r"[_-]+", " ", text)
     text = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
@@ -581,6 +598,38 @@ def apply_filter_change(selected_parameters, change):
             selected_parameters = remove_selected_parameter(selected_parameters, option_id)
 
     return selected_parameters
+
+
+_FILTER_VALUE_SPLIT_RE = re.compile(r"[\s,;]+")
+
+
+def resolve_filter_values(user, score_param_id, raw_values):
+    """Typed or pasted values for a categorical criterion with too many
+    options to show as chips (e.g. an uploaded locus-tag column). Returns
+    (option_ids, values_not_found); matching ignores case. Only a column the
+    user may read counts."""
+    from tpweb.models.ScoreParam import ScoreParamOptions
+    from tpweb.services.score_params import visible_score_params_queryset
+
+    values = [value for value in _FILTER_VALUE_SPLIT_RE.split(raw_values or "") if value]
+    if not values or not str(score_param_id or "").isdigit():
+        return [], []
+    if not visible_score_params_queryset(user).filter(pk=int(score_param_id)).exists():
+        return [], values
+    options_by_name = {
+        name.casefold(): option_id
+        for option_id, name in ScoreParamOptions.objects.filter(
+            score_param_id=int(score_param_id)
+        ).values_list("id", "name")
+    }
+    option_ids, missing = [], []
+    for value in dict.fromkeys(values):
+        option_id = options_by_name.get(value.casefold())
+        if option_id is None:
+            missing.append(value)
+        elif option_id not in option_ids:
+            option_ids.append(option_id)
+    return option_ids, missing
 
 
 def apply_filter_changes(selected_parameters, changes):

@@ -1661,7 +1661,7 @@ a.filter-pill .filter-pill-remove {
     top: calc(100% + 6px);
     left: 0;
     z-index: 920;
-    min-width: 290px;
+    min-width: min(290px, calc(100vw - 32px));
     max-width: 380px;
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border);
@@ -2265,6 +2265,16 @@ a.filter-pill .filter-pill-remove {
 .scoring-formula-row--current .scoring-formula-row__badge {
     color: var(--tp-color-brand-900);
     background: var(--tp-color-brand-100);
+}
+
+/* The same formula in words, under the raw expression. */
+.scoring-formula-row__readable {
+    display: block;
+    margin-top: 6px;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
 }
 
 .scoring-formula-row__expression {
@@ -3511,6 +3521,81 @@ a.filter-pill .filter-pill-remove {
 
 .filter-chip-group--active {
     margin-top: 8px;
+}
+
+/* "Show N more" for a criterion with more chips than fit at a glance. */
+.filter-chip-more {
+    flex-basis: 100%;
+}
+
+.filter-chip-more > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+}
+
+.filter-chip-more > summary::-webkit-details-marker {
+    display: none;
+}
+
+.filter-chip-more > summary::after {
+    content: "▾";
+    font-size: 0.85em;
+    transition: transform 0.15s ease;
+}
+
+.filter-chip-more[open] > summary::after {
+    transform: rotate(180deg);
+}
+
+.filter-chip-more > .filter-chip-group {
+    margin-top: 8px;
+}
+
+/* Typed/pasted values for a criterion with too many options for chips
+   (e.g. an uploaded locus-tag column, one value per protein). */
+.filter-values-form {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+    background: var(--tp-color-surface-soft);
+}
+
+.filter-values-label {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.filter-values-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: end;
+}
+
+.filter-values-input {
+    min-height: 0;
+    resize: vertical;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: var(--tp-font-size-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .filter-chip-more > summary::after {
+        transition: none;
+    }
 }
 
 .filter-text-form {

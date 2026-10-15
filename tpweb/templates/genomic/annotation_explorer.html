@@ -47,10 +47,10 @@
             <span class="explorer-eyebrow">
                 {% if explorer.kind == "ec" %}{% trans "Functional annotation · EC hierarchy" %}{% else %}{% trans "Functional annotation · GO terms" %}{% endif %}
             </span>
-            <h1>{% blocktrans with kind=explorer.kind_label %}Filter proteins by {{ kind }} hierarchy{% endblocktrans %}</h1>
+            <h1>{% if explorer.kind == "ec" %}{% trans "Browse enzyme classes (EC)" %}{% else %}{% trans "Browse Gene Ontology terms (GO)" %}{% endif %}</h1>
             <p class="explorer-subtitle">
-                {% blocktrans with assembly=assembly_label kind=explorer.kind_label %}
-                    Browse the {{ kind }} annotation hierarchy for {{ assembly }} and select a node to open the matching proteins in the protein table.
+                {% blocktrans with assembly=assembly_label %}
+                    See how the proteins of {{ assembly }} are annotated. Click a segment or a row to open those proteins in the protein table.
                 {% endblocktrans %}
             </p>
             {# EC/GO switch: the GO explorer existed but nothing linked to it. #}
@@ -199,10 +199,6 @@
                             <div class="explorer-fact">
                                 <span class="explorer-fact-label">{% trans "Annotations" %}</span>
                                 <span class="explorer-fact-value">{{ explorer.annotation_count }}</span>
-                            </div>
-                            <div class="explorer-fact">
-                                <span class="explorer-fact-label">{% trans "Hierarchy nodes" %}</span>
-                                <span class="explorer-fact-value">{{ explorer.node_count }}</span>
                             </div>
                         </div>
                     </section>

@@ -19,6 +19,7 @@ from tpweb.services.visibility_settings import (
     all_shareable_formulas,
     custom_params_owned_by,
     formula_visibility,
+    delete_own_formula,
     formulas_owned_by,
     set_formula_visibility,
 )
@@ -59,7 +60,7 @@ class SettingsView(PermissionLockedMixin, View):
 
     template_name = "users/settings.html"
     page_title = "Settings"
-    locked_message = "Ask the site owner to grant access to scoring formulas or custom params."
+    locked_message = "Your account can't create scoring formulas or upload data yet."
 
     def test_func(self):
         user = self.request.user
@@ -118,6 +119,13 @@ class SettingsView(PermissionLockedMixin, View):
                 messages.error(request, "Couldn't update that formula's visibility.")
             else:
                 messages.success(request, f"Updated visibility for {formula.name}.")
+        elif action == "delete_formula":
+            formula = ScoreFormula.objects.filter(pk=request.POST.get("formula_id")).first()
+            name = formula.name if formula else ""
+            if formula is None or not delete_own_formula(formula, request.user):
+                messages.error(request, "Couldn't delete that formula.")
+            else:
+                messages.success(request, f"Deleted {name}.")
         elif action == "set_param_visibility":
             param = ScoreParam.objects.filter(pk=request.POST.get("param_id")).first()
             genome_name = request.POST.get("genome_name", "").strip()

@@ -41,7 +41,7 @@
                         <p class="genomes-subtitle">{% trans "Upload the first genome to start exploring proteins, annotations, and structures." %}</p>
                     {% endif %}
                 </div>
-                {% if genomes or has_search %}
+                {% if perms.tpweb.can_upload_genome and genomes or perms.tpweb.can_upload_genome and has_search %}
                     <a class="btn tp-btn tp-btn--primary tp-btn-with-icon genomes-upload-btn" href="{% url 'tpwebapp:genome_upload' %}">
                         <span class="tp-btn-icon" aria-hidden="true">
                             {% include "components/icons/plus.html" %}
@@ -58,13 +58,14 @@
             <div class="genomes-meta" role="list" aria-label="{% trans "Genome summary" %}">
                 <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_genomes }} {% trans "genomes" %}</span>
                 <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_proteins }} {% trans "proteins" %}</span>
-                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_experimental }} {% trans "loaded experimental structures" %}</span>
-                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_pdb_xrefs }} {% trans "PDB xrefs" %}</span>
+                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem" title="{% trans 'Experimental 3D structures downloaded from the PDB and shown in the viewer.' %}">{{ total_experimental }} {% trans "experimental structures downloaded" %}</span>
+                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem" title="{% trans 'PDB entries that UniProt lists for these proteins, whether or not they were downloaded.' %}">{{ total_pdb_xrefs }} {% trans "PDB entries cited by UniProt" %}</span>
                 <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_ec_annotated }} {% trans "EC-annotated proteins" %}</span>
             </div>
             {% if hidden_restricted_count %}
                 <p class="genomes-restricted-note">
-                    {% blocktrans count total=hidden_restricted_count %}{{ total }} more genome belongs to a collaborative project and is only visible to collaborator accounts. Ask an administrator if you need access.{% plural %}{{ total }} more genomes belong to collaborative projects and are only visible to collaborator accounts. Ask an administrator if you need access.{% endblocktrans %}
+                    {% blocktrans count total=hidden_restricted_count %}{{ total }} more genome belongs to a collaborative project and is only visible to collaborator accounts.{% plural %}{{ total }} more genomes belong to collaborative projects and are only visible to collaborator accounts.{% endblocktrans %}
+                    {% if contact_email %}{% trans "If you need access, write to" %} <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.{% endif %}
                 </p>
             {% endif %}
         </section>
@@ -140,10 +141,10 @@
                                                 {% endif %}
                                             </div>
                                             {% if genome.has_curated_data %}
-                                                <span class="tp-chip tp-chip--state finished tp-chip--sm genome-curated-badge">{% trans "Curated" %}</span>
+                                                <span class="tp-chip tp-chip--state finished tp-chip--sm genome-curated-badge" title="{% trans 'Includes expert-reviewed results imported from outside the pipeline.' %}">{% trans "Curated" %}</span>
                                             {% endif %}
                                             {% if genome.is_restricted %}
-                                                <span class="tp-chip tp-chip--state tp-chip--sm genome-restricted-badge">{% trans "Restricted" %}</span>
+                                                <span class="tp-chip tp-chip--state tp-chip--sm genome-restricted-badge" title="{% trans 'Only visible to project members.' %}">{% trans "Restricted" %}</span>
                                             {% endif %}
                                         </div>
                                         {% if genome.current_genome_status_note %}
@@ -151,7 +152,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="genomes-scope-cell">
-                                        <span class="tp-chip tp-chip--sm {% if genome.workspace_scope_key == 'personal' %}tp-chip--state finished{% else %}tp-chip--meta{% endif %}">
+                                        <span class="tp-chip tp-chip--sm {% if genome.workspace_scope_key == 'personal' %}tp-chip--state finished{% else %}tp-chip--meta{% endif %}" title="{% if genome.workspace_scope_key == 'personal' %}{% trans 'You uploaded this genome; only you can see it.' %}{% else %}{% trans 'Available to every signed-in user.' %}{% endif %}">
                                             {{ genome.workspace_scope_label }}
                                         </span>
                                     </td>
@@ -196,12 +197,14 @@
                         <p>{% trans "Upload a compressed GenBank file to create the first genome overview for this account." %}</p>
                     </div>
                     <div class="genome-workspace-empty-actions">
+                        {% if perms.tpweb.can_upload_genome %}
                         <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'tpwebapp:genome_upload' %}">
                             <span class="tp-btn-icon" aria-hidden="true">
                                 {% include "components/icons/plus.html" %}
                             </span>
                             {% trans "Upload genome" %}
                         </a>
+                        {% endif %}
                     </div>
                 {% endif %}
             </section>

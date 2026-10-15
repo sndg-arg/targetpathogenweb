@@ -78,7 +78,7 @@
                 {% if binder.score is not None %}
                     <div class="metric-pill">
                         <span class="metric-label">
-                            {% if binder.source == 'chembl' %}pchembl
+                            {% if binder.source == 'chembl' %}{% trans "Potency (pChEMBL)" %}
                             {% elif binder.source == 'proposed' %}Tanimoto
                             {% else %}{% trans "Score" %}{% endif %}
                         </span>
@@ -158,7 +158,7 @@
                         <div class="binder-id-row">
                             <dt>
                                 {% if binder.is_pdb %}{% trans "Score" %}
-                                {% elif binder.source == 'chembl' %}pchembl
+                                {% elif binder.source == 'chembl' %}{% trans "Potency (pChEMBL)" %}
                                 {% else %}Tanimoto{% endif %}
                             </dt>
                             <dd>{{ binder.score|stringformat:".3f" }}{% if binder.potency_estimate %} <span class="binder-id-row-sub">({{ binder.potency_estimate }})</span>{% endif %}</dd>
@@ -239,7 +239,7 @@
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Drug-likeness" %}</h2>
-                            <p class="section-subtitle">{% trans "Descriptor-based ADME screening flags from SMILES. These are not experimental toxicity results." %}</p>
+                            <p class="section-subtitle">{% trans "Lipinski and PAINS flags computed from the chemical structure (SMILES), not measured in the lab." %}</p>
                         </div>
                     </div>
                     <div class="druglike-grid">

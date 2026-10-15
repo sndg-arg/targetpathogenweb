@@ -147,6 +147,16 @@
     white-space: nowrap;
 }
 
+.settings-item-expression {
+    display: block;
+    margin-top: 4px;
+    color: var(--tp-color-text-secondary);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 .settings-item-meta {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);

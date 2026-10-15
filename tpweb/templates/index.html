@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261014-account-links">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261014-home-steps">
 {% endblock %}
 
 {% block body %}
@@ -20,9 +20,14 @@
                     {% url 'tpwebapp:genomes_list' as open_genomes_href %}
                     {% trans "Browse genomes" as open_genomes_label %}
                     {% include "components/buttons/action.html" with variant="primary" href=open_genomes_href label=open_genomes_label icon_template="components/icons/arrow_right.html" %}
-                    <a class="home-hero-link" href="{% url 'tpwebapp:genome_upload' %}">{% trans "Upload a genome" %} <span aria-hidden="true">→</span></a>
-                    <a class="home-hero-link" href="{% url 'tpwebapp:form' %}" title="{% trans 'Nucleotide BLAST against a genome you choose. For protein BLAST, open a genome page.' %}">{% trans "BLAST a genome" %} <span aria-hidden="true">→</span></a>
+                    {% if perms.tpweb.can_upload_genome %}<a class="home-hero-link" href="{% url 'tpwebapp:genome_upload' %}">{% trans "Upload a genome" %} <span aria-hidden="true">→</span></a>{% endif %}
+                    <a class="home-hero-link" href="{% url 'tpwebapp:form' %}" title="{% trans 'Nucleotide or protein BLAST against a genome you choose.' %}">{% trans "BLAST a genome" %} <span aria-hidden="true">→</span></a>
                 </div>
+                <ol class="home-steps" aria-label="{% trans 'How to start' %}">
+                    <li><span class="home-step-number">1</span>{% trans "Open a genome" %}</li>
+                    <li><span class="home-step-number">2</span>{% trans "Filter and score its proteins" %}</li>
+                    <li><span class="home-step-number">3</span>{% trans "Review a protein's evidence" %}</li>
+                </ol>
             </div>
         </section>
 
@@ -139,7 +144,7 @@
                     <span>{% trans "Full reference" %}</span>
                 </a>
             </div>
-            <p class="home-about-lead">{% trans "Evidence for each protein is assembled through a 24-stage bioinformatics pipeline, combining external databases, comparative genomics, structural modeling, and machine learning." %}</p>
+            <p class="home-about-lead">{% trans "Evidence for each protein is assembled by an automated bioinformatics pipeline that combines external databases, comparative genomics, structural modeling, and machine learning." %}</p>
             <div class="home-about-grid">
 
                 <div class="home-about-card">
@@ -450,41 +455,41 @@
                         "Ligand evidence",
                     ],
                     sequential: [
-                        [1, "Preparing previous results"],
+                        [1, "Preparing the workspace"],
                         [2, "Loading genome input"],
                         [3, "Importing genome records"],
                     ],
                     branches: [
                         { label: "Target scoring", description: "Initial prioritization based on host similarity, microbiome conservation, and essentiality signals.", steps: [
-                            [4, "FastTarget scoring"],
-                            [5, "Human off-target"],
-                            [6, "Microbiome off-target"],
-                            [7, "Essentiality"],
+                            [4, "Off-target and essentiality search"],
+                            [5, "Similarity to human proteins"],
+                            [6, "Similarity to gut microbiome"],
+                            [7, "Essential-gene homologs"],
                         ]},
                         { label: "Protein annotation", description: "Protein indexing and domain-based annotation to recover functional context.", steps: [
-                            [8, "Protein database indexes"],
-                            [9, "Sequence indexing"],
-                            [10, "InterProScan"],
-                            [11, "InterPro annotations"],
+                            [8, "Preparing protein search"],
+                            [9, "Preparing sequence search"],
+                            [10, "Protein domains (InterProScan)"],
+                            [11, "Loading domain annotations"],
                         ]},
                         { label: "Structure evidence", description: "UniProt links, predicted structures, and druggability evidence for structural interpretation.", steps: [
                             [12, "UniProt mapping"],
                             [13, "UniProt annotations"],
-                            [14, "Protein list for structures"],
+                            [14, "Choosing proteins for 3D models"],
                             [15, "AlphaFold DB models"],
                             [16, "ColabFold predictions"],
-                            [17, "Structure loading"],
-                            [18, "Pocket druggability scores"],
-                            [19, "Druggability score"],
+                            [17, "Loading structures and pockets"],
+                            [18, "Computing pocket druggability"],
+                            [19, "Loading druggability scores"],
                         ]},
                         { label: "Cell localization", description: "Prediction of probable subcellular location to support biological interpretation.", steps: [
-                            [20, "PSORT prediction"],
-                            [21, "PSORT score"],
+                            [20, "Subcellular localization (PSORTb)"],
+                            [21, "Loading localization"],
                         ]},
                         { label: "Ligand evidence", description: "Experimental, measured, transferred, or proposed compound evidence linked to proteins in the imported genome.", steps: [
-                            [22, "Ligand candidate search"],
-                            [23, "Ligand evidence loading"],
-                            [24, "LigQ_2 ligand evidence"],
+                            [22, "Searching known ligands"],
+                            [23, "Loading ligand evidence"],
+                            [24, "Extended ligand search (optional)"],
                         ]},
                     ],
                 };

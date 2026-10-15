@@ -12,9 +12,7 @@ PAGE_SIZE = 40
 class HumanProteinListView(PermissionLockedMixin, View):
     template_name = "human/human_protein_list.html"
     page_title = "Human Targets"
-    locked_message = (
-        "Human Targets is available to project collaborators. Ask a site administrator for access."
-    )
+    locked_message = "Human Targets is available to project collaborators."
 
     def test_func(self):
         return self.request.user.has_perm("tpweb.can_view_human_targets")

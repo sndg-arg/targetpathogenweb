@@ -236,3 +236,109 @@ class OwnerOnlySharingTests(SharingFixture, TestCase):
         self.assertFalse(set_formula_visibility(formula, admin, "public"))
         formula.refresh_from_db()
         self.assertFalse(formula.public)
+
+
+class IdentifierLabelTests(SimpleTestCase):
+    def test_locus_tags_and_accessions_are_not_humanized(self):
+        from tpweb.services.protein_list import humanize_identifier
+
+        self.assertEqual(humanize_identifier("KPN_00002"), "KPN_00002")
+        self.assertEqual(humanize_identifier("MGH78578_locus_tag"), "MGH78578_locus_tag")
+        self.assertEqual(humanize_identifier("no_hit"), "No hit")
+
+
+class FilterValuesTests(SharingFixture, TestCase):
+    def test_typed_values_resolve_to_options_ignoring_case(self):
+        from tpweb.models.ScoreParam import ScoreParamOptions
+        from tpweb.services.protein_list import resolve_filter_values
+
+        tag_param = ScoreParam.objects.create(
+            category="Custom",
+            name="locus_map",
+            type="C",
+            default_operation="=",
+            default_value="",
+            user=self.owner,
+        )
+        first = ScoreParamOptions.objects.create(score_param=tag_param, name="KPN_00002")
+        second = ScoreParamOptions.objects.create(score_param=tag_param, name="KPN_00003")
+
+        option_ids, missing = resolve_filter_values(
+            self.owner, str(tag_param.pk), "kpn_00002, KPN_00003\nKPN_99999"
+        )
+        self.assertEqual(option_ids, [first.pk, second.pk])
+        self.assertEqual(missing, ["KPN_99999"])
+
+        option_ids, missing = resolve_filter_values(self.basic, str(tag_param.pk), "KPN_00002")
+        self.assertEqual(option_ids, [])
+
+
+class UploadedDataPageTests(SharingFixture, TestCase):
+    def setUp(self):
+        super().setUp()
+        Biodatabase.objects.create(name=GENOME, description="Genome workspace")
+
+    def test_lists_own_column_and_downloads_it(self):
+        from django.urls import reverse
+
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse("tpwebapp:uploaded_data", kwargs={"genome": GENOME}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "lab_score")
+
+        response = self.client.get(
+            reverse(
+                "tpwebapp:uploaded_data_download",
+                kwargs={"genome": GENOME, "param_id": self.param.pk},
+            )
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content.decode(), "gene\tlab_score\nP1\t1\n")
+
+    def test_private_column_is_not_downloadable_by_others(self):
+        from django.urls import reverse
+
+        self.client.force_login(self.basic)
+        response = self.client.get(
+            reverse(
+                "tpwebapp:uploaded_data_download",
+                kwargs={"genome": GENOME, "param_id": self.param.pk},
+            )
+        )
+        self.assertEqual(response.status_code, 404)
+
+
+class BlastTabularTests(SimpleTestCase):
+    def test_parses_outfmt6_rows(self):
+        from tpweb.views.NewView import parse_blast_tabular
+
+        raw = "q1\tPA0001\t99.5\t300\t1\t0\t1\t300\t10\t309\t1e-150\t540\nbad line\n"
+        hits = parse_blast_tabular(raw)
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0]["subject_id"], "PA0001")
+        self.assertEqual(hits[0]["evalue"], "1e-150")
+
+
+class FormulaReadabilityTests(SimpleTestCase):
+    def test_formula_reads_in_words(self):
+        from tpweb.services.protein_formula import readable_formula
+
+        text = readable_formula(
+            "druggability + 2 * hit_in_deg_y - human_offtarget_hit",
+            ["druggability", "hit_in_deg", "human_offtarget"],
+        )
+        self.assertEqual(
+            text,
+            "Druggability (FPocket, 0–1) + 2 × (Essential homolog (DEG) is Yes)"
+            " − (Human off-target is Hit)",
+        )
+
+    def test_numeric_variables_name_their_scale(self):
+        from tpweb.services.formula_evaluator import numeric_variable_scale
+
+        self.assertEqual(numeric_variable_scale("human_identity"), "%")
+        self.assertEqual(numeric_variable_scale("p2rank_probability"), "0–1")
+        self.assertEqual(numeric_variable_scale("colabfold_plddt"), "0–100")
+        self.assertEqual(numeric_variable_scale("human_evalue"), "e-value")
+        self.assertEqual(numeric_variable_scale("n_reactions"), "count")
+        self.assertEqual(numeric_variable_scale("lab_score"), "")

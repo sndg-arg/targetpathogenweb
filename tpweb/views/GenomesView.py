@@ -83,7 +83,7 @@ class GenomesView(View):
                                 "Loaded experimental structures",
                                 genome_metrics["total_experimental"],
                             ],
-                            ["PDB xrefs", genome_metrics["total_pdb_xrefs"]],
+                            ["PDB entries cited by UniProt", genome_metrics["total_pdb_xrefs"]],
                             ["EC-annotated proteins", genome_metrics["total_ec_annotated"]],
                             [
                                 "Visible columns",

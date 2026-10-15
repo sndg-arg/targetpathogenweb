@@ -63,8 +63,11 @@ def FormulaFormView(request, genome):
     user = resolve_workspace_user(request.user)
     # Only variables this genome has values for -- an empty set (nothing
     # loaded yet) falls back to the full palette rather than an empty one.
+    hidden_variables = []
     variable_groups = available_variables_grouped(
-        user, genome_param_names=genome_score_param_names(assembly_name) or None
+        user,
+        genome_param_names=genome_score_param_names(assembly_name) or None,
+        hidden=hidden_variables,
     )
 
     # Edit mode: ?edit=<pk> (GET) / editing_pk (POST) on one of the user's own
@@ -141,6 +144,9 @@ def FormulaFormView(request, genome):
             "assembly_label": display_genome_name(assembly_name),
             "genome": genome_url_slug(assembly_name),
             "variable_groups": variable_groups,
+            # Only uploaded columns: structure/pocket IDs are covered by the
+            # generic note on the page, and listing them is just noise.
+            "hidden_variables": [h for h in hidden_variables if h["category"] == "Custom"],
             "safe_functions": SAFE_FUNCTIONS,
             "example_formulas": EXAMPLE_FORMULAS,
             "editing": editing,

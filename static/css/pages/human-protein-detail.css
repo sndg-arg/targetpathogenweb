@@ -708,3 +708,8 @@
         transition: none;
     }
 }
+
+/* Expression ranking: scroll sideways on a phone instead of overflowing. */
+.human-expression-rank-shell {
+    overflow-x: auto;
+}

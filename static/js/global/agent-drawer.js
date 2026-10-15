@@ -309,8 +309,8 @@
         } else {
             // Some suggestions only make sense on part of the target-scoped
             // surface -- "Explain/Audit target" need one specific protein in
-            // view, "Clear filters" only means anything on the protein-list
-            // page's own filter tray. Unscoped buttons (e.g. "Find selective
+            // view, "Explain the columns" only means anything on the protein-list
+            // page. Unscoped buttons (e.g. "Find selective
             // targets", a genome-wide search) show everywhere in this branch.
             var hasProteinContext = !!document.querySelector(".protein-page:not(.human-protein-page), .sv-root");
             var hasListContext = !!document.querySelector(".proteins-page");

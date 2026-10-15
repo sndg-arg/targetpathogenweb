@@ -5,7 +5,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
 
@@ -17,6 +17,7 @@ from tpweb.services.genome_workspace import (
     resolve_genome_from_slug,
 )
 from tpweb.services.genomes import build_genomes_queryset
+from tpweb.views.ProteinBlastView import ProteinBlastView
 
 
 class FormView(LoginRequiredMixin, View):
@@ -77,9 +78,19 @@ class FormView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         selected_biodatabase = self._resolve_selected_biodatabase(request)
-        return render(
-            request, self.template_name, self._build_context(request, selected_biodatabase)
-        )
+        context = self._build_context(request, selected_biodatabase)
+        # ?select=<genome> (from "Run another search") preselects the genome in
+        # the picker without locking the page to it.
+        preselect = (request.GET.get("select") or "").strip()
+        if preselect and not selected_biodatabase:
+            resolved = resolve_genome_from_slug(request.user, preselect)
+            match = next(
+                (option for option in context["db_options"] if option["internal_name"] == resolved),
+                None,
+            )
+            if match:
+                context["selected_db_value"] = str(match["value"])
+        return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
         if not request.user.has_perm("tpweb.can_run_blast"):
@@ -95,6 +106,30 @@ class FormView(LoginRequiredMixin, View):
 
         selected_biodatabase = self._resolve_selected_biodatabase(request)
         text_input = (request.POST.get("text_input") or "").strip()
+
+        # One BLAST page for both sequence types: a protein query goes to the
+        # genome's blastp search (ProteinBlastView), which renders its own
+        # form/result pages, instead of students having to find it on the
+        # genome page.
+        if request.POST.get("blast_type") == "protein":
+            if selected_biodatabase is None:
+                return render(
+                    request,
+                    self.template_name,
+                    self._build_context(
+                        request,
+                        None,
+                        error_message="Please select a valid genome before running BLAST.",
+                        text_input_value=text_input,
+                        blast_type="protein",
+                    ),
+                )
+            post = request.POST.copy()
+            post["sequence"] = text_input
+            request.POST = post
+            return ProteinBlastView.as_view()(
+                request, genome=genome_url_slug(selected_biodatabase.name)
+            )
         max_chars = int(os.environ.get("TPW_BLAST_MAX_QUERY_CHARS", "20000"))
 
         if not text_input:
@@ -197,17 +232,11 @@ class FormView(LoginRequiredMixin, View):
         finally:
             query_path.unlink(missing_ok=True)
 
-        return render(
-            request,
-            self.template_name,
-            self._build_context(
-                request,
-                selected_biodatabase,
-                message=(
-                    f"BLAST completed for {display_genome_name(selected_biodatabase.name)}. "
-                    f"Result id: {result_id}"
-                ),
-                result_id=result_id,
-                text_input_value=text_input,
-            ),
-        )
+        # Straight to the results (they used to sit behind a "BLAST completed.
+        # Open results ->" link). ?genome= lets the result page link hits to
+        # proteins and keep the genome for "Run another search".
+        result_url = reverse("tpwebapp:blast_res", args=[result_id])
+        query = f"?genome={genome_url_slug(selected_biodatabase.name)}"
+        if request.POST.get("genome_name"):
+            query += "&locked=1"
+        return redirect(result_url + query)

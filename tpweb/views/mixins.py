@@ -27,7 +27,7 @@ class PermissionLockedMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
 
     page_title = ""
-    locked_message = "This section needs extra access. Ask a site administrator."
+    locked_message = "This section needs extra access."
 
     def handle_no_permission(self):
         return render(

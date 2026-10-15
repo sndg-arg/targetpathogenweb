@@ -37,7 +37,7 @@ from .views.ValidateExpressionView import validate_expression_view
 from .views.DeleteFormulaView import delete_formula_view
 
 # from debug_toolbar.toolbar import debug_toolbar_urls
-from .views.CustomParamView import upload_form
+from .views.CustomParamView import upload_form, uploaded_data, uploaded_data_download
 from .views.GenomeUploadView import GenomeUploadView
 from .views.DataFileUploadView import DataFileUploadView
 from .views.AnnotationExplorerView import AnnotationExplorerView
@@ -155,6 +155,12 @@ urlpatterns = [
         name="delete_formula",
     ),
     path("genome/<str:genome>/custom-evidence", view=upload_form, name="customparam"),
+    path("genome/<str:genome>/uploaded-data", view=uploaded_data, name="uploaded_data"),
+    path(
+        "genome/<str:genome>/uploaded-data/<int:param_id>.tsv",
+        view=uploaded_data_download,
+        name="uploaded_data_download",
+    ),
     path("health/live", view=HealthLiveView.as_view(), name="health_live"),
     path("health/ready", view=HealthReadyView.as_view(), name="health_ready"),
     path("health/pipeline", view=HealthPipelineView.as_view(), name="health_pipeline"),

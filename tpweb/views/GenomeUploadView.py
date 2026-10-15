@@ -224,8 +224,7 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 {
                     "page_title": "Upload a genome",
                     "locked_message": (
-                        "Uploading new genomes is limited to project collaborators. "
-                        "If you need a genome added, ask a site administrator."
+                        "Uploading new genomes is limited to project collaborators."
                     ),
                 },
                 status=403,

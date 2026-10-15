@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261013-mobile-sidebar">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261014-tokens">
 {% endblock %}
 
 {% block body %}
@@ -180,7 +180,7 @@
 
             {# VMD download — href updated by JS when switching structures #}
             <a href="{% url 'tpwebapp:structure_export' structure.id %}" id="sv-vmd-link" data-no-page-loader
-               class="sv-tb-btn sv-download-link" title="{% trans 'Download VMD visualization script' %}">
+               class="sv-tb-btn sv-download-link" title="{% trans 'Download a script for VMD, free desktop software, to view this structure with its pockets' %}">
                 <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
                     <path d="M8 2v8M5 7l3 3 3-3M2 13h12"/>
                 </svg>
@@ -216,6 +216,11 @@
 
             <header class="sv-sidebar-head">
                 <h1 class="sv-sidebar-code" id="sv-sidebar-code">{{ structure.display_code|default:structure.code|upper }}</h1>
+                {% if source_protein_id %}
+                <p class="sv-sidebar-protein">
+                    <a href="{% url 'tpwebapp:protein' source_protein_id %}">{{ source_protein_accession|default:source_protein_label }}</a>{% if source_protein_description %} · {{ source_protein_description }}{% endif %}
+                </p>
+                {% endif %}
                 <div class="sv-sidebar-meta-row" id="sv-sidebar-meta">
                     {% for s in all_structures %}{% if s.is_active %}
                     <span class="sv-sidebar-meta-tag" id="sv-sidebar-method">{{ s.method }}</span>

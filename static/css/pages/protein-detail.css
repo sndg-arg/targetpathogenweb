@@ -4760,3 +4760,55 @@ body.residue-modal-open {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
+/* "Show this pocket" under the Binding-site evidence cards, when the best
+   FPocket pocket sits on a structure other than the one in the viewer. */
+.target-evidence-viewer-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+}
+
+.target-evidence-fullviewer-link {
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.target-evidence-fullviewer-link:hover,
+.target-evidence-fullviewer-link:focus-visible {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+}
+
+/* Hero druggability pill: a shortcut down to Binding-site evidence. */
+.metric-pill--link {
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.metric-pill--link:hover,
+.metric-pill--link:focus-visible {
+    border-color: var(--tp-color-border-strong);
+    text-decoration: none;
+}
+
+.metric-pill-jump {
+    color: var(--tp-color-text-muted);
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+#binding-site-evidence {
+    scroll-margin-top: 96px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .metric-pill--link {
+        transition: none;
+    }
+}

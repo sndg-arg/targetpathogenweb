@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261013-quicknav-band">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261014-drugg-link">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -16,7 +16,7 @@
         {% url 'tpwebapp:assembly' protein.genome as assembly_url %}
         {% url 'tpwebapp:protein_list' protein.genome as proteins_url %}
         {% with crumb_genome="Genome: "|add:protein.assembly_label %}
-        {% with crumb_protein="Protein: "|add:protein.accession|add:" · "|add:protein.description %}
+        {% with crumb_protein="Protein: "|add:protein.accession %}
         {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein %}
         {% endwith %}
         {% endwith %}
@@ -88,14 +88,16 @@
                     <span class="metric-value">{{ protein.size }}</span>
                 </div>
                 {% if druggability %}
-                <div class="metric-pill metric-pill--drugg metric-pill--drugg-{{ druggability.1 }}">
+                {# One main place for pocket scores (Binding-site evidence); the hero #}
+                {# pill is a shortcut to it, not a second, differently-named number. #}
+                <a class="metric-pill metric-pill--drugg metric-pill--drugg-{{ druggability.1 }} metric-pill--link" href="{% if selected_pocket_evidence %}#binding-site-evidence{% else %}#section-structure{% endif %}">
                     {% if druggability.3.label %}
                     <span class="metric-label" title="{% blocktrans with source=druggability.2 structure=druggability.3.label code=druggability.3.code %}{{ source }} pocket score on {{ structure }} {{ code }}. Higher values suggest a more druggable binding pocket.{% endblocktrans %}">{% blocktrans with source=druggability.2 structure=druggability.3.label %}Pocket druggability ({{ source }} · {{ structure }}){% endblocktrans %}</span>
                     {% else %}
                     <span class="metric-label" title="{% blocktrans with source=druggability.2 %}{{ source }} pocket score on the selected structure. Higher values suggest a more druggable binding pocket.{% endblocktrans %}">{% blocktrans with source=druggability.2 %}Pocket druggability ({{ source }}){% endblocktrans %}</span>
                     {% endif %}
-                    <span class="metric-value">{{ druggability.0 }}</span>
-                </div>
+                    <span class="metric-value">{{ druggability.0 }} <span class="metric-pill-jump" aria-hidden="true">↓</span></span>
+                </a>
                 {% endif %}
                 {% if metabolic_context.in_network %}
                 <div class="metric-pill {% if metabolic_context.is_chokepoint %}metric-pill--priority{% endif %}">
@@ -200,7 +202,7 @@
             {% if cross_references.sequence or cross_references.structure or cross_references.chemistry or cross_references.pathways %}<a href="#section-cross-references" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Cross-references" %}</a>{% endif %}
         </nav>
 
-        <main class="protein-main" aria-label="{% trans 'Protein evidence sections' %}">
+        <div class="protein-main" role="region" aria-label="{% trans 'Protein evidence sections' %}">
         <details class="protein-interpretation-guide tp-ui-panel js-smooth-details">
             <summary>
                 <span>{% trans "Terms and data sources used on this page" %}</span>
@@ -249,15 +251,15 @@
                     {% for item in group.list %}
                     <div class="target-profile-item target-profile-item--{{ item.tone }}"{% if item.tooltip %} title="{{ item.tooltip }}"{% endif %}>
                         <dt class="target-profile-label">{{ item.label }}</dt>
-                        {% if item.label == "Human identity (%)" or item.label == "DEG identity (%)" or item.label == "ColabFold pLDDT" %}
+                        {% if item.key == "human_identity" or item.key == "deg_identity" or item.key == "colabfold_plddt" %}
                         <dd class="target-profile-value">
                             {{ item.value }}
                             <span class="target-profile-bar" aria-hidden="true"><span class="target-profile-bar-fill" style="width: {{ item.value }}%;"></span></span>
-                            {% if item.label == "Human identity (%)" %}
+                            {% if item.key == "human_identity" %}
                             <span class="target-profile-scale">{% trans "Lower values reduce human off-target concern." %}</span>
-                            {% elif item.label == "DEG identity (%)" %}
+                            {% elif item.key == "deg_identity" %}
                             <span class="target-profile-scale">{% trans "Higher values support similarity to known essential genes." %}</span>
-                            {% elif item.label == "ColabFold pLDDT" %}
+                            {% elif item.key == "colabfold_plddt" %}
                             <span class="target-profile-scale">{% trans "0-100 confidence; >70 supports local structural interpretation." %}</span>
                             {% endif %}
                         </dd>
@@ -281,7 +283,7 @@
                         {% else %}
                         <dd class="target-profile-value">
                             {{ item.value }}
-                            {% if item.label == "DEG e-value" or item.label == "DEG E-value" %}
+                            {% if item.key == "deg_evalue" %}
                             <span class="target-profile-scale">{% trans "Smaller values mean stronger essential-gene similarity." %}</span>
                             {% endif %}
                         </dd>
@@ -295,12 +297,12 @@
                 </div>
 
                 {% if selected_pocket_evidence %}
-                <div class="target-evidence-block">
+                <div class="target-evidence-block" id="binding-site-evidence">
                     <div class="target-evidence-head">
                         <h3>{% trans "Binding-site evidence" %}</h3>
                         {% if selected_pocket_evidence.selected_source_kind %}<span class="tp-chip tp-chip--sm">{{ selected_pocket_evidence.selected_source_kind }}</span>{% endif %}
                     </div>
-                    <p class="target-evidence-note">{% trans "P2Rank's binding-site probability is the primary druggability signal shown across the app; FPocket's druggability score is shown alongside it for comparison. Both estimate small-molecule pocket quality after applying the curated structure priority — neither is experimental binding evidence. The 3D viewer may show a different loaded structure, so visible pockets can differ." %}</p>
+                    <p class="target-evidence-note">{% trans "Two independent tools estimate pocket quality on the 3D structure: FPocket (druggability, 0–1) and P2Rank (binding-site probability, 0–1). Neither is experimental binding evidence. The 3D viewer may show a different structure, so its pockets can differ." %}</p>
                     <div class="target-evidence-grid">
                         {% trans "P2Rank is a machine-learning predictor of ligand-binding sites. Probability 0-1; higher values support the pocket hypothesis but do not prove binding." as p2rank_tooltip %}
                         {% trans "Structure used to compute this P2Rank score" as p2rank_structure_tooltip %}
@@ -317,9 +319,19 @@
                         {# The best FPocket pocket can sit on a structure other than the one #}
                         {# shown below (that one is picked by sequence coverage) -- give a #}
                         {# direct way to see it instead of an unexplained mismatch. #}
-                        <a class="btn tp-btn tp-btn--outline tp-btn--sm target-evidence-viewer-link" href="{% url 'tpwebapp:structure' selected_pocket_evidence.fpocket.viewer_pdb_id %}?protein_id={{ protein.id }}">
-                            {% blocktrans with code=selected_pocket_evidence.fpocket.structure %}See this pocket on {{ code }} →{% endblocktrans %}
-                        </a>
+                        <div class="target-evidence-viewer-actions">
+                            {% if pocket_structure_slot %}
+                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm target-evidence-viewer-link"
+                                    data-pocket-slot="{{ pocket_structure_slot }}"
+                                    data-pocket-title="{{ selected_pocket_evidence.fpocket.pocket }}"
+                                    onclick="window.showEvidencePocket && window.showEvidencePocket(this.dataset.pocketSlot, this.dataset.pocketTitle)">
+                                {% blocktrans with code=selected_pocket_evidence.fpocket.structure %}Show this pocket on {{ code }}{% endblocktrans %}
+                            </button>
+                            {% endif %}
+                            <a class="target-evidence-fullviewer-link" href="{% url 'tpwebapp:structure' selected_pocket_evidence.fpocket.viewer_pdb_id %}?protein_id={{ protein.id }}">
+                                {% trans "Open in the full viewer →" %}
+                            </a>
+                        </div>
                         {% endif %}
                         {% if selected_pocket_evidence.colabfold.fpocket_score or selected_pocket_evidence.colabfold.p2rank_score %}
                         <div class="target-evidence-card target-evidence-card--secondary" title="{% trans "Pocket scores computed on the ColabFold-predicted model. Compare with the selected scores above to assess consistency across structure sources." %}">
@@ -794,21 +806,13 @@
                             </div>
                             <div class="structure-color-guide-item">
                                 <span class="structure-color-swatch structure-color-swatch--pockets" aria-hidden="true"></span>
-                                <span>{% trans "'Alpha spheres' is FPocket's own cavity-shape geometry, imported when available and aligned with the loaded structure." %}</span>
-                            </div>
-                            <div class="structure-color-guide-item">
-                                <span class="structure-color-swatch structure-color-swatch--pockets" aria-hidden="true"></span>
-                                <span>{% trans "'Pocket atoms'/'Predicted site atoms' show the pocket's residue atoms instead: P2Rank reports residues rather than alpha spheres, and FPocket falls back to this when alpha-sphere geometry is unavailable or doesn't align." %}</span>
-                            </div>
-                            <div class="structure-color-guide-item">
-                                <span class="structure-color-swatch structure-color-swatch--pockets" aria-hidden="true"></span>
-                                <span>{% trans "'No pocket geometry' means neither alpha spheres nor residue-position data could be found for that pocket; the layer just highlights the same residues as 'Nearby residues'." %}</span>
+                                <span>{% trans "A pocket layer shows FPocket's cavity shape (alpha spheres) when it is available, and otherwise the pocket's own residue atoms." %} <a href="{% url 'tpwebapp:data_sources' %}#binding-sites">{% trans "More in Methodology" %}</a></span>
                             </div>
                         </div>
                     </details>
 
-                    {% if structure.pockets or structure.p2_pockets or alt_structure.pockets or alt_structure.p2_pockets %}
-                    <details class="data-details pocket-panel-details js-smooth-details" open>
+                    {% if structure.pockets or structure.p2_pockets or alt_structure.pockets or alt_structure.p2_pockets or pocket_structure.pockets or pocket_structure.p2_pockets %}
+                    <details class="data-details pocket-panel-details js-smooth-details" id="pocket-panel-details" open>
                         <summary class="pocket-panel-summary">
                             {% trans "Pocket details" %}
                             <span class="pocket-panel-summary-hint">{% trans "Inspect a specific pocket, or" %} <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.id }}" class="pocket-panel-summary-link">{% trans "open the full viewer" %}</a></span>
@@ -855,6 +859,9 @@
                         {% include "components/structure/pocket_cards.html" with structure_data=structure structure_key="primary" %}
                         {% if alt_structure %}
                             {% include "components/structure/pocket_cards.html" with structure_data=alt_structure structure_key="alt" hidden=True %}
+                        {% endif %}
+                        {% if pocket_structure %}
+                            {% include "components/structure/pocket_cards.html" with structure_data=pocket_structure structure_key=pocket_structure_slot hidden=True %}
                         {% endif %}
                     </details>
                     {% endif %}
@@ -1216,7 +1223,7 @@
             </section>
             {% endif %}
         </div>
-        </main>
+        </div>
 
         <div class="residue-modal-backdrop" id="residue-modal" aria-hidden="true">
             <div class="residue-modal-panel" role="dialog" aria-modal="true" aria-labelledby="residue-modal-title">
@@ -1509,6 +1516,39 @@
             window.switchStructureSource = function (which) {
                 pendingStructureSource = which || "primary";
                 scheduleStructureViewerLoad();
+            };
+
+            // "Show this pocket" on the Binding-site evidence card: load the
+            // structure the best pocket was computed on (the viewer may not be
+            // initialized yet -- switchStructureSource queues it), then select
+            // that pocket once the viewer has finished loading it.
+            window.showEvidencePocket = function (slot, pocketTitle) {
+                var section = document.getElementById("section-structure");
+                if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+                var alreadyShown = document.querySelector(
+                    'tr.experimental-row--viewer-active[data-pdb-slot="' + slot + '"]'
+                );
+                if (!alreadyShown) window.switchStructureSource(slot);
+                var waited = 0;
+                (function selectWhenReady() {
+                    var loading = structureLoadingNote && structureLoadingNote.style.display !== "none";
+                    var panel = document.querySelector('.js-structure-annotations[data-structure-key="' + slot + '"]');
+                    if (loading || !panel || panel.hidden) {
+                        waited += 300;
+                        if (waited < 30000) window.setTimeout(selectWhenReady, 300);
+                        return;
+                    }
+                    var details = document.getElementById("pocket-panel-details");
+                    if (details) details.open = true;
+                    var cards = Array.prototype.slice.call(document.querySelectorAll(
+                        '.js-structure-annotations[data-structure-key="' + slot + '"] .pocket-card--fpocket'
+                    ));
+                    var card = cards.find(function (c) {
+                        return c.getAttribute("data-pocket-title") === pocketTitle;
+                    }) || cards[0];
+                    var head = card && card.querySelector(".js-inspect-pocket");
+                    if (head) head.click();
+                })();
             };
 
             (function () {
@@ -1808,6 +1848,7 @@
                     _loadStructureById(which);
                 };
 
+
                 function initStructureComponent(component) {
                     // NGL 0.10.4's own secondary-structure calc emits 's' for beta-sheet
                     // residues, but its SstrucColormaker only recognizes 'e'/'b' as sheet --
@@ -1907,7 +1948,9 @@
                         {% endif %}
                     } else if (activeStructureKey === "primary") {
                         {% include "components/structure/ngl_pocket_representations.js" with structure_data=structure %}
-                    }
+                    }{% if pocket_structure %} else if (activeStructureKey === "{{ pocket_structure_slot|escapejs }}") {
+                        {% include "components/structure/ngl_pocket_representations.js" with structure_data=pocket_structure %}
+                    }{% endif %}
 
                     document.querySelectorAll("#section-structure input[type='checkbox']").forEach(function (checkbox) {
                         checkbox.checked = false;

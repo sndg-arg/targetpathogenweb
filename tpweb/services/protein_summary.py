@@ -198,6 +198,10 @@ def build_target_profile(raw_scores, microbiome_context=None):
                 continue
         items.append(
             {
+                # Score name, so the template can pick bars/scales by key
+                # instead of by the display label (renaming a label used to
+                # silently drop its bar).
+                "key": name,
                 "label": label,
                 "value": display,
                 "tone": tone,

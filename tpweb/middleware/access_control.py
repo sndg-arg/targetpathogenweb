@@ -74,8 +74,8 @@ API_URL_NAMES = frozenset({"agent_chat", "agent_chat_sessions", "agent_chat_sess
 # here can label every gated full-page route without touching each view.
 # Anything not listed falls back to a generic title.
 GATED_PAGE_TITLES = {
-    "genome_upload": "Add your own data",
-    "data_file_upload": "Add your own data",
+    "genome_upload": "Upload a genome",
+    "data_file_upload": "Upload a genome",
     "protein_blast": "BLAST search",
     "form": "BLAST search",
     "blast_res": "BLAST search",

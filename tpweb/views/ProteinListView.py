@@ -34,6 +34,7 @@ from tpweb.services.protein_list import (
     humanize_identifier,
     normalize_selected_parameters,
     parse_page_size,
+    resolve_filter_values,
 )
 from tpweb.services.score_param_types import is_categorical_score_param
 from tpweb.services.protein_formula import (
@@ -46,6 +47,7 @@ from tpweb.services.protein_formula import (
     coefficient_map,
     formula_to_dto,
     ordered_score_params,
+    readable_formula,
     resolve_formulas_for_user,
     structure_dependent_columns,
 )
@@ -89,7 +91,11 @@ from tpweb.services.formula_evaluator import (
     formula_uses_missing_params,
     safe_eval_expression,
 )
-from tpweb.services.custom_param_sharing import SHARED_COLUMNS_CATEGORY, label_shared_columns
+from tpweb.services.custom_param_sharing import (
+    SHARED_COLUMNS_CATEGORY,
+    custom_files,
+    label_shared_columns,
+)
 from tpweb.services.score_params import genome_score_param_names, visible_score_params_queryset
 from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_ALPHAFOLD,
@@ -97,11 +103,16 @@ from tpweb.services.structure_sources import (
     PDB_MODEL_EXPERIMENTS,
 )
 from tpweb.services.workspace import resolve_workspace_user
-from tpweb.models.CustomParamFile import CustomParam
 from tpweb.models.FilterPreset import FilterPreset
 from pathlib import Path
 import json
 import logging
+
+# Filter drawer: how many chips a categorical criterion shows before "Show N
+# more", and past how many options it switches to typing/pasting values.
+FILTER_CHIPS_VISIBLE = 10
+FILTER_CHIPS_MAX = 60
+USER_COLUMN_CATEGORIES = {"Custom", SHARED_COLUMNS_CATEGORY}
 
 
 logger = logging.getLogger(__name__)
@@ -521,6 +532,37 @@ class ProteinListView(View):
 
         return apply_filter_change(selected_parameters, change)
 
+    @staticmethod
+    def _expand_filter_values(request, payload):
+        """Turns each queued add_filter_values entry (typed/pasted values for a
+        criterion with too many options for chips) into plain add_filter
+        entries, warning about values no protein has."""
+        try:
+            changes = json.loads(payload or "[]")
+        except (TypeError, ValueError):
+            return payload
+        if not isinstance(changes, list):
+            return payload
+        expanded, missing = [], []
+        for change in changes:
+            if isinstance(change, dict) and change.get("action") == "add_filter_values":
+                option_ids, not_found = resolve_filter_values(
+                    request.user, change.get("score_param_id"), change.get("filter_values")
+                )
+                expanded.extend(
+                    {"action": "add_filter", "filter_option_id": option_id}
+                    for option_id in option_ids
+                )
+                missing.extend(not_found)
+            else:
+                expanded.append(change)
+        if missing:
+            shown = ", ".join(missing[:5])
+            if len(missing) > 5:
+                shown += f" and {len(missing) - 5} more"
+            messages.warning(request, f"No protein has these values: {shown}.")
+        return json.dumps(expanded)
+
     @classmethod
     def _apply_filter_changes_payload(cls, selected_parameters, payload):
         try:
@@ -585,6 +627,11 @@ class ProteinListView(View):
         "colabfold_druggability_score": ("0.7", "1.0"),
         "colabfold_p2rank_probability": ("0.5", "1.0"),
         "p2rank_probability": ("0.5", "1.0"),
+        "Druggability": ("0.7", "1.0"),
+        # Counts and centrality: a "0.70" example suggested the wrong scale.
+        "n_reactions": ("1", "10"),
+        "PTOOLS_edges": ("1", "20"),
+        "PTOOLS_betweenness_centrality": ("0.001", "0.05"),
     }
 
     @staticmethod
@@ -613,13 +660,22 @@ class ProteinListView(View):
             type_code = (score_param.type or "").upper()
             is_categorical = type_code.startswith("C") or type_code == "CATEGORICAL"
             category = (score_param.category or "Other").strip() or "Other"
-            param_label = humanize_identifier(score_param.name) or score_param.name
+            # Uploaded columns keep the exact names and values from the user's
+            # file -- humanizing turned "KPN_00002" into "Kpn 00002".
+            is_user_column = category in USER_COLUMN_CATEGORIES
+            param_label = (
+                score_param.name
+                if is_user_column
+                else humanize_identifier(score_param.name) or score_param.name
+            )
 
             if not is_categorical:
                 numeric_param_count += 1
                 active_filters = active_numeric_by_param.get(str(score_param.pk), [])
+                # No example for a scale we don't know -- a 0-1 guess misleads
+                # on counts, percentages and uploaded values alike.
                 ph, ph_max = ProteinListView._NUMERIC_FILTER_PLACEHOLDERS.get(
-                    score_param.name, ("0.70", "1.00")
+                    score_param.name, ("", "")
                 )
                 grouped.setdefault(category, []).append(
                     {
@@ -661,6 +717,8 @@ class ProteinListView(View):
                         option_label = f"Pocket {suffix}" if suffix else "Pocket"
                     else:
                         option_label = raw or option.name
+                elif is_user_column:
+                    option_label = option.name
                 else:
                     option_label = humanize_identifier(option.name) or option.name
                 option_active = str(option.pk) in selected_option_ids
@@ -706,7 +764,18 @@ class ProteinListView(View):
                         "tone": option_tone,
                     }
                 )
-                search_tokens.append(option_label)
+                if len(options) <= FILTER_CHIPS_MAX:
+                    search_tokens.append(option_label)
+            # Long option lists: the first few chips plus "Show N more"; past
+            # FILTER_CHIPS_MAX (e.g. an uploaded locus-tag mapping with one value
+            # per protein) a chip per value is unusable, so the user types or
+            # pastes the values instead.
+            if len(options) > FILTER_CHIPS_MAX:
+                display_mode = "values"
+            elif len(options) > FILTER_CHIPS_VISIBLE + 2:
+                display_mode = "chips_more"
+            else:
+                display_mode = "chips"
             grouped.setdefault(category, []).append(
                 {
                     "id": score_param.pk,
@@ -715,10 +784,16 @@ class ProteinListView(View):
                     "description": score_param.description or "",
                     "type": "categorical",
                     "options": options,
+                    "display_mode": display_mode,
+                    "options_head": options[:FILTER_CHIPS_VISIBLE],
+                    "options_rest": options[FILTER_CHIPS_VISIBLE:],
+                    "active_options": [option for option in options if option["active"]],
+                    "option_count": len(options),
+                    "value_examples": ", ".join(o["name"] for o in options[:2]),
                     # Options within one param combine as OR, so "Select all"
                     # then deselecting one or two ("every localization except
                     # cytoplasmic") is a real shortcut -- pointless with 2.
-                    "bulk_selectable": len(options) >= 3,
+                    "bulk_selectable": 3 <= len(options) <= FILTER_CHIPS_MAX,
                     "any_active": any_active,
                     "search_text": " ".join(search_tokens).lower(),
                 }
@@ -1177,6 +1252,22 @@ class ProteinListView(View):
                 {"action": action, "filter_option_id": request.POST.get("filter_option_id")},
             )
 
+        elif action == "add_filter_values":
+            option_ids, missing = resolve_filter_values(
+                request.user,
+                request.POST.get("score_param_id"),
+                request.POST.get("filter_values"),
+            )
+            for option_id in option_ids:
+                selected_parameters = self._apply_filter_change(
+                    selected_parameters, {"action": "add_filter", "filter_option_id": option_id}
+                )
+            if missing:
+                shown = ", ".join(missing[:5])
+                if len(missing) > 5:
+                    shown += f" and {len(missing) - 5} more"
+                messages.warning(request, f"No protein has these values: {shown}.")
+
         elif action == "add_special_filter":
             selected_parameters = self._apply_filter_change(
                 selected_parameters,
@@ -1214,7 +1305,7 @@ class ProteinListView(View):
         elif action == "apply_filter_changes":
             selected_parameters = self._apply_filter_changes_payload(
                 selected_parameters,
-                request.POST.get("filter_actions_json"),
+                self._expand_filter_values(request, request.POST.get("filter_actions_json")),
             )
             target_structure_source = (
                 (request.POST.get("pending_structure_source") or "").strip().lower()
@@ -1227,7 +1318,7 @@ class ProteinListView(View):
         elif action == "save_filter_preset":
             selected_parameters = self._apply_filter_changes_payload(
                 selected_parameters,
-                request.POST.get("filter_actions_json"),
+                self._expand_filter_values(request, request.POST.get("filter_actions_json")),
             )
             target_structure_source = (
                 (request.POST.get("pending_structure_source") or "").strip().lower()
@@ -1639,7 +1730,9 @@ class ProteinListView(View):
 
         current_formula_pk = getattr(formula, "pk", None)
         workspace_user_for_drawer = resolve_workspace_user(request.user)
-        all_term_descriptions = build_all_term_descriptions()
+        term_params = list(visible_score_params_queryset(request.user).prefetch_related("choices"))
+        all_term_descriptions = build_all_term_descriptions(term_params)
+        visible_param_names = [param.name for param in term_params]
         # Base/shared formulas built on data this genome doesn't have (e.g. "Kp
         # score" on Pseudomonas) would silently score every protein 0 -- hide
         # them here. The user's own formulas and the active one always stay.
@@ -1670,18 +1763,17 @@ class ProteinListView(View):
                     "is_current": f.pk == current_formula_pk,
                     "expression": formula_expression,
                     "term_help": annotate_formula_terms(formula_expression, all_term_descriptions),
+                    "readable": readable_formula(formula_expression, visible_param_names),
                     "is_user_formula": is_own_formula,
                     "is_editable": bool((f.expression or "").strip()),
                 }
             )
 
         workspace_user = resolve_workspace_user(request.user)
-        custom_data_files = list(
-            CustomParam.objects.filter(owner=workspace_user, accession=assembly_name).order_by(
-                "tsv"
-            )
-        )
-        custom_data_for_drawer = [{"file_name": Path(cp.tsv.name).name} for cp in custom_data_files]
+        custom_data_for_drawer = [
+            {"file_name": Path(upload["obj"].tsv.name).name}
+            for upload in custom_files(workspace_user, assembly_name)
+        ]
         last_applied_preset_raw = request.GET.get("applied_preset", "")
         try:
             last_applied_preset_id = int(last_applied_preset_raw)
@@ -2155,6 +2247,9 @@ class ProteinListView(View):
                 ),
                 "custom_data_url": reverse(
                     "tpwebapp:customparam", kwargs={"genome": genome_url_slug(assembly_name)}
+                ),
+                "uploaded_data_url": reverse(
+                    "tpwebapp:uploaded_data", kwargs={"genome": genome_url_slug(assembly_name)}
                 ),
                 "current_formula": current_formula,
                 "formula_term_count": len(formula_term_list),

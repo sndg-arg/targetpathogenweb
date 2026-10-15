@@ -95,7 +95,7 @@ def build_col_descriptions(formula_term_list):
     return descriptions
 
 
-def build_all_term_descriptions():
+def build_all_term_descriptions(params=None):
     """Return a {token: description} dict covering every ScoreParam column name
     and every categorical ScoreParamOptions value site-wide.
 
@@ -107,7 +107,12 @@ def build_all_term_descriptions():
     dict is the only way to explain their raw column-name tokens too.
     """
     descriptions = {}
-    for param in ScoreParam.objects.all().prefetch_related("choices"):
+    # `params`: only the columns the user can read -- otherwise a formula
+    # token that happened to match someone else's private uploaded column
+    # would show that column's description.
+    if params is None:
+        params = ScoreParam.objects.all().prefetch_related("choices")
+    for param in params:
         if param.description:
             descriptions[param.name] = param.description
         for choice in param.choices.all():
@@ -141,6 +146,37 @@ def annotate_formula_terms(expression, term_descriptions):
         seen.add(token)
         found.append({"label": humanize_identifier(token) or token, "description": description})
     return found
+
+
+def readable_formula(expression, param_names):
+    """The formula in words, shown under the raw expression in the Scoring
+    drawer: "druggability + 2 * hit_in_deg_y" reads as "Druggability (FPocket,
+    0–1) + 2 × (Essential homolog (DEG) is Yes)". A categorical variable is
+    <param>_<option> and is 1 when the protein has that value."""
+    if not expression:
+        return ""
+    by_normalized = {}
+    for name in param_names:
+        normalized = re.sub(r"[^a-z0-9_]", "_", str(name).lower())
+        if normalized:
+            by_normalized[normalized] = name
+    prefixes = sorted(by_normalized, key=len, reverse=True)
+
+    def describe(match):
+        token = match.group(0)
+        lowered = token.lower()
+        if lowered in by_normalized:
+            return humanize_identifier(by_normalized[lowered]) or token
+        for prefix in prefixes:
+            if lowered.startswith(prefix + "_"):
+                option = token[len(prefix) + 1 :]
+                param_label = humanize_identifier(by_normalized[prefix]) or prefix
+                option_label = humanize_identifier(option) or option
+                return f"({param_label} is {option_label})"
+        return token
+
+    text = re.sub(r"[A-Za-z_][A-Za-z0-9_]*", describe, expression)
+    return text.replace("*", "×").replace(" - ", " − ")
 
 
 def ordered_score_params(formula_term_list):

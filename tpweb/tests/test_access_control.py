@@ -32,7 +32,7 @@ class BlockedIPMiddlewareTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
-        self.assertContains(response, "Log in", status_code=403)
+        self.assertContains(response, "Sign in", status_code=403)
 
     def test_blocked_ip_gets_403_even_on_exempt_paths(self):
         block_ip("203.0.113.51")
@@ -193,14 +193,14 @@ class VisitorBrowsingTests(TestCase):
             with self.subTest(name=name):
                 response = self.client.get(reverse(f"tpwebapp:{name}", kwargs=kwargs))
                 self.assertEqual(response.status_code, 403)
-                self.assertContains(response, "Log in", status_code=403)
+                self.assertContains(response, "Sign in", status_code=403)
 
     def test_anonymous_sees_the_locked_page_for_upload_activity_users_and_profile(self):
         for name in ["genome_upload", "activity_dashboard", "user_management", "profile"]:
             with self.subTest(name=name):
                 response = self.client.get(reverse(f"tpwebapp:{name}"))
                 self.assertEqual(response.status_code, 403)
-                self.assertContains(response, "Log in", status_code=403)
+                self.assertContains(response, "Sign in", status_code=403)
                 self.assertContains(
                     response, "browse genomes, proteins, and structures", status_code=403
                 )

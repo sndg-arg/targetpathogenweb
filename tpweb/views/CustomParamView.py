@@ -3,7 +3,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.urls import reverse
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
@@ -16,6 +16,8 @@ from tpweb.services.custom_param_sharing import (
     VISIBILITY_PUBLIC,
     apply_upload_sharing,
     built_in_name_conflicts,
+    column_values,
+    genome_columns,
     name_conflicts,
     uploaded_column_names,
     visibility_choices,
@@ -168,3 +170,38 @@ def upload_form(request, genome):
     return render(
         request, "genomic/customparam.html", _page_context(form, assembly_name, file_exists=True)
     )
+
+
+@login_required
+def uploaded_data(request, genome):
+    """Every uploaded column the user can see on this genome -- who loaded it,
+    what it measures, how many proteins have a value -- with a TSV download."""
+    assembly_name = resolve_genome_from_slug(request.user, genome)
+    if not assembly_name:
+        raise Http404("Genome not found")
+    return render(
+        request,
+        "genomic/uploaded_data.html",
+        {
+            "assembly_name": assembly_name,
+            "assembly_label": display_genome_name(assembly_name),
+            "genome": genome_url_slug(assembly_name),
+            "columns": genome_columns(request.user, assembly_name),
+            "can_upload": request.user.has_perm("tpweb.can_manage_custom_params"),
+        },
+    )
+
+
+@login_required
+def uploaded_data_download(request, genome, param_id):
+    assembly_name = resolve_genome_from_slug(request.user, genome)
+    if not assembly_name:
+        raise Http404("Genome not found")
+    param, values = column_values(request.user, assembly_name, param_id)
+    if param is None:
+        raise Http404("Column not found")
+    rows = [f"gene\t{param.name}"] + [f"{accession}\t{value}" for accession, value in values]
+    response = HttpResponse("\n".join(rows) + "\n", content_type="text/tab-separated-values")
+    filename = f"{genome_url_slug(assembly_name)}_{param.name}.tsv".replace("/", "_")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response

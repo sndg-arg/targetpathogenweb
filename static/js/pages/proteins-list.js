@@ -142,6 +142,11 @@ function jsloaded() {
             const activeLabel = form?.closest(".filter-param")?.querySelector(".filter-chip--active:not(.filter-chip--pending) .filter-chip-label")?.textContent.trim();
             return activeLabel ? base + " (" + window.TPW_PROTEINS_I18N.replaces + " " + activeLabel + ")" : base;
         }
+        if (payload.action === "add_filter_values") {
+            const values = String(payload.filter_values || "").split(/[\s,;]+/).filter(Boolean);
+            const shown = values.slice(0, 3).join(", ") + (values.length > 3 ? " +" + (values.length - 3) : "");
+            return (paramLabel ? paramLabel + ": " : "") + shown;
+        }
         if (payload.action === "add_special_filter") {
             const value = String(payload.special_value || "").trim();
             return (paramLabel || payload.special_kind || window.TPW_PROTEINS_I18N.filter) + ": " + value;
@@ -428,7 +433,7 @@ function jsloaded() {
         if (event.defaultPrevented) return;
         const form = event.target;
         if (!form || !form.closest || !form.closest("#filters-drawer")) return;
-        if (!form.matches(".filter-chip-form, .filter-text-form, .filter-numeric-form")) return;
+        if (!form.matches(".filter-chip-form, .filter-text-form, .filter-numeric-form, .filter-values-form")) return;
         event.preventDefault();
         const payload = formDataToObject(form);
         if (!payload.action) return;
@@ -484,7 +489,7 @@ function jsloaded() {
             button.classList.add("filter-chip--pending");
             button.setAttribute("data-pending", "true");
         }
-        if (form.matches(".filter-text-form, .filter-numeric-form")) {
+        if (form.matches(".filter-text-form, .filter-numeric-form, .filter-values-form")) {
             form.reset();
             form.classList.remove("has-numeric-error");
             form.classList.remove("is-between");

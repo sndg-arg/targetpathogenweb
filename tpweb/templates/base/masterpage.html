@@ -17,7 +17,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="google-site-verification" content="XcWKGBnA8mG9qkayUDgUgHUxGDuM52DTvNMYM3dSNRE" />
-    <title>{% trans "Target Pathogen" %}</title>
+    <title>{% block title %}{% trans "Target Pathogen" %}{% endblock %}</title>
     <link rel="icon" type="image/svg+xml" href="{% static 'img/brand/favicon.svg' %}?v=5">
     <link rel="alternate icon" type="image/png" sizes="32x32" href="{% static 'img/brand/favicon-32.png' %}?v=5">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/brand/apple-touch-icon.png' %}?v=4">
@@ -1213,8 +1213,41 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Quiet site footer: who makes the platform and how to reach them.
+           It used to be an empty, hidden element. */
         .tp-footer {
-            display: none !important;
+            width: 100%;
+            max-width: 1360px;
+            margin: 0 auto;
+            /* Lines up with page content: .tp-main's 18px + each section's own 18px. */
+            padding: 18px 36px 28px !important;
+            border-top: 1px solid var(--tp-color-border-soft);
+            color: var(--tp-color-text-muted);
+            font-size: var(--tp-font-size-xs);
+        }
+
+        @media (max-width: 991px) {
+            .tp-footer {
+                padding: 16px 28px 24px !important;
+            }
+        }
+
+        .tp-footer-inner {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 6px 22px;
+        }
+
+        .tp-footer-inner a {
+            color: var(--tp-color-text-secondary);
+            text-decoration: none;
+        }
+
+        .tp-footer-inner a:hover,
+        .tp-footer-inner a:focus-visible {
+            color: var(--tp-color-link-hover);
+            text-decoration: underline;
         }
 
         @media (max-width: 991px) {
@@ -1842,6 +1875,40 @@
             }
         }
 
+        /* 992-1280px: the full link row (icons + labels + account name) used
+           to wrap onto a second line here. Drop the link icons and tighten the
+           spacing first; below 1100px also shrink the wordmark and hide the
+           account name (the account icon stays). */
+        @media (min-width: 992px) and (max-width: 1279.98px) {
+            .tp-topbar-desktop-nav {
+                gap: 0;
+                margin-right: 8px;
+            }
+
+            .tp-topbar-desktop-link {
+                padding: 9px 9px;
+                gap: 6px;
+            }
+
+            .tp-topbar-desktop-link-icon {
+                display: none;
+            }
+
+            .tp-topbar-desktop-utility {
+                gap: 10px;
+            }
+        }
+
+        @media (min-width: 992px) and (max-width: 1099.98px) {
+            .tp-topbar-desktop-wordmark {
+                font-size: 1.2rem;
+            }
+
+            .tp-topbar-desktop-user {
+                display: none;
+            }
+        }
+
         /* ── Theme toggle ─────────────────────────────── */
         .tp-theme-toggle {
             display: flex;
@@ -2405,19 +2472,27 @@
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>
                 <span>{% trans "Home" %}</span>
             </a>
-            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' or request.resolver_match.url_name == 'customparam' or request.resolver_match.url_name == 'formula_form' %}active{% endif %}" aria-label="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' or request.resolver_match.url_name == 'customparam' or request.resolver_match.url_name == 'uploaded_data' or request.resolver_match.url_name == 'formula_form' %}active{% endif %}" aria-label="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span>
                 <span>{% trans "Genomes" %}</span>
             </a>
+            {% if perms.tpweb.can_upload_genome %}
             <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genome_upload' %}active{% endif %}" aria-label="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
                 <span>{% trans "Upload" %}</span>
             </a>
-            <a class="tp-topbar-desktop-link {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" aria-label="{% trans 'BLAST genome' %}" title="{% trans 'Nucleotide BLAST against a genome you choose. For protein BLAST, open a genome page.' %}" href="{% url 'tpwebapp:form' %}">
+            {% endif %}
+            <a class="tp-topbar-desktop-link {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" aria-label="{% trans 'BLAST genome' %}" title="{% trans 'Nucleotide or protein BLAST against a genome you choose.' %}" href="{% url 'tpwebapp:form' %}">
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
                 <span>{% trans "BLAST genome" %}</span>
             </a>
             {% with url_name=request.resolver_match.url_name %}
+            {% if perms.tpweb.can_view_human_targets %}
+            <a class="tp-topbar-desktop-link {% if url_name == 'human_protein_list' or url_name == 'human_protein' %}active{% endif %}" aria-label="{% trans 'Human Targets' %}" href="{% url 'human_target:human_protein_list' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span>
+                <span>{% trans "Human Targets" %}</span>
+            </a>
+            {% endif %}
             <div class="dropdown tp-topbar-desktop-about">
                 <button class="tp-topbar-desktop-link tp-topbar-desktop-link--menu {% if url_name == 'data_sources' or url_name == 'about_us' %}active{% endif %}" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/info.html" %}</span>
@@ -2450,12 +2525,6 @@
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
                             {% trans "My profile" %}
                         </a>
-                        {% if perms.tpweb.can_view_human_targets %}
-                        <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'human_protein_list' or request.resolver_match.url_name == 'human_protein' %}active{% endif %}" href="{% url 'human_target:human_protein_list' %}">
-                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span>
-                            {% trans "Human Targets" %}
-                        </a>
-                        {% endif %}
                         {% if user.is_superuser %}
                         <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'activity_dashboard' %}active{% endif %}" href="{% url 'tpwebapp:activity_dashboard' %}">
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/eye.html" %}</span>
@@ -2475,7 +2544,7 @@
                             {% csrf_token %}
                             <button class="dropdown-item tp-topbar-desktop-account-item" type="submit">
                                 <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/log_out.html" %}</span>
-                                {% trans "Logout" %}
+                                {% trans "Sign out" %}
                             </button>
                         </form>
                     </div>
@@ -2487,7 +2556,7 @@
                 </a>
                 <a class="tp-topbar-desktop-login" href="{% url 'account_login' %}">
                     <span class="tp-topbar-desktop-login-icon" aria-hidden="true">{% include "components/icons/log_in.html" %}</span>
-                    {% trans "Login" %}
+                    {% trans "Sign in" %}
                 </a>
             {% endif %}
             {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
@@ -2527,14 +2596,21 @@
                     <a class="nav-link{% if url_name == 'index' %} is-active{% endif %}" {% if url_name == 'index' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:index' %}">{% trans "Home" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link{% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' or url_name == 'formula_form' or url_name == 'customparam' %} is-active{% endif %}" {% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
+                    <a class="nav-link{% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' or url_name == 'formula_form' or url_name == 'customparam' or url_name == 'uploaded_data' %} is-active{% endif %}" {% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
                 </li>
+                {% if perms.tpweb.can_upload_genome %}
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'genome_upload' %} is-active{% endif %}" {% if url_name == 'genome_upload' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genome_upload' %}">{% trans "Upload" %}</a>
                 </li>
+                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'form' or url_name == 'blast_res' %} is-active{% endif %}" {% if url_name == 'form' or url_name == 'blast_res' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:form' %}">{% trans "BLAST genome" %}</a>
                 </li>
+                {% if perms.tpweb.can_view_human_targets %}
+                <li class="nav-item">
+                    <a class="nav-link{% if url_name == 'human_protein_list' or url_name == 'human_protein' %} is-active{% endif %}" {% if url_name == 'human_protein_list' or url_name == 'human_protein' %}aria-current="page"{% endif %} href="{% url 'human_target:human_protein_list' %}">{% trans "Human Targets" %}</a>
+                </li>
+                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'data_sources' %} is-active{% endif %}" {% if url_name == 'data_sources' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:data_sources' %}">{% trans "Methodology" %}</a>
                 </li>
@@ -2567,9 +2643,6 @@
                             {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
                             <a class="dropdown-item" href="{% url 'tpwebapp:settings' %}">{% trans "Settings" %}</a>
                             {% endif %}
-                            {% if perms.tpweb.can_view_human_targets %}
-                            <a class="dropdown-item" href="{% url 'human_target:human_protein_list' %}">{% trans "Human Targets" %}</a>
-                            {% endif %}
                             {% if user.is_superuser %}
                                 <a class="dropdown-item" href="{% url 'tpwebapp:activity_dashboard' %}">{% trans "Activity" %}</a>
                                 <a class="dropdown-item" href="{% url 'tpwebapp:user_management' %}">{% trans "Manage users" %}</a>
@@ -2578,7 +2651,7 @@
                             <div class="dropdown-divider"></div>
                             <form method="post" action="{% url 'account_logout' %}">
                                 {% csrf_token %}
-                                <button class="dropdown-item" type="submit">{% trans "Logout" %}</button>
+                                <button class="dropdown-item" type="submit">{% trans "Sign out" %}</button>
                             </form>
                         </div>
                     </li>
@@ -2587,7 +2660,7 @@
                         <a class="nav-link" href="{% url 'account_signup' %}">{% trans "Sign up" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'account_login' %}">{% trans "Login" %}</a>
+                        <a class="nav-link" href="{% url 'account_login' %}">{% trans "Sign in" %}</a>
                     </li>
                 {% endif %}
             </ul>
@@ -2611,8 +2684,15 @@
     {% block body %}{% endblock %}
 </main>
 
-<footer class="footer mt-auto py-3 tp-footer">
-    {% block footer %}{% endblock %}
+<footer class="footer mt-auto tp-footer">
+    {% block footer %}
+    <div class="tp-footer-inner">
+        <span>{% trans "Target Pathogen · Facultad de Ciencias Exactas y Naturales, Universidad de Buenos Aires" %}</span>
+        <a href="{% url 'tpwebapp:data_sources' %}">{% trans "Methodology" %}</a>
+        <a href="{% url 'tpwebapp:about_us' %}">{% trans "About us" %}</a>
+        {% if contact_email %}<a href="mailto:{{ contact_email }}">{% trans "Contact" %}: {{ contact_email }}</a>{% endif %}
+    </div>
+    {% endblock %}
 </footer>
 
 {% if perms.tpweb.can_use_agent_chat %}
@@ -2712,8 +2792,8 @@
         <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Find promising targets with no human off-target signal and good pocket evidence.' %}">
             {% trans "Find selective targets" %}
         </button>
-        <button type="button" class="tp-agent-drawer-suggestion" data-suggestion-scope="list" data-agent-prompt="{% trans 'Clear all active protein-list filters.' %}">
-            {% trans "Clear filters" %}
+        <button type="button" class="tp-agent-drawer-suggestion" data-suggestion-scope="list" data-agent-prompt="{% trans 'Explain what each column currently shown in the protein table means and how to read its values.' %}">
+            {% trans "Explain the columns" %}
         </button>
     </div>
     <form id="tp-agent-drawer-form" class="tp-agent-drawer-form" data-chat-url="{% url 'tpwebapp:agent_chat' %}" data-sessions-url="{% url 'tpwebapp:agent_chat_sessions' %}" data-tp-loader="off">

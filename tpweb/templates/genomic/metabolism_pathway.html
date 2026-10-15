@@ -69,7 +69,7 @@
         <div class="section-head tp-ui-panel-head">
             <div>
                 <h2>{% trans "Pathway map" %}</h2>
-                <p class="section-subtitle">{% trans "Reaction-to-metabolite flow reconstructed from the imported SBML participants." %}</p>
+                <p class="section-subtitle">{% trans "Reaction-to-metabolite flow from the imported metabolic model." %}</p>
             </div>
         </div>
         <div class="metabolic-network-genome-shell">
@@ -77,7 +77,7 @@
                 <div class="metabolic-network-genome-legend">
                     <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-4"></i>{% trans "Chokepoint reaction" %}</span>
                     <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-1"></i>{% trans "Metabolite" %}</span>
-                    <span title="{% trans "Reactions marked reversible in the imported SBML get an arrowhead on both ends." %}">&#8652; {% trans "Reversible reaction" %}</span>
+                    <span title="{% trans "Reactions marked reversible in the imported metabolic model get an arrowhead on both ends." %}">&#8652; {% trans "Reversible reaction" %}</span>
                     <span title="{% trans "Ubiquitous cofactors (ATP, water, NAD+, etc.) are left out of the diagram to keep it readable." %}">{% trans "Currency metabolites hidden" %}</span>
                 </div>
                 <div class="metabolic-network-genome-actions" aria-label="{% trans 'Pathway map controls' %}">
@@ -130,7 +130,7 @@
         <div class="section-head tp-ui-panel-head">
             <div>
                 <h2>{% trans "Reaction table" %}</h2>
-                <p class="section-subtitle">{% trans "Catalyzed reactions, mapped genes, and SBML substrates/products." %}</p>
+                <p class="section-subtitle">{% trans "Catalyzed reactions, mapped genes, substrates and products." %}</p>
             </div>
         </div>
         <div class="metabolism-reaction-table">

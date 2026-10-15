@@ -51,6 +51,13 @@ class ProteinBlastView(LoginRequiredMixin, View):
         resolved = self._resolve_or_404(request, genome)
         context = self._base_context(resolved, genome)
 
+        # Same permission the nucleotide BLAST page (FormView) checks; this
+        # page didn't, so any signed-in account could run blastp.
+        if not request.user.has_perm("tpweb.can_run_blast"):
+            context["sequence_value"] = (request.POST.get("sequence") or "").strip()
+            context["error_message"] = "You don't have permission to run BLAST searches."
+            return render(request, self.form_template_name, context)
+
         sequence = (request.POST.get("sequence") or "").strip()
         max_chars = int(os.environ.get("TPW_BLAST_MAX_QUERY_CHARS", "20000"))
         context["sequence_value"] = sequence

@@ -284,7 +284,7 @@ class FormViewAuthTests(TestCase):
         # anonymous hit on a gated route now, not a bare redirect.
         response = self.client.get(reverse("tpwebapp:form"))
         self.assertEqual(response.status_code, 403)
-        self.assertContains(response, "Log in", status_code=403)
+        self.assertContains(response, "Sign in", status_code=403)
 
     def test_blast_form_renders_for_authenticated_user_with_no_genomes(self):
         user = get_user_model().objects.create_user(username="blast-user", password="test-pass")
@@ -426,8 +426,8 @@ class LoginRequiredRedirectTests(TestCase):
     def test_genome_upload_view_requires_login(self):
         response = self.client.get(reverse("tpwebapp:genome_upload"))
         self.assertEqual(response.status_code, 403)
-        self.assertContains(response, "Add your own data", status_code=403)
-        self.assertContains(response, "Log in", status_code=403)
+        self.assertContains(response, "Upload a genome", status_code=403)
+        self.assertContains(response, "Sign in", status_code=403)
 
 
 class ProteinBlastViewTests(TestCase):
@@ -1041,7 +1041,7 @@ class GenomeUploadViewTests(TestCase):
         response = self.client.get(reverse("tpwebapp:genome_upload"))
 
         self.assertEqual(response.status_code, 403)
-        self.assertContains(response, "Add your own data", status_code=403)
+        self.assertContains(response, "Upload a genome", status_code=403)
 
     def test_use_test_genome_without_permission_is_blocked(self):
         # Approval no longer implies can_upload_genome by itself once the

@@ -786,6 +786,38 @@ class ProteinView(View):
                 else:
                     entry["slot_key"] = ""
 
+            # The best FPocket pocket can sit on a loaded structure that is
+            # neither of the two the viewer offers (primary/alt). Give that one
+            # its own pocket panel and NGL overlays too, so "Show this pocket"
+            # can switch the embedded viewer to it instead of sending the user
+            # to the full viewer.
+            best_pocket_pdb_id = ((selected_pocket_evidence or {}).get("fpocket") or {}).get(
+                "viewer_pdb_id"
+            )
+            if best_pocket_pdb_id and not (selected_pocket_evidence or {}).get(
+                "selected_source_visible"
+            ):
+                best_link = next(
+                    (link for link in structures if link.pdb_id == best_pocket_pdb_id), None
+                )
+                best_entry = next(
+                    (
+                        entry
+                        for entry in experimental_structures
+                        if entry.get("loaded_structure_id") == best_pocket_pdb_id
+                        and entry.get("slot_key")
+                    ),
+                    None,
+                )
+                if best_link is not None and best_entry is not None:
+                    dto["pocket_structure_slot"] = best_entry["slot_key"]
+                    if best_entry["slot_key"] not in ("primary", "alt"):
+                        dto["pocket_structure"] = pdb_structure(
+                            best_link.pdb,
+                            [],
+                            target_chain=(best_link.chain or "").strip() or None,
+                        )
+
             predicted_structures = _build_predicted_structures(
                 predicted, protein_length, primary_link=primary_link, alt_link=alt_link
             )

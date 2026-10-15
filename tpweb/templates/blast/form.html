@@ -4,7 +4,7 @@
 {% load custom_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20260710-select-fix1">
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261014-unified">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -34,15 +34,15 @@
                 {% if blast_locked_to_genome %}
                     {% trans "Sequence search · Genome-specific" %}
                 {% else %}
-                    {% trans "Sequence search · blastn" %}
+                    {% trans "Sequence search · blastn / blastp" %}
                 {% endif %}
             </span>
             <h1>{% trans "BLAST" %}</h1>
             <p class="blast-subtitle">
                 {% if blast_locked_to_genome %}
-                    {% trans "Run nucleotide BLAST against the currently selected genome." %}
+                    {% trans "Search the currently selected genome with a nucleotide or protein sequence." %}
                 {% else %}
-                    {% trans "Run nucleotide BLAST against a selected genome dataset." %}
+                    {% trans "Search a genome with a nucleotide sequence (against its genes) or a protein sequence (against its proteins)." %}
                 {% endif %}
             </p>
 
@@ -57,8 +57,8 @@
 
             <div class="blast-chip-group tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Input" %}: FASTA / {% trans "raw sequence" %}</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Mode" %}: blastn</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Output" %}: {% trans "standard alignment report" %}</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Mode" %}: blastn / blastp</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Output" %}: {% trans "table of hits linked to proteins" %}</span>
             </div>
         </section>
 
@@ -90,11 +90,23 @@
                         </div>
                     {% endif %}
 
+                    <fieldset class="tp-ui-field blast-type-field">
+                        <legend class="tp-ui-field-label">{% trans "Sequence type" %}</legend>
+                        <label class="blast-type-option">
+                            <input type="radio" name="blast_type" value="nucleotide" {% if blast_type != "protein" %}checked{% endif %}>
+                            <span>{% trans "Nucleotide" %} <small>(blastn)</small></span>
+                        </label>
+                        <label class="blast-type-option">
+                            <input type="radio" name="blast_type" value="protein" {% if blast_type == "protein" %}checked{% endif %}>
+                            <span>{% trans "Protein" %} <small>(blastp)</small></span>
+                        </label>
+                    </fieldset>
+
                     <div class="tp-ui-field">
                         <label class="tp-ui-field-label" for="text_input">{% trans "Query sequence" %}</label>
                         <textarea name="text_input" id="text_input"
                                   class="form-control tp-ui-control blast-seq-input"
-                                  placeholder="{% trans 'Paste FASTA or raw nucleotide sequence here…' %}">{{ text_input_value|default:"" }}</textarea>
+                                  placeholder="{% trans 'Paste a FASTA entry or a raw sequence here…' %}">{{ text_input_value|default:"" }}</textarea>
                     </div>
 
                     <div class="tp-ui-actions">
@@ -113,22 +125,17 @@
                     <p class="tp-state-note tp-state-note--error mb-0">{{ error_message }}</p>
                 {% endif %}
 
-                {% if message %}
-                    <p class="tp-state-note tp-state-note--empty mb-0">{% trans "BLAST completed." %}
-                        <a href="{% url 'tpwebapp:blast_res' result_id %}">{% trans "Open results →" %}</a>
-                    </p>
-                {% endif %}
             </div>
 
             <aside class="blast-card">
                 <div class="tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Input guide" %}</h2>
-                        <p class="blast-card-note">{% trans "Nucleotide sequences only. Accepts a single FASTA entry or a plain sequence." %}</p>
+                        <p class="blast-card-note">{% trans "Accepts a single FASTA entry or a plain sequence. Pick the sequence type to match it." %}</p>
                     </div>
                 </div>
                 <ul class="blast-tip-list">
-                    <li>{% trans "Use nucleotide sequences only (A / C / G / T / N)." %}</li>
+                    <li>{% trans "Nucleotide (A / C / G / T / N) is searched against the genome's genes; protein (amino acids) against its proteins." %}</li>
                     <li>{% trans "Paste one FASTA entry or a plain sequence without a header." %}</li>
                     <li>{% trans "Longer queries take more time depending on the selected genome." %}</li>
                 </ul>

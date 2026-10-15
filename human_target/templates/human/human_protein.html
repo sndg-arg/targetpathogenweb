@@ -2,14 +2,15 @@
 {% load i18n %}
 {% load static %}
 
+{% block title %}{{ human_protein.uniprot_accession }} · {% trans "Human Targets" %}{% endblock %}
+
 {% block head %}
-    <title>{{ human_protein.uniprot_accession }} · {% trans "Human Targets" %}</title>
     {% comment %}
     protein-detail.css supplies the hero/card/binders-table/binder-intel/binder-mol-modal
     styling this page deliberately reuses verbatim (same markup, same tokens) --
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261013-quicknav-band">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261014-drugg-link">
     {% comment %}
     Serif headline face for this page's editorial register only -- see the
     redesign note at the top of human-protein-detail.css. Not added to
@@ -18,7 +19,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261012-sequence-xref-fix">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261014-expression-scroll">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -26,7 +27,7 @@
     <div class="tp-breadcrumb-bar-inner">
         {% trans "Human Targets" as crumb_human %}
         {% url 'tpwebapp:index' as index_url %}
-        {% with crumb_protein="Protein: "|add:human_protein.uniprot_accession|add:" · "|add:human_protein.protein_name %}
+        {% with crumb_protein="Protein: "|add:human_protein.uniprot_accession %}
         {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_human crumb_2_url=human_protein_list_url crumb_3_label=crumb_protein %}
         {% endwith %}
     </div>
@@ -39,8 +40,9 @@
             <div class="protein-hero-top tp-view-head">
                 <div class="protein-hero-content tp-view-head-copy">
                     <p class="protein-hero-eyebrow">{% trans "Human curated protein" %}</p>
-                    <h1>{{ human_protein.uniprot_accession }}</h1>
-                    <p class="protein-description">{{ human_protein.protein_name|default:"—" }}</p>
+                    {# Name first, accession under it -- same order as the bacterial protein page. #}
+                    <h1>{{ human_protein.protein_name|default:human_protein.uniprot_accession }}</h1>
+                    <p class="protein-description">{{ human_protein.uniprot_accession }}</p>
                     <div class="hero-chip-list tp-chip-group">
                         <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
                             <strong>{% trans "Gene" %}:</strong>
@@ -102,7 +104,7 @@
             <a href="#section-xrefs" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Cross-refs" %}</a>
         </nav>
 
-        <main class="protein-main" aria-label="{% trans 'Protein evidence sections' %}">
+        <div class="protein-main" role="region" aria-label="{% trans 'Protein evidence sections' %}">
 
             <section class="protein-card" id="section-overview-detail">
                 <div class="section-head tp-ui-panel-head">
@@ -461,7 +463,7 @@
                     </div>
                     {% endif %}
                     <div class="metric-pill">
-                        <span class="metric-label">{% trans "Gold-quality calls" %}</span>
+                        <span class="metric-label" title="{% trans 'Expression calls that Bgee rates as gold, its highest confidence level.' %}">{% trans "High-confidence calls (Bgee gold)" %}</span>
                         <span class="metric-value">{{ expression.gold_count }}</span>
                     </div>
                 </div>
@@ -490,12 +492,13 @@
                 </div>
 
                 <div class="human-expression-panel is-hidden" data-expression-panel="rank" role="tabpanel">
+                    <div class="tp-table-shell human-expression-rank-shell">
                     <table class="human-expression-rank-table">
                         <thead>
                             <tr>
                                 <th>#</th>
                                 <th>{% trans "Tissue / cell type" %}</th>
-                                <th>{% trans "Score" %}</th>
+                                <th title="{% trans 'Bgee expression score, 0–100: higher means stronger expression in that tissue or cell type.' %}">{% trans "Expression score (0–100)" %}</th>
                                 <th>{% trans "Quality" %}</th>
                             </tr>
                         </thead>
@@ -510,6 +513,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    </div>
                     {% if expression.ranked_page.paginator.num_pages > 1 %}
                     <nav class="human-expression-pagination" aria-label="{% trans 'Expression rank pagination' %}">
                         {% if expression.ranked_page.has_previous %}<a href="?expr_page={{ expression.ranked_page.previous_page_number }}#section-expression" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Previous" %}</a>{% endif %}
@@ -597,7 +601,7 @@
                 <p class="tp-state-note tp-state-note--empty">{% trans "No cross-references loaded for this protein." %}</p>
                 {% endif %}
             </section>
-        </main>
+        </div>
 
         <div class="binder-mol-modal" id="binder-mol-modal" aria-hidden="true">
             <div class="binder-mol-modal__panel" role="dialog" aria-modal="true" aria-labelledby="binder-mol-modal-title">

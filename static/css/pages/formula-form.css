@@ -146,6 +146,16 @@
     line-height: 1.45;
 }
 
+.formula-hidden-vars {
+    margin-top: 12px;
+}
+
+.formula-hidden-var {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.88em;
+    color: var(--tp-color-text-secondary);
+}
+
 /* ── Expression textarea (dark editor) ── */
 
 .formula-expr-field {

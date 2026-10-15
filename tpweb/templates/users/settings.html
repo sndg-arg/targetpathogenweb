@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261014-admin-readonly">
+    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261014-formula-expr">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -33,7 +33,7 @@
         <h2 class="settings-section-title">{% trans "My scoring formulas" %} <span class="settings-count">{{ my_formula_rows|length }}</span></h2>
         {% if my_formula_rows %}
         <ul class="settings-rows">
-            {% for row in my_formula_rows %}{% include "users/_settings_formula_row.html" %}{% endfor %}
+            {% for row in my_formula_rows %}{% include "users/_settings_formula_row.html" with show_delete=True %}{% endfor %}
         </ul>
         {% else %}
         <p class="settings-empty">{% trans "You haven't made a formula of your own yet. Build one with Make my own score from any genome's protein list. The built-in formulas (Druggability, Localization) are already available to everyone." %}</p>

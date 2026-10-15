@@ -230,3 +230,54 @@
         padding: 14px;
     }
 }
+
+/* Nucleotide / protein switch on the BLAST form. */
+.blast-type-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 22px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.blast-type-field legend {
+    flex-basis: 100%;
+    margin-bottom: 2px;
+}
+
+.blast-type-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.blast-type-option input {
+    margin: 0;
+    accent-color: var(--tp-color-brand-600);
+}
+
+.blast-type-option small {
+    color: var(--tp-color-text-muted);
+}
+
+/* Raw tabular output kept under the hits table for anyone who wants it. */
+.blast-raw-output {
+    margin-top: 14px;
+}
+
+.blast-raw-output > summary {
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.blast-raw-output > .blast-result-pre {
+    margin-top: 8px;
+}

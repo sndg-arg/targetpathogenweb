@@ -93,6 +93,7 @@ class AssemblyView(View):
             "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": slug}),
             "metabolism_url": reverse("tpwebapp:genome_metabolism", kwargs={"genome": slug}),
             "custom_scores_url": reverse("tpwebapp:customparam", kwargs={"genome": slug}),
+            "uploaded_data_url": reverse("tpwebapp:uploaded_data", kwargs={"genome": slug}),
             "formula_url": reverse("tpwebapp:formula_form", kwargs={"genome": slug}),
             "ec_explorer_url": reverse(
                 "tpwebapp:annotation_explorer",

@@ -366,7 +366,7 @@ class UserManagementViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertContains(response, "Manage users", status_code=403)
-        self.assertContains(response, "Log in", status_code=403)
+        self.assertContains(response, "Sign in", status_code=403)
 
     def test_staff_non_superuser_is_forbidden(self):
         staff_user = User.objects.create_user(username="mgmt-staff", password="x", is_staff=True)
@@ -784,7 +784,7 @@ class ProfileViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertContains(response, "My profile", status_code=403)
-        self.assertContains(response, "Log in", status_code=403)
+        self.assertContains(response, "Sign in", status_code=403)
 
     def test_capability_list_reflects_actual_permissions_and_never_names_gated_features(self):
         from django.contrib.auth.models import Permission

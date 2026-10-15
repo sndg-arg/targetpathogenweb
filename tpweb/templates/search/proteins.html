@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261014-mydata-settings">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261014-readable-formula">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -159,7 +159,7 @@
                             <div class="toolbar-workbench__group toolbar-workbench__group--primary" aria-label="{% trans 'Filtering and ranking' %}">
                                 {% if filter_presets %}
                                 <div class="toolbar-filter-split" id="toolbar-presets-wrap">
-                                    <button type="button" class="toolbar-filter-split__main tp-btn-with-icon" id="open-filters-btn" title="{% trans 'Counts every active score/structure filter, plus any filter applied by following an EC/GO annotation link from a protein page.' %}">
+                                    <button type="button" class="toolbar-filter-split__main tp-btn-with-icon" id="open-filters-btn" title="{% trans 'Narrow the table by evidence: off-target, essentiality, pockets, function, ligands.' %}">
                                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
                                         <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
                                         <span class="toolbar-action-btn__meta">
@@ -186,7 +186,7 @@
                                         <ul class="tpd-list" role="list">
                                             {% for preset in filter_presets %}
                                             <li class="tpd-row{% if preset.is_last_applied %} tpd-row--active{% endif %}">
-                                                <form method="POST" action="" class="tpd-apply-form"{% if not user.is_authenticated %} title="{% trans 'Log in to apply this preset.' %}"{% endif %}>
+                                                <form method="POST" action="" class="tpd-apply-form"{% if not user.is_authenticated %} title="{% trans 'Sign in to apply this preset.' %}"{% endif %}>
                                                     {% csrf_token %}
                                                     <input type="hidden" name="action" value="apply_filter_preset">
                                                     <input type="hidden" name="preset_id" value="{{ preset.id }}">
@@ -235,7 +235,7 @@
                                                         {% include "components/icons/trash.html" %}
                                                     </button>
                                                     {% else %}
-                                                    <button type="submit" class="btn tp-btn tp-btn--clear tpd-delete-btn" title="{% trans 'Log in to delete this preset.' %}" aria-label="{% trans 'Delete preset' %}" disabled>
+                                                    <button type="submit" class="btn tp-btn tp-btn--clear tpd-delete-btn" title="{% trans 'Sign in to delete this preset.' %}" aria-label="{% trans 'Delete preset' %}" disabled>
                                                         {% include "components/icons/trash.html" %}
                                                     </button>
                                                     {% endif %}
@@ -252,7 +252,7 @@
                                     </div>
                                 </div>
                                 {% else %}
-                                <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn" title="{% trans 'Counts every active score/structure filter, plus any filter applied by following an EC/GO annotation link from a protein page.' %}">
+                                <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn" title="{% trans 'Narrow the table by evidence: off-target, essentiality, pockets, function, ligands.' %}">
                                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
                                     <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
                                     <span class="toolbar-action-btn__meta">
@@ -448,7 +448,7 @@
                                             {% endif %}
                                         </div>
                                     {% else %}
-                                        <span class="annotation-empty">–</span>
+                                        <span class="annotation-empty" title="{% trans 'No EC number for this protein.' %}">—</span>
                                     {% endif %}
                                 </td>
                                 <td data-col="go">
@@ -462,7 +462,7 @@
                                             {% endif %}
                                         </div>
                                     {% else %}
-                                        <span class="annotation-empty">–</span>
+                                        <span class="annotation-empty" title="{% trans 'No GO term for this protein.' %}">—</span>
                                     {% endif %}
                                 </td>
                                 {% if genome_has_metabolism %}
@@ -494,7 +494,10 @@
                                             </span>
                                         {% elif col == "Score" %}
                                             {% with score_val=tdata|dictkey:protein.id|dictkey:col %}
-                                                {% if score_val %}
+                                                {% if score_val is None or score_val == "" or score_val == "-" %}
+                                                    {# No score is not a score of zero. #}
+                                                    <span class="metric-na" title="{% trans 'Not computed for this protein.' %}">—</span>
+                                                {% elif score_val %}
                                                     <span class="tp-chip tp-chip--score">{{ score_val|floatformat:2 }}</span>
                                                 {% else %}
                                                     <span class="metric-zero">
@@ -523,7 +526,7 @@
                                                         {% endif %}
                                                     {% endwith %}
                                                 {% else %}
-                                                    <span class="metric-na">N/A</span>
+                                                    <span class="metric-na" title="{% trans 'Not computed for this protein.' %}">—</span>
                                                 {% endif %}
                                             {% endwith %}
                                         {% endif %}
@@ -701,7 +704,7 @@
             </div>
 
             <a href="{{ advanced_filters_url }}" class="drawer-advanced-link">
-                {% trans "Need proteins matching any one of several criteria, not all of them? Try advanced filters →" %}
+                {% trans "Advanced: combine criteria with OR →" %}
             </a>
 
             <div class="drawer-filter-catalogue" id="drawer-filter-catalogue">
@@ -942,41 +945,45 @@
                                                 </div>
                                             {% endif %}
                                         {% else %}
+                                            {% if param.display_mode == "values" %}
+                                                {% if param.active_options %}
+                                                    <div class="filter-chip-group filter-chip-group--active">
+                                                        {% for option in param.active_options %}
+                                                            {% include "search/_filter_chip.html" %}
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                                <form method="POST" action="" class="filter-values-form" data-param-label="{{ param.label }}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="add_filter_values">
+                                                    <input type="hidden" name="score_param_id" value="{{ param.id }}">
+                                                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                    <label class="filter-values-label" for="filter-values-{{ param.id }}">
+                                                        {% blocktrans with n=param.option_count %}{{ n }} different values. Type or paste the ones you want, separated by commas or new lines.{% endblocktrans %}
+                                                    </label>
+                                                    <div class="filter-values-row">
+                                                        <textarea id="filter-values-{{ param.id }}" name="filter_values" rows="2" class="form-control tp-ui-control filter-values-input" placeholder="{% blocktrans with examples=param.value_examples %}e.g. {{ examples }}{% endblocktrans %}" spellcheck="false" autocomplete="off"></textarea>
+                                                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon filter-numeric-apply">
+                                                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span><span>{% trans "Apply" %}</span>
+                                                        </button>
+                                                    </div>
+                                                    <p class="filter-input-message" aria-live="polite"></p>
+                                                </form>
+                                            {% else %}
                                             <div class="filter-chip-group"{% if param.bulk_selectable %} data-bulk-chips{% endif %}>
-                                                {% for option in param.options %}
-                                                    {% if option.is_link %}
-                                                        <form method="POST" action="" class="filter-chip-form">
-                                                            {% csrf_token %}
-                                                            <input type="hidden" name="action" value="set_structure_filter">
-                                                            <input type="hidden" name="structure_source" value="{{ option.name }}">
-                                                            <input type="hidden" name="return_query" value="{{ query_string }}">
-                                                            <button type="submit"
-                                                                    class="filter-chip {% if option.tone %}filter-chip--{{ option.tone }}{% endif %} {% if option.active %}filter-chip--active{% endif %}"
-                                                                    data-server-active="{{ option.active|yesno:'true,false' }}"
-                                                                    {% if option.description %}title="{{ option.description }}"{% endif %}
-                                                                    aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
-                                                                <span class="filter-chip-label">{{ option.label }}</span>
-                                                                {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
-                                                            </button>
-                                                        </form>
-                                                    {% else %}
-                                                        <form method="POST" action="" class="filter-chip-form">
-                                                            {% csrf_token %}
-                                                            <input type="hidden" name="action" value="{% if option.active %}remove_filter{% else %}add_filter{% endif %}">
-                                                            <input type="hidden" name="filter_option_id" value="{{ option.id }}">
-                                                            <input type="hidden" name="return_query" value="{{ query_string }}">
-                                                            <button type="submit"
-                                                                    class="filter-chip {% if option.tone %}filter-chip--{{ option.tone }}{% endif %} {% if option.active %}filter-chip--active{% endif %}"
-                                                                    data-server-active="{{ option.active|yesno:'true,false' }}"
-                                                                    {% if option.description %}title="{{ option.description }}"{% endif %}
-                                                                    aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
-                                                                <span class="filter-chip-label">{{ option.label }}</span>
-                                                                {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
-                                                            </button>
-                                                        </form>
-                                                    {% endif %}
-                                                {% endfor %}
+                                                {% if param.display_mode == "chips_more" %}
+                                                    {% for option in param.options_head %}{% include "search/_filter_chip.html" %}{% endfor %}
+                                                    <details class="filter-chip-more"{% for option in param.options_rest %}{% if option.active %} open{% endif %}{% endfor %}>
+                                                        <summary>{% blocktrans count more=param.options_rest|length %}Show {{ more }} more{% plural %}Show {{ more }} more{% endblocktrans %}</summary>
+                                                        <div class="filter-chip-group">
+                                                            {% for option in param.options_rest %}{% include "search/_filter_chip.html" %}{% endfor %}
+                                                        </div>
+                                                    </details>
+                                                {% else %}
+                                                    {% for option in param.options %}{% include "search/_filter_chip.html" %}{% endfor %}
+                                                {% endif %}
                                             </div>
+                                            {% endif %}
                                         {% endif %}
                                     </div>
                                 {% endfor %}
@@ -996,7 +1003,7 @@
             <section class="filter-presets-footer">
                 <div class="filter-presets-save-panel">
                     <span class="filter-presets-save-label">{% trans "Save this selection" %}</span>
-                    <form method="POST" action="" class="filter-preset-save-form" id="filter-preset-save-form"{% if not user.is_authenticated %} title="{% trans 'Log in to save a preset.' %}"{% endif %}>
+                    <form method="POST" action="" class="filter-preset-save-form" id="filter-preset-save-form"{% if not user.is_authenticated %} title="{% trans 'Sign in to save a preset.' %}"{% endif %}>
                         {% csrf_token %}
                         <input type="hidden" name="action" value="save_filter_preset">
                         <input type="hidden" name="return_query" value="{{ query_string }}">
@@ -1247,6 +1254,9 @@
                                                     <code class="scoring-formula-row__expression">{{ entry.expression }}</code>
                                                     {% if entry.term_help %}<span class="cell-tooltip scoring-formula-help" role="tooltip">{% for term in entry.term_help %}<span class="scoring-formula-help-term"><strong>{{ term.label }}</strong>: {{ term.description }}</span>{% endfor %}</span>{% endif %}
                                                 </span>
+                                                {% if entry.readable and entry.readable != entry.expression %}
+                                                    <span class="scoring-formula-row__readable">{{ entry.readable }}</span>
+                                                {% endif %}
                                             {% endif %}
                                         </span>
                                     </button>
@@ -1271,7 +1281,7 @@
                                             {% include "components/icons/trash.html" %}
                                         </button>
                                         {% else %}
-                                        <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution scoring-formula-delete-btn" title="{% trans 'Log in to delete this formula.' %}" disabled>
+                                        <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution scoring-formula-delete-btn" title="{% trans 'Sign in to delete this formula.' %}" disabled>
                                             {% include "components/icons/trash.html" %}
                                         </button>
                                         {% endif %}
@@ -1307,11 +1317,12 @@
                                 {% endfor %}
                                 {% if custom_data_count > 4 %}
                                     <li class="scoring-mydata__file scoring-mydata__file--more">
-                                        <a href="{{ custom_data_url }}">{% blocktrans count more=custom_data_count|add:"-4" %}+{{ more }} more{% plural %}+{{ more }} more{% endblocktrans %}</a>
+                                        <a href="{{ uploaded_data_url }}">{% blocktrans count more=custom_data_count|add:"-4" %}+{{ more }} more{% plural %}+{{ more }} more{% endblocktrans %}</a>
                                     </li>
                                 {% endif %}
                             </ul>
                             <a class="scoring-mydata__manage" href="{% url 'tpwebapp:settings' %}">{% trans "Share or delete in Settings" %} <span aria-hidden="true">→</span></a>
+                            <a class="scoring-mydata__manage" href="{{ uploaded_data_url }}">{% trans "All uploaded data on this genome" %} <span aria-hidden="true">→</span></a>
                         </div>
                     {% endif %}
                 </section>
@@ -1350,5 +1361,5 @@
             confirmClearAll: "{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}"
         };
     </script>
-    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261012-wide-drawer"></script>
+    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261014-filter-values"></script>
 {% endblock %}

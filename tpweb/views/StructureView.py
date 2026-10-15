@@ -41,6 +41,10 @@ class StructureView(View):
         if source_bioentry is not None:
             dto["source_protein_id"] = source_bioentry.bioentry_id
             dto["source_protein_label"] = source_bioentry.name or "Protein detail"
+            # Shown under the structure code so a viewer opened in its own tab
+            # still says which protein it belongs to.
+            dto["source_protein_accession"] = source_bioentry.accession or ""
+            dto["source_protein_description"] = source_bioentry.description or ""
             source_assembly_name = self._resolve_source_assembly_name(source_bioentry)
             dto["source_assembly_name"] = source_assembly_name
             dto["source_genome"] = genome_url_slug(source_assembly_name)

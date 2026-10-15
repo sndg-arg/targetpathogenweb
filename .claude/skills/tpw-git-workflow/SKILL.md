@@ -44,10 +44,11 @@ Cd..."), or restating the diff in prose. If a body is genuinely warranted (a non
 cause, a decision future-you would otherwise re-litigate), keep it to 1-3 short lines — not a
 essay. Default to title-only.
 
-## Push behavior
+## Commit and push only when asked
 
-Push after committing without re-asking each time — this has been the established convention for
-this repo/session. This does **not** extend to force-pushing or amending a commit that's already
-been pushed — those remain "ask first" actions regardless of this convention, per the general
-git-safety rules (never skip hooks, never force-push without explicit request, never amend
-published history).
+Since 2026-10-14 the user commits and pushes on request only: finish the change, verify it,
+and leave it uncommitted in the working tree with a summary of the touched files. Commit or
+push only when the user says so in that moment ("commiteá", "pusheá", "subilo"). This
+replaces the earlier "push after committing without re-asking" convention. Force-pushing or
+amending an already-pushed commit stays "ask first" regardless (never skip hooks, never
+force-push without explicit request, never amend published history).

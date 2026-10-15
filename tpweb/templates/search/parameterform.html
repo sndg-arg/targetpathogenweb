@@ -1,9 +1,10 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block body %}
-    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <script src="{% static 'js/vendor/htmx-1.9.2.min.js' %}"></script>
     <style>
         .param-wrap {
             max-width: 1020px;

@@ -108,12 +108,16 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "tpweb.context_processors.contact",
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = "tpwebconfig.wsgi.application"
+
+# Shown wherever a user is told to ask for access or report a problem.
+CONTACT_EMAIL = env("TPW_CONTACT_EMAIL", default="ana.gutson8@gmail.com")
 SITE_ID = 1
 
 # Database

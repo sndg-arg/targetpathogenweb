@@ -19,7 +19,7 @@ GENOME_TABLE_COLUMNS = {
     "EntryLength": "Length [bp]",
     "COUNT_CDS": "# Proteins",
     "COUNT_EXPERIMENTAL": "Loaded exp. structures",
-    "COUNT_PDB_XREFS": "PDB xrefs",
+    "COUNT_PDB_XREFS": "PDB entries cited by UniProt",
     "COUNT_EC": "EC-annotated proteins",
 }
 

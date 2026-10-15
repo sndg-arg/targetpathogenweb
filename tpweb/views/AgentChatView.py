@@ -271,15 +271,18 @@ class AgentChatView(JsonPermissionRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
         if not llm_agent_enabled() and not os.environ.get("TPW_LLM_PROVIDER", "").strip():
-            # Detailed enough to action for whoever deploys this (env var names), but this
-            # is a deployment-config state a regular user has no way to fix themselves --
-            # not something to soften into a generic "try again" message.
+            # A deployment-config state a regular user can't fix: tell them plainly,
+            # and put the env var names in the server log for whoever deploys this
+            # (they used to be shown to students in the chat).
+            logger.warning(
+                "Assistant request while disabled: set OPENAI_AGENT_ENABLED=true and "
+                "OPENAI_API_KEY (or the equivalent for TPW_LLM_PROVIDER)."
+            )
             return JsonResponse(
                 {
                     "error": (
-                        "The assistant is not enabled on this server. An administrator needs "
-                        "to set OPENAI_AGENT_ENABLED=true and OPENAI_API_KEY (or the "
-                        "equivalent for TPW_LLM_PROVIDER) before it can be used."
+                        "The assistant isn't available right now. "
+                        f"Please let us know at {settings.CONTACT_EMAIL}."
                     )
                 },
                 status=503,
@@ -355,10 +358,7 @@ class AgentChatView(JsonPermissionRequiredMixin, View):
         if quota_exceeded(request.user):
             return JsonResponse(
                 {
-                    "error": (
-                        "You've reached your daily AI assistant message limit. "
-                        "Ask the site owner to request more access."
-                    ),
+                    "error": ("You've used today's assistant messages. The limit resets tomorrow."),
                     "quota_exceeded": True,
                 },
                 status=429,

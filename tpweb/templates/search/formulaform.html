@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20261012-autocomplete">
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20261014-hidden-vars">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -26,7 +26,7 @@
 {% endblock %}
 
 {% block body %}
-    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <script src="{% static 'js/vendor/htmx-1.9.2.min.js' %}"></script>
 
     <div class="formula-page">
 
@@ -175,6 +175,7 @@
                         <div>
                             <h2>{% trans "Variables" %}</h2>
                             <p class="formula-card-note">{% trans "Click any variable to insert it. Numeric variables keep their raw value; categorical variables are 1.0 when true and 0.0 otherwise." %}</p>
+                            <p class="formula-card-note">{% trans "Numeric variables use different scales (the tag shows which: %, 0–1, 0–100, count, e-value). Rescale before adding them, e.g. human_identity / 100, or one variable will dominate the score." %}</p>
                             <p class="formula-card-note">{% trans "Large text categories, such as individual structure IDs, are hidden here because they are better used as filters than score terms." %}</p>
                         </div>
                     </div>
@@ -201,7 +202,7 @@
                                                     aria-label="{{ v.var }}: {{ v.desc }}">
                                                 <span class="formula-var-name">{{ v.var }}</span>
                                                 <span class="formula-var-kind">
-                                                    {% if v.kind == "numeric" %}{% trans "numeric" %}{% else %}{% trans "0/1" %}{% endif %}
+                                                    {% if v.kind == "numeric" %}{{ v.scale|default:_("numeric") }}{% else %}{% trans "0/1" %}{% endif %}
                                                 </span>
                                             </button>
                                         {% endfor %}
@@ -212,6 +213,12 @@
                             <p class="tp-state-note tp-state-note--empty">{% trans "No scoring parameters available." %}</p>
                         {% endif %}
                     </div>
+                    {% if hidden_variables %}
+                        <p class="formula-card-note formula-hidden-vars">
+                            {% trans "Your uploaded columns not offered here, because they have too many different values to score (use them in Filters instead):" %}
+                            {% for h in hidden_variables %}<span class="formula-hidden-var">{{ h.param }}</span> ({% blocktrans count n=h.options %}{{ n }} value{% plural %}{{ n }} values{% endblocktrans %}){% if not forloop.last %}, {% endif %}{% endfor %}.
+                        </p>
+                    {% endif %}
                 </div>
             </div>
 
