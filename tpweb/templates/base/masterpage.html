@@ -2690,6 +2690,7 @@
         <span>{% trans "Target Pathogen · Facultad de Ciencias Exactas y Naturales, Universidad de Buenos Aires" %}</span>
         <a href="{% url 'tpwebapp:data_sources' %}">{% trans "Methodology" %}</a>
         <a href="{% url 'tpwebapp:about_us' %}">{% trans "About us" %}</a>
+        <a href="{% url 'tpwebapp:about_us' %}#cite">{% trans "How to cite" %}</a>
         {% if contact_email %}<a href="mailto:{{ contact_email }}">{% trans "Contact" %}: {{ contact_email }}</a>{% endif %}
     </div>
     {% endblock %}

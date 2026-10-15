@@ -92,9 +92,9 @@
                 {# pill is a shortcut to it, not a second, differently-named number. #}
                 <a class="metric-pill metric-pill--drugg metric-pill--drugg-{{ druggability.1 }} metric-pill--link" href="{% if selected_pocket_evidence %}#binding-site-evidence{% else %}#section-structure{% endif %}">
                     {% if druggability.3.label %}
-                    <span class="metric-label" title="{% blocktrans with source=druggability.2 structure=druggability.3.label code=druggability.3.code %}{{ source }} pocket score on {{ structure }} {{ code }}. Higher values suggest a more druggable binding pocket.{% endblocktrans %}">{% blocktrans with source=druggability.2 structure=druggability.3.label %}Pocket druggability ({{ source }} · {{ structure }}){% endblocktrans %}</span>
+                    <span class="metric-label" title="{% blocktrans with source=druggability.2 structure=druggability.3.label code=druggability.3.code %}{{ source }} pocket score on {{ structure }} {{ code }}. Higher values suggest a more druggable binding pocket.{% endblocktrans %}">{% if druggability.2 == "P2Rank" %}{% blocktrans with structure=druggability.3.label %}Binding-site probability (P2Rank · {{ structure }}){% endblocktrans %}{% else %}{% blocktrans with source=druggability.2 structure=druggability.3.label %}Pocket druggability ({{ source }} · {{ structure }}){% endblocktrans %}{% endif %}</span>
                     {% else %}
-                    <span class="metric-label" title="{% blocktrans with source=druggability.2 %}{{ source }} pocket score on the selected structure. Higher values suggest a more druggable binding pocket.{% endblocktrans %}">{% blocktrans with source=druggability.2 %}Pocket druggability ({{ source }}){% endblocktrans %}</span>
+                    <span class="metric-label" title="{% blocktrans with source=druggability.2 %}{{ source }} pocket score on the selected structure. Higher values suggest a more druggable binding pocket.{% endblocktrans %}">{% if druggability.2 == "P2Rank" %}{% trans "Binding-site probability (P2Rank)" %}{% else %}{% blocktrans with source=druggability.2 %}Pocket druggability ({{ source }}){% endblocktrans %}{% endif %}</span>
                     {% endif %}
                     <span class="metric-value">{{ druggability.0 }} <span class="metric-pill-jump" aria-hidden="true">↓</span></span>
                 </a>
@@ -307,7 +307,7 @@
                         {% trans "P2Rank is a machine-learning predictor of ligand-binding sites. Probability 0-1; higher values support the pocket hypothesis but do not prove binding." as p2rank_tooltip %}
                         {% trans "Structure used to compute this P2Rank score" as p2rank_structure_tooltip %}
                         {% trans "Best-ranked pocket identifier from P2Rank" as p2rank_pocket_tooltip %}
-                        {% trans "Druggability (P2Rank)" as p2rank_label %}
+                        {% trans "Binding-site probability (P2Rank)" as p2rank_label %}
                         {% include "components/structure/pocket_evidence_card.html" with tool_key="p2rank" tool_label=p2rank_label tool_tooltip=p2rank_tooltip score=selected_pocket_evidence.p2rank.score structure=selected_pocket_evidence.p2rank.structure pocket=selected_pocket_evidence.p2rank.pocket structure_tooltip=p2rank_structure_tooltip pocket_tooltip=p2rank_pocket_tooltip %}
 
                         {% trans "FPocket predicts geometric cavities on a 3D structure. Score 0-1; higher values suggest a better small-molecule pocket but do not prove binding." as fpocket_tooltip %}

@@ -66,7 +66,7 @@ def _pdb_reference_rows():
 # coloring (protein-detail.js / structure.html decorateScoreTags) use.
 POCKET_SCORE_BANDS = {
     "fpocket": (0.7, 0.4, "FPocket druggability"),
-    "p2rank": (0.5, 0.2, "P2Rank ligandability probability"),
+    "p2rank": (0.5, 0.2, "P2Rank binding-site probability"),
 }
 
 

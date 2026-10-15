@@ -741,19 +741,6 @@ class ProteinListView(View):
                         option_tone = "favorable"
                     elif normalized_option_name == "n":
                         option_tone = "secondary"
-                elif param_name_lower == "localization":
-                    if normalized_option_name in {
-                        "extracellular",
-                        "outermembrane",
-                        "outer membrane",
-                        "cellwall",
-                        "periplasmic",
-                        "cytoplasmicmembrane",
-                        "cytoplasmic membrane",
-                    }:
-                        option_tone = "favorable"
-                    elif normalized_option_name == "cytoplasmic":
-                        option_tone = "risk"
                 options.append(
                     {
                         "id": option.pk,
@@ -2199,7 +2186,7 @@ class ProteinListView(View):
             # not the raw FPocket score humanize_identifier's "Druggability (FPocket)"
             # label would otherwise imply -- an explicit column-header click still says
             # "(FPocket)" correctly, since that path sorts by the raw column only.
-            sort_label_by_col["Druggability"] = "Druggability (P2Rank preferred)"
+            sort_label_by_col["Druggability"] = "Pocket score (P2Rank, else FPocket)"
         sort_direction_label = "ascending" if effective_sort_dir == "asc" else "descending"
         sorted_by_label = f"{sort_label_by_col.get(effective_sort_col, effective_sort_col)} ({sort_direction_label})"
 

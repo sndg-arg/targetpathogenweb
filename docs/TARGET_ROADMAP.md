@@ -280,6 +280,9 @@ drogabilidad lleva a Binding-site evidence; tooltips de Lipinski, PAINS y descri
 Formula activa en palabras y escala de cada variable en el constructor; Settings muestra y borra
 formulas; valores faltantes como "—"; Human Targets con nombre como titulo; Methodology empieza
 por "How to read the results"; About us con contacto; tooltips de alcance en Genomes.
+Decisiones (15/10): P2Rank es la senal principal de pocket (tambien en el ranking del genoma;
+FPocket suma solo si coincide o si no hay P2Rank), se llama "binding-site probability",
+localizacion sin colores de juicio, interfaz solo en ingles, gen core = Roary >= 99% de las cepas. About us suma "How to cite".
 
 **Pendiente para cerrar.**
 

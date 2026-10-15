@@ -34,6 +34,7 @@
         <a class="ds-quick-nav-link" href="#institution">{% trans "Institution" %}</a>
         <a class="ds-quick-nav-link" href="#partners">{% trans "Partners" %}</a>
         <a class="ds-quick-nav-link" href="#team">{% trans "Team" %}</a>
+        <a class="ds-quick-nav-link" href="#cite">{% trans "How to cite" %}</a>
         <a class="ds-quick-nav-link" href="#contact">{% trans "Contact" %}</a>
     </nav>
 
@@ -159,6 +160,18 @@
                 {% include "about/_team_links.html" with linkedin="https://www.linkedin.com/in/joaquin-messano-543886140" %}
             </div>
         </div>
+    </section>
+
+    <section class="ds-panel" id="cite">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Citation" %}</p>
+                <h2 class="ds-panel-title">{% trans "How to cite" %}</h2>
+            </div>
+        </div>
+        <p class="ds-body">{% trans "If Target Pathogen helped your work, please cite the original Target-Pathogen paper and mention the version you used:" %}</p>
+        <p class="ds-body ds-citation">Sosa EJ, Burguener G, Lanzarotti E, et al. Target-Pathogen: a structural bioinformatic approach to prioritize drug targets in pathogens. <em>Nucleic Acids Research</em> 46(D1):D413–D418 (2018). <a href="https://doi.org/10.1093/nar/gkx1015" target="_blank" rel="noopener">doi:10.1093/nar/gkx1015</a></p>
+        <p class="ds-body">{% trans "Target Pathogen 2.0, Facultad de Ciencias Exactas y Naturales, Universidad de Buenos Aires." %} <a href="https://target2.infra.cluster.qb.fcen.uba.ar/">https://target2.infra.cluster.qb.fcen.uba.ar/</a></p>
     </section>
 
     <section class="ds-panel" id="contact">

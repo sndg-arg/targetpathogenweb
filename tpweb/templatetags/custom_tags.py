@@ -112,17 +112,8 @@ def score_metric_tone(value, column_name):
             return "secondary"
         return ""
 
-    if column_key == "localization":
-        if text in {
-            "extracellular",
-            "outer membrane",
-            "cellwall",
-            "periplasmic",
-            "cytoplasmic membrane",
-        }:
-            return "favorable"
-        if text == "cytoplasmic":
-            return "risk"
-        return ""
+    # Localization stays neutral (no green/red): whether a compartment is a
+    # good target is a per-project judgement for the scoring formula, not
+    # something the table should imply (team decision, 2026-10).
 
     return ""

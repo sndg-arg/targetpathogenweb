@@ -223,17 +223,38 @@ def _score_proteins(assembly_name):
         cautions = []
         score = 0.0
 
-        # P2Rank checked (and its signal added) before FPocket so it's the pocket
-        # signal that shows first in the ranking card chips, consistent with it
-        # being the primary druggability source everywhere else in the app.
+        # P2Rank is the primary pocket signal (team decision, 2026-10): its
+        # binding-site probability earns the pocket points, and FPocket only
+        # adds a point when it agrees on a strong pocket. FPocket alone scores
+        # the pocket only for proteins with no P2Rank value. Same 3-point cap
+        # as before.
         p2rank = _as_float(param_values.get("p2rank_probability"))
-        if p2rank is not None and p2rank >= 0.5:
-            score += 1.0
-            _add_signal(signals, "P2Rank pocket support")
-
         fpocket = _as_float(param_values.get("Druggability"))
         pocket_size_outlier = _is_yes(param_values.get("pocket_size_outlier"))
-        if fpocket is not None:
+        if p2rank is not None:
+            if p2rank >= 0.5:
+                score += 2.0
+                _add_signal(
+                    signals, f"High P2Rank binding-site probability {_format_decimal(p2rank)}"
+                )
+                if fpocket is not None and fpocket >= 0.7 and not pocket_size_outlier:
+                    score += 1.0
+                    _add_signal(signals, f"FPocket agrees: druggability {_format_decimal(fpocket)}")
+            elif p2rank >= 0.2:
+                score += 1.0
+                _add_signal(
+                    signals,
+                    f"Moderate P2Rank binding-site probability {_format_decimal(p2rank)}",
+                    "neutral",
+                )
+            else:
+                score -= 0.5
+                _add_signal(
+                    cautions,
+                    f"Low P2Rank binding-site probability {_format_decimal(p2rank)}",
+                    "bad",
+                )
+        elif fpocket is not None:
             if fpocket >= 0.7:
                 if pocket_size_outlier:
                     score += 1.0
@@ -350,6 +371,8 @@ def _score_proteins(assembly_name):
                 "description": p.description,
                 "score": score,
                 "fpocket": fpocket or 0.0,
+                # Tie-breaker: the primary pocket score (P2Rank, else FPocket).
+                "pocket": p2rank if p2rank is not None else (fpocket or 0.0),
                 "direct_count": direct_count,
                 "binder_count": binder_count,
                 "factors": combined_factors[:4],
@@ -435,7 +458,12 @@ def get_top_targets_by_score(assembly_name, user, limit=5, scored=None):
         scored = _cached_score_proteins(assembly_name)
     ranked = sorted(
         scored,
-        key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]),
+        key=lambda r: (
+            r["score"],
+            r.get("pocket", r["fpocket"]),
+            r["direct_count"],
+            r["binder_count"],
+        ),
         reverse=True,
     )
     return {"formula_name": "Evidence convergence", "items": _format_score_items(ranked[:limit])}
@@ -454,7 +482,7 @@ def get_unexplored_targets(assembly_name, user, limit=5, scored=None):
     if scored is None:
         scored = _cached_score_proteins(assembly_name)
     unexplored = [r for r in scored if r["binder_count"] == 0]
-    unexplored.sort(key=lambda r: (r["score"], r["fpocket"]), reverse=True)
+    unexplored.sort(key=lambda r: (r["score"], r.get("pocket", r["fpocket"])), reverse=True)
     return {
         "formula_name": "Unexplored candidates",
         "items": _format_score_items(unexplored[:limit]),
@@ -489,7 +517,13 @@ def export_composite_ranking_rows(assembly_name):
     (headers, rows) ready for csv_exports.csv_response."""
     scored = _cached_score_proteins(assembly_name)
     scored.sort(
-        key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]), reverse=True
+        key=lambda r: (
+            r["score"],
+            r.get("pocket", r["fpocket"]),
+            r["direct_count"],
+            r["binder_count"],
+        ),
+        reverse=True,
     )
 
     headers = [

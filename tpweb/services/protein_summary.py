@@ -93,7 +93,7 @@ _SCORE_META = [
         "localization",
         [],
         [],
-        "Predicted subcellular localization by PSORTb. Extracellular and outer-membrane proteins are preferred as drug targets.",
+        "Predicted subcellular localization by PSORTb. Whether a compartment favors a target depends on the project (e.g. drug access vs. intracellular function).",
     ),
     (
         "colabfold_plddt",

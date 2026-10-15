@@ -205,8 +205,8 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "default_value": "Core",
         "options": ("Core", "Accessory"),
         "option_descriptions": {
-            "Core": "Gene conserved across all (or nearly all) strains in the pan-genome (value ≥ 0.5).",
-            "Accessory": "Gene present only in a subset of strains (value < 0.5).",
+            "Core": "Present in at least 99% of the analyzed strains (Roary's core threshold).",
+            "Accessory": "Present in fewer than 99% of the analyzed strains.",
         },
     },
     "core_corecruncher": {
@@ -222,8 +222,8 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "default_value": "Core",
         "options": ("Core", "Accessory"),
         "option_descriptions": {
-            "Core": "Gene conserved across all (or nearly all) strains in the pan-genome (value ≥ 0.5).",
-            "Accessory": "Gene present only in a subset of strains (value < 0.5).",
+            "Core": "Called core by CoreCruncher: conserved across the analyzed strains.",
+            "Accessory": "Not called core by CoreCruncher: present only in some strains.",
         },
     },
     "PTOOLS_betweenness_centrality": {

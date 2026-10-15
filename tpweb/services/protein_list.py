@@ -91,7 +91,7 @@ EXACT_REPLACEMENTS = {
     "ec_number": "EC number",
     "go_term": "GO term",
     "druggability": "Druggability (FPocket, 0–1)",
-    "p2rank_probability": "Druggability (P2Rank, 0–1)",
+    "p2rank_probability": "Binding-site probability (P2Rank, 0–1)",
     "priority": "Metabolic priority",
     # Biologist-readable names for raw pipeline/import column names that the
     # generic token rules below would otherwise turn into "Ptools Edges",
@@ -110,7 +110,7 @@ EXACT_REPLACEMENTS = {
     "core_corecruncher": "Core gene (CoreCruncher)",
     "colabfold_plddt": "ColabFold model confidence (pLDDT, 0–100)",
     "colabfold_druggability_score": "Druggability on ColabFold model (FPocket, 0–1)",
-    "colabfold_p2rank_probability": "Druggability on ColabFold model (P2Rank, 0–1)",
+    "colabfold_p2rank_probability": "Binding-site probability on ColabFold model (P2Rank, 0–1)",
     "pocket_size_outlier": "Unusual pocket size",
     "pocket_consensus_high_score": "FPocket and P2Rank agree on a strong site",
     "hit_in_deg": "Essential homolog (DEG)",
