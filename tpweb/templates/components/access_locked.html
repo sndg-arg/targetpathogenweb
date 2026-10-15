@@ -8,23 +8,35 @@
         <span class="access-locked-eyebrow">{% trans "Restricted" %}</span>
         <h1>{{ page_title }}</h1>
         <p>{{ locked_message }}</p>
-        {% if contact_email %}
-            <p class="access-locked-contact">{% trans "To request access, write to" %} <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>{% trans " with your name and course." %}</p>
-        {% endif %}
-        <div class="access-locked-actions">
-            {% if user.is_authenticated %}
-                <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'tpwebapp:index' %}">
-                    <span>{% trans "Back to home" %}</span>
-                </a>
+
+        {% if not user.is_authenticated %}
+            <div class="access-locked-actions">
+                <a class="btn tp-btn tp-btn--primary" href="{% url 'account_login' %}?next={{ request.path|urlencode }}">{% trans "Sign in" %}</a>
+                <a class="btn tp-btn tp-btn--secondary" href="{% url 'account_signup' %}?next={{ request.path|urlencode }}">{% trans "Create an account" %}</a>
+            </div>
+            <a class="access-locked-link" href="{% url 'tpwebapp:genomes_list' %}">{% trans "Browse genomes without an account" %}</a>
+        {% elif access_requestable %}
+            {% if user.wants_collaborator_access %}
+                <p class="access-locked-status">{% trans "Access requested. An administrator will review it; you'll keep using this same account." %}</p>
+                <div class="access-locked-actions">
+                    <a class="btn tp-btn tp-btn--secondary" href="{% url 'tpwebapp:index' %}">{% trans "Back to home" %}</a>
+                </div>
             {% else %}
-                <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'account_login' %}?next={{ request.path|urlencode }}">
-                    <span>{% trans "Sign in" %}</span>
-                </a>
-                <a class="btn tp-btn tp-btn--outline" href="{% url 'tpwebapp:genomes_list' %}">
-                    <span>{% trans "Browse genomes without an account" %}</span>
-                </a>
+                <form method="post" action="{% url 'tpwebapp:request_access' %}" class="access-locked-actions">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Request access" %}</button>
+                    <a class="btn tp-btn tp-btn--secondary" href="{% url 'tpwebapp:index' %}">{% trans "Back to home" %}</a>
+                </form>
             {% endif %}
-        </div>
+            {% if contact_email %}
+                <p class="access-locked-fallback">{% trans "Something not working? Write to" %} <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>
+            {% endif %}
+        {% else %}
+            <div class="access-locked-actions">
+                <a class="btn tp-btn tp-btn--primary" href="{% url 'tpwebapp:index' %}">{% trans "Back to home" %}</a>
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

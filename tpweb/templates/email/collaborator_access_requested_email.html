@@ -9,7 +9,7 @@
 
 {% block body %}
 <p style="margin:0 0 16px;">
-    {% blocktrans %}<strong>{{ display_name }}</strong> ({{ user_email }}) signed up and is already using the site as a Basic account.{% endblocktrans %}
+    {% if from_signup %}{% blocktrans %}<strong>{{ display_name }}</strong> ({{ user_email }}) signed up and is already using the site as a Basic account.{% endblocktrans %}{% else %}{% blocktrans %}<strong>{{ display_name }}</strong> ({{ user_email }}) asked for collaborator access from the site.{% endblocktrans %}{% endif %}
 </p>
 <p style="margin:0;">
     {% trans "Review and assign a role from the Manage users screen if appropriate." %}

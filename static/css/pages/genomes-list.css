@@ -101,6 +101,33 @@
     color: var(--tp-color-text-muted);
 }
 
+.genomes-restricted-note a {
+    color: var(--tp-color-link);
+    font-weight: 600;
+}
+
+/* Inline "Request access": reads as a link inside the sentence, but it's a
+   POST (it changes the account), so a real form button. */
+.genomes-request-access {
+    display: inline;
+}
+
+.genomes-request-access-btn {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--tp-color-link);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.genomes-request-access-btn:hover,
+.genomes-request-access-btn:focus-visible {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+}
+
 .genomes-pipeline {
     margin-top: 12px;
     display: flex;

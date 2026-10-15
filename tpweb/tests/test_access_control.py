@@ -196,7 +196,7 @@ class VisitorBrowsingTests(TestCase):
                 self.assertContains(response, "Sign in", status_code=403)
 
     def test_anonymous_sees_the_locked_page_for_upload_activity_users_and_profile(self):
-        for name in ["genome_upload", "activity_dashboard", "user_management", "profile"]:
+        for name in ["activity_dashboard", "user_management", "profile"]:
             with self.subTest(name=name):
                 response = self.client.get(reverse(f"tpwebapp:{name}"))
                 self.assertEqual(response.status_code, 403)
@@ -204,6 +204,16 @@ class VisitorBrowsingTests(TestCase):
                 self.assertContains(
                     response, "browse genomes, proteins, and structures", status_code=403
                 )
+
+    def test_anonymous_on_a_collaborator_page_is_told_to_sign_in_and_request_access(self):
+        response = self.client.get(reverse("tpwebapp:genome_upload"))
+
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, "request access from this page", status_code=403)
+        self.assertContains(response, "Create an account", status_code=403)
+        # The owner's address is a last resort for signed-in users, not part
+        # of the anonymous panel (the site footer still lists it, small).
+        self.assertNotContains(response, "access-locked-fallback", status_code=403)
 
     def test_agent_chat_bypasses_the_locked_page_and_gets_json_instead(self):
         # API_URL_NAMES carve-out -- a fetch() caller needs JSON, not HTML.

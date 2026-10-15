@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260904-slim">
-    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261006-capability-grid">
+    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261015-request-access">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -104,7 +104,17 @@
                     <span class="profile-capability-card-label">{% trans "See collaborative-project genomes" %}</span>
                 </div>
             </div>
-            <p class="profile-capability-note">{% trans "Need more access? Write to" %} <a href="mailto:{{ contact_email }}">{{ contact_email }}</a> {% trans "with your name and course." %}</p>
+            {% if user.wants_collaborator_access %}
+            <p class="profile-capability-note">{% trans "Collaborator access requested. An administrator will review it; you'll keep using this same account." %}</p>
+            {% else %}
+            <form method="post" action="{% url 'tpwebapp:request_access' %}" class="profile-capability-note profile-request-access">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <span>{% trans "Need more access (collaborative-project genomes, Human Targets, uploads)?" %}</span>
+                <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Request access" %}</button>
+            </form>
+            {% endif %}
+            {% if contact_email %}<p class="tp-contact-fallback">{% trans "Something not working? Write to" %} <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>{% endif %}
         </section>
 
     </div>

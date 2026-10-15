@@ -226,6 +226,7 @@ class GenomeUploadView(LoginRequiredMixin, View):
                     "locked_message": (
                         "Uploading new genomes is limited to project collaborators."
                     ),
+                    "access_requestable": True,
                 },
                 status=403,
             )

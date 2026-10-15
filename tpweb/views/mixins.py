@@ -28,12 +28,19 @@ class PermissionLockedMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     page_title = ""
     locked_message = "This section needs extra access."
+    # Offer the in-app "Request access" button (False for owner-only pages,
+    # where asking can't lead anywhere).
+    access_requestable = True
 
     def handle_no_permission(self):
         return render(
             self.request,
             "components/access_locked.html",
-            {"page_title": self.page_title, "locked_message": self.locked_message},
+            {
+                "page_title": self.page_title,
+                "locked_message": self.locked_message,
+                "access_requestable": self.access_requestable,
+            },
             status=403,
         )
 

@@ -16,6 +16,7 @@ class UserManagementView(PermissionLockedMixin, View):
     template_name = "users/manage.html"
     page_title = "Manage users"
     locked_message = "Only the site owner can manage user accounts."
+    access_requestable = False
     # Sentinel posted by the role <select>'s "Admin" option (manage.html) --
     # not a TPUser.Role value, see the update_permissions branch below.
     ADMIN_ROLE_VALUE = "admin"

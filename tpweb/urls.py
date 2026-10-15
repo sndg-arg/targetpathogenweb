@@ -45,6 +45,7 @@ from .views.DataSourcesView import DataSourcesView
 from .views.AboutUsView import AboutUsView
 from .views.AgentChatView import AgentChatSessionDetailView, AgentChatSessionsView, AgentChatView
 from .views.RobotsView import RobotsView
+from .views.RequestAccessView import RequestAccessView
 from .views.SitemapView import SitemapView
 from django.conf.urls.static import static
 from django.conf import settings
@@ -173,6 +174,7 @@ urlpatterns = [
     path("users", view=UserManagementView.as_view(), name="user_management"),
     path("profile", view=ProfileView.as_view(), name="profile"),
     path("settings", view=SettingsView.as_view(), name="settings"),
+    path("access/request", view=RequestAccessView.as_view(), name="request_access"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # if 1:
 #    urlpatterns = urlpatterns + debug_toolbar_urls()

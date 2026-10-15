@@ -91,6 +91,19 @@ def activate_new_signup(user, wants_collaborator_access=False):
     return user
 
 
+def request_collaborator_access(user):
+    """In-app "Request access" from a locked page or the profile, for an
+    account that already exists: flags it for review on /users and emails
+    the superusers once. Returns False if it was already requested (no
+    second email)."""
+    if user.wants_collaborator_access:
+        return False
+    user.wants_collaborator_access = True
+    user.save(update_fields=["wants_collaborator_access"])
+    transaction.on_commit(lambda: _notify_collaborator_access_requested(user, from_signup=False))
+    return True
+
+
 def reactivate_user(user):
     """Restore a previously revoked account -- back to active with the
     baseline permission grant, role untouched (stays whatever it was before
@@ -133,7 +146,7 @@ def revoke_access(user):
     return user
 
 
-def _notify_collaborator_access_requested(user):
+def _notify_collaborator_access_requested(user, from_signup=True):
     recipients = list(
         User.objects.filter(is_superuser=True, is_active=True)
         .exclude(email="")
@@ -146,13 +159,22 @@ def _notify_collaborator_access_requested(user):
         send_mail(
             subject=f"Target Pathogen: {display_name} requested collaborator access",
             message=(
-                f"{display_name} ({user.email}) signed up and is already using the site "
-                'as a Basic account. They checked "Solicitar acceso de colaborador" -- '
-                "review and assign a role from the Manage users screen if appropriate."
+                (
+                    f"{display_name} ({user.email}) signed up and is already using the site "
+                    'as a Basic account. They checked "Solicitar acceso de colaborador" -- '
+                    if from_signup
+                    else f"{display_name} ({user.email}) asked for collaborator access from "
+                    "the site (Request access button) -- "
+                )
+                + "review and assign a role from the Manage users screen if appropriate."
             ),
             html_message=render_to_string(
                 "email/collaborator_access_requested_email.html",
-                {"display_name": display_name, "user_email": user.email},
+                {
+                    "display_name": display_name,
+                    "user_email": user.email,
+                    "from_signup": from_signup,
+                },
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=recipients,

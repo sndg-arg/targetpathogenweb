@@ -94,6 +94,17 @@ LOGIN_REQUIRED_MESSAGE = (
     "and structures without an account."
 )
 
+# Pages that need more than an account: a project collaborator role, granted
+# by an administrator. An anonymous visitor is told to sign in and request
+# access instead of just "sign in" (which alone wouldn't get them in).
+COLLABORATOR_URL_NAMES = frozenset(
+    {"genome_upload", "data_file_upload", "human_protein_list", "human_protein"}
+)
+COLLABORATOR_REQUIRED_MESSAGE = (
+    "This section is available to project collaborators. Sign in (or create an "
+    "account), then request access from this page."
+)
+
 
 def _is_exempt_path(path):
     if path.startswith(settings.STATIC_URL):
@@ -154,7 +165,12 @@ class LoginRequiredMiddleware:
             "components/access_locked.html",
             {
                 "page_title": GATED_PAGE_TITLES.get(url_name, "Sign in required"),
-                "locked_message": LOGIN_REQUIRED_MESSAGE,
+                "locked_message": (
+                    COLLABORATOR_REQUIRED_MESSAGE
+                    if url_name in COLLABORATOR_URL_NAMES
+                    else LOGIN_REQUIRED_MESSAGE
+                ),
+                "access_requestable": url_name in COLLABORATOR_URL_NAMES,
             },
             status=403,
         )

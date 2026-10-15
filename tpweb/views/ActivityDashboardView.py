@@ -22,7 +22,8 @@ class ActivityDashboardView(PermissionLockedMixin, View):
 
     template_name = "activity/dashboard.html"
     page_title = "Activity"
-    locked_message = "Ask the site owner to grant Activity dashboard access."
+    locked_message = "The Activity dashboard is only available to the site owner."
+    access_requestable = False
 
     def test_func(self):
         return self.request.user.has_perm("tpweb.can_view_activity")

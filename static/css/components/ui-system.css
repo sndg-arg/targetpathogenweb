@@ -485,6 +485,41 @@
     gap: 10px;
 }
 
+.access-locked-panel .access-locked-status {
+    color: var(--tp-color-success-ink);
+    font-weight: var(--tp-font-weight-semibold);
+}
+
+.access-locked-link {
+    margin-top: 6px;
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.access-locked-link:hover,
+.access-locked-link:focus-visible {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+}
+
+/* The contact address is a last resort, not the way in: small and quiet. */
+.access-locked-panel .access-locked-fallback,
+.tp-contact-fallback {
+    margin: 14px 0 0;
+    color: var(--tp-color-text-soft);
+    font-size: var(--tp-font-size-xs);
+}
+
+.access-locked-fallback a,
+.tp-contact-fallback a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--tp-color-border-strong);
+    text-underline-offset: 2px;
+}
+
 .tp-select {
     position: relative;
     width: 100%;

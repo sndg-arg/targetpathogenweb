@@ -146,6 +146,13 @@
     font-size: var(--tp-font-size-sm);
 }
 
+.profile-request-access {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+}
+
 .profile-field-value {
     overflow-wrap: anywhere;
 }

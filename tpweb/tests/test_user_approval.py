@@ -16,6 +16,7 @@ from tpweb.services.user_approval import (
     activate_new_signup,
     reactivate_user,
     reject_signup,
+    request_collaborator_access,
     revoke_access,
 )
 
@@ -877,3 +878,57 @@ class UserAdminReactivateActionTests(TestCase):
         revoked.refresh_from_db()
         self.assertTrue(revoked.is_active)
         self.assertFalse(revoked.is_staff)
+
+
+class RequestAccessTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            username="owner",
+            password="x",
+            is_superuser=True,
+            is_active=True,
+            email="owner@example.com",
+        )
+        self.user = User.objects.create_user(
+            username="reader", password="x", email="reader@example.com"
+        )
+
+    def test_request_flags_the_account_and_notifies_once(self):
+        with self.captureOnCommitCallbacks(execute=True):
+            self.assertTrue(request_collaborator_access(self.user))
+        with self.captureOnCommitCallbacks(execute=True):
+            self.assertFalse(request_collaborator_access(self.user))
+
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.wants_collaborator_access)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Request access button", mail.outbox[0].body)
+
+    def test_locked_page_offers_the_request_button_and_a_small_fallback(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("tpwebapp:genome_upload"))
+
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, reverse("tpwebapp:request_access"), status_code=403)
+        self.assertContains(response, "access-locked-fallback", status_code=403)
+
+    def test_post_requests_access_and_redirects_back(self):
+        self.client.force_login(self.user)
+        upload_url = reverse("tpwebapp:genome_upload")
+
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(reverse("tpwebapp:request_access"), {"next": upload_url})
+
+        self.assertRedirects(response, upload_url, fetch_redirect_response=False)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.wants_collaborator_access)
+
+    def test_post_ignores_an_external_next_url(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("tpwebapp:request_access"), {"next": "https://evil.example.com/"}
+        )
+
+        self.assertRedirects(response, reverse("tpwebapp:profile"), fetch_redirect_response=False)
