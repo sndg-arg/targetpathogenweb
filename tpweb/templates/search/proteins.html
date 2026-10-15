@@ -784,6 +784,12 @@
                                         </button>
                                     </form>
                                     <p class="filter-input-message" aria-live="polite"></p>
+                                    {% if group.ec_explorer_url %}
+                                    <a href="{{ group.ec_explorer_url }}" class="filter-explorer-link">
+                                        <span>{% trans "Don't know the code? Browse the EC tree" %}</span>
+                                        <span aria-hidden="true">→</span>
+                                    </a>
+                                    {% endif %}
                                     {% if group.ec_specific_active %}
                                         <div class="filter-chip-group filter-chip-group--active">
                                             {% for entry in group.ec_specific_active %}
@@ -822,6 +828,12 @@
                                         </button>
                                     </form>
                                     <p class="filter-input-message" aria-live="polite"></p>
+                                    {% if group.go_explorer_url %}
+                                    <a href="{{ group.go_explorer_url }}" class="filter-explorer-link">
+                                        <span>{% trans "Browse this genome's GO terms" %}</span>
+                                        <span aria-hidden="true">→</span>
+                                    </a>
+                                    {% endif %}
                                     {% if group.go_active %}
                                         <div class="filter-chip-group filter-chip-group--active">
                                             {% for entry in group.go_active %}
@@ -840,12 +852,6 @@
                                     {% endif %}
                                 </div>
 
-                                {% if group.ec_explorer_url %}
-                                    <a href="{{ group.ec_explorer_url }}" class="filter-explorer-link">
-                                        <span>{% trans "Browse the EC tree" %}</span>
-                                        <span aria-hidden="true">→</span>
-                                    </a>
-                                {% endif %}
                             {% elif group.is_ligand_filter %}
                                 <div class="filter-param" data-filter-param data-search-text="ligand evidence binders pdb chembl zinc">
                                     <div class="filter-param-head">

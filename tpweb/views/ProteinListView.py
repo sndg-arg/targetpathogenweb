@@ -854,6 +854,7 @@ class ProteinListView(View):
                     "ec_specific_active": ec_specific_active,
                     "go_active": go_active,
                     "ec_explorer_url": ec_explorer_url,
+                    "go_explorer_url": function_data.get("go_explorer_url", ""),
                     "any_active": any_function_active,
                     "param_count": len(ec_specific_active)
                     + len(go_active)
@@ -2119,6 +2120,10 @@ class ProteinListView(View):
             "ec_explorer_url": reverse(
                 "tpwebapp:annotation_explorer",
                 kwargs={"genome": genome_url_slug(assembly_name), "annotation_kind": "ec"},
+            ),
+            "go_explorer_url": reverse(
+                "tpwebapp:annotation_explorer",
+                kwargs={"genome": genome_url_slug(assembly_name), "annotation_kind": "go"},
             ),
         }
 
