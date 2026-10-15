@@ -14,7 +14,7 @@ from .views.ProteinListView import (
     ProteinListView,
     ProteinSearchSuggestionsView,
 )
-from .views.ProteinView import ProteinView
+from .views.ProteinView import ProteinBindersPanelsView, ProteinView
 from .views.MetabolismNetworkView import MetabolismNetworkView, ProteinMetabolicNetworkPageView
 from .views.MetabolismPathwayView import (
     MetabolismNetworkExpandView,
@@ -100,6 +100,11 @@ urlpatterns = [
         name="annotation_explorer",
     ),
     path("protein/<int:protein_id>", view=ProteinView.as_view(), name="protein"),
+    path(
+        "protein/<int:protein_id>/binders-panels",
+        view=ProteinBindersPanelsView.as_view(),
+        name="protein_binders_panels",
+    ),
     path(
         "protein/<int:protein_id>/metabolic-network",
         view=MetabolismNetworkView.as_view(),

@@ -342,3 +342,32 @@ class FormulaReadabilityTests(SimpleTestCase):
         self.assertEqual(numeric_variable_scale("human_evalue"), "e-value")
         self.assertEqual(numeric_variable_scale("n_reactions"), "count")
         self.assertEqual(numeric_variable_scale("lab_score"), "")
+
+
+class BindersPanelsViewTests(TestCase):
+    def test_renders_the_ligand_panels_for_a_visible_protein(self):
+        from django.urls import reverse
+
+        proteome = Biodatabase.objects.create(name="LAZYTEST_prots")
+        protein = Bioentry.objects.create(
+            biodatabase=proteome, name="P1", accession="P1", identifier="P1"
+        )
+        self.client.force_login(get_user_model().objects.create_user("viewer", password="x"))
+        response = self.client.get(
+            reverse("tpwebapp:protein_binders_panels", kwargs={"protein_id": protein.pk})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-binders-panel="pdb_direct"')
+
+    def test_non_protein_bioentry_is_not_found(self):
+        from django.urls import reverse
+
+        genome = Biodatabase.objects.create(name="LAZYTEST")
+        record = Bioentry.objects.create(
+            biodatabase=genome, name="chr", accession="chr", identifier="chr"
+        )
+        self.client.force_login(get_user_model().objects.create_user("viewer2", password="x"))
+        response = self.client.get(
+            reverse("tpwebapp:protein_binders_panels", kwargs={"protein_id": record.pk})
+        )
+        self.assertEqual(response.status_code, 404)

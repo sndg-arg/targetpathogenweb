@@ -436,6 +436,46 @@ def serialize_prot(protein: Bioentry):
     return protein2, features, annotations, graphic_features
 
 
+BINDERS_LAZY_THRESHOLD = 30
+
+
+class ProteinBindersPanelsView(View):
+    """Just the ligand-evidence tab panels of a protein page, fetched by the
+    page when the user reaches that section. Same access rules as
+    ProteinView."""
+
+    template_name = "genomic/_binders_panels.html"
+
+    def get(self, request, protein_id, *args, **kwargs):
+        protein = (
+            Bioentry.objects.filter(bioentry_id=protein_id)
+            .select_related("biodatabase")
+            .prefetch_related(
+                Prefetch(
+                    "experimental_structure_xrefs",
+                    queryset=ExperimentalStructureXref.objects.order_by("resolution"),
+                ),
+            )
+            .first()
+        )
+        if protein is None or not protein.biodatabase.name.endswith(Biodatabase.PROT_POSTFIX):
+            raise Http404("Protein not found")
+        assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
+        if not user_can_access_genome_name(request.user, assembly_name):
+            raise Http404("Protein not found")
+        structures = _sort_structures_by_preference(protein.structures.select_related("pdb"))
+        binders = create_binders_dict(
+            protein,
+            search_query=request.GET.get("binder_search", "").strip(),
+            structures=structures,
+        )
+        return render(
+            request,
+            self.template_name,
+            {"binders": binders, "protein": {"id": protein.bioentry_id}},
+        )
+
+
 class ProteinView(View):
     template_name = "genomic/protein.html"
 
@@ -681,6 +721,9 @@ class ProteinView(View):
             "go_annotations": go_all,
             "graphic_features": graphic_features,
             "binders": binders,
+            # Above this many ligand records the tables load separately
+            # (ProteinBindersPanelsView) instead of with the page.
+            "binders_lazy_threshold": BINDERS_LAZY_THRESHOLD,
             "structure_summary": structure_summary,
             "experimental_structures": experimental_structures,
             "identical_sequence_siblings": identical_sequence_siblings,

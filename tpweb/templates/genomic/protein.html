@@ -1080,75 +1080,13 @@
                         </button>
                     </div>
 
-                    {# PDB — this protein #}
-                    <div class="binders-panel {% if binders.default_tab != 'pdb_direct' %}is-hidden{% endif %}"
-                         data-binders-panel="pdb_direct" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Highest-confidence structural evidence: ligands co-crystallized with this exact protein. If the source PDB is loaded in Target, use Open crystal to inspect it in the structure viewer." %}</p>
-                        {% if binders.pdb_direct %}
-                            {% include "components/binders/binder_filter_bar.html" %}
-                            {% include "components/binders/table_pdb.html" with binder_list=binders.pdb_direct %}
-                        {% else %}
-                            <p class="tp-state-note tp-state-note--empty binders-empty">
-                                {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No PDB structure with a co-crystallized ligand found for this exact protein." %}{% endif %}
-                            </p>
-                        {% endif %}
-                    </div>
-
-                    {# PDB — homologs #}
-                    <div class="binders-panel {% if binders.default_tab != 'pdb_homolog' %}is-hidden{% endif %}"
-                         data-binders-panel="pdb_homolog" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Structural evidence inferred from similar proteins. The source crystal indicates where the ligand was observed; the UniProt column identifies the homologous protein carrying that ligand." %}</p>
-                        {% if binders.pdb_homolog %}
-                            {% include "components/binders/binder_filter_bar.html" %}
-                            {% include "components/binders/table_pdb.html" with binder_list=binders.pdb_homolog show_uniprot=True %}
-                        {% else %}
-                            <p class="tp-state-note tp-state-note--empty binders-empty">
-                                {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No PDB ligands found through similar proteins." %}{% endif %}
-                            </p>
-                        {% endif %}
-                    </div>
-
-                    {# ChEMBL — this protein #}
-                    <div class="binders-panel {% if binders.default_tab != 'chembl_direct' %}is-hidden{% endif %}"
-                         data-binders-panel="chembl_direct" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Experimental bioactivity from ChEMBL measured directly on this protein. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
-                        {% if binders.chembl_direct %}
-                            {% include "components/binders/binder_filter_bar.html" with extra_filter_key="pchembl6" extra_filter_title="pchembl ≥ 6 corresponds to IC₅₀ ≤ 1 μM — a standard hit threshold" extra_filter_label="pchembl ≥ 6" %}
-                            {% include "components/binders/table_chembl.html" with binder_list=binders.chembl_direct %}
-                        {% else %}
-                            <p class="tp-state-note tp-state-note--empty binders-empty">
-                                {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No ChEMBL bioactivity data found for this exact protein." %}{% endif %}
-                            </p>
-                        {% endif %}
-                    </div>
-
-                    {# ChEMBL — homologs #}
-                    <div class="binders-panel {% if binders.default_tab != 'chembl_homolog' %}is-hidden{% endif %}"
-                         data-binders-panel="chembl_homolog" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Bioactivity inferred from similar proteins in ChEMBL. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
-                        {% if binders.chembl_homolog %}
-                            {% include "components/binders/binder_filter_bar.html" with extra_filter_key="pchembl6" extra_filter_title="pchembl ≥ 6 corresponds to IC₅₀ ≤ 1 μM — a standard hit threshold" extra_filter_label="pchembl ≥ 6" %}
-                            {% include "components/binders/table_chembl.html" with binder_list=binders.chembl_homolog show_uniprot=True %}
-                        {% else %}
-                            <p class="tp-state-note tp-state-note--empty binders-empty">
-                                {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No ChEMBL hits found through similar proteins." %}{% endif %}
-                            </p>
-                        {% endif %}
-                    </div>
-
-                    {# ZINC #}
-                    <div class="binders-panel {% if binders.default_tab != 'zinc' %}is-hidden{% endif %}"
-                         data-binders-panel="zinc" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Proposed virtual-screening candidates from ZINC. Score = Tanimoto similarity to a known binder (0–1; higher = more similar)." %}</p>
-                        {% if binders.zinc %}
-                            {% include "components/binders/binder_filter_bar.html" with extra_filter_key="tanimoto07" extra_filter_title="Tanimoto similarity ≥ 0.7 — high structural resemblance to a known active compound" extra_filter_label="Tanimoto ≥ 0.7" %}
-                            {% include "components/binders/table_zinc.html" with binder_list=binders.zinc %}
-                        {% else %}
-                            <p class="tp-state-note tp-state-note--empty binders-empty">
-                                {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No virtual-screening candidates for this protein." %}{% endif %}
-                            </p>
-                        {% endif %}
-                    </div>
+                    {% if binders.total > binders_lazy_threshold %}
+                        <div class="binders-panels-lazy" data-binders-panels-src="{% url 'tpwebapp:protein_binders_panels' protein.id %}{% if binders.search_query %}?binder_search={{ binders.search_query|urlencode }}{% endif %}">
+                            <p class="tp-state-note tp-state-note--empty binders-panels-loading">{% trans "Loading ligand records…" %}</p>
+                        </div>
+                    {% else %}
+                        {% include "genomic/_binders_panels.html" %}
+                    {% endif %}
 
                     <p class="binders-footnote">
                         {% blocktrans %}PDB and ChEMBL records on this protein are shown in full. ChEMBL records from similar proteins are capped at the top 100 per protein (by pchembl) and ZINC at the top 50 (Tanimoto ≥ 0.5). Drug-likeness columns (Lipinski, PAINS) are computed from the chemical structure, not measured.{% endblocktrans %}
@@ -2014,22 +1952,62 @@
         }
 
         (function () {
-            const tabs = document.querySelectorAll("[data-binders-tab]");
-            const panels = document.querySelectorAll("[data-binders-panel]");
-            if (!tabs.length || !panels.length) return;
-            tabs.forEach(function (tab) {
-                tab.addEventListener("click", function () {
-                    const target = tab.getAttribute("data-binders-tab");
-                    tabs.forEach(function (t) {
-                        const isActive = t === tab;
-                        t.classList.toggle("is-active", isActive);
-                        t.setAttribute("aria-selected", isActive ? "true" : "false");
-                    });
-                    panels.forEach(function (panel) {
-                        panel.classList.toggle("is-hidden", panel.getAttribute("data-binders-panel") !== target);
-                    });
+            // Panels can arrive later (lazy-loaded below), so look them up on
+            // every click instead of binding once at page load.
+            function showBindersTab(target) {
+                document.querySelectorAll("[data-binders-tab]").forEach(function (t) {
+                    const isActive = t.getAttribute("data-binders-tab") === target;
+                    t.classList.toggle("is-active", isActive);
+                    t.setAttribute("aria-selected", isActive ? "true" : "false");
                 });
+                document.querySelectorAll("[data-binders-panel]").forEach(function (panel) {
+                    panel.classList.toggle("is-hidden", panel.getAttribute("data-binders-panel") !== target);
+                });
+            }
+            document.addEventListener("click", function (event) {
+                const tab = event.target.closest("[data-binders-tab]");
+                if (!tab) return;
+                showBindersTab(tab.getAttribute("data-binders-tab"));
+                loadBindersPanels();
             });
+
+            // Ligand tables load when the user gets near the section (or opens a
+            // tab), not with the rest of the page.
+            const holder = document.querySelector("[data-binders-panels-src]");
+            let requested = false;
+            function loadBindersPanels() {
+                if (!holder || requested) return;
+                requested = true;
+                fetch(holder.getAttribute("data-binders-panels-src"), { credentials: "same-origin" })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error("HTTP " + response.status);
+                        return response.text();
+                    })
+                    .then(function (html) {
+                        holder.outerHTML = html;
+                        const active = document.querySelector("[data-binders-tab].is-active");
+                        if (active) showBindersTab(active.getAttribute("data-binders-tab"));
+                    })
+                    .catch(function () {
+                        requested = false;
+                        const note = holder.querySelector(".binders-panels-loading");
+                        if (note) note.textContent = "{% trans 'Could not load ligand records. Reload the page to try again.' %}";
+                    });
+            }
+            if (holder) {
+                if ("IntersectionObserver" in window) {
+                    const observer = new IntersectionObserver(function (entries) {
+                        if (entries.some(function (entry) { return entry.isIntersecting; })) {
+                            observer.disconnect();
+                            loadBindersPanels();
+                        }
+                    }, { rootMargin: "800px 0px" });
+                    observer.observe(document.getElementById("section-binders") || holder);
+                } else {
+                    loadBindersPanels();
+                }
+                if (window.location.hash === "#section-binders") loadBindersPanels();
+            }
         })();
 
         (function () {
