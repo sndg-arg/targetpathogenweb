@@ -555,9 +555,11 @@
             display: none !important;
         }
 
-        /* Button sizes (see /design): default 38px, sm 32px, md 40px. */
-        .btn:not(.btn-sm):not(.btn-lg),
-        .tp-btn:not(.btn-sm):not(.btn-lg) {
+        /* Button sizes (see /design): default 38px, sm 32px, md 40px. The
+           size classes are excluded here: this selector's specificity used
+           to beat .tp-btn--sm/--md, so every button ended up the same size. */
+        .btn:not(.btn-sm):not(.btn-lg):not(.tp-btn--sm):not(.tp-btn--md),
+        .tp-btn:not(.btn-sm):not(.btn-lg):not(.tp-btn--sm):not(.tp-btn--md) {
             min-height: 38px;
             padding: 0.4rem 1rem;
             font-size: 0.9rem;

@@ -5,7 +5,7 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016b">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016c">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -185,35 +185,31 @@
         <div class="ds-table-wrap">
             <table class="ds-matrix">
                 <thead>
-                    <tr><th scope="col">Tipo</th><th scope="col">Chico · <code>tp-btn--sm</code></th><th scope="col">Normal</th><th scope="col">Mediano · <code>tp-btn--md</code></th><th scope="col">Deshabilitado</th></tr>
+                    <tr><th scope="col">Tipo</th><th scope="col">Chico · 32 px<br><code>tp-btn--sm</code></th><th scope="col">Normal · 38 px</th><th scope="col">Deshabilitado</th></tr>
                 </thead>
                 <tbody>
                     <tr>
                         <th scope="row"><strong>Principal</strong><code>tp-btn--primary</code></th>
                         <td><button type="button" class="btn tp-btn tp-btn--primary tp-btn--sm">Run BLAST</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--primary">Explore proteins</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--primary tp-btn--md">Apply filters</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--primary" disabled>Apply filters</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary">Run BLAST</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary" disabled>Run BLAST</button></td>
                     </tr>
                     <tr>
                         <th scope="row"><strong>Secundario</strong><code>tp-btn--secondary</code></th>
-                        <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm">+ Add</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm">Export CSV</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--secondary">Export CSV</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--md">Explore metabolism</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm" disabled>+ Add</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary" disabled>Export CSV</button></td>
                     </tr>
                     <tr>
                         <th scope="row"><strong>Peligro</strong><code>tp-btn--danger</code></th>
                         <td><button type="button" class="btn tp-btn tp-btn--danger tp-btn--sm">Delete</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--danger">Delete genome</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--danger tp-btn--md">Delete genome</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--danger tp-btn--sm" disabled>Delete</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger">Delete</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger" disabled>Delete</button></td>
                     </tr>
                     <tr>
                         <th scope="row"><strong>Fantasma</strong><code>tp-btn--ghost</code></th>
                         <td><button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm">Clear all</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--ghost">Restore defaults</button></td>
-                        <td>—</td>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost">Clear all</button></td>
                         <td>—</td>
                     </tr>
                 </tbody>
@@ -224,7 +220,7 @@
             <div><dt>Secundario</dt><dd>Todo lo demás</dd></div>
             <div><dt>Peligro</dt><dd>Solo borrar</dd></div>
             <div><dt>Fantasma</dt><dd>Ícono o acción en fila</dd></div>
-            <div><dt>Tamaños</dt><dd>32 · 38 · 40 px</dd></div>
+            <div><dt>Chico</dt><dd>Dentro de paneles y filas</dd></div>
         </dl>
     </section>
 
