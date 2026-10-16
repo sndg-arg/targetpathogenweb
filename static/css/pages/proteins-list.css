@@ -3638,15 +3638,6 @@ a.filter-pill .filter-pill-remove {
     white-space: nowrap;
 }
 
-/* A value no protein has: still shown (the server ignores it and says so),
-   but marked so it's caught before Apply. */
-.filter-token-chip.is-unknown {
-    border-color: var(--tp-color-warning-border);
-    background: var(--tp-color-warning-bg);
-    color: var(--tp-color-warning-ink);
-    text-decoration: line-through;
-    text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
-}
 
 .filter-token-remove {
     display: inline-grid;
@@ -3740,6 +3731,53 @@ a.filter-pill .filter-pill-remove {
     font-weight: 700;
 }
 
+/* "X is not a value in this genome, not added": a small speech bubble
+   pointing up at the field, gone after a few seconds. */
+.filter-token-notice {
+    position: relative;
+    justify-self: start;
+    max-width: 100%;
+    margin-top: 2px;
+    padding: 7px 12px;
+    border: 1px solid var(--tp-color-warning-border);
+    border-radius: 10px;
+    background: var(--tp-color-warning-bg);
+    color: var(--tp-color-warning-ink);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    line-height: 1.35;
+    box-shadow: var(--tp-shadow-xs);
+    animation: filter-token-notice-in 180ms ease;
+}
+
+.filter-token-notice::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 18px;
+    width: 10px;
+    height: 10px;
+    border-top: 1px solid var(--tp-color-warning-border);
+    border-left: 1px solid var(--tp-color-warning-border);
+    background: var(--tp-color-warning-bg);
+    transform: rotate(45deg);
+}
+
+.filter-token-notice[hidden] {
+    display: none;
+}
+
+.filter-token-notice.is-leaving {
+    opacity: 0;
+    transform: translateY(-3px);
+    transition: opacity 200ms ease, transform 200ms ease;
+}
+
+@keyframes filter-token-notice-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: none; }
+}
+
 .filter-token-queued {
     margin-top: 2px;
 }
@@ -3762,6 +3800,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .filter-token-notice { animation: none; transition: none; }
     .filter-token-chip { animation: none; }
     .filter-token-field { transition: none; }
 }
