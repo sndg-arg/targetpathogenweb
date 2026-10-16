@@ -170,7 +170,7 @@
     padding: 3px;
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-btn-radius);
-    background: var(--tp-color-surface-soft);
+    background: var(--tp-color-surface);
 }
 
 .blast-segmented-option {
@@ -211,14 +211,21 @@
     color: var(--tp-color-text-primary);
 }
 
+/* Selected: brand tint + brand outline, so it reads at a glance (a plain
+   white chip on the light-gray track was too subtle in light mode). Token
+   pairs invert in dark mode, so no override needed. */
 .blast-segmented-option input:checked + span {
-    background: var(--tp-color-surface);
+    background: var(--tp-color-brand-050);
     color: var(--tp-color-brand-800);
-    box-shadow: var(--tp-shadow-xs);
+    box-shadow: inset 0 0 0 1.5px var(--tp-color-brand-600);
+}
+
+.blast-segmented-option input:checked + span small {
+    color: var(--tp-color-brand-700);
 }
 
 .blast-segmented-option input:focus-visible + span {
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    box-shadow: inset 0 0 0 1.5px var(--tp-color-brand-600), 0 0 0 0.2rem var(--tp-focus-ring);
 }
 
 .blast-actions {
