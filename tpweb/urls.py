@@ -12,6 +12,7 @@ from .views.HealthView import HealthLiveView, HealthPipelineView, HealthReadyVie
 from .views.ProteinListView import (
     ProteinAdvancedFiltersView,
     ProteinListView,
+    FilterValueSuggestionsView,
     ProteinSearchSuggestionsView,
 )
 from .views.ProteinView import ProteinBindersPanelsView, ProteinView
@@ -121,6 +122,11 @@ urlpatterns = [
         "genome/<str:genome>/proteins/suggestions",
         view=ProteinSearchSuggestionsView.as_view(),
         name="protein_search_suggestions",
+    ),
+    path(
+        "genome/<str:genome>/proteins/filter-values",
+        view=FilterValueSuggestionsView.as_view(),
+        name="protein_filter_values",
     ),
     path(
         "genome/<str:genome>/proteins/blast", view=ProteinBlastView.as_view(), name="protein_blast"

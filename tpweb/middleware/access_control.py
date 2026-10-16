@@ -47,6 +47,7 @@ PUBLIC_URL_NAMES = frozenset(
         "protein_metabolic_network_page",
         "protein_list",
         "protein_search_suggestions",
+        "protein_filter_values",
         "protein_advanced_filters",
         "download",
         "genomes_list",

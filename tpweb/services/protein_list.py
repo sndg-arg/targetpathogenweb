@@ -632,6 +632,34 @@ def resolve_filter_values(user, score_param_id, raw_values):
     return option_ids, missing
 
 
+def suggest_filter_values(user, score_param_id, query, limit=10):
+    """Autocomplete for the typed-values filter: up to `limit` option names
+    of a categorical criterion that start with `query` (then ones that only
+    contain it), case-insensitive. Only a column the user may read."""
+    from tpweb.models.ScoreParam import ScoreParamOptions
+    from tpweb.services.score_params import visible_score_params_queryset
+
+    query = (query or "").strip()
+    if not query or not str(score_param_id or "").isdigit():
+        return []
+    if not visible_score_params_queryset(user).filter(pk=int(score_param_id)).exists():
+        return []
+    options = ScoreParamOptions.objects.filter(score_param_id=int(score_param_id))
+    starts = list(
+        options.filter(name__istartswith=query)
+        .order_by("name")
+        .values_list("name", flat=True)[:limit]
+    )
+    if len(starts) < limit:
+        starts += list(
+            options.filter(name__icontains=query)
+            .exclude(name__istartswith=query)
+            .order_by("name")
+            .values_list("name", flat=True)[: limit - len(starts)]
+        )
+    return starts
+
+
 def apply_filter_changes(selected_parameters, changes):
     """Apply an already-parsed list[dict] of change-dicts (see
     apply_filter_change) to selected_parameters, normalizing the result.

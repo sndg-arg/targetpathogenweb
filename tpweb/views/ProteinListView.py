@@ -19,6 +19,7 @@ from tpweb.models.Metabolism import MetabolicReaction
 from django.shortcuts import redirect
 from urllib.parse import urlencode, parse_qs
 from tpweb.services.protein_list import (
+    suggest_filter_values,
     DEFAULT_PAGE_SIZE,
     EC_ANY_VALUE,
     EC_CLASSES,
@@ -177,6 +178,19 @@ class ProteinSearchSuggestionsView(View):
                 r["gene"] = gene_map.get(r["accession"], "")
 
         return JsonResponse({"results": results})
+
+
+class FilterValueSuggestionsView(View):
+    """Autocomplete for the typed-values filter (criteria with too many
+    values for chips, e.g. an uploaded locus-tag column)."""
+
+    def get(self, request, genome, *args, **kwargs):
+        if not resolve_genome_from_slug(request.user, genome):
+            return JsonResponse({"values": []})
+        values = suggest_filter_values(
+            request.user, request.GET.get("param", ""), request.GET.get("q", "")[:80]
+        )
+        return JsonResponse({"values": values})
 
 
 class ProteinAdvancedFiltersView(View):
@@ -636,7 +650,11 @@ class ProteinListView(View):
 
     @staticmethod
     def _build_filter_groups(
-        score_params, selected_parameters, structure_choices=None, function_data=None
+        score_params,
+        selected_parameters,
+        structure_choices=None,
+        function_data=None,
+        shown_column_names=None,
     ):
         selected_option_ids = {
             str(parameter.get("id"))
@@ -654,9 +672,25 @@ class ProteinListView(View):
             param_id = str(param_id)
             active_numeric_by_param.setdefault(param_id, []).append(parameter)
 
+        # Another user's shared column is only offered as a filter once this
+        # user adds it to the table from Columns (or already filters on it,
+        # so the filter can still be removed).
+        filtered_param_ids = {
+            str(parameter.get("score_param_id"))
+            for parameter in selected_parameters
+            if parameter.get("score_param_id") not in ("", None)
+        }
+
         grouped = {}
         numeric_param_count = 0
         for score_param in score_params:
+            if (
+                shown_column_names is not None
+                and (score_param.category or "").strip() == SHARED_COLUMNS_CATEGORY
+                and score_param.name not in shown_column_names
+                and str(score_param.pk) not in filtered_param_ids
+            ):
+                continue
             type_code = (score_param.type or "").upper()
             is_categorical = type_code.startswith("C") or type_code == "CATEGORICAL"
             category = (score_param.category or "Other").strip() or "Other"
@@ -2132,6 +2166,7 @@ class ProteinListView(View):
             selected_parameters,
             structure_choices=structure_source_choices,
             function_data=function_data,
+            shown_column_names=set(selected_column_names),
         )
 
         # Pagination info

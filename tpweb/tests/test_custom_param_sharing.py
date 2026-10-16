@@ -272,6 +272,33 @@ class FilterValuesTests(SharingFixture, TestCase):
         option_ids, missing = resolve_filter_values(self.basic, str(tag_param.pk), "KPN_00002")
         self.assertEqual(option_ids, [])
 
+    def test_suggestions_match_prefix_first_then_contains(self):
+        from tpweb.models.ScoreParam import ScoreParamOptions
+        from tpweb.services.protein_list import suggest_filter_values
+
+        tag_param = ScoreParam.objects.create(
+            category="Custom",
+            name="locus_map_suggest",
+            type="C",
+            default_operation="=",
+            default_value="",
+            user=self.owner,
+        )
+        for name in ["KPN_00002", "KPN_00020", "ABC_KPN_0002", "XYZ_1"]:
+            ScoreParamOptions.objects.create(score_param=tag_param, name=name)
+
+        # Prefix matches first (alphabetical), then values that only contain it.
+        self.assertEqual(
+            suggest_filter_values(self.owner, str(tag_param.pk), "kpn_0002"),
+            ["KPN_00020", "ABC_KPN_0002"],
+        )
+        self.assertEqual(
+            suggest_filter_values(self.owner, str(tag_param.pk), "kpn_000"),
+            ["KPN_00002", "KPN_00020", "ABC_KPN_0002"],
+        )
+        # Someone who can't read the column gets nothing.
+        self.assertEqual(suggest_filter_values(self.basic, str(tag_param.pk), "kpn"), [])
+
 
 class UploadedDataPageTests(SharingFixture, TestCase):
     def setUp(self):
