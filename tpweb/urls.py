@@ -44,6 +44,7 @@ from .views.DataFileUploadView import DataFileUploadView
 from .views.AnnotationExplorerView import AnnotationExplorerView
 from .views.DataSourcesView import DataSourcesView
 from .views.AboutUsView import AboutUsView
+from .views.DesignSystemView import DesignSystemView
 from .views.AgentChatView import AgentChatSessionDetailView, AgentChatSessionsView, AgentChatView
 from .views.RobotsView import RobotsView
 from .views.RequestAccessView import RequestAccessView
@@ -67,6 +68,7 @@ urlpatterns = [
     path("sitemap.xml", view=SitemapView.as_view(), name="sitemap_xml"),
     path("about/data-sources", view=DataSourcesView.as_view(), name="data_sources"),
     path("about/us", view=AboutUsView.as_view(), name="about_us"),
+    path("design", view=DesignSystemView.as_view(), name="design_system"),
     path("genome/<str:genome>", view=AssemblyView.as_view(), name="assembly"),
     path(
         "genome/<str:genome>/metabolism",

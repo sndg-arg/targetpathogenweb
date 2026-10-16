@@ -32,6 +32,18 @@ none slipped through.
   established de-facto small-card radius used throughout `protein-detail.css` and friends; reuse
   that literal value for small cards rather than inventing a new token or picking an arbitrary number.
 
+## Palette: deep petrol, one accent (since 2026-10-16)
+
+The live reference is the unlisted page **`/design`** (`tpweb/templates/about/design_system.html`,
+`static/css/pages/design-system.css`) -- it renders every token and component from the real CSS,
+so check it (and update its copy) when you add or change a token or component.
+- The brand scale is low-chroma petrol (brand-800 `#1d4b5a` = primary). Never reintroduce bright
+  cyan (`#39a6be`-style) values or `rgba(57,166,190,...)` glows.
+- **One-accent rule**: brand color only for (1) the one primary action per view, (2) links,
+  (3) the active tab/section line (`--tp-color-accent-line`). Hover states are neutral grays;
+  selected = brand-800 fill; pending = dashed brand-700 border (no double rings); focus = a thin
+  petrol line, not a glowing halo.
+
 ## File layout
 
 One CSS file per page under `static/css/pages/<page>.css` (CLAUDE.md rule). Shared, cross-page
@@ -61,11 +73,12 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
   view, filled), `.tp-btn--secondary` (every other action, outlined), `.tp-btn--danger`
   (destructive, outlined, fills red on hover), `.tp-btn--ghost` (icon-only / in-row actions such
   as close, refresh, rename, no border until hover) — plus `.tp-btn--sm/md` for size, always
-  paired with `.btn .tp-btn`. Corners come from `--tp-btn-radius` (11px) / `--tp-btn-radius-sm`
-  (8px, compact controls); round 999px is only for icon-only ghost buttons. A page-specific
-  button class (e.g. `.metabolic-map-btn`, `.tp-table-export-btn`) may set size/layout, but its
-  colors must be exactly one of the four types (secondary = text-primary on surface with
-  border-strong; hover brand-800 text, brand-600 border, brand-050 fill). Toggle groups
+  paired with `.btn .tp-btn`. Sizes: sm 32px, default 38px, md 40px. Corners come from
+  `--tp-btn-radius` (8px) / `--tp-btn-radius-sm` (6px); round 999px is only for icon-only ghost
+  buttons. A page-specific button class (e.g. `.metabolic-map-btn`, `.tp-table-export-btn`) may
+  set size/layout, but its colors must be exactly one of the four types (secondary = text-primary
+  on surface with border-strong; hover is NEUTRAL: text-primary, text-muted border,
+  surface-soft fill -- never a brand tint). Toggle groups
   (segmented controls, viewer toolbar) and dropdown triggers are separate components, not
   button types.
   The older names (`neutral`, `outline`, `clear`, `dark`, `light`, `success`, `info`,

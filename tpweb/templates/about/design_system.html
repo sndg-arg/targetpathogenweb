@@ -1,0 +1,350 @@
+{% extends '../base/masterpage.html' %}
+{% load static %}
+
+{% block title %}Target Pathogen · Sistema visual{% endblock %}
+
+{% block head %}
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% url 'tpwebapp:index' as index_url %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label="Sistema visual" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+{# Unlisted on purpose: no nav link, not in the sitemap, noindex. Everything #}
+{# below is drawn with the site's real tokens and classes, so it stays true. #}
+<div class="ds-page">
+
+    <section class="ds-hero">
+        <p class="ds-eyebrow">Referencia interna · solo con link</p>
+        <h1>Sistema visual de Target Pathogen</h1>
+        <p class="ds-lead">Colores, tipografía, tamaños y componentes que usa la app, con su nombre de token y cuándo usar cada uno. Todo lo que ves acá está dibujado con el CSS real del sitio: si cambia un token, esta página cambia sola. Probá el botón de tema (sol/luna, arriba a la derecha) para ver el modo oscuro.</p>
+    </section>
+
+    <nav class="quick-nav" data-quick-nav aria-label="Secciones">
+        <a class="quick-nav-link" href="#principios">Principios</a>
+        <a class="quick-nav-link" href="#color">Color</a>
+        <a class="quick-nav-link" href="#tipografia">Tipografía</a>
+        <a class="quick-nav-link" href="#espacio">Espacio y forma</a>
+        <a class="quick-nav-link" href="#botones">Botones</a>
+        <a class="quick-nav-link" href="#chips">Chips</a>
+        <a class="quick-nav-link" href="#formularios">Formularios</a>
+        <a class="quick-nav-link" href="#avisos">Avisos</a>
+        <a class="quick-nav-link" href="#layout">Layout</a>
+    </nav>
+
+    {# ── Principios ── #}
+    <section class="ds-section" id="principios">
+        <h2>Principios</h2>
+        <div class="ds-principles">
+            <div class="ds-principle">
+                <h3>Un solo acento</h3>
+                <p>El petróleo de la marca se usa en tres cosas: la acción principal de cada vista, los links y la línea de la sección activa. Todo lo demás es gris neutro.</p>
+            </div>
+            <div class="ds-principle">
+                <h3>Estados tranquilos</h3>
+                <p>Pasar el mouse da un gris suave; seleccionado es petróleo lleno; pendiente es un borde punteado; el foco de teclado es una línea fina. Nada brilla.</p>
+            </div>
+            <div class="ds-principle">
+                <h3>Editorial, no tarjetas</h3>
+                <p>Las secciones van directo sobre el fondo blanco, separadas por espacio o una línea fina. Las cajas con borde quedan para lo que realmente es un objeto aparte.</p>
+            </div>
+            <div class="ds-principle">
+                <h3>Tokens, nunca colores sueltos</h3>
+                <p>Los valores hex viven solo en <code>masterpage.html</code>. Todo el CSS usa <code>var(--tp-…)</code>, así el modo oscuro sale solo.</p>
+            </div>
+        </div>
+    </section>
+
+    {# ── Color ── #}
+    <section class="ds-section" id="color">
+        <h2>Color</h2>
+        <p class="ds-intro">Los valores de cada muestra son los del tema activo. En modo oscuro los tokens cambian de valor, no de nombre: un componente que usa <code>--tp-color-brand-800</code> funciona en los dos temas.</p>
+
+        <h3 class="ds-sub">Marca (petróleo)</h3>
+        <div class="ds-scale">
+            <div class="ds-swatch" data-token="--tp-color-brand-900"><span>900</span></div>
+            <div class="ds-swatch" data-token="--tp-color-brand-800"><span>800</span></div>
+            <div class="ds-swatch" data-token="--tp-color-brand-700"><span>700</span></div>
+            <div class="ds-swatch" data-token="--tp-color-brand-600"><span>600</span></div>
+            <div class="ds-swatch" data-token="--tp-color-brand-500"><span>500</span></div>
+            <div class="ds-swatch" data-token="--tp-color-brand-400"><span>400</span></div>
+            <div class="ds-swatch" data-token="--tp-color-brand-300"><span>300</span></div>
+            <div class="ds-swatch" data-token="--tp-color-brand-200"><span>200</span></div>
+            <div class="ds-swatch" data-token="--tp-color-brand-100"><span>100</span></div>
+            <div class="ds-swatch" data-token="--tp-color-brand-050"><span>050</span></div>
+        </div>
+        <dl class="ds-usage">
+            <div><dt>800</dt><dd>Botón principal, opción seleccionada, chip aplicado.</dd></div>
+            <div><dt>900</dt><dd>Títulos, hover del botón principal.</dd></div>
+            <div><dt>700 · 600</dt><dd>Bordes de foco y de pendiente, barras de datos activas.</dd></div>
+            <div><dt>500 · 300</dt><dd>Barras y gráficos (árbol EC, puntajes).</dd></div>
+            <div><dt>100 · 050</dt><dd>Fondos de seleccionado muy suaves.</dd></div>
+        </dl>
+
+        <h3 class="ds-sub">Acento y links</h3>
+        <div class="ds-tokens">
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-accent-line"></div><code>--tp-color-accent-line</code><span>La línea bajo la sección o pestaña activa. Es el único tono más vivo.</span></div>
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-link"></div><code>--tp-color-link</code><span>Links dentro del texto.</span></div>
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-link-hover"></div><code>--tp-color-link-hover</code><span>Link al pasar el mouse; texto de la pestaña activa.</span></div>
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-nav-900"></div><code>--tp-color-nav-900</code><span>Barra superior (con degradé hacia nav-800 y nav-600).</span></div>
+        </div>
+
+        <h3 class="ds-sub">Texto</h3>
+        <div class="ds-tokens">
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-text-primary"></div><code>--tp-color-text-primary</code><span>Texto principal y valores.</span></div>
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-text-secondary"></div><code>--tp-color-text-secondary</code><span>Párrafos y descripciones.</span></div>
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-text-muted"></div><code>--tp-color-text-muted</code><span>Rótulos, ayudas, metadatos.</span></div>
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-text-soft"></div><code>--tp-color-text-soft</code><span>Placeholders, deshabilitado, el último recurso (como el mail de contacto).</span></div>
+        </div>
+
+        <h3 class="ds-sub">Superficies y bordes</h3>
+        <div class="ds-tokens">
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-surface"></div><code>--tp-color-surface</code><span>Fondo de página y de controles.</span></div>
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-surface-soft"></div><code>--tp-color-surface-soft</code><span>Bandas (breadcrumb, menú de secciones), hover neutro, ejemplos de código.</span></div>
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-surface-muted"></div><code>--tp-color-surface-muted</code><span>Fondo de barras vacías, hover de botones fantasma.</span></div>
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-border-soft"></div><code>--tp-color-border-soft</code><span>Líneas finas entre secciones y filas.</span></div>
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-border"></div><code>--tp-color-border</code><span>Bordes de chips y tablas.</span></div>
+            <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-border-strong"></div><code>--tp-color-border-strong</code><span>Bordes de campos y botones secundarios.</span></div>
+        </div>
+
+        <h3 class="ds-sub">Semánticos</h3>
+        <p class="ds-intro">Para estados, no para decorar. Cada uno tiene tinta (texto), fondo y borde.</p>
+        <div class="ds-semantic">
+            <div class="ds-sem ds-sem--success"><strong>success</strong><span>Favorable: sin hit humano, esencial, completado.</span></div>
+            <div class="ds-sem ds-sem--info"><strong>info</strong><span>Informativo, en curso.</span></div>
+            <div class="ds-sem ds-sem--warning"><strong>warning</strong><span>Atención: valor dudoso, valor que no existe.</span></div>
+            <div class="ds-sem ds-sem--danger"><strong>danger</strong><span>Riesgo o error; acciones de borrar.</span></div>
+            <div class="ds-sem ds-sem--idle"><strong>idle</strong><span>Sin datos, en espera.</span></div>
+        </div>
+    </section>
+
+    {# ── Tipografía ── #}
+    <section class="ds-section" id="tipografia">
+        <h2>Tipografía</h2>
+        <div class="ds-fonts">
+            <div class="ds-font">
+                <p class="ds-font-sample ds-font-sample--head">Space Grotesk</p>
+                <p class="ds-font-role">Títulos, nombres de sección, pestañas. Pesos 500, 600 y 700 (el H1 en 700).</p>
+            </div>
+            <div class="ds-font">
+                <p class="ds-font-sample ds-font-sample--body">Source Sans 3</p>
+                <p class="ds-font-role">Todo el texto: párrafos, tablas, botones, formularios. Pesos 400, 600 y 700.</p>
+            </div>
+            <div class="ds-font">
+                <p class="ds-font-sample ds-font-sample--mono">JetBrains Mono</p>
+                <p class="ds-font-role">Identificadores y datos crudos: locus tags (KPN_00002), códigos EC, GO, PDB, secuencias FASTA.</p>
+            </div>
+        </div>
+
+        <h3 class="ds-sub">Escala</h3>
+        <div class="ds-typescale">
+            <div class="ds-type-row"><code>--tp-heading-lg</code><span class="ds-t" style="font-size: var(--tp-heading-lg); font-family: var(--ds-head); font-weight: 700;">Título de página</span></div>
+            <div class="ds-type-row"><code>--tp-heading-md</code><span class="ds-t" style="font-size: var(--tp-heading-md); font-family: var(--ds-head); font-weight: 600;">Título de sección grande</span></div>
+            <div class="ds-type-row"><code>--tp-heading-sm</code><span class="ds-t" style="font-size: var(--tp-heading-sm); font-family: var(--ds-head); font-weight: 600;">Título de sección</span></div>
+            <div class="ds-type-row"><code>--tp-font-size-lg</code><span class="ds-t" style="font-size: var(--tp-font-size-lg);">Texto destacado, 1.12rem</span></div>
+            <div class="ds-type-row"><code>--tp-font-size-md</code><span class="ds-t" style="font-size: var(--tp-font-size-md);">Texto de cuerpo, 0.98rem</span></div>
+            <div class="ds-type-row"><code>--tp-font-size-sm</code><span class="ds-t" style="font-size: var(--tp-font-size-sm);">Texto secundario y tablas, 0.88rem</span></div>
+            <div class="ds-type-row"><code>--tp-font-size-xs</code><span class="ds-t" style="font-size: var(--tp-font-size-xs);">Ayudas y metadatos, 0.78rem</span></div>
+            <div class="ds-type-row"><code>--tp-font-label</code><span class="ds-t ds-eyebrow" style="margin: 0;">Rótulo en mayúsculas · 0.75rem · espaciado 0.08em</span></div>
+        </div>
+    </section>
+
+    {# ── Espacio y forma ── #}
+    <section class="ds-section" id="espacio">
+        <h2>Espacio y forma</h2>
+        <div class="ds-two">
+            <div>
+                <h3 class="ds-sub">Espaciado</h3>
+                <div class="ds-spaces">
+                    <div class="ds-space"><code>--tp-space-1</code><i style="width: var(--tp-space-1)"></i><span>4 px</span></div>
+                    <div class="ds-space"><code>--tp-space-2</code><i style="width: var(--tp-space-2)"></i><span>8 px</span></div>
+                    <div class="ds-space"><code>--tp-space-3</code><i style="width: var(--tp-space-3)"></i><span>12 px</span></div>
+                    <div class="ds-space"><code>--tp-space-4</code><i style="width: var(--tp-space-4)"></i><span>16 px</span></div>
+                    <div class="ds-space"><code>--tp-space-5</code><i style="width: var(--tp-space-5)"></i><span>20 px</span></div>
+                    <div class="ds-space"><code>--tp-space-6</code><i style="width: var(--tp-space-6)"></i><span>24 px</span></div>
+                    <div class="ds-space"><code>--tp-space-7</code><i style="width: var(--tp-space-7)"></i><span>32 px</span></div>
+                    <div class="ds-space"><code>--tp-space-8</code><i style="width: var(--tp-space-8)"></i><span>40 px</span></div>
+                </div>
+                <p class="ds-intro">Margen lateral de las páginas: 18 px. Entre secciones grandes: 40 px.</p>
+            </div>
+            <div>
+                <h3 class="ds-sub">Bordes redondeados</h3>
+                <div class="ds-radii">
+                    <div class="ds-radius"><i style="border-radius: var(--tp-btn-radius-sm)"></i><code>--tp-btn-radius-sm</code><span>6 px · botones chicos</span></div>
+                    <div class="ds-radius"><i style="border-radius: var(--tp-btn-radius)"></i><code>--tp-btn-radius</code><span>8 px · botones y campos</span></div>
+                    <div class="ds-radius"><i style="border-radius: 12px"></i><code>12 px</code><span>tarjetas chicas, ejemplos de código</span></div>
+                    <div class="ds-radius"><i style="border-radius: 999px"></i><code>999 px</code><span>chips y botones de solo ícono</span></div>
+                </div>
+                <h3 class="ds-sub">Sombras</h3>
+                <div class="ds-shadows">
+                    <div style="box-shadow: var(--tp-shadow-xs)"><code>xs</code></div>
+                    <div style="box-shadow: var(--tp-shadow-sm)"><code>sm</code></div>
+                    <div style="box-shadow: var(--tp-shadow-md)"><code>md</code></div>
+                </div>
+                <p class="ds-intro">Casi no se usan: solo menús desplegables (md) y tarjetas chicas (xs).</p>
+            </div>
+        </div>
+    </section>
+
+    {# ── Botones ── #}
+    <section class="ds-section" id="botones">
+        <h2>Botones</h2>
+        <p class="ds-intro">Cuatro tipos y ninguno más. Siempre <code>btn tp-btn</code> más el tipo, y opcionalmente el tamaño.</p>
+        <div class="ds-table-wrap">
+            <table class="ds-matrix">
+                <thead>
+                    <tr><th scope="col">Tipo</th><th scope="col">Chico · <code>tp-btn--sm</code></th><th scope="col">Normal</th><th scope="col">Mediano · <code>tp-btn--md</code></th><th scope="col">Deshabilitado</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row"><strong>Principal</strong><code>tp-btn--primary</code></th>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary tp-btn--sm">Run BLAST</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary">Explore proteins</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary tp-btn--md">Apply filters</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary" disabled>Apply filters</button></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Secundario</strong><code>tp-btn--secondary</code></th>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm">+ Add</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary">Export CSV</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--md">Explore metabolism</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm" disabled>+ Add</button></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Peligro</strong><code>tp-btn--danger</code></th>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger tp-btn--sm">Delete</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger">Delete genome</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger tp-btn--md">Delete genome</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger tp-btn--sm" disabled>Delete</button></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Fantasma</strong><code>tp-btn--ghost</code></th>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm">Clear all</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost">Restore defaults</button></td>
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <dl class="ds-usage">
+            <div><dt>Principal</dt><dd>Una sola por vista: la acción que el usuario vino a hacer (Explore proteins, Run BLAST, Apply filters).</dd></div>
+            <div><dt>Secundario</dt><dd>Todo lo demás: exportar, agregar un valor a un filtro, abrir otra vista.</dd></div>
+            <div><dt>Peligro</dt><dd>Solo acciones que borran. Con borde rosa; se llena de rosa al pasar el mouse.</dd></div>
+            <div><dt>Fantasma</dt><dd>Acciones dentro de una fila o de solo ícono (cerrar, refrescar, renombrar, limpiar). Sin borde hasta el hover.</dd></div>
+            <div><dt>Tamaños</dt><dd>Chico 32 px (dentro de paneles y filas), normal 38 px, mediano 40 px (formularios principales). Texto 0.84 / 0.9 / 0.88 rem, peso 600 en el principal.</dd></div>
+        </dl>
+    </section>
+
+    {# ── Chips ── #}
+    <section class="ds-section" id="chips">
+        <h2>Chips</h2>
+        <p class="ds-intro">Etiquetas chicas de forma píldora. No son botones salvo en los filtros.</p>
+        <div class="ds-demo-row">
+            <span class="tp-chip tp-chip--sm tp-chip--meta">Curated analysis</span>
+            <span class="tp-chip tp-chip--sm tp-chip--count">857</span>
+            <span class="tp-chip tp-chip--sm tp-chip--ec">2.7.13.3</span>
+            <span class="tp-chip tp-chip--sm tp-chip--go">GO:0005737</span>
+            <span class="tp-chip tp-chip--sm tp-chip--direct">Has structure</span>
+        </div>
+        <dl class="ds-usage">
+            <div><dt>meta</dt><dd>Datos de contexto (fuente, organismo, cepa).</dd></div>
+            <div><dt>count</dt><dd>Un número junto a un título.</dd></div>
+            <div><dt>ec · go</dt><dd>Anotaciones; siempre en mono.</dd></div>
+        </dl>
+        <h3 class="ds-sub">Chips de filtro</h3>
+        <div class="ds-demo-row">
+            <span class="ds-filter-chip">Core</span>
+            <span class="ds-filter-chip ds-filter-chip--applied">Accessory ×</span>
+            <span class="ds-filter-chip ds-filter-chip--pending">Shell</span>
+        </div>
+        <dl class="ds-usage">
+            <div><dt>Normal</dt><dd>Borde gris; al pasar el mouse, fondo gris suave.</dd></div>
+            <div><dt>Aplicado</dt><dd>Petróleo lleno con texto claro y una × para quitarlo.</dd></div>
+            <div><dt>Pendiente</dt><dd>Borde punteado: está elegido pero falta apretar Apply filters.</dd></div>
+        </dl>
+    </section>
+
+    {# ── Formularios ── #}
+    <section class="ds-section" id="formularios">
+        <h2>Formularios</h2>
+        <div class="ds-form-demo">
+            <div class="tp-ui-field">
+                <label class="tp-ui-field-label" for="ds-input">Rótulo del campo</label>
+                <input id="ds-input" type="text" class="form-control tp-ui-control" placeholder="Placeholder en gris suave">
+            </div>
+            <div class="tp-ui-field">
+                <label class="tp-ui-field-label" for="ds-select">Selector</label>
+                <select id="ds-select" class="form-control tp-ui-control"><option>GCA_030061715.1</option><option>KpATCC43816</option></select>
+            </div>
+            <fieldset class="tp-ui-field ds-seg-field">
+                <legend class="tp-ui-field-label">Selector de dos opciones</legend>
+                <div class="ds-seg">
+                    <label><input type="radio" name="ds-seg" checked><span>Nucleotide <small>blastn</small></span></label>
+                    <label><input type="radio" name="ds-seg"><span>Protein <small>blastp</small></span></label>
+                </div>
+            </fieldset>
+        </div>
+        <dl class="ds-usage">
+            <div><dt>Alto</dt><dd>40 px (<code>--tp-ui-control-height</code>), esquinas de 8 px, borde <code>border-strong</code>.</dd></div>
+            <div><dt>Rótulo</dt><dd>Mayúsculas chicas en gris (<code>tp-ui-field-label</code>), arriba del campo.</dd></div>
+            <div><dt>Foco</dt><dd>Borde y una línea fina en petróleo; nunca un halo brillante.</dd></div>
+            <div><dt>Valores</dt><dd>Identificadores y secuencias se escriben en mono.</dd></div>
+        </dl>
+    </section>
+
+    {# ── Avisos ── #}
+    <section class="ds-section" id="avisos">
+        <h2>Avisos</h2>
+        <p class="ds-intro">Un aviso de texto nunca va en una caja redondeada: lleva una barra de color a la izquierda.</p>
+        <div class="ds-notes">
+            <p class="ds-note ds-note--info">This search runs on the genome above.</p>
+            <p class="ds-note ds-note--warning">“e.g.” is not a value in this genome, not added.</p>
+            <p class="ds-note ds-note--danger">The file was not loaded.</p>
+        </div>
+    </section>
+
+    {# ── Layout ── #}
+    <section class="ds-section" id="layout">
+        <h2>Layout</h2>
+        <dl class="ds-usage">
+            <div><dt>Página</dt><dd>Encabezado (rótulo, título, una línea de descripción) sin caja; debajo, el contenido directo sobre el fondo.</dd></div>
+            <div><dt>Secciones</dt><dd>De 2 a 4 secciones: separadas por una línea fina. Más de 5 con títulos propios: solo espacio.</dd></div>
+            <div><dt>Menú de secciones</dt><dd>El mismo en todas las páginas (<code>quick-nav</code>): queda fijo arriba y las secciones frenan debajo.</dd></div>
+            <div><dt>Columnas</dt><dd>Formulario a la izquierda, guía a la derecha, separados por una línea vertical fina.</dd></div>
+            <div><dt>CSS</dt><dd>Un archivo por página en <code>static/css/pages/</code>; componentes compartidos en <code>ui-system.css</code>.</dd></div>
+        </dl>
+    </section>
+</div>
+
+<script src="{% static 'js/global/quick-nav.js' %}?v=20261015"></script>
+<script>
+(function () {
+    function paint() {
+        var cs = getComputedStyle(document.documentElement);
+        document.querySelectorAll(".ds-swatch[data-token]").forEach(function (el) {
+            var token = el.getAttribute("data-token");
+            var value = cs.getPropertyValue(token).trim();
+            el.style.background = "var(" + token + ")";
+            var hex = el.querySelector(".ds-hex");
+            if (!hex) {
+                hex = document.createElement("em");
+                hex.className = "ds-hex";
+                el.appendChild(hex);
+            }
+            hex.textContent = value;
+        });
+    }
+    paint();
+    new MutationObserver(paint).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+})();
+</script>
+{% endblock %}

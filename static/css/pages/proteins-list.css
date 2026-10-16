@@ -3416,16 +3416,16 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-secondary);
 }
 
-/* Hover gives a clear teal preview — signals interactivity without commitment */
+/* Hover is neutral (one-accent rule, see /design): a soft gray, no tint. */
 .filter-chip:hover {
-    background: var(--tp-color-brand-050);
-    border-color: var(--tp-color-brand-300);
-    color: var(--tp-color-brand-900);
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-strong);
+    color: var(--tp-color-text-primary);
 }
 
 .filter-chip:active {
-    background: var(--tp-color-brand-100);
-    border-color: var(--tp-color-brand-600);
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-text-muted);
 }
 
 .filter-chip:focus-visible {
@@ -3433,16 +3433,18 @@ a.filter-pill .filter-pill-remove {
     outline-offset: 2px;
 }
 
-/* Pending-add state (was inactive, JS added --active + --pending): light teal */
+/* Pending-add state (was inactive, JS added --active + --pending): dashed
+   outline = "waiting for Apply filters". */
 .filter-chip--active {
-    background: var(--tp-color-brand-100);
-    border-color: var(--tp-color-brand-600);
-    color: var(--tp-color-brand-900);
+    background: var(--tp-color-surface);
+    border: 1px dashed var(--tp-color-brand-700);
+    color: var(--tp-color-brand-800);
     font-weight: 500;
 }
 
 /* Server-applied, no pending change: solid brand fill — unambiguously "ON" */
 .filter-chip--active:not(.filter-chip--pending) {
+    border-style: solid;
     background: var(--tp-color-brand-700);
     border-color: var(--tp-color-brand-700);
     color: var(--tp-color-brand-050);
@@ -3605,8 +3607,8 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-token-field:focus-within {
-    border-color: var(--tp-color-brand-600);
-    box-shadow: 0 0 0 3px var(--tp-focus-ring);
+    border-color: var(--tp-color-brand-700);
+    box-shadow: 0 0 0 1px var(--tp-color-brand-700);
 }
 
 .filter-token-chips {
@@ -3622,10 +3624,10 @@ a.filter-pill .filter-pill-remove {
     gap: 4px;
     max-width: 100%;
     padding: 3px 4px 3px 10px;
-    border: 1px solid var(--tp-color-brand-300);
+    border: 1px solid var(--tp-color-border-strong);
     border-radius: 999px;
-    background: var(--tp-color-brand-050);
-    color: var(--tp-color-brand-900);
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-primary);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.78rem;
     line-height: 1.3;
@@ -4240,9 +4242,11 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-primary);
 }
 
-/* Pending state — brand double-ring that fades in/out smoothly */
+/* Pending state: dashed outline (no glowing ring). */
 .filter-chip--pending {
-    box-shadow: 0 0 0 2px var(--tp-color-brand-100), 0 0 0 3.5px var(--tp-color-brand-600);
+    border-style: dashed !important;
+    border-color: var(--tp-color-brand-700) !important;
+    box-shadow: none;
 }
 
 /* Apply button disabled state */

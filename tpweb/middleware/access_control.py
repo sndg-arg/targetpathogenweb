@@ -35,6 +35,7 @@ PUBLIC_URL_NAMES = frozenset(
         "index",
         "data_sources",
         "about_us",
+        "design_system",
         "assembly",
         "genome_metabolism",
         "genome_metabolism_network",

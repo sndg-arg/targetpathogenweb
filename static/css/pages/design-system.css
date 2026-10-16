@@ -1,0 +1,536 @@
+/* ── /design: the unlisted visual reference. Editorial layout like every
+   other page; swatches and samples are drawn from the real tokens. ── */
+
+.ds-page {
+    display: grid;
+    gap: var(--tp-space-4);
+    --ds-head: "Space Grotesk", "Segoe UI", sans-serif;
+    --ds-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    color: var(--tp-color-text-primary);
+}
+
+.ds-page h1,
+.ds-page h2,
+.ds-page h3 {
+    font-family: var(--ds-head);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+}
+
+.ds-page code {
+    font-family: var(--ds-mono);
+    font-size: 0.82em;
+    color: var(--tp-color-text-secondary);
+}
+
+.ds-hero {
+    padding: 22px 18px 18px;
+}
+
+.ds-eyebrow {
+    margin: 0 0 8px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ds-hero h1 {
+    margin: 0;
+    font-size: var(--tp-heading-lg);
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--tp-color-brand-900);
+}
+
+.ds-lead {
+    margin: 10px 0 0;
+    max-width: 760px;
+    color: var(--tp-color-text-secondary);
+    font-size: 1.03rem;
+    line-height: 1.52;
+}
+
+.ds-section {
+    margin: 0 18px;
+    padding-top: var(--tp-space-6);
+    display: grid;
+    gap: var(--tp-space-4);
+    min-width: 0;
+}
+
+.ds-section ~ .ds-section {
+    margin-top: var(--tp-space-6);
+}
+
+.ds-section h2 {
+    margin: 0;
+    font-size: var(--tp-heading-md);
+    color: var(--tp-color-brand-900);
+}
+
+.ds-sub {
+    margin: var(--tp-space-2) 0 0;
+    font-size: var(--tp-heading-sm);
+    color: var(--tp-color-text-primary);
+}
+
+.ds-intro {
+    margin: 0;
+    max-width: 70ch;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+/* Principles */
+.ds-principles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--tp-space-5);
+}
+
+.ds-principle {
+    padding-left: var(--tp-space-3);
+    border-left: 3px solid var(--tp-color-border);
+}
+
+.ds-principle h3 {
+    margin: 0 0 4px;
+    font-size: var(--tp-font-size-md);
+}
+
+.ds-principle p {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+/* Swatches */
+.ds-scale {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.ds-swatch {
+    position: relative;
+    min-height: 84px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 2px;
+    padding: 6px;
+}
+
+.ds-swatch span,
+.ds-swatch .ds-hex {
+    align-self: flex-start;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    font-family: var(--ds-mono);
+    font-size: 0.66rem;
+    font-style: normal;
+}
+
+.ds-swatch--sm {
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+}
+
+.ds-swatch--sm .ds-hex {
+    display: none;
+}
+
+.ds-tokens {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--tp-space-3) var(--tp-space-5);
+}
+
+.ds-token {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: var(--tp-space-3);
+    align-items: center;
+}
+
+.ds-token .ds-swatch {
+    grid-row: 1 / 3;
+}
+
+.ds-token code {
+    color: var(--tp-color-text-primary);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.ds-token span {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.35;
+}
+
+/* Usage lists */
+.ds-usage {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    max-width: 860px;
+}
+
+.ds-usage > div {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: var(--tp-space-3);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-usage dt {
+    font-weight: 600;
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-usage dd {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+}
+
+/* Semantic */
+.ds-semantic {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--tp-space-3);
+}
+
+.ds-sem {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    border: 1px solid;
+    border-radius: 10px;
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-sem strong { font-family: var(--ds-mono); font-size: 0.8rem; }
+.ds-sem--success { color: var(--tp-color-success-ink); background: var(--tp-color-success-bg); border-color: var(--tp-color-success-border); }
+.ds-sem--info { color: var(--tp-color-info-ink); background: var(--tp-color-info-bg); border-color: var(--tp-color-info-border); }
+.ds-sem--warning { color: var(--tp-color-warning-ink); background: var(--tp-color-warning-bg); border-color: var(--tp-color-warning-border); }
+.ds-sem--danger { color: var(--tp-color-danger-ink); background: var(--tp-color-danger-bg); border-color: var(--tp-color-danger-border); }
+.ds-sem--idle { color: var(--tp-color-idle-ink); background: var(--tp-color-idle-bg); border-color: var(--tp-color-idle-border); }
+
+/* Type */
+.ds-fonts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--tp-space-5);
+}
+
+.ds-font-sample {
+    margin: 0;
+    font-size: 1.8rem;
+    line-height: 1.1;
+    color: var(--tp-color-brand-900);
+}
+
+.ds-font-sample--head { font-family: var(--ds-head); font-weight: 700; }
+.ds-font-sample--body { font-family: "Source Sans 3", "Segoe UI", sans-serif; font-weight: 600; }
+.ds-font-sample--mono { font-family: var(--ds-mono); font-weight: 600; font-size: 1.5rem; }
+
+.ds-font-role {
+    margin: 6px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.45;
+}
+
+.ds-typescale {
+    display: grid;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-type-row {
+    display: grid;
+    grid-template-columns: 170px minmax(0, 1fr);
+    gap: var(--tp-space-4);
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-t {
+    min-width: 0;
+    color: var(--tp-color-text-primary);
+    overflow-wrap: anywhere;
+}
+
+/* Space, radius, shadow */
+.ds-two {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--tp-space-8);
+}
+
+.ds-spaces,
+.ds-radii {
+    display: grid;
+    gap: 8px;
+    margin: var(--tp-space-3) 0;
+}
+
+.ds-space {
+    display: grid;
+    grid-template-columns: 110px 44px auto;
+    gap: var(--tp-space-3);
+    align-items: center;
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-space i {
+    display: block;
+    height: 12px;
+    background: var(--tp-color-brand-500);
+    border-radius: 2px;
+}
+
+.ds-space span,
+.ds-radius span {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.ds-radius {
+    display: grid;
+    grid-template-columns: 40px 140px minmax(0, 1fr);
+    gap: var(--tp-space-3);
+    align-items: center;
+}
+
+.ds-radius i {
+    display: block;
+    width: 40px;
+    height: 28px;
+    border: 1.5px solid var(--tp-color-brand-700);
+    background: var(--tp-color-brand-050);
+}
+
+.ds-shadows {
+    display: flex;
+    gap: var(--tp-space-4);
+    margin: var(--tp-space-3) 0;
+}
+
+.ds-shadows div {
+    display: grid;
+    place-items: center;
+    width: 72px;
+    height: 52px;
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    border: 1px solid var(--tp-color-border-soft);
+}
+
+/* Buttons matrix */
+.ds-table-wrap {
+    overflow-x: auto;
+}
+
+.ds-matrix {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+}
+
+.ds-matrix th,
+.ds-matrix td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.ds-matrix thead th {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.ds-matrix thead th code {
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.ds-matrix tbody th {
+    display: grid;
+    gap: 2px;
+    font-weight: 400;
+}
+
+/* Chips */
+.ds-demo-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Same look as proteins-list.css's .filter-chip states. */
+.ds-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 13px;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 999px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-secondary);
+    font-size: 0.83rem;
+}
+
+.ds-filter-chip:hover {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-strong);
+    color: var(--tp-color-text-primary);
+}
+
+.ds-filter-chip--applied,
+.ds-filter-chip--applied:hover {
+    background: var(--tp-color-brand-700);
+    border-color: var(--tp-color-brand-700);
+    color: var(--tp-color-brand-050);
+    font-weight: 500;
+}
+
+.ds-filter-chip--pending,
+.ds-filter-chip--pending:hover {
+    border-style: dashed;
+    border-color: var(--tp-color-brand-700);
+    color: var(--tp-color-brand-800);
+    font-weight: 500;
+}
+
+/* Forms */
+.ds-form-demo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--tp-space-5);
+    align-items: end;
+    max-width: 920px;
+}
+
+.ds-form-demo .tp-ui-field {
+    display: grid;
+    gap: 7px;
+}
+
+.ds-seg-field {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+/* Same look as blast.css's segmented control. */
+.ds-seg {
+    display: inline-flex;
+    justify-self: start;
+    padding: 3px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-btn-radius);
+    background: var(--tp-color-surface);
+}
+
+.ds-seg label {
+    margin: 0;
+    cursor: pointer;
+}
+
+.ds-seg input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ds-seg span {
+    display: inline-flex;
+    gap: 6px;
+    align-items: baseline;
+    padding: 6px 14px;
+    border-radius: calc(var(--tp-btn-radius) - 3px);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+}
+
+.ds-seg small {
+    font-family: var(--ds-mono);
+    font-size: 0.72rem;
+    font-weight: 400;
+    opacity: 0.75;
+}
+
+.ds-seg input:checked + span {
+    background: var(--tp-color-brand-800);
+    color: var(--tp-color-on-accent);
+}
+
+.tp-dark .ds-seg input:checked + span {
+    background: var(--tp-color-brand-300);
+}
+
+.ds-seg input:focus-visible + span {
+    box-shadow: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-color-brand-800);
+}
+
+/* Notes */
+.ds-notes {
+    display: grid;
+    gap: 10px;
+}
+
+.ds-note {
+    margin: 0;
+    padding: 2px 0 2px 12px;
+    border-left: 3px solid;
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-note--info { border-color: var(--tp-color-info-border); color: var(--tp-color-text-secondary); }
+.ds-note--warning { border-color: var(--tp-color-warning-border); color: var(--tp-color-warning-ink); }
+.ds-note--danger { border-color: var(--tp-color-danger-border); color: var(--tp-color-danger-ink); font-weight: 600; }
+
+/* Sections reached from the menu stop below it. */
+.ds-page [id] {
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 61px);
+}
+
+@media (max-width: 860px) {
+    .ds-two {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--tp-space-6);
+    }
+
+    .ds-scale {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .ds-usage > div,
+    .ds-type-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2px;
+    }
+}

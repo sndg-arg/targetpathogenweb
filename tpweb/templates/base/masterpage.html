@@ -23,9 +23,9 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/brand/apple-touch-icon.png' %}?v=4">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261015-request-access">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261016-petrol">
     <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261013-mobile-fab">
     <style>
         :root {
@@ -33,18 +33,20 @@
             --tp-color-text-secondary: #2b4f60;
             --tp-color-text-muted: #4f6d7a;
             --tp-color-text-soft: #7f97a5;
-            --tp-color-link: #0f6484;
-            --tp-color-link-hover: #0a4d67;
-            --tp-color-brand-900: #0b4a61;
-            --tp-color-brand-800: #146984;
-            --tp-color-brand-700: #2288a3;
-            --tp-color-brand-600: #39a6be;
-            --tp-color-brand-500: #5eb6ca;
-            --tp-color-brand-400: #70bed0;
-            --tp-color-brand-300: #82c5d5;
-            --tp-color-brand-200: #afdbe4;
-            --tp-color-brand-100: #d4edf2;
-            --tp-color-brand-050: #eaf7fb;
+            --tp-color-link: #23596b;
+            --tp-color-link-hover: #0f2f3a;
+            --tp-color-brand-900: #0f2f3a;
+            --tp-color-brand-800: #1d4b5a;
+            --tp-color-brand-700: #2c6274;
+            --tp-color-brand-600: #4a7a89;
+            --tp-color-brand-500: #6b919d;
+            --tp-color-brand-400: #86a6b0;
+            --tp-color-brand-300: #a6bec6;
+            --tp-color-brand-200: #c9d8dd;
+            --tp-color-brand-100: #e2eaed;
+            --tp-color-brand-050: #f1f5f6;
+            /* The one brighter accent: the line under the active tab/section. */
+            --tp-color-accent-line: #3f8a9c;
             --tp-color-rose-900: #742849;
             --tp-color-rose-700: #ab3f68;
             --tp-color-rose-500: #cf628c;
@@ -63,10 +65,10 @@
             --tp-color-amber-200: #e8d09d;
             --tp-color-amber-100: #f5e6c8;
             --tp-color-amber-050: #fbf3e4;
-            --tp-color-nav-900: #0c2836;
-            --tp-color-nav-800: #123947;
-            --tp-color-nav-700: #185266;
-            --tp-color-nav-600: #267188;
+            --tp-color-nav-900: #0f2a33;
+            --tp-color-nav-800: #163843;
+            --tp-color-nav-700: #1f4a57;
+            --tp-color-nav-600: #2c6274;
             /* Matches --tp-color-surface below -- the page background used
                to be a visibly darker gray specifically to create contrast
                for white cards floating on it. Now that content sections
@@ -83,15 +85,15 @@
             --tp-color-border: #dde0e6;
             --tp-color-border-soft: #e8eaed;
             --tp-color-border-strong: #c9cdd5;
-            --tp-color-border-accent: #74b3c4;
-            --tp-color-highlight: #74b3c4;
+            --tp-color-border-accent: #a6bec6;
+            --tp-color-highlight: #a6bec6;
             --tp-color-selection: #e8f0fa;
             --tp-color-success-ink: #145843;
             --tp-color-success-bg: #e3f3ea;
             --tp-color-success-border: #b5d8c7;
-            --tp-color-info-ink: #16536b;
-            --tp-color-info-bg: #e6f2f9;
-            --tp-color-info-border: #bdd9e8;
+            --tp-color-info-ink: #23596b;
+            --tp-color-info-bg: #eef3f5;
+            --tp-color-info-border: #cfdce1;
             --tp-color-idle-ink: #56707d;
             --tp-color-idle-bg: #edf4f6;
             --tp-color-idle-border: #d0dee4;
@@ -152,8 +154,8 @@
             --sv-code-bg: rgba(10, 40, 70, 0.07);
             --sv-btn-bg: rgba(10, 40, 70, 0.06);
             --sv-btn-hover-bg: rgba(10, 40, 70, 0.11);
-            --sv-btn-active-bg: rgba(34, 136, 163, 0.14);
-            --sv-btn-active-color: #0e6278;
+            --sv-btn-active-bg: rgba(29, 75, 90, 0.12);
+            --sv-btn-active-color: #1d4b5a;
             --sv-sep: rgba(10, 40, 70, 0.10);
             --sv-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
             --tp-ink: var(--tp-color-text-primary);
@@ -185,7 +187,7 @@
             --tp-state-idle-ink: var(--tp-color-idle-ink);
             --tp-state-idle-bg: var(--tp-color-idle-bg);
             --tp-state-idle-border: var(--tp-color-idle-border);
-            --tp-focus-ring: rgba(26, 111, 142, 0.36);
+            --tp-focus-ring: rgba(29, 75, 90, 0.28);
             --tp-grid-line: rgba(0, 0, 0, 0.04);
             --tp-tooltip-bg: #1a2e38;
             --tp-tooltip-color: #e2e8f0;
@@ -199,8 +201,8 @@
             --tp-radius-lg: 26px;
             --tp-radius-md: 20px;
             /* Buttons and button-like controls (compact ones use -sm). */
-            --tp-btn-radius: 11px;
-            --tp-btn-radius-sm: 8px;
+            --tp-btn-radius: 8px;
+            --tp-btn-radius-sm: 6px;
             --tp-space-1: 4px;
             --tp-space-2: 8px;
             --tp-space-3: 12px;
@@ -239,20 +241,21 @@
             --tp-color-text-secondary: #c3cdd5;
             --tp-color-text-muted: #8a9baa;
             --tp-color-text-soft: #5d7282;
-            --tp-color-link: #5fb8d4;
-            --tp-color-link-hover: #7ccce3;
+            --tp-color-link: #8fb8c4;
+            --tp-color-link-hover: #b9d3da;
 
             /* brand */
-            --tp-color-brand-900: #b4e2f0;
-            --tp-color-brand-800: #7ccce3;
-            --tp-color-brand-700: #5fb8d4;
-            --tp-color-brand-600: #39a6be;
-            --tp-color-brand-500: #2a8aa3;
-            --tp-color-brand-400: #227c96;
-            --tp-color-brand-300: #1a6e88;
-            --tp-color-brand-200: #144f64;
-            --tp-color-brand-100: #0f3a4a;
-            --tp-color-brand-050: #0c2d3a;
+            --tp-color-brand-900: #dbe7ea;
+            --tp-color-brand-800: #a9c6cf;
+            --tp-color-brand-700: #86aab5;
+            --tp-color-brand-600: #6b919d;
+            --tp-color-brand-500: #557b87;
+            --tp-color-brand-400: #49707b;
+            --tp-color-brand-300: #3d5a63;
+            --tp-color-brand-200: #2c434a;
+            --tp-color-brand-100: #1f3138;
+            --tp-color-brand-050: #172328;
+            --tp-color-accent-line: #7fb2c0;
 
             /* rose */
             --tp-color-rose-900: #f0c4d5;
@@ -279,10 +282,10 @@
             --tp-color-amber-050: #2c2010;
 
             /* nav — stays dark, slight lighten for contrast */
-            --tp-color-nav-900: #0a1e28;
-            --tp-color-nav-800: #0e2a38;
-            --tp-color-nav-700: #13384a;
-            --tp-color-nav-600: #1a4d66;
+            --tp-color-nav-900: #0a151a;
+            --tp-color-nav-800: #0c171c;
+            --tp-color-nav-700: #122128;
+            --tp-color-nav-600: #1c3640;
 
             /* page */
             --tp-color-page-start: #10181e;
@@ -299,8 +302,8 @@
             --tp-color-border: #2a3844;
             --tp-color-border-soft: #222e38;
             --tp-color-border-strong: #36485a;
-            --tp-color-border-accent: #1a6e88;
-            --tp-color-highlight: #1a6e88;
+            --tp-color-border-accent: #3d5a63;
+            --tp-color-highlight: #3d5a63;
             --tp-color-selection: #1a3048;
 
             /* state — success */
@@ -309,9 +312,9 @@
             --tp-color-success-border: #1a4a36;
 
             /* state — info */
-            --tp-color-info-ink: #5fb8d4;
-            --tp-color-info-bg: #0c2430;
-            --tp-color-info-border: #164054;
+            --tp-color-info-ink: #8fb8c4;
+            --tp-color-info-bg: #152227;
+            --tp-color-info-border: #2a3f46;
 
             /* state — idle */
             --tp-color-idle-ink: #7a9aaa;
@@ -356,8 +359,8 @@
             --sv-code-bg: rgba(255, 255, 255, 0.10);
             --sv-btn-bg: rgba(255, 255, 255, 0.07);
             --sv-btn-hover-bg: rgba(255, 255, 255, 0.14);
-            --sv-btn-active-bg: rgba(57, 166, 190, 0.22);
-            --sv-btn-active-color: #6fd4f0;
+            --sv-btn-active-bg: rgba(143, 184, 196, 0.18);
+            --sv-btn-active-color: #b9d3da;
             --sv-sep: rgba(255, 255, 255, 0.11);
             --sv-shadow: 0 8px 28px rgba(0, 0, 0, 0.32);
 
@@ -368,7 +371,7 @@
             --tp-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.36);
             --tp-color-scrim: rgba(0, 0, 0, 0.6);
 
-            --tp-focus-ring: rgba(95, 184, 212, 0.36);
+            --tp-focus-ring: rgba(143, 184, 196, 0.32);
             --tp-grid-line: rgba(255, 255, 255, 0.04);
 
             color-scheme: dark;
@@ -552,24 +555,26 @@
             display: none !important;
         }
 
+        /* Button sizes (see /design): default 38px, sm 32px, md 40px. */
         .btn:not(.btn-sm):not(.btn-lg),
         .tp-btn:not(.btn-sm):not(.btn-lg) {
-            min-height: 44px;
-            padding: 0.48rem 0.95rem;
+            min-height: 38px;
+            padding: 0.4rem 1rem;
+            font-size: 0.9rem;
         }
 
         .btn.tp-btn--sm,
         .tp-btn.tp-btn--sm {
-            min-height: 40px;
-            padding: 0.4rem 0.78rem;
-            font-size: var(--tp-font-size-sm);
+            min-height: 32px;
+            padding: 0.3rem 0.75rem;
+            font-size: 0.84rem;
         }
 
         .btn.tp-btn--md,
         .tp-btn.tp-btn--md {
-            min-height: 44px;
-            padding: 0.48rem 0.95rem;
-            font-size: var(--tp-font-size-md);
+            min-height: 40px;
+            padding: 0.45rem 1.05rem;
+            font-size: var(--tp-font-size-sm);
         }
 
         /* ── Buttons: three variants + ghost, nothing else ─────────────────────
@@ -676,9 +681,9 @@
         .tp-btn--clear:hover,
         .tp-btn--clear:focus,
         .tp-btn--clear:active {
-            color: var(--tp-color-brand-800) !important;
-            border-color: var(--tp-color-brand-600) !important;
-            background: var(--tp-color-brand-050) !important;
+            color: var(--tp-color-text-primary) !important;
+            border-color: var(--tp-color-text-muted) !important;
+            background: var(--tp-color-surface-soft) !important;
             box-shadow: none !important;
         }
 
@@ -730,9 +735,9 @@
         .tp-btn--ghost:hover,
         .tp-btn--ghost:focus,
         .tp-btn--ghost:active {
-            color: var(--tp-color-brand-800) !important;
+            color: var(--tp-color-text-primary) !important;
             border-color: transparent !important;
-            background: var(--tp-color-brand-050) !important;
+            background: var(--tp-color-surface-muted) !important;
             box-shadow: none !important;
         }
 
@@ -1880,10 +1885,10 @@
         .tp-dark .tp-btn--success,
         .tp-dark .btn-info,
         .tp-dark .tp-btn--info {
-            background: var(--tp-color-brand-300) !important;
-            background-color: var(--tp-color-brand-300) !important;
-            border-color: var(--tp-color-brand-200) !important;
-            color: #ffffff !important;
+            background: #2f5d6c !important;
+            background-color: #2f5d6c !important;
+            border-color: transparent !important;
+            color: #f1f5f6 !important;
         }
 
         .tp-dark .btn-primary:hover,
@@ -1904,10 +1909,10 @@
         .tp-dark .tp-btn--info:hover,
         .tp-dark .tp-btn--info:focus,
         .tp-dark .tp-btn--info:active {
-            background: var(--tp-color-brand-200) !important;
-            background-color: var(--tp-color-brand-200) !important;
-            border-color: var(--tp-color-brand-200) !important;
-            color: #ffffff !important;
+            background: #3a6e7e !important;
+            background-color: #3a6e7e !important;
+            border-color: transparent !important;
+            color: #f1f5f6 !important;
         }
 
         .tp-dark .btn-secondary,
@@ -1968,9 +1973,9 @@
         .tp-dark .tp-btn--clear:hover,
         .tp-dark .tp-btn--clear:focus,
         .tp-dark .tp-btn--clear:active {
-            color: var(--tp-color-brand-900) !important;
-            border-color: var(--tp-color-brand-600) !important;
-            background: color-mix(in srgb, var(--tp-color-brand-600) 14%, var(--tp-color-surface-muted)) !important;
+            color: var(--tp-color-text-primary) !important;
+            border-color: var(--tp-color-text-muted) !important;
+            background: var(--tp-color-surface-muted) !important;
         }
 
         .tp-dark .btn-danger,
@@ -2184,7 +2189,7 @@
             justify-content: center;
             padding: 24px;
             background:
-                radial-gradient(560px 260px at 22% 14%, rgba(57, 166, 190, 0.20), transparent 62%),
+                radial-gradient(560px 260px at 22% 14%, rgba(74, 122, 137, 0.16), transparent 62%),
                 radial-gradient(520px 280px at 82% 82%, rgba(47, 127, 103, 0.16), transparent 65%),
                 rgba(238, 240, 243, 0.88);
             backdrop-filter: blur(10px);
@@ -2311,7 +2316,7 @@
 
         html.tp-dark .tp-page-loader {
             background:
-                radial-gradient(560px 260px at 22% 14%, rgba(57, 166, 190, 0.18), transparent 62%),
+                radial-gradient(560px 260px at 22% 14%, rgba(107, 145, 157, 0.14), transparent 62%),
                 radial-gradient(520px 280px at 82% 82%, rgba(47, 127, 103, 0.15), transparent 65%),
                 rgba(8, 22, 30, 0.72);
         }

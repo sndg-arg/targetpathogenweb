@@ -12,13 +12,13 @@
 ─────────────────────────────────────────────────────────────────── */
 
 :root {
-    --tp-ui-control-height: 44px;
-    --tp-ui-control-height-compact: 40px;
+    --tp-ui-control-height: 40px;
+    --tp-ui-control-height-compact: 36px;
     /* radius-panel/hero and gap-sm/md/lg alias the base radius/space
        scale (masterpage.html) rather than repeating its values under a
        second name -- radius-control and gap-xs have no equivalent step
        in that scale, so they stay as their own values. */
-    --tp-ui-radius-control: 12px;
+    --tp-ui-radius-control: 8px;
     --tp-ui-radius-panel: var(--tp-radius-md);
     --tp-ui-radius-hero: var(--tp-radius-lg);
     --tp-ui-panel-padding: 12px;
@@ -2244,6 +2244,7 @@ a.tp-chip--go:hover {
 .quick-nav .quick-nav-link[aria-current="true"]::after {
     opacity: 1;
     transform: scaleX(1);
+    background: var(--tp-color-accent-line);
 }
 
 /* A section the nav jumps to stops ~16px below the docked nav. */
