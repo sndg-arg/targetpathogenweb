@@ -5,10 +5,10 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261016-general">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261015-shared-quick-nav">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261015-protein-line">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016t">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261016-contrast">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261016-contrast">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261016-contrast">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016u">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -236,10 +236,10 @@
             <h4 class="ds-comp-title">Chip <code>tp-chip</code></h4>
             <div class="ds-table-wrap">
             <table class="ds-grid ds-grid--t">
-                <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Neutro</strong><code>--meta</code></th><th scope="col"><strong>Número</strong><code>--count</code></th><th scope="col"><strong>Identificador</strong><code>--ec · --go</code></th><th scope="col"><strong>Favorable</strong><code>--direct</code></th><th scope="col"><strong>Atención</strong><code>--warning</code></th><th scope="col"><strong>Secundario</strong><code>--homolog</code></th></tr></thead>
+                <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Neutro</strong><code>--meta</code></th><th scope="col"><strong>Número</strong><code>--count</code></th><th scope="col"><strong>Identificador</strong><code>--ec · --go</code></th><th scope="col"><strong>Favorable</strong><code>--direct</code></th><th scope="col"><strong>Atención</strong><code>--warning</code></th><th scope="col"><strong>Indirecto</strong><code>--homolog</code></th></tr></thead>
                 <tbody>
                     <tr><th scope="row">Ejemplo</th><td><span class="tp-chip tp-chip--meta">Curated analysis</span></td><td><span class="tp-chip tp-chip--count">857</span></td><td><span class="tp-chip tp-chip--ec">2.7.13.3</span></td><td><span class="tp-chip tp-chip--direct">Has structure</span></td><td><span class="tp-chip tp-chip--warning">Low confidence</span></td><td><span class="tp-chip tp-chip--homolog">Via homolog</span></td></tr>
-                    <tr><th scope="row">Cuándo</th><td class="ds-use">Contexto</td><td class="ds-use">Cantidad</td><td class="ds-use">Códigos (mono)</td><td class="ds-use">Dato a favor</td><td class="ds-use">Dato dudoso</td><td class="ds-use">Evidencia indirecta</td></tr>
+                    <tr><th scope="row">Cuándo</th><td class="ds-use">Contexto</td><td class="ds-use">Cantidad</td><td class="ds-use">Códigos (mono)</td><td class="ds-use">Dato a favor</td><td class="ds-use">Dato dudoso</td><td class="ds-use">Evidencia por homología (sin relleno)</td></tr>
                 </tbody>
             </table>
             </div>
@@ -348,10 +348,10 @@
             <div class="ds-example">
                 <div class="ds-ex-field">
                     <div class="ds-ex-row">
-                        <span class="ds-ex-fakeinput">e.g. KPN_00002</span>
-                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm" tabindex="-1">+ Add</button>
+                        <span class="ds-ex-fakeinput">KPN_99999</span>
+                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon" tabindex="-1"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span><span>Add</span></button>
                     </div>
-                    <p class="tp-state-note tp-state-note--warning">“e.g.” is not a value in this genome, not added.</p>
+                    <p class="tp-state-note tp-state-note--warning">“KPN_99999” is not a value in this genome, not added.</p>
                 </div>
             </div>
             <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Barra de color</strong></span> <span class="ds-part"><strong>Texto</strong></span></p>
@@ -401,9 +401,9 @@
             <h4 class="ds-comp-title">Breadcrumb <code>tp-breadcrumb</code></h4>
             <div class="ds-example">
                 <nav class="tp-breadcrumb ds-crumb-sample" aria-label="Ejemplo">
-                    <a class="tp-breadcrumb-back" href="#" tabindex="-1"><span class="tp-breadcrumb-back-icon" aria-hidden="true">←</span>Back</a>
+                    <a class="tp-breadcrumb-back" href="#" tabindex="-1"><span class="tp-breadcrumb-back-icon" aria-hidden="true">{% include "components/icons/arrow_left.html" %}</span>Back</a>
                     <ol class="tp-breadcrumb-list">
-                        <li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#" tabindex="-1">Home</a></li>
+                        <li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#" tabindex="-1"><span class="tp-breadcrumb-home-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>Home</a></li>
                         <li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#" tabindex="-1">Genomes</a></li>
                         <li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#" tabindex="-1">Genome: KpATCC43816</a></li>
                         <li class="tp-breadcrumb-item"><span class="tp-breadcrumb-current">Proteins</span></li>
@@ -573,24 +573,24 @@
                     <tbody>
                         <tr>
                             <th scope="row"><strong>Neutro</strong><span>Valor común</span></th>
-                            <td><span class="ds-filter-chip ">Core</span></td>
-                            <td><span class="ds-filter-chip  ds-hover">Core</span></td>
-                            <td><span class="ds-filter-chip  ds-filter-chip--applied">Core ×</span></td>
-                            <td><span class="ds-filter-chip  ds-filter-chip--pending">Core</span></td>
+                            <td><span class="filter-chip"><span class="filter-chip-label">Core</span></span></td>
+                            <td><span class="filter-chip ds-hover"><span class="filter-chip-label">Core</span></span></td>
+                            <td><span class="filter-chip filter-chip--active"><span class="filter-chip-label">Core</span><span class="filter-chip-glyph" aria-hidden="true">&times;</span></span></td>
+                            <td><span class="filter-chip filter-chip--active filter-chip--pending"><span class="filter-chip-label">Core</span></span></td>
                         </tr>
                         <tr>
                             <th scope="row"><strong>Riesgo</strong><code>filter-chip--risk</code><span>Valor desfavorable</span></th>
-                            <td><span class="ds-filter-chip ds-filter-chip--risk">Hit</span></td>
-                            <td><span class="ds-filter-chip ds-filter-chip--risk ds-hover">Hit</span></td>
-                            <td><span class="ds-filter-chip ds-filter-chip--risk ds-filter-chip--applied">Hit ×</span></td>
-                            <td><span class="ds-filter-chip ds-filter-chip--risk ds-filter-chip--pending">Hit</span></td>
+                            <td><span class="filter-chip filter-chip--risk"><span class="filter-chip-label">Hit</span></span></td>
+                            <td><span class="filter-chip filter-chip--risk ds-hover"><span class="filter-chip-label">Hit</span></span></td>
+                            <td><span class="filter-chip filter-chip--risk filter-chip--active"><span class="filter-chip-label">Hit</span><span class="filter-chip-glyph" aria-hidden="true">&times;</span></span></td>
+                            <td><span class="filter-chip filter-chip--risk filter-chip--active filter-chip--pending"><span class="filter-chip-label">Hit</span></span></td>
                         </tr>
                         <tr>
                             <th scope="row"><strong>Favorable</strong><code>filter-chip--favorable</code><span>Valor a favor</span></th>
-                            <td><span class="ds-filter-chip ds-filter-chip--favorable">No hit</span></td>
-                            <td><span class="ds-filter-chip ds-filter-chip--favorable ds-hover">No hit</span></td>
-                            <td><span class="ds-filter-chip ds-filter-chip--favorable ds-filter-chip--applied">No hit ×</span></td>
-                            <td><span class="ds-filter-chip ds-filter-chip--favorable ds-filter-chip--pending">No hit</span></td>
+                            <td><span class="filter-chip filter-chip--favorable"><span class="filter-chip-label">No hit</span></span></td>
+                            <td><span class="filter-chip filter-chip--favorable ds-hover"><span class="filter-chip-label">No hit</span></span></td>
+                            <td><span class="filter-chip filter-chip--favorable filter-chip--active"><span class="filter-chip-label">No hit</span><span class="filter-chip-glyph" aria-hidden="true">&times;</span></span></td>
+                            <td><span class="filter-chip filter-chip--favorable filter-chip--active filter-chip--pending"><span class="filter-chip-label">No hit</span></span></td>
                         </tr>
                     </tbody>
                 </table>

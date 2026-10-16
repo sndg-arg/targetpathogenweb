@@ -1174,8 +1174,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .sv-pocket-inspector-toggle[aria-pressed="true"] {
-    background: var(--protein-accent);
-    border-color: var(--protein-accent);
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
     box-shadow: var(--tp-shadow-xs);
 }
@@ -1445,8 +1445,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     color: var(--tp-color-text-primary);
 }
 .pocket-repr-btn[aria-pressed="true"] {
-    background: var(--protein-accent);
-    border-color: var(--protein-accent);
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
     outline: 2px solid color-mix(in srgb, var(--protein-accent-border) 46%, transparent);
     outline-offset: 1px;
@@ -1503,8 +1503,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .tp-dark .pocket-repr-btn { background: var(--tp-color-surface-soft); border-color: transparent; color: var(--tp-color-text-secondary); }
 .tp-dark .pocket-repr-btn[aria-pressed="true"],
 .tp-dark .sv-pocket-inspector-toggle[aria-pressed="true"] {
-    background: color-mix(in srgb, var(--protein-accent) 84%, var(--tp-color-surface));
-    border-color: color-mix(in srgb, var(--protein-accent) 72%, var(--tp-color-on-accent));
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--protein-accent) 45%, transparent), var(--tp-shadow-sm);
 }

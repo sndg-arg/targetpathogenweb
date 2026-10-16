@@ -574,8 +574,8 @@ body:has(.sv-root) { overflow: hidden; }
 }
 
 .sv-pocket-inspector-toggle[aria-pressed="true"] {
-    background: var(--structure-accent);
-    border-color: var(--structure-accent);
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
     box-shadow: var(--tp-shadow-xs);
 }
@@ -889,8 +889,8 @@ body:has(.sv-root) { overflow: hidden; }
     color: var(--tp-color-text-primary);
 }
 .pocket-repr-btn[aria-pressed="true"] {
-    background: var(--structure-accent);
-    border-color: var(--structure-accent);
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tp-color-on-accent) 20%, transparent), var(--tp-shadow-xs);
 }
@@ -1445,8 +1445,8 @@ body.viewer-settings-open { overflow: hidden; }
 .tp-dark .pocket-repr-btn { background: var(--tp-color-surface-soft); border-color: var(--tp-color-border); color: var(--tp-color-text-secondary); }
 .tp-dark .pocket-repr-btn[aria-pressed="true"],
 .tp-dark .sv-pocket-inspector-toggle[aria-pressed="true"] {
-    background: color-mix(in srgb, var(--structure-accent) 84%, var(--tp-color-surface));
-    border-color: color-mix(in srgb, var(--structure-accent) 72%, var(--tp-color-on-accent));
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--structure-accent) 45%, transparent), var(--tp-shadow-sm);
 }

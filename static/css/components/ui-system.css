@@ -794,9 +794,9 @@
 }
 
 .tp-chip--homolog {
-    background: var(--tp-color-surface-muted);
+    background: transparent;
     color: var(--tp-color-text-muted);
-    border: 1px solid var(--tp-color-border-soft);
+    border: 1px solid var(--tp-color-border);
 }
 
 .tp-chip--warning {
@@ -852,9 +852,9 @@ a.tp-chip--go:hover {
 }
 
 .tp-chip--score {
-    border-color: transparent;
-    background: var(--tp-accent);
-    color: var(--tp-color-on-accent);
+    border-color: var(--tp-color-border);
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-primary);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-weight: 600;
     min-width: 52px;
@@ -904,8 +904,8 @@ a.tp-chip--go:hover {
 .tp-state-chip.finished,
 .tp-chip--state.finished {
     color: var(--tp-state-finished-ink);
-    background: var(--tp-color-info-bg);
-    border-color: var(--tp-color-info-border);
+    background: var(--tp-state-finished-bg);
+    border-color: var(--tp-state-finished-border);
 }
 
 .tp-state-chip.failed,
@@ -1003,8 +1003,8 @@ a.tp-chip--go:hover {
 }
 
 .tp-pagination .page-item.active .page-link {
-    background: var(--tp-color-brand-700);
-    border-color: var(--tp-color-brand-700);
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
 }
 

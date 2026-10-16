@@ -677,10 +677,10 @@ body.pipeline-info-open {
 }
 
 .pipeline-info-step.is-active .pipeline-info-step-num {
-    background: var(--tp-color-brand-800);
-    border-color: var(--tp-color-brand-800);
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-brand-800) 20%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-primary) 20%, transparent);
 }
 
 .pipeline-info-step.is-done .pipeline-info-step-label {

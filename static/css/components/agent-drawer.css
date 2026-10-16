@@ -70,12 +70,8 @@
     padding: 0;
     border: none;
     border-radius: 28px;
-    /* brand-600 is the one step of the brand ramp that's identical in both
-       :root and .tp-dark (see masterpage.html) -- everything else on that
-       ramp inverts (light-mode-darkest becomes dark-mode-palest), which is
-       exactly wrong for a floating chip that needs to read clearly against
-       either a white or a near-black page background. */
-    background: var(--tp-color-brand-600);
+    /* --tp-color-primary stays dark petrol in both themes, so white text reads. */
+    background: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
     box-shadow: var(--tp-shadow-lg);
     cursor: pointer;
@@ -687,8 +683,8 @@
 
 .tp-agent-drawer-msg--user {
     align-self: flex-end;
-    background: var(--tp-color-brand-500);
-    color: var(--tp-color-surface);
+    background: var(--tp-color-primary);
+    color: var(--tp-color-on-accent);
     border-bottom-right-radius: 6px;
     white-space: pre-wrap;
 }

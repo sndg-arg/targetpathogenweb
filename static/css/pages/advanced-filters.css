@@ -104,8 +104,8 @@
 }
 
 .af-mode-btn--active {
-    background: var(--tp-color-brand-700);
-    color: var(--tp-color-brand-050);
+    background: var(--tp-color-primary);
+    color: var(--tp-color-on-accent);
 }
 
 .af-group-remove {
@@ -195,14 +195,15 @@
 }
 
 .af-option-chip--active {
-    background: var(--tp-color-brand-700);
-    border-color: var(--tp-color-brand-700);
-    color: var(--tp-color-brand-050);
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
+    color: var(--tp-color-on-accent);
 }
 
 .af-option-chip--active:hover {
-    background: var(--tp-color-brand-800);
-    border-color: var(--tp-color-brand-800);
+    background: var(--tp-color-primary-hover);
+    border-color: var(--tp-color-primary-hover);
+    color: var(--tp-color-on-accent);
 }
 
 .af-option-chip-sep {

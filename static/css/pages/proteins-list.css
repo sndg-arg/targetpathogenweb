@@ -4224,10 +4224,12 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-primary);
 }
 
-/* Pending state: dashed outline (no glowing ring). */
+/* Pending state: dashed outline (no glowing ring). Same text color for
+   every tone -- a pending "risk" chip used to keep its red text. */
 .filter-chip--pending {
     border-style: dashed !important;
     border-color: var(--tp-color-brand-700) !important;
+    color: var(--tp-color-brand-800);
     box-shadow: none;
 }
 
@@ -4325,8 +4327,8 @@ a.filter-pill .filter-pill-remove {
     height: 15px;
     padding: 0 4px;
     border-radius: 999px;
-    background: var(--tp-color-brand-600);
-    color: white;
+    background: var(--tp-color-primary);
+    color: var(--tp-color-on-accent);
     font-size: 0.64rem;
     font-variant-numeric: tabular-nums;
 }

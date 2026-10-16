@@ -1157,3 +1157,20 @@
 .ds-compound .ds-example *:not(.ds-ptable-sample):not(.ds-toolbar-sample) {
     pointer-events: none;
 }
+
+/* Frozen hover for the real filter chip (Chip de filtro grid). */
+.ds-page .filter-chip.ds-hover:not(.filter-chip--active) {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-strong);
+    color: var(--tp-color-text-primary);
+}
+
+.ds-page .filter-chip--active.ds-hover:not(.filter-chip--pending) {
+    background: var(--tp-color-primary-hover);
+    border-color: var(--tp-color-primary-hover);
+}
+
+/* One-item pagination samples line up with the other grid cells. */
+.ds-pagination-one {
+    justify-content: flex-start;
+}

@@ -141,7 +141,7 @@
 .activity-period-btn.is-active,
 .activity-period-btn.is-active:hover,
 .activity-period-btn.is-active:focus-visible {
-    background: var(--activity-accent-deep);
+    background: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
 }
 
