@@ -5,7 +5,7 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016m">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016o">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -285,33 +285,73 @@
             </div>
         </div>
         <div class="ds-comp" id="c-campo">
-            <h3>Campo <code>form-control tp-ui-control</code></h3>
+            <h3>Campo de texto <code>form-control tp-ui-control</code></h3>
             <div class="ds-example">
                 <div class="tp-ui-field ds-ex-field">
-                    <label class="tp-ui-field-label" for="ds-ex-input">Genome</label>
-                    <select id="ds-ex-input" class="form-control tp-ui-control" tabindex="-1"><option>GCA_030061715.1</option></select>
-                    <span class="ds-ex-help">The genome to search.</span>
+                    <label class="tp-ui-field-label" for="ds-ex-text">Locus tag</label>
+                    <input id="ds-ex-text" type="text" class="form-control tp-ui-control" placeholder="KPN_00002" tabindex="-1">
+                    <span class="ds-ex-help">One per line.</span>
                 </div>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Rótulo</strong> <code>tp-ui-field-label</code></span> <span class="ds-part"><strong>Control</strong> <code>tp-ui-control</code></span> <span class="ds-part"><strong>Ayuda (opcional)</strong></span></p>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Rótulo</strong> <code>tp-ui-field-label</code></span> <span class="ds-part"><strong>Campo</strong> <code>tp-ui-control</code></span> <span class="ds-part"><strong>Ayuda (opcional)</strong></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
-                    <tr><th scope="col" rowspan="2" class="ds-g-variant">Variante</th><th scope="colgroup" colspan="3">Estado</th></tr>
-                    <tr><th scope="col">Reposo</th><th scope="col">Foco</th><th scope="col">Deshabilitado<code>disabled</code></th></tr>
+                    <tr><th scope="col" class="ds-g-variant"></th><th scope="col">Reposo</th><th scope="col">Foco</th><th scope="col">Deshabilitado<code>disabled</code></th></tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <th scope="row"><strong>Texto</strong><span>Búsqueda, valores</span></th>
-                        <td><input id="ds-in-1" type="text" class="form-control tp-ui-control ds-inline-control " placeholder="Search…" tabindex="-1"></td>
-                        <td><input id="ds-in-2" type="text" class="form-control tp-ui-control ds-inline-control ds-focus" placeholder="Search…" tabindex="-1"></td>
-                        <td><input id="ds-in-3" type="text" class="form-control tp-ui-control ds-inline-control " placeholder="Search…" disabled tabindex="-1"></td>
+                        <th scope="row"><strong>Campo</strong></th>
+                        <td><input id="ds-in-1" type="text" class="form-control tp-ui-control ds-inline-control" placeholder="KPN_00002" tabindex="-1"></td>
+                        <td><input id="ds-in-2" type="text" class="form-control tp-ui-control ds-inline-control ds-focus" placeholder="KPN_00002" tabindex="-1"></td>
+                        <td><input id="ds-in-3" type="text" class="form-control tp-ui-control ds-inline-control" placeholder="KPN_00002" disabled tabindex="-1"></td>
                     </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="ds-comp" id="c-select">
+            <h3>Selector <code>tp-select</code></h3>
+            <div class="ds-example">
+                <div class="tp-ui-field ds-ex-field">
+                    <label class="tp-ui-field-label" for="ds-ex-select">Genome</label>
+                    <select id="ds-ex-select" class="form-control tp-ui-control">
+                        <option>GCA_030061715.1</option>
+                        <option>KpATCC43816</option>
+                        <option>KpKP13</option>
+                    </select>
+                </div>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Disparador</strong> <code>tp-select-trigger</code></span> <span class="ds-part"><strong>Menú</strong> <code>tp-select-menu</code></span> <span class="ds-part"><strong>Opción</strong> <code>tp-select-option</code></span></p>
+            <div class="ds-table-wrap">
+            <table class="ds-grid">
+                <thead>
+                    <tr><th scope="col" class="ds-g-variant"></th><th scope="col">Reposo</th><th scope="col">Hover</th><th scope="col">Foco<code>con Tab</code></th><th scope="col">Abierto<code>is-open</code></th><th scope="col">Deshabilitado<code>is-disabled</code></th></tr>
+                </thead>
+                <tbody>
                     <tr>
-                        <th scope="row"><strong>Selector</strong><span>Una opción de muchas</span></th>
-                        <td><select id="ds-sel-1" class="form-control tp-ui-control ds-inline-control " tabindex="-1"><option>GCA_030061715.1</option></select></td>
-                        <td><select id="ds-sel-2" class="form-control tp-ui-control ds-inline-control ds-focus" tabindex="-1"><option>GCA_030061715.1</option></select></td>
-                        <td><select id="ds-sel-3" class="form-control tp-ui-control ds-inline-control " disabled tabindex="-1"><option>GCA_030061715.1</option></select></td>
+                        <th scope="row"><strong>Disparador</strong></th>
+                        <td><div class="tp-select ds-inline-control"><button type="button" class="tp-select-trigger" tabindex="-1"><span class="tp-select-label">GCA_030061715.1</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div></td>
+                        <td><div class="tp-select ds-inline-control"><button type="button" class="tp-select-trigger ds-hover" tabindex="-1"><span class="tp-select-label">GCA_030061715.1</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div></td>
+                        <td><div class="tp-select ds-inline-control"><button type="button" class="tp-select-trigger ds-focus" tabindex="-1"><span class="tp-select-label">GCA_030061715.1</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div></td>
+                        <td><div class="tp-select ds-inline-control is-open"><button type="button" class="tp-select-trigger" tabindex="-1"><span class="tp-select-label">GCA_030061715.1</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div><div class="tp-select-menu ds-static-menu ds-open-menu"><button type="button" class="tp-select-option is-selected" tabindex="-1">GCA_030061715.1</button><button type="button" class="tp-select-option" tabindex="-1">KpATCC43816</button><button type="button" class="tp-select-option" tabindex="-1">KpKP13</button></div></td>
+                        <td><div class="tp-select ds-inline-control is-disabled"><button type="button" class="tp-select-trigger" tabindex="-1" disabled><span class="tp-select-label">GCA_030061715.1</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div></td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            <div class="ds-table-wrap">
+            <table class="ds-grid">
+                <thead>
+                    <tr><th scope="col" class="ds-g-variant"></th><th scope="col">Normal</th><th scope="col">Hover</th><th scope="col">Seleccionada<code>is-selected</code></th><th scope="col">Deshabilitada<code>aria-disabled</code></th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row"><strong>Opción</strong></th>
+                        <td><div class="tp-select-menu ds-static-menu"><button type="button" class="tp-select-option" tabindex="-1">KpKP13</button></div></td>
+                        <td><div class="tp-select-menu ds-static-menu"><button type="button" class="tp-select-option ds-hover" tabindex="-1">KpKP13</button></div></td>
+                        <td><div class="tp-select-menu ds-static-menu"><button type="button" class="tp-select-option is-selected" tabindex="-1">KpKP13</button></div></td>
+                        <td><div class="tp-select-menu ds-static-menu"><button type="button" class="tp-select-option" tabindex="-1" aria-disabled="true">KpKP13</button></div></td>
                     </tr>
                 </tbody>
             </table>

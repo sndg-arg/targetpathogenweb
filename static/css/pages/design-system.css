@@ -900,6 +900,7 @@
 /* Selects inside the grids are samples only: opening one would be clipped
    by the grid's horizontal scroll box. The full example above opens fine. */
 .ds-grid .tp-select,
+.ds-grid .tp-select-menu,
 .ds-grid select {
     pointer-events: none;
 }
@@ -935,4 +936,47 @@
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
     white-space: normal;
+}
+
+/* Selector samples: the menu and options drawn in place (not floating),
+   and frozen hover/focus for the trigger and an option. */
+.ds-static-menu {
+    position: static;
+    width: 200px;
+    box-shadow: var(--tp-shadow-sm);
+}
+
+.ds-grid .tp-select {
+    position: relative;
+    min-width: 200px;
+}
+
+.ds-page .tp-select-trigger.ds-hover {
+    border-color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface-soft);
+}
+
+.ds-page .tp-select-trigger.ds-focus {
+    border-color: var(--tp-focus-color);
+    box-shadow: var(--tp-focus-outline);
+}
+
+.ds-page .tp-select-option.ds-hover {
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-primary);
+}
+
+/* The "open" sample shows its menu right under the trigger. */
+.ds-open-menu {
+    width: 100%;
+    margin-top: 6px;
+}
+
+.ds-grid td {
+    vertical-align: top;
+}
+
+.ds-grid tbody th {
+    vertical-align: top;
+    padding-top: 18px;
 }

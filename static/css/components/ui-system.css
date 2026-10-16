@@ -546,11 +546,11 @@
     border: 1px solid var(--view-accent-border, var(--tp-color-border-strong));
     border-radius: var(--tp-ui-radius-control);
     background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-md);
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.2;
-    padding: 0.48rem 2.2rem 0.48rem 0.78rem;
+    padding: 0.45rem 2.2rem 0.45rem 0.78rem;
     display: inline-flex;
     align-items: center;
     justify-content: space-between;
@@ -565,14 +565,15 @@
         transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
+/* Hover is neutral (one-accent rule, see /design). */
 .tp-select-trigger:hover {
-    border-color: var(--view-accent-border, var(--tp-color-brand-300));
+    border-color: var(--tp-color-text-muted);
     background: var(--tp-color-surface-soft);
 }
 
 .tp-select-trigger:focus-visible {
     outline: none;
-    border-color: var(--tp-color-brand-600);
+    border-color: var(--tp-focus-color);
     box-shadow: var(--tp-focus-outline);
 }
 
@@ -588,7 +589,7 @@
 
 .tp-select.is-placeholder-value .tp-select-label {
     color: var(--tp-color-text-muted);
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .tp-select .tp-select-chevron {
@@ -644,15 +645,15 @@
     appearance: none;
     width: 100%;
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: 6px;
     background: transparent;
     color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-md);
-    font-weight: 600;
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
     text-align: left;
     line-height: 1.3;
-    padding: 11px 36px 11px 14px;
-    min-height: 42px;
+    padding: 8px 32px 8px 10px;
+    min-height: 36px;
     cursor: pointer;
     position: relative;
     transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -663,13 +664,14 @@
     outline: none;
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-primary);
-    border-color: var(--tp-color-border);
+    border-color: transparent;
 }
 
+/* Selected: a soft tint and a check mark, no extra border. */
 .tp-select-option.is-selected {
-    background: var(--tp-color-brand-050);
-    color: var(--tp-color-nav-800);
-    border-color: var(--tp-color-brand-300);
+    background: var(--tp-color-brand-100);
+    color: var(--tp-color-text-primary);
+    border-color: transparent;
     font-weight: 600;
 }
 
@@ -680,17 +682,17 @@
     top: 50%;
     width: 6px;
     height: 10px;
-    border-right: 2px solid var(--tp-color-brand-700);
-    border-bottom: 2px solid var(--tp-color-brand-700);
+    border-right: 2px solid var(--tp-color-primary);
+    border-bottom: 2px solid var(--tp-color-primary);
     transform: translateY(-60%) rotate(45deg);
     opacity: 0.95;
 }
 
 .tp-select-option.is-selected:hover,
 .tp-select-option.is-selected:focus-visible {
-    border-color: var(--tp-color-brand-300);
+    border-color: transparent;
     background: var(--tp-color-brand-100);
-    color: var(--tp-color-nav-800);
+    color: var(--tp-color-text-primary);
 }
 
 .tp-select-option:active {
