@@ -5,7 +5,7 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016f">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016g">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -181,15 +181,37 @@
         <div class="ds-comp" id="c-boton">
             <h3>Botón <code>btn tp-btn</code></h3>
             <div class="ds-table-wrap">
-            <table class="ds-variants">
-                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
+            <table class="ds-variants ds-variants--grid">
+                <thead><tr><th scope="col">Tipo</th><th scope="col">Chico · 32 px<code>tp-btn--sm</code></th><th scope="col">Normal · 38 px</th><th scope="col">Deshabilitado<code>disabled</code></th><th scope="col">Cuándo</th></tr></thead>
                 <tbody>
-                    <tr><th scope="row"><strong>Principal</strong><code>tp-btn--primary</code></th><td><button type="button" class="btn tp-btn tp-btn--primary">Run BLAST</button></td><td>Uno por vista</td></tr>
-                    <tr><th scope="row"><strong>Secundario</strong><code>tp-btn--secondary</code></th><td><button type="button" class="btn tp-btn tp-btn--secondary">Export CSV</button></td><td>Todo lo demás</td></tr>
-                    <tr><th scope="row"><strong>Peligro</strong><code>tp-btn--danger</code></th><td><button type="button" class="btn tp-btn tp-btn--danger">Delete</button></td><td>Solo borrar</td></tr>
-                    <tr><th scope="row"><strong>Fantasma</strong><code>tp-btn--ghost</code></th><td><button type="button" class="btn tp-btn tp-btn--ghost">Clear all</button></td><td>Ícono o acción en fila</td></tr>
-                    <tr><th scope="row"><strong>Chico</strong><code>tp-btn--sm</code></th><td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm">+ Add</button> <button type="button" class="btn tp-btn tp-btn--secondary">+ Add</button></td><td>32 px, en paneles y filas (al lado: normal, 38 px)</td></tr>
-                    <tr><th scope="row"><strong>Deshabilitado</strong><code>disabled</code></th><td><button type="button" class="btn tp-btn tp-btn--primary" disabled>Apply filters</button></td><td>Falta un dato</td></tr>
+                    <tr>
+                        <th scope="row"><strong>Principal</strong><code>tp-btn--primary</code></th>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary tp-btn--sm">Run BLAST</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary">Run BLAST</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary" disabled>Run BLAST</button></td>
+                        <td>Uno por vista</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Secundario</strong><code>tp-btn--secondary</code></th>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm">Export CSV</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary">Export CSV</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary" disabled>Export CSV</button></td>
+                        <td>Todo lo demás</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Peligro</strong><code>tp-btn--danger</code></th>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger tp-btn--sm">Delete</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger">Delete</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger" disabled>Delete</button></td>
+                        <td>Solo borrar</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Fantasma</strong><code>tp-btn--ghost</code></th>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm">Clear all</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost">Clear all</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost" disabled>Clear all</button></td>
+                        <td>Ícono o acción en fila</td>
+                    </tr>
                 </tbody>
             </table>
             </div>

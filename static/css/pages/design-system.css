@@ -460,6 +460,21 @@
     font-size: var(--tp-font-size-sm);
 }
 
+/* Button grid: every type x size x state. */
+.ds-variants--grid {
+    min-width: 680px;
+}
+
+.ds-variants--grid th:first-child { width: 170px; }
+.ds-variants--grid th:last-child { width: 22%; }
+
+.ds-variants thead th code {
+    display: block;
+    margin-top: 2px;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
 .ds-variants .ds-note {
     margin: 0;
 }
