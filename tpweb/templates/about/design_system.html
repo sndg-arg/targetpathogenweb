@@ -5,7 +5,7 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016r">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016s">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -230,6 +230,18 @@
             </table>
             </div>
         </div>
+        <div class="ds-comp" id="c-state">
+            <h3>Chip de estado <code>tp-chip--state</code></h3>
+            <div class="ds-table-wrap">
+            <table class="ds-grid ds-grid--t">
+                <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Sin datos</strong><code>idle</code></th><th scope="col"><strong>Corriendo</strong><code>running</code></th><th scope="col"><strong>Terminado</strong><code>finished</code></th><th scope="col"><strong>Falló</strong><code>failed</code></th></tr></thead>
+                <tbody>
+                    <tr><th scope="row">Ejemplo</th><td><span class="tp-chip tp-chip--state idle">Not run</span></td><td><span class="tp-chip tp-chip--state running">Stage 10 · InterProScan</span></td><td><span class="tp-chip tp-chip--state finished">Finished</span></td><td><span class="tp-chip tp-chip--state failed">Failed</span></td></tr>
+                    <tr><th scope="row">Cuándo</th><td class="ds-use">Nada corrió todavía</td><td class="ds-use">Análisis en curso</td><td class="ds-use">Listo</td><td class="ds-use">Error del análisis</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
         <div class="ds-comp" id="c-filtro">
             <h3>Chip de filtro <code>filter-chip</code></h3>
             <div class="ds-example">
@@ -359,26 +371,94 @@
             <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Elegida</strong> lleno petróleo</span> <span class="ds-part"><strong>No elegida</strong> texto gris</span></p>
         </div>
         <div class="ds-comp" id="c-aviso">
-            <h3>Aviso <code>barra a la izquierda</code></h3>
+            <h3>Aviso <code>tp-state-note</code></h3>
             <div class="ds-example">
                 <div class="ds-ex-field">
                     <div class="ds-ex-row">
                         <span class="ds-ex-fakeinput">e.g. KPN_00002</span>
                         <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm" tabindex="-1">+ Add</button>
                     </div>
-                    <p class="ds-note ds-note--warning">“e.g.” is not a value in this genome, not added.</p>
+                    <p class="tp-state-note tp-state-note--warning">“e.g.” is not a value in this genome, not added.</p>
                 </div>
             </div>
             <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Barra de color</strong></span> <span class="ds-part"><strong>Texto</strong></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid ds-grid--t">
-                <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Info</strong></th><th scope="col"><strong>Atención</strong></th><th scope="col"><strong>Error</strong></th></tr></thead>
+                <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Vacío</strong><code>--empty</code></th><th scope="col"><strong>Cargando</strong><code>--loading</code></th><th scope="col"><strong>Listo</strong><code>--success</code></th><th scope="col"><strong>Atención</strong><code>--warning</code></th><th scope="col"><strong>Error</strong><code>--error</code></th></tr></thead>
                 <tbody>
-                    <tr><th scope="row">Ejemplo</th><td><p class="ds-note ds-note--info">Runs on the genome above.</p></td><td><p class="ds-note ds-note--warning">Not a value in this genome.</p></td><td><p class="ds-note ds-note--danger">The file was not loaded.</p></td></tr>
-                    <tr><th scope="row">Cuándo</th><td class="ds-use">Contexto</td><td class="ds-use">Algo no se aplicó</td><td class="ds-use">Falló</td></tr>
+                    <tr><th scope="row">Ejemplo</th><td><p class="tp-state-note tp-state-note--empty">No uploaded data yet.</p></td><td><p class="tp-state-note tp-state-note--loading">Loading structures…</p></td><td><p class="tp-state-note tp-state-note--success">Column loaded.</p></td><td><p class="tp-state-note tp-state-note--warning">Not a value in this genome.</p></td><td><p class="tp-state-note tp-state-note--error">The file was not loaded.</p></td></tr>
+                    <tr><th scope="row">Cuándo</th><td class="ds-use">No hay datos</td><td class="ds-use">En curso</td><td class="ds-use">Se completó</td><td class="ds-use">Algo no se aplicó</td><td class="ds-use">Falló</td></tr>
                 </tbody>
             </table>
             </div>
+        </div>
+        <div class="ds-comp" id="c-msg">
+            <h3>Mensaje <code>tp-message</code></h3>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Texto</strong></span> <span class="ds-part"><strong>Cerrar</strong> <code>tp-message-close</code></span></p>
+            <div class="ds-table-wrap">
+            <table class="ds-grid ds-grid--t">
+                <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Listo</strong><code>--success</code></th><th scope="col"><strong>Info</strong><code>--info</code></th><th scope="col"><strong>Atención</strong><code>--warning</code></th><th scope="col"><strong>Error</strong><code>--error</code></th></tr></thead>
+                <tbody>
+                    <tr><th scope="row">Ejemplo</th><td><div class="tp-message tp-message--success"><span>Access requested.</span><button type="button" class="tp-message-close" aria-label="Close" tabindex="-1">&times;</button></div></td><td><div class="tp-message tp-message--info"><span>Already requested.</span><button type="button" class="tp-message-close" aria-label="Close" tabindex="-1">&times;</button></div></td><td><div class="tp-message tp-message--warning"><span>2 values not found.</span><button type="button" class="tp-message-close" aria-label="Close" tabindex="-1">&times;</button></div></td><td><div class="tp-message tp-message--error"><span>Upload failed.</span><button type="button" class="tp-message-close" aria-label="Close" tabindex="-1">&times;</button></div></td></tr>
+                    <tr><th scope="row">Cuándo</th><td class="ds-use">Después de guardar</td><td class="ds-use">Aviso general</td><td class="ds-use">Se aplicó con cambios</td><td class="ds-use">No se pudo</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="ds-comp" id="c-loader">
+            <h3>Cargando <code>tp-page-loader</code></h3>
+            <div class="ds-example">
+                <div class="tp-page-loader-card ds-loader-sample" role="img" aria-label="Loader">
+                    <div class="tp-page-loader-head">
+                        <span class="tp-page-loader-mark" aria-hidden="true"><span class="tp-page-loader-target"><span class="tp-page-loader-target-ring"></span><span class="tp-page-loader-target-ring"></span></span></span>
+                        <div>
+                            <p class="tp-page-loader-title">Target Pathogen</p>
+                            <p class="tp-page-loader-copy">Opening the next view…</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Diana animada</strong> <code>tp-page-loader-target</code></span> <span class="ds-part"><strong>Título</strong></span> <span class="ds-part"><strong>Qué está abriendo</strong> <code>tp-page-loader-copy</code></span></p>
+        </div>
+        <div class="ds-comp" id="c-table">
+            <h3>Tabla <code>tp-table + tp-pagination</code></h3>
+            <div class="ds-example">
+                <div class="tp-table-shell ds-table-sample">
+                    <table class="table mb-0 tp-table tp-table--plain">
+                        <thead><tr><th scope="col">Protein</th><th scope="col">Description</th><th scope="col">Binding-site probability</th></tr></thead>
+                        <tbody>
+                            <tr><td><a href="#" tabindex="-1">VK055_2067</a></td><td>UDP-2,3-diacylglucosamine hydrolase</td><td>0.94</td></tr>
+                            <tr><td><a href="#" tabindex="-1">VK055_0860</a></td><td>4-hydroxythreonine-4-phosphate dehydrogenase</td><td>0.91</td></tr>
+                            <tr><td><a href="#" tabindex="-1">VK055_3185</a></td><td>—</td><td>0.87</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <ul class="pagination tp-pagination ds-pagination-sample">
+                    <li class="page-item disabled"><span class="page-link"><span class="tp-chevron tp-chevron--left" aria-hidden="true"></span></span></li>
+                    <li class="page-item active"><span class="page-link">1</span></li>
+                    <li class="page-item"><span class="page-link">2</span></li>
+                    <li class="page-item"><span class="page-link">3</span></li>
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    <li class="page-item"><span class="page-link">204</span></li>
+                    <li class="page-item"><span class="page-link"><span class="tp-chevron tp-chevron--right" aria-hidden="true"></span></span></li>
+                </ul>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Encabezado</strong> <code>thead</code></span> <span class="ds-part"><strong>Fila</strong> <code>tbody tr</code></span> <span class="ds-part"><strong>Link a la ficha</strong></span> <span class="ds-part"><strong>Paginación</strong> <code>tp-pagination</code></span></p>
+        </div>
+        <div class="ds-comp" id="c-crumb">
+            <h3>Breadcrumb <code>tp-breadcrumb</code></h3>
+            <div class="ds-example">
+                <nav class="tp-breadcrumb ds-crumb-sample" aria-label="Ejemplo">
+                    <a class="tp-breadcrumb-back" href="#" tabindex="-1"><span class="tp-breadcrumb-back-icon" aria-hidden="true">←</span>Back</a>
+                    <ol class="tp-breadcrumb-list">
+                        <li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#" tabindex="-1">Home</a></li>
+                        <li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#" tabindex="-1">Genomes</a></li>
+                        <li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#" tabindex="-1">Genome: KpATCC43816</a></li>
+                        <li class="tp-breadcrumb-item"><span class="tp-breadcrumb-current">Proteins</span></li>
+                    </ol>
+                </nav>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Volver</strong> <code>tp-breadcrumb-back</code></span> <span class="ds-part"><strong>Niveles</strong> <code>tp-breadcrumb-link</code></span> <span class="ds-part"><strong>Página actual</strong> <code>tp-breadcrumb-current</code></span></p>
         </div>
         <div class="ds-comp" id="c-menu">
             <h3>Menú de secciones <code>quick-nav</code></h3>

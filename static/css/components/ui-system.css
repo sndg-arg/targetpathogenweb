@@ -367,48 +367,52 @@
     box-shadow: none;
 }
 
+/* Status notes (empty, loading, success, warning, error): a colored bar on
+   the left and plain text -- never a filled box (see /design, Aviso). */
 .tp-state-note {
     margin: 0;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    background: var(--tp-color-surface-muted);
+    padding: 2px 0 2px 12px;
+    border: 0;
+    border-left: 3px solid var(--tp-color-border-strong);
+    border-radius: 0;
+    background: none;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     font-weight: 400;
     line-height: 1.45;
-    padding: 12px 14px;
 }
 
 .tp-state-note--empty {
-    border-color: var(--tp-color-border);
+    border-left-color: var(--tp-color-border-strong);
+    color: var(--tp-color-text-muted);
 }
 
 .tp-state-note--loading {
-    border-style: solid;
-    border-color: var(--tp-color-info-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-info-bg) 100%);
-    color: var(--tp-color-info-ink);
-}
-
-.tp-state-note--error {
-    border-style: solid;
-    border-color: var(--tp-color-danger-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-danger-bg) 100%);
-    color: var(--tp-color-danger-ink);
+    border-left-color: var(--tp-color-brand-500);
 }
 
 .tp-state-note--success {
-    border-style: solid;
-    border-color: var(--tp-color-success-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-success-bg) 100%);
+    border-left-color: var(--tp-color-success-border);
     color: var(--tp-color-success-ink);
 }
 
 .tp-state-note--warning {
-    border-style: solid;
-    border-color: var(--tp-color-warning-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-warning-bg) 100%);
+    border-left-color: var(--tp-color-warning-border);
     color: var(--tp-color-warning-ink);
+}
+
+.tp-state-note--error {
+    border-left-color: var(--tp-color-danger-border);
+    color: var(--tp-color-danger-ink);
+    font-weight: 600;
+}
+
+/* Centered "nothing here" messages (empty filter search, empty table) are
+   not notes: no bar. */
+.tp-state-note.filter-catalogue-empty,
+.tp-state-note.filter-search-no-results,
+.tp-state-note.protein-table-empty-note {
+    border-left: 0;
 }
 
 /* Shared "you don't have access to this page" state (components/access_locked.html),

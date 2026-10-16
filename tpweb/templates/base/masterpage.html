@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261016-final">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261016-components">
     <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261013-mobile-fab">
     <style>
         :root {
@@ -416,8 +416,7 @@
             font-family: "Source Sans 3", "Segoe UI", sans-serif;
             color: var(--tp-ink);
             background:
-                radial-gradient(920px 380px at 4% -8%, rgba(33, 122, 145, 0.07) 0%, transparent 62%),
-                radial-gradient(720px 320px at 98% 104%, rgba(146, 77, 118, 0.05) 0%, transparent 68%),
+                radial-gradient(920px 380px at 4% -8%, rgba(29, 75, 90, 0.05) 0%, transparent 62%),
                 linear-gradient(180deg, var(--tp-color-page-start) 0%, var(--tp-color-page-end) 100%);
             background-attachment: fixed;
             margin: 0;
@@ -1125,11 +1124,16 @@
             color: var(--tp-color-danger-ink);
         }
 
-        .tp-message--info,
-        .tp-message--warning {
+        .tp-message--info {
             background: var(--tp-color-info-bg);
             border: 1px solid var(--tp-color-info-border);
             color: var(--tp-color-info-ink);
+        }
+
+        .tp-message--warning {
+            background: var(--tp-color-warning-bg);
+            border: 1px solid var(--tp-color-warning-border);
+            color: var(--tp-color-warning-ink);
         }
 
         .tp-message-close {
@@ -2321,7 +2325,7 @@
             width: 4px;
             height: 4px;
             border-radius: 50%;
-            background: var(--tp-color-rose-500);
+            background: var(--tp-color-accent-line);
             opacity: 0.55;
             animation: tp-page-loader-ping 1800ms cubic-bezier(0, 0, 0.2, 1) infinite;
         }
@@ -2334,8 +2338,8 @@
             width: 4px;
             height: 4px;
             border-radius: 50%;
-            background: var(--tp-color-rose-500);
-            box-shadow: 0 0 4px 0 color-mix(in srgb, var(--tp-color-rose-500) 65%, transparent);
+            background: var(--tp-color-accent-line);
+            box-shadow: 0 0 4px 0 color-mix(in srgb, var(--tp-color-accent-line) 65%, transparent);
         }
 
         .tp-page-loader-title {

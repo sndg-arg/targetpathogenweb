@@ -970,3 +970,25 @@
     vertical-align: top;
     padding-top: 20px;
 }
+
+/* Samples of page-level components, drawn in place. */
+.ds-loader-sample {
+    max-width: 360px;
+}
+
+.ds-table-sample {
+    max-width: 760px;
+}
+
+.ds-pagination-sample {
+    margin: 14px 0 0;
+}
+
+.ds-crumb-sample {
+    position: static;
+}
+
+.ds-grid .tp-message {
+    min-width: 200px;
+    white-space: normal;
+}
