@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261016-general">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261016-review">
     <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261013-mobile-fab">
     <style>
         :root {
@@ -53,7 +53,8 @@
             /* Destructive fill (Delete on hover): deep brick, not bright rose. */
             --tp-color-danger-fill: #8a2c33;
             /* Keyboard focus: one thin petrol line, everywhere. */
-            --tp-focus-outline: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-color-primary);
+            --tp-focus-color: var(--tp-color-brand-800);
+            --tp-focus-outline: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-focus-color);
             --tp-color-rose-900: #742849;
             --tp-color-rose-700: #ab3f68;
             --tp-color-rose-500: #cf628c;
@@ -100,7 +101,7 @@
             --tp-color-success-border: #b5d8c7;
             --tp-color-info-ink: #23596b;
             --tp-color-info-bg: #eef3f5;
-            --tp-color-info-border: #cfdce1;
+            --tp-color-info-border: #a6bec6;
             --tp-color-idle-ink: #56707d;
             --tp-color-idle-bg: #edf4f6;
             --tp-color-idle-border: #d0dee4;
@@ -266,6 +267,7 @@
             --tp-color-primary: #2f5d6c;
             --tp-color-primary-hover: #3a6e7e;
             --tp-color-danger-fill: #7a3036;
+            --tp-focus-color: #8fb8c4;
 
             /* rose */
             --tp-color-rose-900: #f0c4d5;
@@ -324,7 +326,7 @@
             /* state — info */
             --tp-color-info-ink: #8fb8c4;
             --tp-color-info-bg: #152227;
-            --tp-color-info-border: #2a3f46;
+            --tp-color-info-border: #3d5a63;
 
             /* state — idle */
             --tp-color-idle-ink: #7a9aaa;
@@ -892,16 +894,30 @@
         .custom-select:focus,
         .custom-select:focus-visible {
             outline: none;
-            border-color: var(--tp-color-primary);
-            box-shadow: 0 0 0 1px var(--tp-color-primary);
+            border-color: var(--tp-focus-color);
+            box-shadow: 0 0 0 1px var(--tp-focus-color);
         }
 
         .form-control:disabled,
-        .custom-select:disabled {
+        .custom-select:disabled,
+        .tp-dark .form-control:disabled,
+        .tp-dark .custom-select:disabled {
             color: var(--tp-color-text-soft);
             border-color: var(--tp-color-border-soft);
             background: var(--tp-color-surface-muted);
             box-shadow: none;
+        }
+
+        /* Disabled looks the same for every button type: neutral gray. */
+        .btn.tp-btn--primary:disabled,
+        .btn.tp-btn--primary.disabled,
+        .tp-dark .btn.tp-btn--primary:disabled,
+        .tp-dark .btn.tp-btn--primary.disabled {
+            color: var(--tp-color-text-soft) !important;
+            border-color: var(--tp-color-border-soft) !important;
+            background: var(--tp-color-surface-muted) !important;
+            background-color: var(--tp-color-surface-muted) !important;
+            opacity: 1;
         }
 
         .tp-state-chip {

@@ -349,22 +349,6 @@
     background: var(--tp-color-brand-050);
 }
 
-.ds-shadows {
-    display: flex;
-    gap: var(--tp-space-4);
-    margin: var(--tp-space-3) 0;
-}
-
-.ds-shadows div {
-    display: grid;
-    place-items: center;
-    width: 72px;
-    height: 52px;
-    border-radius: 10px;
-    background: var(--tp-color-surface);
-    border: 1px solid var(--tp-color-border-soft);
-}
-
 /* Buttons matrix */
 .ds-table-wrap {
     max-width: 100%;
@@ -642,7 +626,7 @@
     font-size: var(--tp-font-size-sm);
 }
 
-.ds-note--info { border-color: var(--tp-color-info-border); color: var(--tp-color-text-secondary); }
+.ds-note--info { border-color: var(--tp-color-brand-500); color: var(--tp-color-text-secondary); }
 .ds-note--warning { border-color: var(--tp-color-warning-border); color: var(--tp-color-warning-ink); }
 .ds-note--danger { border-color: var(--tp-color-danger-border); color: var(--tp-color-danger-ink); font-weight: 600; }
 
@@ -768,8 +752,8 @@
 }
 
 .ds-page .form-control.ds-focus {
-    border-color: var(--tp-color-primary);
-    box-shadow: 0 0 0 1px var(--tp-color-primary);
+    border-color: var(--tp-focus-color);
+    box-shadow: 0 0 0 1px var(--tp-focus-color);
 }
 
 .ds-filter-chip.ds-hover {
@@ -918,4 +902,37 @@
 .ds-grid .tp-select,
 .ds-grid select {
     pointer-events: none;
+}
+
+/* Transposed grid: one example per variant, variants across the top. */
+.ds-grid--t thead th {
+    vertical-align: bottom;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-primary);
+}
+
+.ds-grid--t thead th strong {
+    display: block;
+    font-weight: 600;
+}
+
+.ds-grid--t thead th code {
+    font-size: 0.72rem;
+    color: var(--tp-color-text-muted);
+}
+
+.ds-grid--t tbody th {
+    width: 110px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.ds-grid--t td.ds-use {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    white-space: normal;
 }
