@@ -396,6 +396,103 @@
     font-weight: 400;
 }
 
+/* Components */
+.ds-comp {
+    display: grid;
+    gap: var(--tp-space-2);
+}
+
+.ds-comp + .ds-comp {
+    margin-top: var(--tp-space-5);
+}
+
+.ds-comp h3 {
+    margin: 0;
+    font-size: var(--tp-heading-sm);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.ds-comp h3 code {
+    font-weight: 400;
+    color: var(--tp-color-text-muted);
+}
+
+/* Same column widths in every component table, so they line up. */
+.ds-variants {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.ds-variants th:first-child { width: 200px; }
+.ds-variants th:last-child { width: 30%; }
+
+.ds-variants th,
+.ds-variants td {
+    padding: 10px 10px 10px 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.ds-variants thead th {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.ds-variants tbody th {
+    font-weight: 400;
+}
+
+.ds-variants tbody th code {
+    display: block;
+    margin-top: 2px;
+}
+
+.ds-variants td:last-child {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-variants .ds-note {
+    margin: 0;
+}
+
+.ds-inline-control {
+    max-width: 260px;
+}
+
+.ds-tab {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 6px;
+    font-family: var(--ds-head);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+}
+
+.ds-tab--on {
+    color: var(--tp-color-link-hover);
+}
+
+.ds-tab--on::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: var(--tp-color-accent-line);
+}
+
 /* Chips */
 .ds-demo-row {
     display: flex;

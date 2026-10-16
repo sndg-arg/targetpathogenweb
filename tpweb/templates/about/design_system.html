@@ -5,7 +5,7 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016d">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016f">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -33,10 +33,7 @@
         <a class="quick-nav-link" href="#color">Color</a>
         <a class="quick-nav-link" href="#tipografia">Tipografía</a>
         <a class="quick-nav-link" href="#espacio">Espacio y forma</a>
-        <a class="quick-nav-link" href="#botones">Botones</a>
-        <a class="quick-nav-link" href="#chips">Chips</a>
-        <a class="quick-nav-link" href="#formularios">Formularios</a>
-        <a class="quick-nav-link" href="#avisos">Avisos</a>
+        <a class="quick-nav-link" href="#componentes">Componentes</a>
         <a class="quick-nav-link" href="#layout">Layout</a>
     </nav>
 
@@ -178,113 +175,102 @@
         </div>
     </section>
 
-    {# ── Botones ── #}
-    <section class="ds-section" id="botones">
-        <h2>Botones</h2>
-        <p class="ds-intro"><code>btn tp-btn</code> + tipo + tamaño</p>
-        <div class="ds-table-wrap">
-            <table class="ds-matrix">
-                <thead>
-                    <tr><th scope="col">Tipo</th><th scope="col">Chico · 32 px<br><code>tp-btn--sm</code></th><th scope="col">Normal · 38 px</th><th scope="col">Deshabilitado</th></tr>
-                </thead>
+    {# ── Componentes ── #}
+    <section class="ds-section" id="componentes">
+        <h2>Componentes</h2>
+        <div class="ds-comp" id="c-boton">
+            <h3>Botón <code>btn tp-btn</code></h3>
+            <div class="ds-table-wrap">
+            <table class="ds-variants">
+                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
                 <tbody>
-                    <tr>
-                        <th scope="row"><strong>Principal</strong><code>tp-btn--primary</code></th>
-                        <td><button type="button" class="btn tp-btn tp-btn--primary tp-btn--sm">Run BLAST</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--primary">Run BLAST</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--primary" disabled>Run BLAST</button></td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Secundario</strong><code>tp-btn--secondary</code></th>
-                        <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm">Export CSV</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--secondary">Export CSV</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--secondary" disabled>Export CSV</button></td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Peligro</strong><code>tp-btn--danger</code></th>
-                        <td><button type="button" class="btn tp-btn tp-btn--danger tp-btn--sm">Delete</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--danger">Delete</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--danger" disabled>Delete</button></td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Fantasma</strong><code>tp-btn--ghost</code></th>
-                        <td><button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm">Clear all</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--ghost">Clear all</button></td>
-                        <td>—</td>
-                    </tr>
+                    <tr><th scope="row"><strong>Principal</strong><code>tp-btn--primary</code></th><td><button type="button" class="btn tp-btn tp-btn--primary">Run BLAST</button></td><td>Uno por vista</td></tr>
+                    <tr><th scope="row"><strong>Secundario</strong><code>tp-btn--secondary</code></th><td><button type="button" class="btn tp-btn tp-btn--secondary">Export CSV</button></td><td>Todo lo demás</td></tr>
+                    <tr><th scope="row"><strong>Peligro</strong><code>tp-btn--danger</code></th><td><button type="button" class="btn tp-btn tp-btn--danger">Delete</button></td><td>Solo borrar</td></tr>
+                    <tr><th scope="row"><strong>Fantasma</strong><code>tp-btn--ghost</code></th><td><button type="button" class="btn tp-btn tp-btn--ghost">Clear all</button></td><td>Ícono o acción en fila</td></tr>
+                    <tr><th scope="row"><strong>Chico</strong><code>tp-btn--sm</code></th><td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm">+ Add</button> <button type="button" class="btn tp-btn tp-btn--secondary">+ Add</button></td><td>32 px, en paneles y filas (al lado: normal, 38 px)</td></tr>
+                    <tr><th scope="row"><strong>Deshabilitado</strong><code>disabled</code></th><td><button type="button" class="btn tp-btn tp-btn--primary" disabled>Apply filters</button></td><td>Falta un dato</td></tr>
                 </tbody>
             </table>
-        </div>
-        <dl class="ds-usage">
-            <div><dt>Principal</dt><dd>Uno por vista</dd></div>
-            <div><dt>Secundario</dt><dd>Todo lo demás</dd></div>
-            <div><dt>Peligro</dt><dd>Solo borrar</dd></div>
-            <div><dt>Fantasma</dt><dd>Ícono o acción en fila</dd></div>
-            <div><dt>Chico</dt><dd>Dentro de paneles y filas</dd></div>
-        </dl>
-    </section>
-
-    {# ── Chips ── #}
-    <section class="ds-section" id="chips">
-        <h2>Chips</h2>
-        <div class="ds-demo-row">
-            <span class="tp-chip tp-chip--sm tp-chip--meta">Curated analysis</span>
-            <span class="tp-chip tp-chip--sm tp-chip--count">857</span>
-            <span class="tp-chip tp-chip--sm tp-chip--ec">2.7.13.3</span>
-            <span class="tp-chip tp-chip--sm tp-chip--go">GO:0005737</span>
-            <span class="tp-chip tp-chip--sm tp-chip--direct">Has structure</span>
-        </div>
-        <dl class="ds-usage">
-            <div><dt>Forma</dt><dd>Siempre igual</dd></div>
-            <div><dt>ec · go</dt><dd>Solo cambia la fuente (mono)</dd></div>
-            <div><dt>direct</dt><dd>Solo cambia el tono (verde = favorable)</dd></div>
-        </dl>
-        <h3 class="ds-sub">Chips de filtro</h3>
-        <div class="ds-demo-row">
-            <span class="ds-filter-chip">Core</span>
-            <span class="ds-filter-chip ds-filter-chip--applied">Accessory ×</span>
-            <span class="ds-filter-chip ds-filter-chip--pending">Shell</span>
-        </div>
-        <dl class="ds-usage">
-            <div><dt>Aplicado</dt><dd>Lleno</dd></div>
-            <div><dt>Pendiente</dt><dd>Punteado, falta Apply filters</dd></div>
-        </dl>
-    </section>
-
-    {# ── Formularios ── #}
-    <section class="ds-section" id="formularios">
-        <h2>Formularios</h2>
-        <div class="ds-form-demo">
-            <div class="tp-ui-field">
-                <label class="tp-ui-field-label" for="ds-input">Rótulo del campo</label>
-                <input id="ds-input" type="text" class="form-control tp-ui-control" placeholder="Placeholder en gris suave">
             </div>
-            <div class="tp-ui-field">
-                <label class="tp-ui-field-label" for="ds-select">Selector</label>
-                <select id="ds-select" class="form-control tp-ui-control"><option>GCA_030061715.1</option><option>KpATCC43816</option></select>
-            </div>
-            <fieldset class="tp-ui-field ds-seg-field">
-                <legend class="tp-ui-field-label">Selector de dos opciones</legend>
-                <div class="ds-seg">
-                    <label><input type="radio" name="ds-seg" checked><span>Nucleotide <small>blastn</small></span></label>
-                    <label><input type="radio" name="ds-seg"><span>Protein <small>blastp</small></span></label>
-                </div>
-            </fieldset>
         </div>
-        <dl class="ds-usage">
-            <div><dt>Alto</dt><dd>40 px · esquinas 8 px</dd></div>
-            <div><dt>Foco</dt><dd>Línea fina petróleo</dd></div>
-        </dl>
-    </section>
-
-    {# ── Avisos ── #}
-    <section class="ds-section" id="avisos">
-        <h2>Avisos</h2>
-        <p class="ds-intro">Barra a la izquierda, nunca una caja</p>
-        <div class="ds-notes">
-            <p class="ds-note ds-note--info">This search runs on the genome above.</p>
-            <p class="ds-note ds-note--warning">“e.g.” is not a value in this genome, not added.</p>
-            <p class="ds-note ds-note--danger">The file was not loaded.</p>
+        <div class="ds-comp" id="c-chip">
+            <h3>Chip <code>tp-chip tp-chip--sm</code></h3>
+            <div class="ds-table-wrap">
+            <table class="ds-variants">
+                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
+                <tbody>
+                    <tr><th scope="row"><strong>Neutro</strong><code>tp-chip--meta</code></th><td><span class="tp-chip tp-chip--sm tp-chip--meta">Curated analysis</span></td><td>Contexto</td></tr>
+                    <tr><th scope="row"><strong>Número</strong><code>tp-chip--count</code></th><td><span class="tp-chip tp-chip--sm tp-chip--count">857</span></td><td>Cantidad</td></tr>
+                    <tr><th scope="row"><strong>Identificador</strong><code>tp-chip--ec · --go</code></th><td><span class="tp-chip tp-chip--sm tp-chip--ec">2.7.13.3</span> <span class="tp-chip tp-chip--sm tp-chip--go">GO:0005737</span></td><td>Códigos (mono)</td></tr>
+                    <tr><th scope="row"><strong>Favorable</strong><code>tp-chip--direct</code></th><td><span class="tp-chip tp-chip--sm tp-chip--direct">Has structure</span></td><td>Dato a favor</td></tr>
+                    <tr><th scope="row"><strong>Atención</strong><code>tp-chip--warning</code></th><td><span class="tp-chip tp-chip--sm tp-chip--warning">Low confidence</span></td><td>Dato dudoso</td></tr>
+                    <tr><th scope="row"><strong>Secundario</strong><code>tp-chip--homolog</code></th><td><span class="tp-chip tp-chip--sm tp-chip--homolog">Via homolog</span></td><td>Evidencia indirecta</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="ds-comp" id="c-filtro">
+            <h3>Chip de filtro <code>filter-chip</code></h3>
+            <div class="ds-table-wrap">
+            <table class="ds-variants">
+                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
+                <tbody>
+                    <tr><th scope="row"><strong>Normal</strong></th><td><span class="ds-filter-chip ">Core</span></td><td>Disponible</td></tr>
+                    <tr><th scope="row"><strong>Aplicado</strong><code>--active</code></th><td><span class="ds-filter-chip ds-filter-chip--applied">Accessory ×</span></td><td>Filtro activo</td></tr>
+                    <tr><th scope="row"><strong>Pendiente</strong><code>--pending</code></th><td><span class="ds-filter-chip ds-filter-chip--pending">Shell</span></td><td>Falta Apply filters</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="ds-comp" id="c-campo">
+            <h3>Campo <code>form-control tp-ui-control</code></h3>
+            <div class="ds-table-wrap">
+            <table class="ds-variants">
+                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
+                <tbody>
+                    <tr><th scope="row"><strong>Texto</strong></th><td><input id="ds-input" type="text" class="form-control tp-ui-control ds-inline-control" placeholder="Search…"></td><td>Búsqueda, valores</td></tr>
+                    <tr><th scope="row"><strong>Selector</strong></th><td><select id="ds-select" class="form-control tp-ui-control ds-inline-control"><option>GCA_030061715.1</option><option>KpATCC43816</option></select></td><td>Una opción de muchas</td></tr>
+                    <tr><th scope="row"><strong>Deshabilitado</strong><code>disabled</code></th><td><input id="ds-input-off" type="text" class="form-control tp-ui-control ds-inline-control" placeholder="Search…" disabled></td><td>No aplica</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="ds-comp" id="c-seg">
+            <h3>Selector de dos opciones <code>segmented</code></h3>
+            <div class="ds-table-wrap">
+            <table class="ds-variants">
+                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
+                <tbody>
+                    <tr><th scope="row"><strong>Elegida / no</strong></th><td><div class="ds-seg"><label><input type="radio" name="ds-seg" checked><span>Nucleotide <small>blastn</small></span></label><label><input type="radio" name="ds-seg"><span>Protein <small>blastp</small></span></label></div></td><td>Dos modos excluyentes</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="ds-comp" id="c-aviso">
+            <h3>Aviso <code>barra a la izquierda</code></h3>
+            <div class="ds-table-wrap">
+            <table class="ds-variants">
+                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
+                <tbody>
+                    <tr><th scope="row"><strong>Info</strong></th><td><p class="ds-note ds-note--info">Runs on the genome above.</p></td><td>Contexto</td></tr>
+                    <tr><th scope="row"><strong>Atención</strong></th><td><p class="ds-note ds-note--warning">Not a value in this genome.</p></td><td>Algo no se aplicó</td></tr>
+                    <tr><th scope="row"><strong>Error</strong></th><td><p class="ds-note ds-note--danger">The file was not loaded.</p></td><td>Falló</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="ds-comp" id="c-menu">
+            <h3>Menú de secciones <code>quick-nav</code></h3>
+            <div class="ds-table-wrap">
+            <table class="ds-variants">
+                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
+                <tbody>
+                    <tr><th scope="row"><strong>Activa</strong><code>is-active</code></th><td><span class="ds-tab ds-tab--on">Downloads</span></td><td>Sección visible</td></tr>
+                    <tr><th scope="row"><strong>Inactiva</strong></th><td><span class="ds-tab">Evidence</span></td><td>Resto</td></tr>
+                </tbody>
+            </table>
+            </div>
         </div>
     </section>
 
