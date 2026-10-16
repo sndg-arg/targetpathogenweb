@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261014-unified">
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261016-editorial">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -31,66 +31,52 @@
             <p class="blast-subtitle">
                 {% blocktrans with genome=genome_label %}Amino acid BLAST (blastp) against every protein loaded for {{ genome }}.{% endblocktrans %}
             </p>
-            <p class="blast-genome-note">
-                <strong>{% trans "Genome" %}:</strong> {{ genome_label }}
-            </p>
-            <div class="blast-chip-group tp-chip-group">
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Input" %}: FASTA / {% trans "raw amino acid sequence" %}</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Mode" %}: blastp</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Output" %}: {% trans "closest matching proteins" %}</span>
-            </div>
+            <p class="blast-genome-note"><strong>{{ genome_label }}</strong></p>
         </section>
 
         {# ── Workbench ── #}
         <section class="blast-workbench">
 
             <div class="blast-card">
-                <div class="tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "Run search against this genome" %}</h2>
-                    </div>
-                </div>
+                <h2>{% trans "Search this genome" %}</h2>
 
                 <form method="POST" action="{% url 'tpwebapp:protein_blast' genome=genome_name %}" class="blast-form-inner">
                     {% csrf_token %}
-                    <p class="tp-state-note tp-state-note--empty mb-0">
-                        {% trans "This search is bound to the current genome. To search a different genome, open it from that genome's overview page." %}
-                    </p>
+                    <p class="blast-bound-note">{% trans "This search runs on the genome above. To search another one, open BLAST from that genome's page or from the top bar." %}</p>
 
                     <div class="tp-ui-field">
                         <label class="tp-ui-field-label" for="text_input">{% trans "Amino acid sequence" %}</label>
                         <textarea name="sequence" id="text_input"
                                   class="form-control tp-ui-control blast-seq-input"
+                                  spellcheck="false"
                                   placeholder="{% trans 'Paste FASTA or a raw amino acid sequence…' %}">{{ sequence_value|default:"" }}</textarea>
                     </div>
 
-                    <div class="tp-ui-actions">
+                    {% if error_message %}
+                        <p class="blast-error" role="alert">{{ error_message }}</p>
+                    {% endif %}
+
+                    <div class="blast-actions">
                         <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/play.html" %}</span>
-                            <span>{% trans "Run BLAST against this genome" %}</span>
+                            <span>{% trans "Run BLAST" %}</span>
                         </button>
                     </div>
                 </form>
-
-                {% if error_message %}
-                    <p class="tp-state-note tp-state-note--error mb-0">{{ error_message }}</p>
-                {% endif %}
             </div>
 
-            <aside class="blast-card">
-                <div class="tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "Input guide" %}</h2>
-                        <p class="blast-card-note">{% trans "Amino acid sequences only. Accepts a single FASTA entry or a plain sequence. Results link back to the closest-matching proteins loaded in this genome." %}</p>
-                    </div>
+            <aside class="blast-card blast-card--guide">
+                <div>
+                    <h2>{% trans "Before you run" %}</h2>
+                    <p class="blast-card-note">{% trans "One amino acid sequence per search, as a FASTA entry or plain letters." %}</p>
                 </div>
                 <ul class="blast-tip-list">
-                    <li>{% trans "Use standard amino acid letters (ACDEFGHIKLMNPQRSTVWY)." %}</li>
-                    <li>{% trans "Paste one FASTA entry or a plain sequence without a header." %}</li>
-                    <li>{% trans "Longer queries take more time depending on genome size." %}</li>
+                    <li>{% trans "Use the standard amino acid letters (ACDEFGHIKLMNPQRSTVWY)." %}</li>
+                    <li>{% trans "It is compared against every protein loaded for this genome." %}</li>
+                    <li>{% trans "Every hit links to its protein page." %}</li>
                 </ul>
-                <div>
-                    <p class="blast-card-note blast-card-note--label"><strong>{% trans "Example FASTA" %}</strong></p>
+                <div class="blast-example">
+                    <p class="blast-example-label">{% trans "Example FASTA" %}</p>
                     <pre class="blast-format-block">&gt;query_1
 MSTNPKPQRSTVWYACDEFGHIKLMNPQ</pre>
                 </div>

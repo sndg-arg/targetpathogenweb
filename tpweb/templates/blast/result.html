@@ -4,7 +4,7 @@
 {% load custom_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261014-unified">
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261016-editorial">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -35,17 +35,19 @@
             </p>
         </section>
 
-        {# ── Result card ── #}
-        <div class="blast-card">
+        <section class="blast-results">
             <div class="blast-result-head">
-                <h2>{% trans "Hits" %}</h2>
-                <a class="btn tp-btn tp-btn--neutral tp-btn-with-icon" href="{{ new_search_url }}">
+                <div>
+                    <h2>{% trans "Hits" %}</h2>
+                    {% if hits %}<p class="blast-result-count">{% blocktrans count n=hits|length %}{{ n }} match, best first{% plural %}{{ n }} matches, best first{% endblocktrans %}</p>{% endif %}
+                </div>
+                <a class="btn tp-btn tp-btn--secondary tp-btn-with-icon" href="{{ new_search_url }}">
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
                     <span>{% trans "Run another search" %}</span>
                 </a>
             </div>
             {% if not hits %}
-                <p class="tp-state-note tp-state-note--empty mb-0">{% trans "No hits found for this query (e-value ≤ 1e-6)." %}</p>
+                <p class="blast-bound-note">{% trans "No hits found for this query (e-value ≤ 1e-6)." %}</p>
             {% else %}
                 <div class="table-shell tp-table-shell">
                     <table class="table table-striped table-hover mb-0 tp-table tp-table--plain">
@@ -65,8 +67,8 @@
                             <tr>
                                 <td>
                                     {% if hit.protein %}
-                                        <a href="{% url 'tpwebapp:protein' hit.protein.bioentry_id %}">{{ hit.protein.accession }}</a>
-                                        {% if hit.protein.description %}<span class="tp-state-note--empty">{{ hit.protein.description }}</span>{% endif %}
+                                        <a class="blast-hit-link" href="{% url 'tpwebapp:protein' hit.protein.bioentry_id %}">{{ hit.protein.accession }}</a>
+                                        {% if hit.protein.description %}<span class="blast-hit-desc">{{ hit.protein.description }}</span>{% endif %}
                                     {% else %}
                                         {{ hit.subject_id }}
                                     {% endif %}
@@ -87,7 +89,7 @@
                 <summary>{% trans "Raw BLAST output (tabular)" %}</summary>
                 <pre class="blast-result-pre">{{ result }}</pre>
             </details>
-        </div>
+        </section>
 
     </div>
 {% endblock %}

@@ -4,7 +4,7 @@
 {% load custom_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261014-unified">
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261016-editorial">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -48,37 +48,22 @@
 
             {% if blast_locked_to_genome %}
                 <p class="blast-genome-note">
-                    <strong>{% trans "Genome" %}:</strong> {{ selected_genome_label }}
-                    {% if selected_genome_description and selected_genome_description != selected_genome_label %}
-                        &nbsp;·&nbsp; {{ selected_genome_description }}
-                    {% endif %}
+                    <strong>{{ selected_genome_label }}</strong>{% if selected_genome_description and selected_genome_description != selected_genome_label %} · {{ selected_genome_description }}{% endif %}
                 </p>
             {% endif %}
-
-            <div class="blast-chip-group tp-chip-group">
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Input" %}: FASTA / {% trans "raw sequence" %}</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Mode" %}: blastn / blastp</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Output" %}: {% trans "table of hits linked to proteins" %}</span>
-            </div>
         </section>
 
         {# ── Workbench ── #}
         <section class="blast-workbench">
 
             <div class="blast-card">
-                <div class="tp-ui-panel-head">
-                    <div>
-                        <h2>{% if blast_locked_to_genome %}{% trans "Run search against this genome" %}{% else %}{% trans "Run search" %}{% endif %}</h2>
-                    </div>
-                </div>
+                <h2>{% if blast_locked_to_genome %}{% trans "Search this genome" %}{% else %}{% trans "New search" %}{% endif %}</h2>
 
                 <form method="POST" class="blast-form-inner">
                     {% csrf_token %}
                     {% if blast_locked_to_genome %}
                         <input type="hidden" name="genome_name" value="{{ selected_genome_name }}">
-                        <p class="tp-state-note tp-state-note--empty mb-0">
-                            {% trans "This search is bound to the current genome. To search another genome, open BLAST from that genome overview or use the global BLAST entry." %}
-                        </p>
+                        <p class="blast-bound-note">{% trans "This search runs on the genome above. To search another one, open BLAST from that genome's page or from the top bar." %}</p>
                     {% else %}
                         <div class="tp-ui-field">
                             <label class="tp-ui-field-label" for="dropdown">{% trans "Genome" %}</label>
@@ -92,55 +77,51 @@
 
                     <fieldset class="tp-ui-field blast-type-field">
                         <legend class="tp-ui-field-label">{% trans "Sequence type" %}</legend>
-                        <label class="blast-type-option">
-                            <input type="radio" name="blast_type" value="nucleotide" {% if blast_type != "protein" %}checked{% endif %}>
-                            <span>{% trans "Nucleotide" %} <small>(blastn)</small></span>
-                        </label>
-                        <label class="blast-type-option">
-                            <input type="radio" name="blast_type" value="protein" {% if blast_type == "protein" %}checked{% endif %}>
-                            <span>{% trans "Protein" %} <small>(blastp)</small></span>
-                        </label>
+                        <div class="blast-segmented">
+                            <label class="blast-segmented-option">
+                                <input type="radio" name="blast_type" value="nucleotide" {% if blast_type != "protein" %}checked{% endif %}>
+                                <span>{% trans "Nucleotide" %} <small>blastn</small></span>
+                            </label>
+                            <label class="blast-segmented-option">
+                                <input type="radio" name="blast_type" value="protein" {% if blast_type == "protein" %}checked{% endif %}>
+                                <span>{% trans "Protein" %} <small>blastp</small></span>
+                            </label>
+                        </div>
                     </fieldset>
 
                     <div class="tp-ui-field">
                         <label class="tp-ui-field-label" for="text_input">{% trans "Query sequence" %}</label>
                         <textarea name="text_input" id="text_input"
                                   class="form-control tp-ui-control blast-seq-input"
+                                  spellcheck="false"
                                   placeholder="{% trans 'Paste a FASTA entry or a raw sequence here…' %}">{{ text_input_value|default:"" }}</textarea>
                     </div>
 
-                    <div class="tp-ui-actions">
+                    {% if error_message %}
+                        <p class="blast-error" role="alert">{{ error_message }}</p>
+                    {% endif %}
+
+                    <div class="blast-actions">
                         <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/play.html" %}</span>
-                            {% if blast_locked_to_genome %}
-                                <span>{% trans "Run BLAST against this genome" %}</span>
-                            {% else %}
-                                <span>{% trans "Run BLAST" %}</span>
-                            {% endif %}
+                            <span>{% trans "Run BLAST" %}</span>
                         </button>
                     </div>
                 </form>
-
-                {% if error_message %}
-                    <p class="tp-state-note tp-state-note--error mb-0">{{ error_message }}</p>
-                {% endif %}
-
             </div>
 
-            <aside class="blast-card">
-                <div class="tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "Input guide" %}</h2>
-                        <p class="blast-card-note">{% trans "Accepts a single FASTA entry or a plain sequence. Pick the sequence type to match it." %}</p>
-                    </div>
+            <aside class="blast-card blast-card--guide">
+                <div>
+                    <h2>{% trans "Before you run" %}</h2>
+                    <p class="blast-card-note">{% trans "One sequence per search, as a FASTA entry or plain letters." %}</p>
                 </div>
                 <ul class="blast-tip-list">
-                    <li>{% trans "Nucleotide (A / C / G / T / N) is searched against the genome's genes; protein (amino acids) against its proteins." %}</li>
-                    <li>{% trans "Paste one FASTA entry or a plain sequence without a header." %}</li>
-                    <li>{% trans "Longer queries take more time depending on the selected genome." %}</li>
+                    <li>{% trans "Nucleotide (A, C, G, T, N) is searched against the genome's genes; protein (amino acids) against its proteins." %}</li>
+                    <li>{% trans "Pick the sequence type that matches what you paste." %}</li>
+                    <li>{% trans "Every hit links to its protein page." %}</li>
                 </ul>
-                <div>
-                    <p class="blast-card-note blast-card-note--label"><strong>{% trans "Example FASTA" %}</strong></p>
+                <div class="blast-example">
+                    <p class="blast-example-label">{% trans "Example FASTA" %}</p>
                     <pre class="blast-format-block">&gt;query_1
 ATGACCACTGATCGTTGGTAACTTGACGCTAA</pre>
                 </div>

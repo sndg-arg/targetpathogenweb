@@ -1,14 +1,18 @@
-/* ── BLAST search pages ── */
+/* ── BLAST search pages (form + results, blastn and blastp) ──
+   Same editorial layout as Add my own data / Upload (see
+   tpw-editorial-redesign): hero and workbench sit directly on the page
+   background, the form and its guide are two columns split by a hairline,
+   no boxed cards or gradient stripes. */
 
 .blast-page {
     display: grid;
     gap: var(--tp-space-4);
-    --blast-accent-ink: var(--tp-color-brand-900);
-    --blast-accent-soft: var(--tp-color-info-bg);
-    --blast-accent-soft-2: var(--tp-color-brand-050);
-    --blast-accent-border: var(--tp-color-brand-300);
-    --blast-border: var(--tp-color-border-soft);
+    --blast-ink: var(--tp-color-brand-900);
     --blast-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+.blast-page > section ~ section {
+    margin-top: var(--tp-space-5);
 }
 
 .blast-page h1,
@@ -23,25 +27,7 @@
 /* ── Hero ── */
 
 .blast-hero {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-hero);
-    background: var(--tp-color-surface);
-    padding: 22px 22px 18px;
-}
-
-.blast-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 55%, var(--tp-color-brand-500) 100%);
-}
-
-.blast-hero > * {
-    position: relative;
-    z-index: 1;
+    padding: 22px 18px 18px;
 }
 
 .blast-eyebrow {
@@ -50,7 +36,6 @@
     gap: 6px;
     margin: 0 0 8px;
     color: var(--tp-color-text-muted);
-    font-family: var(--blast-mono);
     font-size: var(--tp-font-label);
     font-weight: 500;
     letter-spacing: 0.08em;
@@ -61,182 +46,113 @@
     margin: 0;
     font-size: var(--tp-heading-lg);
     line-height: 1.05;
-    color: var(--blast-accent-ink);
+    color: var(--blast-ink);
 }
 
 .blast-subtitle {
     margin: 10px 0 0;
-    max-width: 800px;
+    max-width: 820px;
     color: var(--tp-color-text-secondary);
     font-size: 1.03rem;
     line-height: 1.52;
 }
 
-.blast-chip-group {
-    margin-top: 14px;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
 .blast-genome-note {
-    margin: 10px 0 0;
+    margin: 12px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.95rem;
-    line-height: 1.52;
+    font-size: var(--tp-font-size-sm);
 }
 
-/* ── Workbench grid ── */
+.blast-genome-note strong {
+    color: var(--tp-color-text-primary);
+}
+
+/* ── Workbench: form | guide ── */
 
 .blast-workbench {
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
     gap: 18px;
     align-items: start;
+    margin: 0 18px;
 }
 
-/* ── Cards ── */
-
 .blast-card {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface);
-    padding: 16px;
     display: grid;
-    gap: 14px;
+    gap: 16px;
     align-content: start;
+    padding: 16px 0;
+}
+
+.blast-card--guide {
+    gap: 14px;
+    padding-left: 18px;
+    border-left: 1px solid var(--tp-color-border-soft);
 }
 
 .blast-card h2 {
     margin: 0;
-    color: var(--blast-accent-ink);
+    color: var(--blast-ink);
     font-size: var(--tp-heading-sm);
     line-height: 1.15;
 }
 
 .blast-card-note {
-    margin: 5px 0 0;
+    margin: 6px 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.92rem;
+    font-size: 0.93rem;
     line-height: 1.45;
 }
 
-.blast-card-note--label {
-    margin-bottom: 6px;
-}
-
-/* ── Form elements ── */
+/* ── Form ── */
 
 .blast-form-inner {
     display: grid;
-    gap: 12px;
+    gap: 16px;
+}
+
+.blast-form-inner .tp-ui-field {
+    display: grid;
+    gap: 7px;
+}
+
+.blast-form-inner .form-control,
+.blast-form-inner .tp-ui-control {
+    min-height: 44px;
+    border-radius: 12px;
 }
 
 .blast-seq-input {
     font-family: var(--blast-mono) !important;
-    font-size: 0.9rem !important;
-    min-height: 170px;
+    font-size: 0.88rem !important;
+    min-height: 180px !important;
     resize: vertical;
     line-height: 1.55 !important;
 }
 
-/* ── Guide list ── */
-
-.blast-tip-list {
+/* Plain text, not a box: a left accent bar (pure-text notes never get their
+   own rounded container). */
+.blast-bound-note {
     margin: 0;
-    padding-left: 18px;
+    padding: 2px 0 2px 12px;
+    border-left: 3px solid var(--tp-color-info-border);
     color: var(--tp-color-text-secondary);
-    display: grid;
-    gap: 6px;
-    font-size: 0.9rem;
-    line-height: 1.5;
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.45;
 }
 
-.blast-format-block {
-    border: 1px solid var(--blast-border);
-    border-radius: 10px;
-    background: var(--tp-color-surface-soft);
-    padding: 10px 12px;
-    font-family: var(--blast-mono);
-    font-size: 0.82rem;
-    color: var(--tp-color-text-secondary);
-    white-space: pre-wrap;
+.blast-error {
     margin: 0;
+    padding: 2px 0 2px 12px;
+    border-left: 3px solid var(--tp-color-danger-border);
+    color: var(--tp-color-danger-ink);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
 }
 
-/* ── Result pre block ── */
-
-.blast-result-pre {
-    margin: 0;
-    max-height: 70vh;
-    overflow: auto;
-    border: 1px solid var(--blast-border);
-    border-radius: 12px;
-    background: var(--tp-color-surface-soft);
-    padding: 14px 16px;
-    white-space: pre;
-    font-size: 0.86rem;
-    line-height: 1.5;
-    font-family: var(--blast-mono);
-    color: var(--tp-color-text-primary);
-    scrollbar-width: thin;
-    scrollbar-color: var(--tp-color-border-soft) transparent;
-}
-
-/* ── Result head ── */
-
-.blast-result-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.blast-result-head h2 {
-    margin: 0;
-    color: var(--blast-accent-ink);
-    font-size: var(--tp-heading-sm);
-}
-
-/* ── Animations ── */
-
-.blast-hero,
-.blast-workbench,
-.blast-card {
-    animation: blast-enter 0.34s ease both;
-}
-
-.blast-workbench { animation-delay: 0.04s; }
-
-@keyframes blast-enter {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: none; }
-}
-
-/* ── Responsive ── */
-
-@media (max-width: 900px) {
-    .blast-workbench {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .blast-hero {
-        padding: 18px 16px 16px;
-    }
-
-    .blast-card {
-        padding: 14px;
-    }
-}
-
-/* Nucleotide / protein switch on the BLAST form. */
+/* Nucleotide / Protein: a two-option segmented control (radio inputs
+   underneath, so it works without JS and keeps keyboard behaviour). */
 .blast-type-field {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px 22px;
     margin: 0;
     padding: 0;
     border: 0;
@@ -244,31 +160,161 @@
 }
 
 .blast-type-field legend {
-    flex-basis: 100%;
-    margin-bottom: 2px;
+    margin-bottom: 7px;
 }
 
-.blast-type-option {
+.blast-segmented {
     display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    justify-self: start;
+    width: max-content;
+    padding: 3px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-btn-radius);
+    background: var(--tp-color-surface-soft);
+}
+
+.blast-segmented-option {
+    position: relative;
     margin: 0;
-    font-weight: 500;
     cursor: pointer;
 }
 
-.blast-type-option input {
-    margin: 0;
-    accent-color: var(--tp-color-brand-600);
+.blast-segmented-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
 }
 
-.blast-type-option small {
+.blast-segmented-option span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 7px 16px;
+    border-radius: calc(var(--tp-btn-radius) - 3px);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    transition:
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.blast-segmented-option small {
     color: var(--tp-color-text-muted);
+    font-family: var(--blast-mono);
+    font-size: 0.74rem;
+    font-weight: 500;
 }
 
-/* Raw tabular output kept under the hits table for anyone who wants it. */
+.blast-segmented-option:hover span {
+    color: var(--tp-color-text-primary);
+}
+
+.blast-segmented-option input:checked + span {
+    background: var(--tp-color-surface);
+    color: var(--tp-color-brand-800);
+    box-shadow: var(--tp-shadow-xs);
+}
+
+.blast-segmented-option input:focus-visible + span {
+    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+}
+
+.blast-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ── Guide ── */
+
+.blast-tip-list {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 6px;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.91rem;
+    line-height: 1.5;
+}
+
+.blast-example {
+    padding: 12px 14px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 14px;
+    background: var(--tp-color-surface-soft);
+}
+
+.blast-example-label {
+    margin: 0 0 8px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.blast-format-block {
+    margin: 0;
+    font-family: var(--blast-mono);
+    font-size: 0.8rem;
+    line-height: 1.55;
+    color: var(--tp-color-text-secondary);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* ── Results ── */
+
+.blast-results {
+    margin: 0 18px;
+    padding-top: var(--tp-space-5);
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.blast-result-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: var(--tp-space-4);
+}
+
+.blast-result-head h2 {
+    margin: 0;
+    color: var(--blast-ink);
+    font-size: var(--tp-heading-sm);
+}
+
+.blast-result-count {
+    margin: 4px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.blast-hit-link {
+    font-family: var(--blast-mono);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+}
+
+.blast-hit-desc {
+    display: block;
+    margin-top: 2px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.35;
+}
+
+.blast-results .tp-table td {
+    font-variant-numeric: tabular-nums;
+}
+
 .blast-raw-output {
-    margin-top: 14px;
+    margin-top: var(--tp-space-4);
 }
 
 .blast-raw-output > summary {
@@ -278,6 +324,77 @@
     cursor: pointer;
 }
 
-.blast-raw-output > .blast-result-pre {
-    margin-top: 8px;
+.blast-result-pre {
+    margin: 8px 0 0;
+    max-height: 70vh;
+    overflow: auto;
+    padding: 14px 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-surface-soft);
+    white-space: pre;
+    font-family: var(--blast-mono);
+    font-size: 0.84rem;
+    line-height: 1.5;
+    color: var(--tp-color-text-primary);
+    scrollbar-width: thin;
+    scrollbar-color: var(--tp-color-border-soft) transparent;
+}
+
+/* ── Animations ── */
+
+.blast-hero,
+.blast-workbench,
+.blast-results {
+    animation: blast-enter 0.34s ease backwards;
+}
+
+.blast-workbench,
+.blast-results { animation-delay: 0.04s; }
+
+@keyframes blast-enter {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .blast-hero,
+    .blast-workbench,
+    .blast-results,
+    .blast-segmented-option span {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 900px) {
+    .blast-workbench {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .blast-card--guide {
+        padding-left: 0;
+        padding-top: 18px;
+        border-left: 0;
+        border-top: 1px solid var(--tp-color-border-soft);
+    }
+}
+
+@media (max-width: 560px) {
+    .blast-segmented {
+        display: flex;
+        justify-self: stretch;
+        width: auto;
+    }
+
+    .blast-segmented-option {
+        flex: 1 1 0;
+    }
+
+    .blast-segmented-option span {
+        justify-content: center;
+        width: 100%;
+    }
 }
