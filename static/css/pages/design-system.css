@@ -154,7 +154,7 @@
 
 .ds-tokens {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: var(--tp-space-3) var(--tp-space-5);
 }
 
@@ -173,7 +173,10 @@
 .ds-token code {
     color: var(--tp-color-text-primary);
     font-weight: 600;
-    overflow-wrap: anywhere;
+    font-size: 0.76rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .ds-token span {
@@ -329,9 +332,13 @@
 
 .ds-radius {
     display: grid;
-    grid-template-columns: 40px 140px minmax(0, 1fr);
+    grid-template-columns: 40px 180px minmax(0, 1fr);
     gap: var(--tp-space-3);
     align-items: center;
+}
+
+.ds-radius code {
+    white-space: nowrap;
 }
 
 .ds-radius i {
@@ -360,6 +367,7 @@
 
 /* Buttons matrix */
 .ds-table-wrap {
+    max-width: 100%;
     overflow-x: auto;
 }
 
@@ -400,6 +408,7 @@
 .ds-comp {
     display: grid;
     gap: var(--tp-space-2);
+    min-width: 0; /* let wide grids scroll inside .ds-table-wrap on phones */
 }
 
 .ds-comp + .ds-comp {
@@ -582,6 +591,7 @@
 }
 
 .ds-seg label {
+    position: relative; /* keeps the hidden radio inside (it widened the page on phones) */
     margin: 0;
     cursor: pointer;
 }
@@ -803,12 +813,14 @@
 }
 
 /* ── Full example + parts, above each component's grid ── */
+/* No overflow clipping here: dropdowns (the custom select) open below
+   their control and must not be cut by this box. */
 .ds-example {
+    min-width: 0;
     padding: 20px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
     background: var(--tp-color-surface);
-    overflow-x: auto;
 }
 
 .ds-ex-row {
@@ -903,4 +915,11 @@
     color: var(--tp-color-text-soft);
     font-family: var(--ds-mono);
     font-size: 0.82rem;
+}
+
+/* Selects inside the grids are samples only: opening one would be clipped
+   by the grid's horizontal scroll box. The full example above opens fine. */
+.ds-grid .tp-select,
+.ds-grid select {
+    pointer-events: none;
 }
