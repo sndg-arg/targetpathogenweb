@@ -785,9 +785,9 @@
 
 /* Evidence chips: direct hit vs. inferred via homolog */
 .tp-chip--direct {
-    background: var(--tp-color-sage-050);
-    color: var(--tp-color-sage-900);
-    border: 1px solid var(--tp-color-sage-200);
+    background: var(--tp-color-success-bg);
+    color: var(--tp-color-success-ink);
+    border: 1px solid var(--tp-color-success-border);
 }
 
 .tp-chip--homolog {
@@ -797,27 +797,24 @@
 }
 
 .tp-chip--warning {
-    border-color: var(--tp-color-amber-200);
-    background: var(--tp-color-amber-050);
-    color: var(--tp-color-amber-700);
+    border-color: var(--tp-color-warning-border);
+    background: var(--tp-color-warning-bg);
+    color: var(--tp-color-warning-ink);
     cursor: help;
 }
 
-.tp-chip--ec {
-    border-color: var(--tp-color-brand-200);
-    background: var(--tp-color-brand-050);
-    color: var(--tp-color-brand-800);
+/* One chip shape everywhere (see /design): same size, border and neutral
+   colors. Variants only change the font (mono for identifiers) or, when it
+   carries meaning, the tone (direct = success, warning, homolog = muted). */
+.tp-chip--ec,
+.tp-chip--go {
+    border-color: var(--tp-color-border);
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-secondary);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-weight: 500;
-    font-size: 0.74rem;
-    text-decoration: none;
-}
-
-.tp-chip--go {
-    border-color: var(--tp-color-sage-200);
-    background: var(--tp-color-sage-050);
-    color: var(--tp-color-sage-700);
-    font-size: 0.74rem;
+    font-size: 0.72rem;
+    line-height: 1.3; /* same height as the sans chips next to it */
     text-decoration: none;
     gap: 4px;
 }
@@ -839,32 +836,16 @@ a.tp-chip--go:hover {
     filter: brightness(0.97);
 }
 
-.tp-chip--kegg {
-    border-color: var(--tp-color-brand-200);
-    background: var(--tp-color-brand-050);
-    color: var(--tp-color-brand-800);
-}
-
-.tp-chip--biocyc {
-    border-color: var(--tp-color-amber-200);
-    background: var(--tp-color-amber-050);
-    color: var(--tp-color-amber-700);
+.tp-chip--kegg,
+.tp-chip--biocyc,
+.tp-chip--count {
+    border-color: var(--tp-color-border);
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-secondary);
 }
 
 .tp-chip--count {
-    border-color: var(--tp-color-border);
-    background: var(--tp-color-surface-muted);
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    line-height: 1;
-    padding: 4px 9px;
-}
-
-.tp-chip--count.tp-chip--sm {
-    font-size: 0.72rem;
-    line-height: 1;
-    padding: 2px 7px;
+    font-variant-numeric: tabular-nums;
 }
 
 .tp-chip--score {
