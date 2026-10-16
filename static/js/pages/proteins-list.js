@@ -1388,7 +1388,14 @@ function jsloaded() {
             const visibleText = showMessage ? (text || "") : "";
             form.classList.toggle("has-numeric-error", Boolean(visibleText));
             if (message) message.textContent = visibleText;
-            if (applyButton) applyButton.disabled = !isValid;
+            if (applyButton) applyButton.disabled = !isValid || isEmpty();
+        }
+
+        // Nothing typed yet: "Add" stays disabled.
+        function isEmpty() {
+            const selected = form.querySelector('input[name="numeric_operation"]:checked');
+            const needed = selected && selected.value === "between" ? [primaryInput, secondaryInput] : [primaryInput];
+            return needed.some(function (input) { return !input || !input.value.trim(); });
         }
 
         function validateNumericFilter(showMessage) {
@@ -1445,7 +1452,7 @@ function jsloaded() {
             if (validationAttempted) {
                 validateNumericFilter(true);
             } else if (applyButton) {
-                applyButton.disabled = false;
+                applyButton.disabled = isEmpty();
             }
         }
 
@@ -1456,6 +1463,7 @@ function jsloaded() {
             if (!input) return;
             input.addEventListener("input", function () {
                 if (validationAttempted) validateNumericFilter(true);
+                else if (applyButton) applyButton.disabled = isEmpty();
             });
             input.addEventListener("blur", function () {
                 if (validationAttempted) validateNumericFilter(true);
@@ -1467,7 +1475,22 @@ function jsloaded() {
                 event.preventDefault();
             }
         });
+        form.addEventListener("reset", function () {
+            validationAttempted = false;
+            setTimeout(function () { if (applyButton) applyButton.disabled = isEmpty(); }, 0);
+        });
         syncNumericMode();
+    });
+
+    // EC / GO text filters: "Add" disabled until something is typed.
+    document.querySelectorAll(".filter-text-form").forEach(function (form) {
+        const input = form.querySelector(".filter-text-input");
+        const button = form.querySelector(".filter-text-add");
+        if (!input || !button) return;
+        function sync() { button.disabled = !input.value.trim(); }
+        input.addEventListener("input", sync);
+        form.addEventListener("reset", function () { setTimeout(sync, 0); });
+        sync();
     });
 }
 

@@ -67,7 +67,15 @@
             if (event.target === field || event.target === chips) input.focus();
         });
 
+        var addButton = form.querySelector("button[type='submit']");
+
+        // "Add" is disabled until there's a chip or something typed.
+        function syncButton() {
+            if (addButton) addButton.disabled = !values.length && !input.value.trim();
+        }
+
         function syncTextarea() {
+            syncButton();
             textarea.value = values.join("\n");
             field.classList.toggle("has-values", values.length > 0);
             input.placeholder = values.length ? "" : textarea.placeholder;
@@ -263,6 +271,7 @@
         }
 
         input.addEventListener("input", function () {
+            syncButton();
             var query = input.value.trim();
             if (SPLIT_RE.test(input.value) && query) {
                 // Typed a separator (space, comma): commit what's before it,
@@ -414,6 +423,8 @@
                 syncTextarea();
             }, 0);
         });
+
+        syncButton();
     }
 
     function init() {
