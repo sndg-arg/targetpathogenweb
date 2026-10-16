@@ -5,7 +5,10 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016s">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261016-general">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261015-shared-quick-nav">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261015-protein-line">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016t">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -29,17 +32,20 @@
     </section>
 
     <nav class="quick-nav" data-quick-nav aria-label="Secciones">
-        <a class="quick-nav-link" href="#principios">Principios</a>
-        <a class="quick-nav-link" href="#color">Color</a>
-        <a class="quick-nav-link" href="#tipografia">Tipografía</a>
-        <a class="quick-nav-link" href="#espacio">Espacio y forma</a>
-        <a class="quick-nav-link" href="#componentes">Componentes</a>
+        <a class="quick-nav-link" href="#fundamentos">Fundamentos</a>
+        <a class="quick-nav-link" href="#basicos">Componentes básicos</a>
+        <a class="quick-nav-link" href="#compuestos">Componentes compuestos</a>
         <a class="quick-nav-link" href="#layout">Layout</a>
     </nav>
 
-    {# ── Principios ── #}
-    <section class="ds-section" id="principios">
-        <h2>Principios</h2>
+    <section class="ds-chapter tp-quick-nav-target" id="fundamentos">
+        <header class="ds-chapter-head">
+            <h2>Fundamentos</h2>
+            <nav class="ds-index" aria-label="En Fundamentos"><a href="#principios">Principios</a><a href="#color">Color</a><a href="#tipografia">Tipografía</a><a href="#espacio">Espacio y forma</a></nav>
+        </header>
+
+    <section class="ds-section tp-quick-nav-target" id="principios">
+        <h3 class="ds-section-title">Principios</h3>
         <ul class="ds-rules">
             <li><strong>Un acento.</strong> Petróleo solo en la acción principal, links y la sección activa.</li>
             <li><strong>Estados neutros.</strong> Hover gris, seleccionado lleno, pendiente punteado, deshabilitado gris.</li>
@@ -49,11 +55,10 @@
         </ul>
     </section>
 
-    {# ── Color ── #}
-    <section class="ds-section" id="color">
-        <h2>Color</h2>
+    <section class="ds-section tp-quick-nav-target" id="color">
+        <h3 class="ds-section-title">Color</h3>
 
-        <h3 class="ds-sub">Marca (petróleo)</h3>
+        <h4 class="ds-sub">Marca (petróleo)</h4>
         <div class="ds-scale">
             <div class="ds-swatch" data-token="--tp-color-brand-900"><span>900</span></div>
             <div class="ds-swatch" data-token="--tp-color-brand-800"><span>800</span></div>
@@ -73,7 +78,7 @@
             <div><dt>500–300</dt><dd>Gráficos</dd></div>
         </dl>
 
-        <h3 class="ds-sub">Acento y links</h3>
+        <h4 class="ds-sub">Acento y links</h4>
         <div class="ds-tokens">
             <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-accent-line"></div><code>--tp-color-accent-line</code><span>Sección activa</span></div>
             <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-link"></div><code>--tp-color-link</code><span>Links</span></div>
@@ -81,7 +86,7 @@
             <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-nav-900"></div><code>--tp-color-nav-900</code><span>Barra superior</span></div>
         </div>
 
-        <h3 class="ds-sub">Texto</h3>
+        <h4 class="ds-sub">Texto</h4>
         <div class="ds-tokens">
             <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-text-primary"></div><code>--tp-color-text-primary</code><span>Principal</span></div>
             <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-text-secondary"></div><code>--tp-color-text-secondary</code><span>Párrafos</span></div>
@@ -89,7 +94,7 @@
             <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-text-soft"></div><code>--tp-color-text-soft</code><span>Placeholder, deshabilitado</span></div>
         </div>
 
-        <h3 class="ds-sub">Superficies y bordes</h3>
+        <h4 class="ds-sub">Superficies y bordes</h4>
         <div class="ds-tokens">
             <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-surface"></div><code>--tp-color-surface</code><span>Fondo</span></div>
             <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-surface-soft"></div><code>--tp-color-surface-soft</code><span>Bandas, hover</span></div>
@@ -99,7 +104,7 @@
             <div class="ds-token"><div class="ds-swatch ds-swatch--sm" data-token="--tp-color-border-strong"></div><code>--tp-color-border-strong</code><span>Campos, botones</span></div>
         </div>
 
-        <h3 class="ds-sub">Semánticos</h3>
+        <h4 class="ds-sub">Semánticos</h4>
         <div class="ds-semantic">
             <div class="ds-sem ds-sem--success"><strong>success</strong><span>Favorable</span></div>
             <div class="ds-sem ds-sem--info"><strong>info</strong><span>Informativo</span></div>
@@ -109,9 +114,8 @@
         </div>
     </section>
 
-    {# ── Tipografía ── #}
-    <section class="ds-section" id="tipografia">
-        <h2>Tipografía</h2>
+    <section class="ds-section tp-quick-nav-target" id="tipografia">
+        <h3 class="ds-section-title">Tipografía</h3>
         <div class="ds-fonts">
             <div class="ds-font">
                 <p class="ds-font-sample ds-font-sample--head">Space Grotesk</p>
@@ -127,7 +131,7 @@
             </div>
         </div>
 
-        <h3 class="ds-sub">Escala</h3>
+        <h4 class="ds-sub">Escala</h4>
         <div class="ds-typescale">
             <div class="ds-type-row"><code>--tp-heading-lg</code><span class="ds-t" style="font-size: var(--tp-heading-lg); font-family: var(--ds-head); font-weight: 700;">Título de página</span></div>
             <div class="ds-type-row"><code>--tp-heading-md</code><span class="ds-t" style="font-size: var(--tp-heading-md); font-family: var(--ds-head); font-weight: 600;">Título de sección grande</span></div>
@@ -140,12 +144,11 @@
         </div>
     </section>
 
-    {# ── Espacio y forma ── #}
-    <section class="ds-section" id="espacio">
-        <h2>Espacio y forma</h2>
+    <section class="ds-section tp-quick-nav-target" id="espacio">
+        <h3 class="ds-section-title">Espacio y forma</h3>
         <div class="ds-two">
             <div>
-                <h3 class="ds-sub">Espaciado</h3>
+                <h4 class="ds-sub">Espaciado</h4>
                 <div class="ds-spaces">
                     <div class="ds-space"><code>--tp-space-1</code><i style="width: var(--tp-space-1)"></i><span>4 px</span></div>
                     <div class="ds-space"><code>--tp-space-2</code><i style="width: var(--tp-space-2)"></i><span>8 px</span></div>
@@ -159,7 +162,7 @@
                 <p class="ds-intro">Margen de página 18 px · entre secciones 40 px</p>
             </div>
             <div>
-                <h3 class="ds-sub">Bordes redondeados</h3>
+                <h4 class="ds-sub">Bordes redondeados</h4>
                 <div class="ds-radii">
                     <div class="ds-radius"><i style="border-radius: var(--tp-btn-radius)"></i><code>--tp-btn-radius</code><span>8 px · botones y campos</span></div>
                     <div class="ds-radius"><i style="border-radius: var(--tp-radius-md)"></i><code>--tp-radius-md</code><span>12 px · tarjetas, ejemplos</span></div>
@@ -170,11 +173,18 @@
         </div>
     </section>
 
-    {# ── Componentes ── #}
-    <section class="ds-section" id="componentes">
-        <h2>Componentes</h2>
+    </section>
+
+    <section class="ds-chapter tp-quick-nav-target" id="basicos">
+        <header class="ds-chapter-head">
+            <h2>Componentes básicos</h2>
+            <nav class="ds-index" aria-label="En Componentes básicos"><a href="#g-acciones">Acciones</a><a href="#g-etiquetas">Etiquetas</a><a href="#g-formularios">Formularios</a><a href="#g-avisos">Avisos</a><a href="#g-navegacion">Navegación</a><a href="#g-datos">Datos</a></nav>
+        </header>
+
+    <section class="ds-section tp-quick-nav-target" id="g-acciones">
+        <h3 class="ds-section-title">Acciones</h3>
         <div class="ds-comp" id="c-boton">
-            <h3>Botón <code>btn tp-btn</code></h3>
+            <h4 class="ds-comp-title">Botón <code>btn tp-btn</code></h4>
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
@@ -218,8 +228,12 @@
             </table>
             </div>
         </div>
+    </section>
+
+    <section class="ds-section tp-quick-nav-target" id="g-etiquetas">
+        <h3 class="ds-section-title">Etiquetas</h3>
         <div class="ds-comp" id="c-chip">
-            <h3>Chip <code>tp-chip</code></h3>
+            <h4 class="ds-comp-title">Chip <code>tp-chip</code></h4>
             <div class="ds-table-wrap">
             <table class="ds-grid ds-grid--t">
                 <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Neutro</strong><code>--meta</code></th><th scope="col"><strong>Número</strong><code>--count</code></th><th scope="col"><strong>Identificador</strong><code>--ec · --go</code></th><th scope="col"><strong>Favorable</strong><code>--direct</code></th><th scope="col"><strong>Atención</strong><code>--warning</code></th><th scope="col"><strong>Secundario</strong><code>--homolog</code></th></tr></thead>
@@ -231,7 +245,7 @@
             </div>
         </div>
         <div class="ds-comp" id="c-state">
-            <h3>Chip de estado <code>tp-chip--state</code></h3>
+            <h4 class="ds-comp-title">Chip de estado <code>tp-chip--state</code></h4>
             <div class="ds-table-wrap">
             <table class="ds-grid ds-grid--t">
                 <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Sin datos</strong><code>idle</code></th><th scope="col"><strong>Corriendo</strong><code>running</code></th><th scope="col"><strong>Terminado</strong><code>finished</code></th><th scope="col"><strong>Falló</strong><code>failed</code></th></tr></thead>
@@ -242,57 +256,12 @@
             </table>
             </div>
         </div>
-        <div class="ds-comp" id="c-filtro">
-            <h3>Chip de filtro <code>filter-chip</code></h3>
-            <div class="ds-example">
-                <div class="ds-ex-filter">
-                    <div class="ds-ex-filter-head"><span>Off-target</span><span aria-hidden="true">⌄</span></div>
-                    <p class="ds-ex-filter-param">Human off-target</p>
-                    <div class="ds-ex-row">
-                        <span class="ds-filter-chip ds-filter-chip--favorable ds-filter-chip--applied">No hit ×</span>
-                        <span class="ds-filter-chip ds-filter-chip--risk">Hit</span>
-                    </div>
-                    <p class="ds-ex-filter-param">Core Roary</p>
-                    <div class="ds-ex-row">
-                        <span class="ds-filter-chip">Core</span>
-                        <span class="ds-filter-chip ds-filter-chip--pending">Accessory</span>
-                    </div>
-                </div>
-            </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Grupo</strong> <code>filter-group</code></span> <span class="ds-part"><strong>Criterio</strong> <code>filter-param-label</code></span> <span class="ds-part"><strong>Chip</strong> <code>filter-chip</code></span></p>
-            <div class="ds-table-wrap">
-            <table class="ds-grid">
-                <thead>
-                    <tr><th scope="col" class="ds-g-variant"></th><th scope="col">Disponible</th><th scope="col">Hover</th><th scope="col">Aplicado<code>--active</code></th><th scope="col">Pendiente<code>--pending</code></th></tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th scope="row"><strong>Neutro</strong><span>Valor común</span></th>
-                        <td><span class="ds-filter-chip ">Core</span></td>
-                        <td><span class="ds-filter-chip  ds-hover">Core</span></td>
-                        <td><span class="ds-filter-chip  ds-filter-chip--applied">Core ×</span></td>
-                        <td><span class="ds-filter-chip  ds-filter-chip--pending">Core</span></td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Riesgo</strong><code>filter-chip--risk</code><span>Valor desfavorable</span></th>
-                        <td><span class="ds-filter-chip ds-filter-chip--risk">Hit</span></td>
-                        <td><span class="ds-filter-chip ds-filter-chip--risk ds-hover">Hit</span></td>
-                        <td><span class="ds-filter-chip ds-filter-chip--risk ds-filter-chip--applied">Hit ×</span></td>
-                        <td><span class="ds-filter-chip ds-filter-chip--risk ds-filter-chip--pending">Hit</span></td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Favorable</strong><code>filter-chip--favorable</code><span>Valor a favor</span></th>
-                        <td><span class="ds-filter-chip ds-filter-chip--favorable">No hit</span></td>
-                        <td><span class="ds-filter-chip ds-filter-chip--favorable ds-hover">No hit</span></td>
-                        <td><span class="ds-filter-chip ds-filter-chip--favorable ds-filter-chip--applied">No hit ×</span></td>
-                        <td><span class="ds-filter-chip ds-filter-chip--favorable ds-filter-chip--pending">No hit</span></td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
-        </div>
+    </section>
+
+    <section class="ds-section tp-quick-nav-target" id="g-formularios">
+        <h3 class="ds-section-title">Formularios</h3>
         <div class="ds-comp" id="c-campo">
-            <h3>Campo de texto <code>form-control tp-ui-control</code></h3>
+            <h4 class="ds-comp-title">Campo de texto <code>form-control tp-ui-control</code></h4>
             <div class="ds-example">
                 <div class="tp-ui-field ds-ex-field">
                     <label class="tp-ui-field-label" for="ds-ex-text">Locus tag</label>
@@ -318,7 +287,7 @@
             </div>
         </div>
         <div class="ds-comp" id="c-select">
-            <h3>Selector <code>tp-select</code></h3>
+            <h4 class="ds-comp-title">Selector <code>tp-select</code></h4>
             <div class="ds-example">
                 <div class="tp-ui-field ds-ex-field">
                     <label class="tp-ui-field-label" for="ds-ex-select">Genome</label>
@@ -364,14 +333,18 @@
             </div>
         </div>
         <div class="ds-comp" id="c-seg">
-            <h3>Selector de dos opciones <code>segmented</code></h3>
+            <h4 class="ds-comp-title">Selector de dos opciones <code>segmented</code></h4>
             <div class="ds-example">
                 <div class="ds-seg"><label><input type="radio" name="ds-seg" checked tabindex="-1"><span>Nucleotide <small>blastn</small></span></label><label><input type="radio" name="ds-seg" tabindex="-1"><span>Protein <small>blastp</small></span></label></div>
             </div>
             <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Elegida</strong> lleno petróleo</span> <span class="ds-part"><strong>No elegida</strong> texto gris</span></p>
         </div>
+    </section>
+
+    <section class="ds-section tp-quick-nav-target" id="g-avisos">
+        <h3 class="ds-section-title">Avisos</h3>
         <div class="ds-comp" id="c-aviso">
-            <h3>Aviso <code>tp-state-note</code></h3>
+            <h4 class="ds-comp-title">Aviso <code>tp-state-note</code></h4>
             <div class="ds-example">
                 <div class="ds-ex-field">
                     <div class="ds-ex-row">
@@ -393,7 +366,7 @@
             </div>
         </div>
         <div class="ds-comp" id="c-msg">
-            <h3>Mensaje <code>tp-message</code></h3>
+            <h4 class="ds-comp-title">Mensaje <code>tp-message</code></h4>
             <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Texto</strong></span> <span class="ds-part"><strong>Cerrar</strong> <code>tp-message-close</code></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid ds-grid--t">
@@ -406,7 +379,7 @@
             </div>
         </div>
         <div class="ds-comp" id="c-loader">
-            <h3>Cargando <code>tp-page-loader</code></h3>
+            <h4 class="ds-comp-title">Cargando <code>tp-page-loader</code></h4>
             <div class="ds-example">
                 <div class="tp-page-loader-card ds-loader-sample" role="img" aria-label="Loader">
                     <div class="tp-page-loader-head">
@@ -420,33 +393,12 @@
             </div>
             <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Diana animada</strong> <code>tp-page-loader-target</code></span> <span class="ds-part"><strong>Título</strong></span> <span class="ds-part"><strong>Qué está abriendo</strong> <code>tp-page-loader-copy</code></span></p>
         </div>
-        <div class="ds-comp" id="c-table">
-            <h3>Tabla <code>tp-table + tp-pagination</code></h3>
-            <div class="ds-example">
-                <div class="tp-table-shell ds-table-sample">
-                    <table class="table mb-0 tp-table tp-table--plain">
-                        <thead><tr><th scope="col">Protein</th><th scope="col">Description</th><th scope="col">Binding-site probability</th></tr></thead>
-                        <tbody>
-                            <tr><td><a href="#" tabindex="-1">VK055_2067</a></td><td>UDP-2,3-diacylglucosamine hydrolase</td><td>0.94</td></tr>
-                            <tr><td><a href="#" tabindex="-1">VK055_0860</a></td><td>4-hydroxythreonine-4-phosphate dehydrogenase</td><td>0.91</td></tr>
-                            <tr><td><a href="#" tabindex="-1">VK055_3185</a></td><td>—</td><td>0.87</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <ul class="pagination tp-pagination ds-pagination-sample">
-                    <li class="page-item disabled"><span class="page-link"><span class="tp-chevron tp-chevron--left" aria-hidden="true"></span></span></li>
-                    <li class="page-item active"><span class="page-link">1</span></li>
-                    <li class="page-item"><span class="page-link">2</span></li>
-                    <li class="page-item"><span class="page-link">3</span></li>
-                    <li class="page-item disabled"><span class="page-link">…</span></li>
-                    <li class="page-item"><span class="page-link">204</span></li>
-                    <li class="page-item"><span class="page-link"><span class="tp-chevron tp-chevron--right" aria-hidden="true"></span></span></li>
-                </ul>
-            </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Encabezado</strong> <code>thead</code></span> <span class="ds-part"><strong>Fila</strong> <code>tbody tr</code></span> <span class="ds-part"><strong>Link a la ficha</strong></span> <span class="ds-part"><strong>Paginación</strong> <code>tp-pagination</code></span></p>
-        </div>
+    </section>
+
+    <section class="ds-section tp-quick-nav-target" id="g-navegacion">
+        <h3 class="ds-section-title">Navegación</h3>
         <div class="ds-comp" id="c-crumb">
-            <h3>Breadcrumb <code>tp-breadcrumb</code></h3>
+            <h4 class="ds-comp-title">Breadcrumb <code>tp-breadcrumb</code></h4>
             <div class="ds-example">
                 <nav class="tp-breadcrumb ds-crumb-sample" aria-label="Ejemplo">
                     <a class="tp-breadcrumb-back" href="#" tabindex="-1"><span class="tp-breadcrumb-back-icon" aria-hidden="true">←</span>Back</a>
@@ -461,7 +413,7 @@
             <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Volver</strong> <code>tp-breadcrumb-back</code></span> <span class="ds-part"><strong>Niveles</strong> <code>tp-breadcrumb-link</code></span> <span class="ds-part"><strong>Página actual</strong> <code>tp-breadcrumb-current</code></span></p>
         </div>
         <div class="ds-comp" id="c-menu">
-            <h3>Menú de secciones <code>quick-nav</code></h3>
+            <h4 class="ds-comp-title">Menú de secciones <code>quick-nav</code></h4>
             <div class="ds-example">
                 <nav class="quick-nav ds-ex-quicknav" aria-label="Ejemplo">
                     <span class="quick-nav-link">Evidence</span>
@@ -487,18 +439,347 @@
             </table>
             </div>
         </div>
+        <div class="ds-comp" id="c-pag">
+            <h4 class="ds-comp-title">Paginación <code>tp-pagination</code></h4>
+            <div class="ds-example">
+                <ul class="pagination tp-pagination ds-pagination-sample">
+                    <li class="page-item disabled"><span class="page-link"><span class="tp-chevron tp-chevron--left" aria-hidden="true"></span></span></li>
+                    <li class="page-item active"><span class="page-link">1</span></li>
+                    <li class="page-item"><span class="page-link">2</span></li>
+                    <li class="page-item"><span class="page-link">3</span></li>
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    <li class="page-item"><span class="page-link">204</span></li>
+                    <li class="page-item"><span class="page-link"><span class="tp-chevron tp-chevron--right" aria-hidden="true"></span></span></li>
+                </ul>
+            </div>
+            <div class="ds-table-wrap">
+            <table class="ds-grid ds-grid--t">
+                <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Página</strong></th><th scope="col"><strong>Actual</strong><code>active</code></th><th scope="col"><strong>No disponible</strong><code>disabled</code></th></tr></thead>
+                <tbody>
+                    <tr><th scope="row">Ejemplo</th><td><ul class="pagination tp-pagination ds-pagination-one"><li class="page-item"><span class="page-link">2</span></li></ul></td><td><ul class="pagination tp-pagination ds-pagination-one"><li class="page-item active"><span class="page-link">1</span></li></ul></td><td><ul class="pagination tp-pagination ds-pagination-one"><li class="page-item disabled"><span class="page-link">…</span></li></ul></td></tr>
+                    <tr><th scope="row">Cuándo</th><td class="ds-use">Ir a otra página</td><td class="ds-use">Donde estás</td><td class="ds-use">Salto o fin de la lista</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
     </section>
 
-    {# ── Layout ── #}
-    <section class="ds-section" id="layout">
-        <h2>Layout</h2>
+    <section class="ds-section tp-quick-nav-target" id="g-datos">
+        <h3 class="ds-section-title">Datos</h3>
+        <div class="ds-comp" id="c-table">
+            <h4 class="ds-comp-title">Tabla <code>tp-table</code></h4>
+            <div class="ds-example">
+                <div class="tp-table-shell ds-table-sample">
+                    <table class="table mb-0 tp-table tp-table--plain">
+                        <thead><tr><th scope="col">Protein</th><th scope="col">Description</th><th scope="col">Binding-site probability</th></tr></thead>
+                        <tbody>
+                            <tr><td><a href="#" tabindex="-1">VK055_2067</a></td><td>UDP-2,3-diacylglucosamine hydrolase</td><td>0.94</td></tr>
+                            <tr><td><a href="#" tabindex="-1">VK055_0860</a></td><td>4-hydroxythreonine-4-phosphate dehydrogenase</td><td>0.91</td></tr>
+                            <tr><td><a href="#" tabindex="-1">VK055_3185</a></td><td>—</td><td>0.87</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Encabezado</strong> <code>thead</code></span> <span class="ds-part"><strong>Fila</strong> <code>tbody tr</code></span> <span class="ds-part"><strong>Link a la ficha</strong></span></p>
+        </div>
+    </section>
+
+    </section>
+
+    <section class="ds-chapter tp-quick-nav-target" id="compuestos">
+        <header class="ds-chapter-head">
+            <h2>Componentes compuestos</h2>
+            <nav class="ds-index" aria-label="En Componentes compuestos"><a href="#k-filtros">Panel de filtros</a><a href="#k-tabla">Tabla de proteínas</a><a href="#k-numeros">Tarjetas de números</a><a href="#k-visor">Barra del visor 3D</a><a href="#k-asistente">Asistente</a></nav>
+        </header>
+
+    <div class="ds-section">
+        <div class="ds-comp ds-compound tp-quick-nav-target" id="k-filtros">
+            <h4 class="ds-comp-title">Panel de filtros <code>filters-drawer</code></h4>
+            <div class="ds-example ds-example--stage">
+                <aside class="filters-drawer ds-drawer-sample" aria-label="Ejemplo">
+                    <div class="drawer-head">
+                        <h2>Filters</h2>
+                        <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" tabindex="-1" aria-label="Close"><span class="drawer-close-glyph" aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div class="drawer-body">
+                        <div class="drawer-active-summary">
+                            <div class="drawer-active-header"><span class="drawer-active-label">Applied</span></div>
+                            <div class="active-filters">
+                                <span class="filter-pill tp-chip tp-chip--filter"><span><strong>Human off-target:</strong> No hit</span><span class="filter-pill-remove" aria-hidden="true">&times;</span></span>
+                            </div>
+                        </div>
+                        <div class="drawer-search">
+                            <span class="drawer-search-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5"/><path d="M14 14l-3.6-3.6"/></svg></span>
+                            <input type="search" class="drawer-search-input" placeholder="Search criteria, evidence, or values…" tabindex="-1" aria-label="Ejemplo">
+                        </div>
+                        <div class="drawer-filter-catalogue">
+                            <details class="filter-group" open>
+                                <summary class="filter-group-summary" tabindex="-1">
+                                    <span class="filter-group-name">Off-target</span>
+                                    <span class="filter-group-meta"><span class="filter-group-selected-count">1</span><span class="filter-group-chevron" aria-hidden="true"></span></span>
+                                </summary>
+                                <div class="filter-group-body">
+                                    <div class="filter-param">
+                                        <div class="filter-param-head"><span class="filter-param-label">Human off-target</span></div>
+                                        <div class="filter-chip-group">
+                                            <button type="button" class="filter-chip filter-chip--favorable filter-chip--active" tabindex="-1"><span class="filter-chip-label">No hit</span><span class="filter-chip-glyph" aria-hidden="true">&times;</span></button>
+                                            <button type="button" class="filter-chip filter-chip--risk" tabindex="-1"><span class="filter-chip-label">Hit</span></button>
+                                        </div>
+                                    </div>
+                                    <div class="filter-param">
+                                        <div class="filter-param-head"><span class="filter-param-label">Locus tag</span></div>
+                                        <div class="filter-values-form">
+                                            <p class="filter-values-label">5,572 different values. Type to search and press Enter to add each one.</p>
+                                            <div class="filter-values-row">
+                                                <div class="filter-token-field has-values">
+                                                    <ul class="filter-token-chips"><li class="filter-token-chip"><span>KPN_00002</span><button type="button" class="filter-token-remove" tabindex="-1" aria-label="Remove">&times;</button></li></ul>
+                                                    <input type="text" class="filter-token-text" value="KPN_0001" tabindex="-1" aria-label="Ejemplo">
+                                                </div>
+                                                <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon filter-numeric-apply" tabindex="-1"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span><span>Add</span></button>
+                                            </div>
+                                            <ul class="filter-token-suggestions">
+                                                <li class="is-highlighted"><mark>KPN_0001</mark>0</li>
+                                                <li><mark>KPN_0001</mark>1</li>
+                                                <li><mark>KPN_0001</mark>2</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                            <details class="filter-group">
+                                <summary class="filter-group-summary" tabindex="-1">
+                                    <span class="filter-group-name">Structure</span>
+                                    <span class="filter-group-meta"><span class="filter-group-chevron" aria-hidden="true"></span></span>
+                                </summary>
+                            </details>
+                        </div>
+                    </div>
+                    <div class="drawer-foot">
+                        <div class="drawer-foot-actions">
+                            {% include "components/buttons/clear_action.html" with label="Clear all criteria" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
+                            <button type="button" class="btn tp-btn tp-btn--primary tp-btn-with-icon drawer-done-btn" tabindex="-1"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span><span>Apply filters</span></button>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Aplicados</strong> <code>filter-pill</code></span> <span class="ds-part"><strong>Buscar</strong> <code>drawer-search</code></span> <span class="ds-part"><strong>Grupo</strong> <code>filter-group</code></span> <span class="ds-part"><strong>Criterio</strong> <code>filter-param</code></span> <span class="ds-part"><strong>Chip de filtro</strong> <code>filter-chip</code></span> <span class="ds-part"><strong>Valores con sugerencias</strong> <code>filter-token-field</code></span> <span class="ds-part"><strong>Pie</strong> <code>drawer-foot</code></span></p>
+            <div class="ds-comp ds-comp--nested" id="c-filtro">
+                <h5 class="ds-comp-title ds-comp-title--sub">Chip de filtro <code>filter-chip</code></h5>
+                <div class="ds-table-wrap">
+                <table class="ds-grid">
+                    <thead>
+                        <tr><th scope="col" class="ds-g-variant"></th><th scope="col">Disponible</th><th scope="col">Hover</th><th scope="col">Aplicado<code>--active</code></th><th scope="col">Pendiente<code>--pending</code></th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row"><strong>Neutro</strong><span>Valor común</span></th>
+                            <td><span class="ds-filter-chip ">Core</span></td>
+                            <td><span class="ds-filter-chip  ds-hover">Core</span></td>
+                            <td><span class="ds-filter-chip  ds-filter-chip--applied">Core ×</span></td>
+                            <td><span class="ds-filter-chip  ds-filter-chip--pending">Core</span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><strong>Riesgo</strong><code>filter-chip--risk</code><span>Valor desfavorable</span></th>
+                            <td><span class="ds-filter-chip ds-filter-chip--risk">Hit</span></td>
+                            <td><span class="ds-filter-chip ds-filter-chip--risk ds-hover">Hit</span></td>
+                            <td><span class="ds-filter-chip ds-filter-chip--risk ds-filter-chip--applied">Hit ×</span></td>
+                            <td><span class="ds-filter-chip ds-filter-chip--risk ds-filter-chip--pending">Hit</span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><strong>Favorable</strong><code>filter-chip--favorable</code><span>Valor a favor</span></th>
+                            <td><span class="ds-filter-chip ds-filter-chip--favorable">No hit</span></td>
+                            <td><span class="ds-filter-chip ds-filter-chip--favorable ds-hover">No hit</span></td>
+                            <td><span class="ds-filter-chip ds-filter-chip--favorable ds-filter-chip--applied">No hit ×</span></td>
+                            <td><span class="ds-filter-chip ds-filter-chip--favorable ds-filter-chip--pending">No hit</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+        <div class="ds-comp ds-compound tp-quick-nav-target" id="k-tabla">
+            <h4 class="ds-comp-title">Tabla de proteínas <code>protein-table</code></h4>
+            <div class="ds-example">
+                <div class="table-wrap tp-table-shell ds-ptable-sample">
+                    <table class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium protein-table">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th class="th-sortable"><span class="th-sort-link">Protein<span class="th-sort-icon" aria-hidden="true"></span></span></th>
+                            <th>Description</th>
+                            <th>Gene</th>
+                            <th>Structure</th>
+                            <th>EC</th>
+                            <th>GO</th>
+                            <th data-col="score" class="th-sortable th-sorted th-sorted--desc"><span class="th-sort-link">Score<span class="th-sort-icon" aria-hidden="true"></span></span></th>
+                            <th class="th-sortable"><span class="th-sort-link">Druggability<span class="th-sort-icon" aria-hidden="true"></span></span></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="protein-row">
+                                <td class="rank-col">1</td>
+                                <td class="acc-col"><a href="#" tabindex="-1">VK055_2067</a></td>
+                                <td class="desc-col">UDP-2,3-diacylglucosamine hydrolase</td>
+                                <td class="gene-col">lpxH</td>
+                                <td><span class="tp-chip tp-chip--meta tp-chip--sm">AlphaFold</span></td>
+                                <td data-col="ec"><div class="annotation-cell"><span class="tp-chip tp-chip--ec tp-chip--sm">3.6.1.54</span></div></td>
+                                <td data-col="go"><div class="annotation-cell"><span class="tp-chip tp-chip--go tp-chip--sm">GO:0009245</span><span class="annotation-more">+2</span></div></td>
+                                <td data-col="score"><span class="tp-chip tp-chip--score">0.94</span></td>
+                                <td><span class="tp-chip tp-chip--score tp-chip--drugg-high">0.82</span></td>
+                            </tr>
+                            <tr class="protein-row">
+                                <td class="rank-col">2</td>
+                                <td class="acc-col"><a href="#" tabindex="-1">VK055_0860</a></td>
+                                <td class="desc-col">4-hydroxythreonine-4-phosphate dehydrogenase</td>
+                                <td class="gene-col">pdxA</td>
+                                <td><span class="tp-chip tp-chip--meta tp-chip--sm">AlphaFold</span></td>
+                                <td data-col="ec"><div class="annotation-cell"><span class="tp-chip tp-chip--ec tp-chip--sm">1.1.1.262</span></div></td>
+                                <td data-col="go"><div class="annotation-cell"><span class="tp-chip tp-chip--go tp-chip--sm">GO:0008615</span></div></td>
+                                <td data-col="score"><span class="tp-chip tp-chip--score">0.91</span></td>
+                                <td><span class="tp-chip tp-chip--score tp-chip--drugg-mid">0.55</span></td>
+                            </tr>
+                            <tr class="protein-row">
+                                <td class="rank-col">3</td>
+                                <td class="acc-col"><a href="#" tabindex="-1">VK055_3185</a></td>
+                                <td class="desc-col">Hypothetical protein</td>
+                                <td class="gene-col"></td>
+                                <td><span class="tp-chip tp-chip--warning tp-chip--sm">No model</span></td>
+                                <td data-col="ec"><span class="annotation-empty">—</span></td>
+                                <td data-col="go"><span class="annotation-empty">—</span></td>
+                                <td data-col="score"><span class="tp-chip tp-chip--score">0.87</span></td>
+                                <td><span class="tp-drugg-none">No pocket</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination-row ds-pagination-row">
+                    <span class="pagination-label">Page 1 of 204 · 5,572 matching proteins</span>
+                    <ul class="pagination tp-pagination">
+                        <li class="page-item disabled"><span class="page-link"><span class="tp-chevron tp-chevron--left" aria-hidden="true"></span></span></li>
+                        <li class="page-item active"><span class="page-link">1</span></li>
+                        <li class="page-item"><span class="page-link">2</span></li>
+                        <li class="page-item"><span class="page-link"><span class="tp-chevron tp-chevron--right" aria-hidden="true"></span></span></li>
+                    </ul>
+                </div>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Columna ordenable</strong> <code>th-sortable</code></span> <span class="ds-part"><strong>Orden activo</strong> <code>th-sorted</code></span> <span class="ds-part"><strong>Link a la ficha</strong></span> <span class="ds-part"><strong>Chips de anotación</strong> <code>annotation-cell</code></span> <span class="ds-part"><strong>Puntaje</strong> <code>tp-chip--score</code></span> <span class="ds-part"><strong>Sin dato</strong> <code>annotation-empty</code></span> <span class="ds-part"><strong>Paginación</strong> <code>tp-pagination</code></span></p>
+        </div>
+        <div class="ds-comp ds-compound tp-quick-nav-target" id="k-numeros">
+            <h4 class="ds-comp-title">Tarjetas de números <code>metric-pill · target-evidence-card</code></h4>
+            <div class="ds-example">
+                <div class="protein-page ds-protein-sample">
+                    <div class="protein-metrics">
+                        <div class="metric-pill"><span class="metric-label">Length</span><span class="metric-value">262</span></div>
+                        <span class="metric-pill metric-pill--drugg metric-pill--drugg-high metric-pill--link"><span class="metric-label">P2Rank probability</span><span class="metric-value">0.94 <span class="metric-pill-jump">See evidence</span></span></span>
+                        <div class="metric-pill metric-pill--priority"><span class="metric-label">Chokepoint</span><span class="metric-value"><span class="metric-value-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>Yes</span></div>
+                        <div class="metric-pill"><span class="metric-label">Direct ligand evidence</span><span class="metric-value">12</span><span class="metric-note">48 total records</span></div>
+                        <div class="metric-pill"><span class="metric-label">Functional annotation</span><span class="metric-value metric-value--annotation"><span>1 EC</span><span>3 GO</span></span></div>
+                    </div>
+                    <div class="target-evidence-grid target-evidence-grid--compact">
+                        <div class="target-evidence-card">
+                            <span class="target-evidence-label">Composite score</span>
+                            <strong class="target-evidence-value">0.78</strong>
+                            <span class="target-evidence-subtext">Default formula</span>
+                            <div class="target-evidence-meta target-evidence-meta--top">
+                                <div class="target-evidence-meta-row"><span class="target-evidence-meta-key">Druggability</span><span class="target-evidence-meta-val">+0.40</span></div>
+                                <div class="target-evidence-meta-row"><span class="target-evidence-meta-key">Essentiality</span><span class="target-evidence-meta-val">+0.30</span></div>
+                                <div class="target-evidence-meta-row"><span class="target-evidence-meta-key">Human off-target</span><span class="target-evidence-meta-val">-0.12</span></div>
+                            </div>
+                        </div>
+                        <div class="target-evidence-card">
+                            <span class="target-evidence-label">Core conservation</span>
+                            <span class="target-evidence-core-badge">{% include "components/icons/check.html" %} Conserved core gene</span>
+                            <div class="target-evidence-meta target-evidence-meta--top">
+                                <div class="target-evidence-meta-row"><span class="target-evidence-meta-key">Roary</span><span class="target-evidence-meta-val">core</span></div>
+                                <div class="target-evidence-meta-row"><span class="target-evidence-meta-key">CoreCruncher</span><span class="target-evidence-meta-val">core</span></div>
+                            </div>
+                        </div>
+                        <div class="target-evidence-card target-evidence-card--secondary">
+                            <span class="target-evidence-label">ColabFold model</span>
+                            <div class="target-evidence-meta target-evidence-meta--top">
+                                <div class="target-evidence-meta-row"><span class="target-evidence-meta-key">P2Rank</span><span class="target-evidence-meta-val"><strong>0.91</strong> · pocket 1</span></div>
+                                <div class="target-evidence-meta-row"><span class="target-evidence-meta-key">FPocket</span><span class="target-evidence-meta-val"><strong>0.64</strong> · pocket 2</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Pastilla</strong> <code>metric-pill</code></span> <span class="ds-part"><strong>Pastilla con link</strong> <code>metric-pill--link</code></span> <span class="ds-part"><strong>Prioridad</strong> <code>metric-pill--priority</code></span> <span class="ds-part"><strong>Tarjeta</strong> <code>target-evidence-card</code></span> <span class="ds-part"><strong>Secundaria</strong> <code>--secondary</code></span> <span class="ds-part"><strong>Filas</strong> <code>target-evidence-meta-row</code></span></p>
+        </div>
+        <div class="ds-comp ds-compound tp-quick-nav-target" id="k-visor">
+            <h4 class="ds-comp-title">Barra del visor 3D <code>sv-toolbar</code></h4>
+            <div class="ds-example ds-viewer-stage">
+                <nav class="sv-toolbar ds-toolbar-sample" aria-label="Ejemplo">
+                    <button type="button" class="sv-tb-btn" tabindex="-1"><svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5"/><path d="M11.5 2l2 1.5-1.5 2"/></svg><span class="sv-tb-label">Spin</span></button>
+                    <div class="sv-tb-sep" aria-hidden="true"></div>
+                    <div class="sv-mode-group" role="group" aria-label="View mode">
+                        <button type="button" class="sv-mode-btn is-active" aria-pressed="true" tabindex="-1">Cartoon</button>
+                        <button type="button" class="sv-mode-btn" aria-pressed="false" tabindex="-1">Surface</button>
+                    </div>
+                    <div class="sv-tb-sep" aria-hidden="true"></div>
+                    <div class="sv-mode-group" role="group" aria-label="Color scheme">
+                        <button type="button" class="sv-mode-btn" tabindex="-1">Uniform</button>
+                        <button type="button" class="sv-mode-btn" tabindex="-1">By chain</button>
+                        <button type="button" class="sv-mode-btn is-active" aria-pressed="true" tabindex="-1">By pLDDT</button>
+                    </div>
+                    <div class="sv-tb-sep" aria-hidden="true"></div>
+                    <button type="button" class="sv-tb-btn" tabindex="-1" aria-label="Zoom in"><svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M7 5v4M5 7h4"/></svg></button>
+                    <button type="button" class="sv-tb-btn" tabindex="-1" aria-label="Zoom out"><svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M5 7h4"/></svg></button>
+                    <button type="button" class="sv-tb-btn" tabindex="-1" aria-label="Reset view" disabled><svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8A5 5 0 1 1 8 3"/><path d="M12.5 2v3h-3"/></svg></button>
+                </nav>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Botón con ícono</strong> <code>sv-tb-btn</code></span> <span class="ds-part"><strong>Separador</strong> <code>sv-tb-sep</code></span> <span class="ds-part"><strong>Grupo de modos</strong> <code>sv-mode-group</code></span> <span class="ds-part"><strong>Modo activo</strong> <code>sv-mode-btn is-active</code></span></p>
+        </div>
+        <div class="ds-comp ds-compound tp-quick-nav-target" id="k-asistente">
+            <h4 class="ds-comp-title">Asistente <code>tp-agent-fab · tp-agent-drawer</code></h4>
+            <div class="ds-example ds-agent-sample">
+                <div class="ds-agent-fabs">
+                    <button type="button" class="tp-agent-fab ds-fab-sample" tabindex="-1" aria-label="Assistant"><span class="tp-agent-fab-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/><path d="M5 6.5h6M5 8.5h4"/></svg></span><span class="tp-agent-fab-label">Assistant</span></button>
+                    <button type="button" class="tp-agent-fab ds-fab-sample is-peeking" tabindex="-1" aria-label="Assistant"><span class="tp-agent-fab-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/><path d="M5 6.5h6M5 8.5h4"/></svg></span><span class="tp-agent-fab-label">Assistant</span></button>
+                </div>
+                <div class="ds-agent-panel">
+                    <header class="tp-agent-drawer-header">
+                        <span class="tp-agent-drawer-heading">
+                            <span class="tp-agent-drawer-avatar" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="M8 1.5l1.05 2.6L11.7 5.1l-2.65 1L8 8.7l-1.05-2.6L4.3 5.1l2.65-1L8 1.5Z"/><path d="M13 9l.55 1.4L15 11l-1.45.6L13 13l-.55-1.4L11 11l1.45-.6L13 9Z"/></svg></span>
+                            <span class="tp-agent-drawer-title">Assistant</span>
+                        </span>
+                        <button class="tp-agent-drawer-close" type="button" tabindex="-1" aria-label="Close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="14" height="14" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg></button>
+                    </header>
+                    <div class="tp-agent-drawer-messages">
+                        <div class="tp-agent-drawer-msg tp-agent-drawer-msg--user">Which targets have no human off-target hit?</div>
+                        <div class="tp-agent-drawer-msg tp-agent-drawer-msg--assistant">412 proteins have no human off-target hit. The top three by score are VK055_2067, VK055_0860 and VK055_3185.</div>
+                    </div>
+                    <div class="tp-agent-drawer-suggestions">
+                        <button type="button" class="tp-agent-drawer-suggestion" tabindex="-1">Explain target</button>
+                        <button type="button" class="tp-agent-drawer-suggestion" tabindex="-1">Explain the columns</button>
+                    </div>
+                    <div class="tp-agent-drawer-form">
+                        <textarea class="tp-agent-drawer-input" rows="2" placeholder="Ask the assistant…" tabindex="-1" aria-label="Ejemplo"></textarea>
+                        <button type="button" class="tp-btn tp-btn--primary tp-agent-drawer-send" tabindex="-1" aria-label="Send"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M2 8h11.5M9 3.5L14 8l-5 4.5"/></svg></button>
+                    </div>
+                </div>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Botón flotante</strong> <code>tp-agent-fab</code></span> <span class="ds-part"><strong>Al pasar el mouse</strong> <code>muestra el nombre</code></span> <span class="ds-part"><strong>Mensaje tuyo</strong> <code>--user</code></span> <span class="ds-part"><strong>Respuesta</strong> <code>--assistant</code></span> <span class="ds-part"><strong>Sugerencia</strong> <code>tp-agent-drawer-suggestion</code></span> <span class="ds-part"><strong>Escribir</strong> <code>tp-agent-drawer-form</code></span></p>
+        </div>
+    </div>
+
+    </section>
+
+    <section class="ds-chapter tp-quick-nav-target" id="layout">
+        <header class="ds-chapter-head">
+            <h2>Layout</h2>
+        </header>
+
+    <div class="ds-section">
         <dl class="ds-usage">
             <div><dt>Encabezado</dt><dd>Rótulo, título, una línea</dd></div>
             <div><dt>Secciones</dt><dd>Línea fina (2–4) o solo espacio (5+)</dd></div>
             <div><dt>Menú</dt><dd><code>quick-nav</code> en todas</dd></div>
             <div><dt>CSS</dt><dd>Uno por página + <code>ui-system.css</code></dd></div>
         </dl>
+    </div>
     </section>
+
 </div>
 
 <script src="{% static 'js/global/quick-nav.js' %}?v=20261015"></script>

@@ -9,9 +9,10 @@
     color: var(--tp-color-text-primary);
 }
 
-.ds-page h1,
-.ds-page h2,
-.ds-page h3 {
+.ds-hero h1,
+.ds-chapter-head h2,
+.ds-section-title,
+.ds-comp-title {
     font-family: var(--ds-head);
     font-weight: 600;
     letter-spacing: -0.01em;
@@ -65,7 +66,7 @@
     margin-top: var(--tp-space-6);
 }
 
-.ds-section h2 {
+.ds-section-title {
     margin: 0;
     font-size: var(--tp-heading-md);
     color: var(--tp-color-brand-900);
@@ -399,7 +400,7 @@
     margin-top: var(--tp-space-5);
 }
 
-.ds-comp h3 {
+.ds-comp-title {
     margin: 0;
     font-size: var(--tp-heading-sm);
     display: flex;
@@ -407,7 +408,7 @@
     gap: 10px;
 }
 
-.ds-comp h3 code {
+.ds-comp-title code {
     font-weight: 400;
     color: var(--tp-color-text-muted);
 }
@@ -991,4 +992,168 @@
 .ds-grid .tp-message {
     min-width: 200px;
     white-space: normal;
+}
+
+/* Four chapters (Fundamentos, Básicos, Compuestos, Layout), each opening with
+   its title and a short index; a hairline between chapters. */
+.ds-chapter {
+    display: grid;
+    gap: var(--tp-space-4);
+    min-width: 0;
+}
+
+.ds-chapter ~ .ds-chapter {
+    margin-top: var(--tp-space-8);
+}
+
+.ds-chapter-head {
+    margin: 0 18px;
+    display: grid;
+    gap: 10px;
+}
+
+.ds-chapter ~ .ds-chapter .ds-chapter-head {
+    padding-top: var(--tp-space-6);
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-chapter-head h2 {
+    margin: 0;
+    font-size: var(--tp-heading-lg);
+    line-height: 1.1;
+    color: var(--tp-color-brand-900);
+}
+
+.ds-index {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-index a {
+    color: var(--tp-color-text-secondary);
+    text-decoration: none;
+}
+
+.ds-index a:hover {
+    color: var(--tp-color-link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* A component inside a compound one (Chip de filtro under Panel de filtros). */
+.ds-comp--nested {
+    margin-top: var(--tp-space-4);
+}
+
+.ds-comp-title--sub {
+    font-size: var(--tp-font-size-md);
+}
+
+/* Compound samples: the real page CSS, pulled out of its fixed/floating
+   position so it sits in the page. */
+.ds-example--stage {
+    background: var(--tp-color-surface-soft);
+}
+
+.ds-page .ds-drawer-sample {
+    position: static;
+    transform: none;
+    transition: none;
+    height: auto;
+    width: min(460px, 100%);
+    z-index: auto;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    box-shadow: var(--tp-shadow-sm);
+    overflow: hidden;
+}
+
+.ds-drawer-sample .drawer-body {
+    overflow: visible;
+}
+
+.ds-drawer-sample .drawer-filter-catalogue {
+    padding-bottom: 14px;
+}
+
+.ds-drawer-sample .filter-values-label {
+    margin: 0 0 6px;
+}
+
+.ds-ptable-sample {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.ds-pagination-row {
+    margin-top: 14px;
+}
+
+.ds-pagination-one {
+    margin: 0;
+}
+
+.ds-protein-sample {
+    display: grid;
+    gap: var(--tp-space-4);
+}
+
+/* The toolbar floats over the 3D canvas; the stage stands in for it. */
+.ds-viewer-stage {
+    --structure-accent: var(--tp-color-brand-800);
+    --structure-accent-ink: var(--tp-color-brand-900);
+    --structure-accent-soft: var(--tp-color-brand-100);
+    --structure-accent-border: var(--tp-color-brand-300);
+    display: flex;
+    justify-content: center;
+    padding: 56px 20px 24px;
+    background: var(--sv-viewer-canvas-bg);
+}
+
+.ds-page .ds-toolbar-sample {
+    position: static;
+    transform: none;
+    animation: none;
+    max-width: 100%;
+}
+
+.ds-agent-sample {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--tp-space-6);
+    background: var(--tp-color-surface-soft);
+}
+
+.ds-agent-fabs {
+    display: grid;
+    gap: var(--tp-space-3);
+    justify-items: start;
+}
+
+.ds-page .ds-fab-sample {
+    position: static;
+    cursor: default;
+}
+
+.ds-agent-panel {
+    width: min(380px, 100%);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-shadow-sm);
+    overflow: hidden;
+}
+
+.ds-agent-panel .tp-agent-drawer-messages {
+    overflow: visible;
+}
+
+/* Samples are pictures, not controls (wide ones still scroll). */
+.ds-compound .ds-example *:not(.ds-ptable-sample):not(.ds-toolbar-sample) {
+    pointer-events: none;
 }
