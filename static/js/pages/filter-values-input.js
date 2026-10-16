@@ -261,17 +261,65 @@
             setTimeout(closeList, 120);
         });
 
-        // A value still in the text field counts too when Apply is pressed.
-        // Capture phase, so it runs before proteins-list.js reads the form.
+        // Only chips are applied (plus text that exactly matches a suggestion):
+        // half-typed text left in the field ("kpn") is not a value. Capture phase, so it runs before proteins-list.js
+        // reads the form.
         form.addEventListener("submit", function () {
-            if (input.value.trim()) addValues(input.value);
+            var leftover = input.value.trim().toLowerCase();
+            var exact = suggestions.filter(function (v) { return v.toLowerCase() === leftover; })[0];
+            if (exact) {
+                known[leftover] = true;
+                addValues(exact);
+            }
+            input.value = "";
+            closeList();
             syncTextarea();
         }, true);
 
-        // proteins-list.js resets the form after queueing it; clear the chips too.
+        // Queued values stay visible as pending chips under the field until
+        // the drawer's "Apply filters" runs (proteins-list.js resets the form
+        // right after queueing it, so the field itself is emptied).
+        var queuedGroup = document.createElement("div");
+        queuedGroup.className = "filter-chip-group filter-token-queued";
+        queuedGroup.hidden = true;
+        var queuedNote = document.createElement("p");
+        queuedNote.className = "filter-token-queued-note";
+        queuedNote.hidden = true;
+        var message = form.querySelector(".filter-input-message");
+        if (message) {
+            message.insertAdjacentElement("beforebegin", queuedGroup);
+            message.insertAdjacentElement("beforebegin", queuedNote);
+        } else {
+            form.appendChild(queuedGroup);
+            form.appendChild(queuedNote);
+        }
+        var queuedValues = [];
+
+        function renderQueued() {
+            queuedGroup.innerHTML = "";
+            queuedValues.forEach(function (value) {
+                var chip = document.createElement("span");
+                chip.className = "filter-chip filter-chip--active filter-chip--pending";
+                chip.textContent = value;
+                queuedGroup.appendChild(chip);
+            });
+            queuedGroup.hidden = !queuedValues.length;
+            queuedNote.hidden = !queuedValues.length;
+            queuedNote.textContent = queuedValues.length ? "Queued. Press Apply filters to update the results." : "";
+        }
+
         form.addEventListener("reset", function () {
+            var sent = values.slice();
             values = [];
             setTimeout(function () {
+                if (sent.length) {
+                    sent.forEach(function (v) {
+                        if (queuedValues.indexOf(v) === -1) queuedValues.push(v);
+                    });
+                    renderQueued();
+                    // The chips say what's queued; drop the long sentence.
+                    if (message) message.textContent = "";
+                }
                 renderChips();
                 syncTextarea();
             }, 0);
