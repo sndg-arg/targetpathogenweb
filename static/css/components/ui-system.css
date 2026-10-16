@@ -682,8 +682,8 @@
     top: 50%;
     width: 6px;
     height: 10px;
-    border-right: 2px solid var(--tp-color-primary);
-    border-bottom: 2px solid var(--tp-color-primary);
+    border-right: 2px solid var(--tp-color-link);
+    border-bottom: 2px solid var(--tp-color-link);
     transform: translateY(-60%) rotate(45deg);
     opacity: 0.95;
 }

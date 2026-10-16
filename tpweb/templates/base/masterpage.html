@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261016-select">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261016-final">
     <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261013-mobile-fab">
     <style>
         :root {
@@ -908,16 +908,28 @@
             box-shadow: none;
         }
 
-        /* Disabled looks the same for every button type: neutral gray. */
-        .btn.tp-btn--primary:disabled,
-        .btn.tp-btn--primary.disabled,
-        .tp-dark .btn.tp-btn--primary:disabled,
-        .tp-dark .btn.tp-btn--primary.disabled {
+        /* Disabled looks the same for every button type, in both themes:
+           neutral gray, full opacity (the variant colors are !important and
+           used to win in dark mode). Ghost stays borderless. */
+        .btn.tp-btn:disabled,
+        .btn.tp-btn.disabled,
+        .tp-dark .btn.tp-btn:disabled,
+        .tp-dark .btn.tp-btn.disabled {
             color: var(--tp-color-text-soft) !important;
             border-color: var(--tp-color-border-soft) !important;
             background: var(--tp-color-surface-muted) !important;
             background-color: var(--tp-color-surface-muted) !important;
+            box-shadow: none !important;
             opacity: 1;
+        }
+
+        .btn.tp-btn.tp-btn--ghost:disabled,
+        .btn.tp-btn.tp-btn--ghost.disabled,
+        .tp-dark .btn.tp-btn.tp-btn--ghost:disabled,
+        .tp-dark .btn.tp-btn.tp-btn--ghost.disabled {
+            border-color: transparent !important;
+            background: transparent !important;
+            background-color: transparent !important;
         }
 
         .tp-state-chip {
