@@ -747,10 +747,6 @@
     background: var(--tp-color-surface-muted) !important;
 }
 
-.ds-page .btn.ds-focus {
-    box-shadow: var(--tp-focus-outline) !important;
-}
-
 .ds-page .form-control.ds-focus {
     border-color: var(--tp-focus-color);
     box-shadow: 0 0 0 1px var(--tp-focus-color);
@@ -788,9 +784,6 @@
     opacity: 0.28;
 }
 
-.ds-seg--focus input:checked + span {
-    box-shadow: var(--tp-focus-outline);
-}
 
 /* ── Full example + parts, above each component's grid ── */
 /* No overflow clipping here: dropdowns (the custom select) open below
@@ -956,11 +949,6 @@
     background: var(--tp-color-surface-soft);
 }
 
-.ds-page .tp-select-trigger.ds-focus {
-    border-color: var(--tp-focus-color);
-    box-shadow: var(--tp-focus-outline);
-}
-
 .ds-page .tp-select-option.ds-hover {
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-primary);
@@ -972,11 +960,13 @@
     margin-top: 6px;
 }
 
-.ds-grid td {
+
+/* Rows align on the middle; only the row with the open menu aligns on top. */
+.ds-grid tr:has(.ds-open-menu) > td {
     vertical-align: top;
 }
 
-.ds-grid tbody th {
+.ds-grid tr:has(.ds-open-menu) > th {
     vertical-align: top;
-    padding-top: 18px;
+    padding-top: 20px;
 }

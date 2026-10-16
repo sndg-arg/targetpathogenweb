@@ -5,7 +5,7 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016o">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016q">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -43,7 +43,7 @@
         <ul class="ds-rules">
             <li><strong>Un acento.</strong> Petróleo solo en la acción principal, links y la sección activa.</li>
             <li><strong>Estados neutros.</strong> Hover gris, seleccionado lleno, pendiente punteado, deshabilitado gris.</li>
-            <li><strong>Foco visible.</strong> Línea fina petróleo al navegar con Tab (no al hacer clic), nunca un halo.</li>
+            <li><strong>Teclado.</strong> Al navegar con Tab, el elemento activo lleva una línea fina petróleo.</li>
             <li><strong>Sin cajas.</strong> Secciones sobre el fondo, separadas por espacio o una línea.</li>
             <li><strong>Solo tokens.</strong> Hex únicamente en <code>masterpage.html</code>.</li>
         </ul>
@@ -178,8 +178,8 @@
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
-                    <tr><th scope="col" rowspan="2" class="ds-g-variant">Variante</th><th scope="colgroup" colspan="2">Tamaño</th><th scope="colgroup" colspan="4" class="ds-g-start">Estado</th></tr>
-                    <tr><th scope="col">Normal</th><th scope="col">Chico<code>tp-btn--sm</code></th><th scope="col" class="ds-g-start">Reposo</th><th scope="col">Hover</th><th scope="col">Foco<code>con Tab</code></th><th scope="col">Deshabilitado<code>disabled</code></th></tr>
+                    <tr><th scope="col" rowspan="2" class="ds-g-variant">Variante</th><th scope="colgroup" colspan="2">Tamaño</th><th scope="colgroup" colspan="3" class="ds-g-start">Estado</th></tr>
+                    <tr><th scope="col">Normal</th><th scope="col">Chico<code>tp-btn--sm</code></th><th scope="col" class="ds-g-start">Reposo</th><th scope="col">Hover</th><th scope="col">Deshabilitado<code>disabled</code></th></tr>
                 </thead>
                 <tbody>
                     <tr>
@@ -188,7 +188,6 @@
                         <td><button type="button" class="btn tp-btn tp-btn--primary tp-btn--sm" tabindex="-1">Run BLAST</button></td>
                         <td class="ds-g-start"><button type="button" class="btn tp-btn tp-btn--primary " tabindex="-1">Run BLAST</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--primary ds-hover" tabindex="-1">Run BLAST</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--primary ds-focus" tabindex="-1">Run BLAST</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--primary " disabled tabindex="-1">Run BLAST</button></td>
                     </tr>
                     <tr>
@@ -197,7 +196,6 @@
                         <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm" tabindex="-1">Export CSV</button></td>
                         <td class="ds-g-start"><button type="button" class="btn tp-btn tp-btn--secondary " tabindex="-1">Export CSV</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--secondary ds-hover" tabindex="-1">Export CSV</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--secondary ds-focus" tabindex="-1">Export CSV</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--secondary " disabled tabindex="-1">Export CSV</button></td>
                     </tr>
                     <tr>
@@ -206,7 +204,6 @@
                         <td><button type="button" class="btn tp-btn tp-btn--danger tp-btn--sm" tabindex="-1">Delete</button></td>
                         <td class="ds-g-start"><button type="button" class="btn tp-btn tp-btn--danger " tabindex="-1">Delete</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--danger ds-hover" tabindex="-1">Delete</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--danger ds-focus" tabindex="-1">Delete</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--danger " disabled tabindex="-1">Delete</button></td>
                     </tr>
                     <tr>
@@ -215,7 +212,6 @@
                         <td><button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm" tabindex="-1">Clear all</button></td>
                         <td class="ds-g-start"><button type="button" class="btn tp-btn tp-btn--ghost " tabindex="-1">Clear all</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--ghost ds-hover" tabindex="-1">Clear all</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--ghost ds-focus" tabindex="-1">Clear all</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--ghost " disabled tabindex="-1">Clear all</button></td>
                     </tr>
                 </tbody>
@@ -326,14 +322,13 @@
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
-                    <tr><th scope="col" class="ds-g-variant"></th><th scope="col">Reposo</th><th scope="col">Hover</th><th scope="col">Foco<code>con Tab</code></th><th scope="col">Abierto<code>is-open</code></th><th scope="col">Deshabilitado<code>is-disabled</code></th></tr>
+                    <tr><th scope="col" class="ds-g-variant"></th><th scope="col">Reposo</th><th scope="col">Hover</th><th scope="col">Abierto<code>is-open</code></th><th scope="col">Deshabilitado<code>is-disabled</code></th></tr>
                 </thead>
                 <tbody>
                     <tr>
                         <th scope="row"><strong>Disparador</strong></th>
                         <td><div class="tp-select ds-inline-control"><button type="button" class="tp-select-trigger" tabindex="-1"><span class="tp-select-label">GCA_030061715.1</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div></td>
                         <td><div class="tp-select ds-inline-control"><button type="button" class="tp-select-trigger ds-hover" tabindex="-1"><span class="tp-select-label">GCA_030061715.1</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div></td>
-                        <td><div class="tp-select ds-inline-control"><button type="button" class="tp-select-trigger ds-focus" tabindex="-1"><span class="tp-select-label">GCA_030061715.1</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div></td>
                         <td><div class="tp-select ds-inline-control is-open"><button type="button" class="tp-select-trigger" tabindex="-1"><span class="tp-select-label">GCA_030061715.1</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div><div class="tp-select-menu ds-static-menu ds-open-menu"><button type="button" class="tp-select-option is-selected" tabindex="-1">GCA_030061715.1</button><button type="button" class="tp-select-option" tabindex="-1">KpATCC43816</button><button type="button" class="tp-select-option" tabindex="-1">KpKP13</button></div></td>
                         <td><div class="tp-select ds-inline-control is-disabled"><button type="button" class="tp-select-trigger" tabindex="-1" disabled><span class="tp-select-label">GCA_030061715.1</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div></td>
                     </tr>
@@ -359,21 +354,10 @@
         </div>
         <div class="ds-comp" id="c-seg">
             <h3>Selector de dos opciones <code>segmented</code></h3>
-            <div class="ds-table-wrap">
-            <table class="ds-grid">
-                <thead>
-                    <tr><th scope="col" rowspan="2" class="ds-g-variant">Variante</th><th scope="colgroup" colspan="2">Estado</th></tr>
-                    <tr><th scope="col">Reposo</th><th scope="col">Foco<code>con Tab</code></th></tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th scope="row"><strong>Opciones</strong><span>Dos modos excluyentes</span></th>
-                        <td><div class="ds-seg"><label><input type="radio" name="ds-seg" checked tabindex="-1"><span>Nucleotide <small>blastn</small></span></label><label><input type="radio" name="ds-seg" tabindex="-1"><span>Protein <small>blastp</small></span></label></div></td>
-                        <td><div class="ds-seg ds-seg--focus"><label><input type="radio" name="ds-seg2" checked tabindex="-1"><span>Nucleotide <small>blastn</small></span></label><label><input type="radio" name="ds-seg2" tabindex="-1"><span>Protein <small>blastp</small></span></label></div></td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="ds-example">
+                <div class="ds-seg"><label><input type="radio" name="ds-seg" checked tabindex="-1"><span>Nucleotide <small>blastn</small></span></label><label><input type="radio" name="ds-seg" tabindex="-1"><span>Protein <small>blastp</small></span></label></div>
             </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Elegida</strong> lleno petróleo</span> <span class="ds-part"><strong>No elegida</strong> texto gris</span></p>
         </div>
         <div class="ds-comp" id="c-aviso">
             <h3>Aviso <code>barra a la izquierda</code></h3>
