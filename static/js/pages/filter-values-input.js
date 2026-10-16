@@ -196,11 +196,43 @@
             setHighlight(0);
         }
 
+        // Enter before the suggestions arrived: an exact match is added; a
+        // partial one ("KPN") opens the suggestions to pick from instead of
+        // becoming a value no protein has; only text with no match at all is
+        // added as typed (and flagged).
+        function commitTyped() {
+            var typed = input.value.trim();
+            if (!typed) return;
+            clearTimeout(timer);
+            var seq = ++requestSeq;
+            fetchValues(typed).then(function (found) {
+                if (seq !== requestSeq || input.value.trim() !== typed) return;
+                var exact = found.filter(function (v) { return v.toLowerCase() === typed.toLowerCase(); })[0];
+                if (exact) {
+                    known[exact.toLowerCase()] = true;
+                    addValues(exact);
+                } else if (found.length) {
+                    renderList(found, typed);
+                } else {
+                    known[typed.toLowerCase()] = false;
+                    addValues(typed);
+                }
+            });
+        }
+
         input.addEventListener("input", function () {
             var query = input.value.trim();
             if (SPLIT_RE.test(input.value) && query) {
-                // Typed a separator: commit what's before it.
-                addValues(input.value);
+                // Typed a separator (space, comma): commit what's before it,
+                // same rules as Enter.
+                var parts = input.value.split(SPLIT_RE).filter(Boolean);
+                if (parts.length > 1) {
+                    addValues(parts.slice(0, -1).join(" "));
+                    input.value = parts[parts.length - 1];
+                } else {
+                    input.value = parts[0] || "";
+                }
+                commitTyped();
                 return;
             }
             clearTimeout(timer);
@@ -245,7 +277,7 @@
                     known[picked.toLowerCase()] = true;
                     addValues(picked);
                 } else {
-                    addValues(input.value);
+                    commitTyped();
                 }
             } else if (event.key === "Escape" && listOpen) {
                 event.preventDefault();
