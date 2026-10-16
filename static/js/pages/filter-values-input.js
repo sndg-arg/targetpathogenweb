@@ -102,13 +102,19 @@
             });
         }
 
+        var checking = Object.create(null); // value (lowercase) -> pending check
+
         function checkKnown(value) {
             var key = value.toLowerCase();
-            if (key in known) return;
-            fetchValues(value).then(function (found) {
+            if (key in known) return Promise.resolve(known[key]);
+            if (checking[key]) return checking[key];
+            checking[key] = fetchValues(value).then(function (found) {
                 known[key] = found.some(function (v) { return v.toLowerCase() === key; });
+                delete checking[key];
                 if (!known[key]) renderChips();
+                return known[key];
             });
+            return checking[key];
         }
 
         function addValues(raw) {
@@ -296,7 +302,10 @@
         // Only chips are applied (plus text that exactly matches a suggestion):
         // half-typed text left in the field ("kpn") is not a value. Capture phase, so it runs before proteins-list.js
         // reads the form.
-        form.addEventListener("submit", function () {
+        // Only values that exist in this genome are applied. Capture phase on
+        // the form, so this runs before proteins-list.js's document-level
+        // handler -- and can stop it.
+        form.addEventListener("submit", function (event) {
             var leftover = input.value.trim().toLowerCase();
             var exact = suggestions.filter(function (v) { return v.toLowerCase() === leftover; })[0];
             if (exact) {
@@ -305,8 +314,38 @@
             }
             input.value = "";
             closeList();
+
+            // A check still running: wait for it, then submit again.
+            var pending = values.filter(function (v) { return !(v.toLowerCase() in known); });
+            if (pending.length) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                Promise.all(pending.map(checkKnown)).then(function () {
+                    if (form.requestSubmit) form.requestSubmit();
+                });
+                return;
+            }
+
+            var unknown = values.filter(function (v) { return known[v.toLowerCase()] === false; });
+            if (unknown.length) {
+                // Keep the unknown chips in the field (flagged) and don't queue them.
+                rejected = unknown;
+                values = values.filter(function (v) { return unknown.indexOf(v) === -1; });
+                if (message) {
+                    message.textContent = "Not applied, no protein has: " + unknown.join(", ") + ".";
+                }
+                if (!values.length) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    values = unknown;
+                    rejected = [];
+                    renderChips();
+                }
+            }
             syncTextarea();
         }, true);
+
+        var rejected = [];
 
         // Queued values stay visible as pending chips under the field until
         // the drawer's "Apply filters" runs (proteins-list.js resets the form
@@ -342,15 +381,22 @@
 
         form.addEventListener("reset", function () {
             var sent = values.slice();
-            values = [];
+            var kept = rejected.slice();
+            rejected = [];
+            values = kept;
             setTimeout(function () {
                 if (sent.length) {
                     sent.forEach(function (v) {
                         if (queuedValues.indexOf(v) === -1) queuedValues.push(v);
                     });
                     renderQueued();
-                    // The chips say what's queued; drop the long sentence.
-                    if (message) message.textContent = "";
+                    // The chips say what's queued; drop the long sentence
+                    // (unless it's telling which values were left out).
+                    if (message) {
+                        message.textContent = kept.length
+                            ? "Not applied, no protein has: " + kept.join(", ") + "."
+                            : "";
+                    }
                 }
                 renderChips();
                 syncTextarea();
