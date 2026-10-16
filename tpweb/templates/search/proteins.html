@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261016-token-notice">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261016-add-buttons">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -779,7 +779,7 @@
                                                aria-label="{% trans 'EC code (e.g. 1.1.1.1)' %}"
                                                pattern="^[0-9]+(\.[0-9]+){0,3}$"
                                                autocomplete="off">
-                                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon filter-text-add">
+                                        <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn-with-icon filter-text-add">
                                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span><span>{% trans "Add" %}</span>
                                         </button>
                                     </form>
@@ -823,7 +823,7 @@
                                                placeholder="GO:0008270"
                                                aria-label="{% trans 'GO term (e.g. GO:0008270)' %}"
                                                autocomplete="off">
-                                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon filter-text-add">
+                                        <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn-with-icon filter-text-add">
                                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span><span>{% trans "Add" %}</span>
                                         </button>
                                     </form>
@@ -928,8 +928,8 @@
                                                         <span class="filter-numeric-field-label">{% trans "Upper bound" %}</span>
                                                         <input type="text" inputmode="decimal" name="value_max" class="filter-numeric-input" placeholder="{{ param.placeholder_max }}" aria-label="{% trans 'Upper bound' %}">
                                                     </label>
-                                                    <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon filter-numeric-apply">
-                                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span><span>{% trans "Apply" %}</span>
+                                                    <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn-with-icon filter-numeric-apply">
+                                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span><span>{% trans "Add" %}</span>
                                                     </button>
                                                 </div>
                                                 <p class="filter-numeric-message filter-input-message" aria-live="polite"></p>
@@ -969,8 +969,8 @@
                                                     </label>
                                                     <div class="filter-values-row">
                                                         <textarea id="filter-values-{{ param.id }}" name="filter_values" rows="2" class="form-control tp-ui-control filter-values-input" placeholder="{% blocktrans with examples=param.value_examples %}e.g. {{ examples }}{% endblocktrans %}" spellcheck="false" autocomplete="off"></textarea>
-                                                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon filter-numeric-apply">
-                                                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span><span>{% trans "Apply" %}</span>
+                                                        <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn-with-icon filter-numeric-apply">
+                                                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span><span>{% trans "Add" %}</span>
                                                         </button>
                                                     </div>
                                                     <p class="filter-input-message" aria-live="polite"></p>

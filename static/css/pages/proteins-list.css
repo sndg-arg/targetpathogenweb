@@ -3849,7 +3849,7 @@ a.filter-pill .filter-pill-remove {
 
 .filter-text-add {
     padding: 7px 16px;
-    border-radius: 8px !important;
+    border-radius: var(--tp-btn-radius-sm) !important;
     font-size: 0.83rem;
     min-height: 0 !important;
     flex: 0 0 auto;
@@ -3980,7 +3980,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-numeric-apply {
-    border-radius: 8px !important;
+    border-radius: var(--tp-btn-radius-sm) !important;
     font-size: 0.83rem;
     padding: 7px 16px;
     min-height: 0 !important;
