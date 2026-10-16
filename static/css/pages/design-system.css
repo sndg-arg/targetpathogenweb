@@ -154,7 +154,7 @@
 
 .ds-tokens {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
     gap: var(--tp-space-3) var(--tp-space-5);
 }
 
@@ -182,6 +182,21 @@
     line-height: 1.35;
 }
 
+/* Rules */
+.ds-rules {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 6px;
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-secondary);
+}
+
+.ds-rules strong {
+    color: var(--tp-color-text-primary);
+}
+
 /* Usage lists */
 .ds-usage {
     display: grid;
@@ -192,9 +207,9 @@
 
 .ds-usage > div {
     display: grid;
-    grid-template-columns: 140px minmax(0, 1fr);
+    grid-template-columns: 120px minmax(0, 1fr);
     gap: var(--tp-space-3);
-    padding: 6px 0;
+    padding: 4px 0;
     border-bottom: 1px solid var(--tp-color-border-soft);
 }
 
