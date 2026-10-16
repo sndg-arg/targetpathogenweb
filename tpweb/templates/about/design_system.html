@@ -5,7 +5,7 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016i">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016j">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -180,6 +180,14 @@
         <h2>Componentes</h2>
         <div class="ds-comp" id="c-boton">
             <h3>Botón <code>btn tp-btn</code></h3>
+            <div class="ds-example">
+                <div class="ds-ex-row">
+                    <button type="button" class="btn tp-btn tp-btn--primary tp-btn-with-icon" tabindex="-1"><span>Explore proteins</span><span class="tp-btn-icon" aria-hidden="true">→</span></button>
+                    <button type="button" class="btn tp-btn tp-btn--secondary" tabindex="-1">Export CSV</button>
+                    <button type="button" class="btn tp-btn tp-btn--ghost" tabindex="-1">Clear all</button>
+                </div>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Texto</strong></span> <span class="ds-part"><strong>Ícono (opcional)</strong> <code>tp-btn-icon</code></span> <span class="ds-part"><strong>Borde y fondo según tipo</strong></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
@@ -229,6 +237,15 @@
         </div>
         <div class="ds-comp" id="c-chip">
             <h3>Chip <code>tp-chip</code></h3>
+            <div class="ds-example">
+                <div class="ds-ex-row">
+                    <span class="tp-chip tp-chip--sm tp-chip--meta">Source: Public</span>
+                    <span class="tp-chip tp-chip--sm tp-chip--meta">Strain: ATCC 43816</span>
+                    <span class="tp-chip tp-chip--sm tp-chip--ec">2.7.13.3</span>
+                    <span class="tp-chip tp-chip--sm tp-chip--direct">Has structure</span>
+                </div>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Texto</strong></span> <span class="ds-part"><strong>Tono</strong> <code>--meta / --direct / …</code></span> <span class="ds-part"><strong>Tamaño</strong> <code>--sm</code></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
@@ -272,6 +289,22 @@
         </div>
         <div class="ds-comp" id="c-filtro">
             <h3>Chip de filtro <code>filter-chip</code></h3>
+            <div class="ds-example">
+                <div class="ds-ex-filter">
+                    <div class="ds-ex-filter-head"><span>Off-target</span><span aria-hidden="true">⌄</span></div>
+                    <p class="ds-ex-filter-param">Human off-target</p>
+                    <div class="ds-ex-row">
+                        <span class="ds-filter-chip ds-filter-chip--favorable ds-filter-chip--applied">No hit ×</span>
+                        <span class="ds-filter-chip ds-filter-chip--risk">Hit</span>
+                    </div>
+                    <p class="ds-ex-filter-param">Core Roary</p>
+                    <div class="ds-ex-row">
+                        <span class="ds-filter-chip">Core</span>
+                        <span class="ds-filter-chip ds-filter-chip--pending">Accessory</span>
+                    </div>
+                </div>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Grupo</strong> <code>filter-group</code></span> <span class="ds-part"><strong>Criterio</strong> <code>filter-param-label</code></span> <span class="ds-part"><strong>Chip</strong> <code>filter-chip</code></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
@@ -306,6 +339,14 @@
         </div>
         <div class="ds-comp" id="c-campo">
             <h3>Campo <code>form-control tp-ui-control</code></h3>
+            <div class="ds-example">
+                <div class="tp-ui-field ds-ex-field">
+                    <label class="tp-ui-field-label" for="ds-ex-input">Genome</label>
+                    <select id="ds-ex-input" class="form-control tp-ui-control" tabindex="-1"><option>GCA_030061715.1</option></select>
+                    <span class="ds-ex-help">The genome to search.</span>
+                </div>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Rótulo</strong> <code>tp-ui-field-label</code></span> <span class="ds-part"><strong>Control</strong> <code>tp-ui-control</code></span> <span class="ds-part"><strong>Ayuda (opcional)</strong></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
@@ -331,6 +372,13 @@
         </div>
         <div class="ds-comp" id="c-seg">
             <h3>Selector de dos opciones <code>segmented</code></h3>
+            <div class="ds-example">
+                <fieldset class="tp-ui-field ds-seg-field ds-ex-field">
+                    <legend class="tp-ui-field-label">Sequence type</legend>
+                    <div class="ds-seg"><label><input type="radio" name="ds-ex-seg" checked tabindex="-1"><span>Nucleotide <small>blastn</small></span></label><label><input type="radio" name="ds-ex-seg" tabindex="-1"><span>Protein <small>blastp</small></span></label></div>
+                </fieldset>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Rótulo</strong> <code>legend</code></span> <span class="ds-part"><strong>Pista</strong></span> <span class="ds-part"><strong>Opción</strong></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
@@ -349,6 +397,16 @@
         </div>
         <div class="ds-comp" id="c-aviso">
             <h3>Aviso <code>barra a la izquierda</code></h3>
+            <div class="ds-example">
+                <div class="ds-ex-field">
+                    <div class="ds-ex-row">
+                        <span class="ds-ex-fakeinput">e.g. KPN_00002</span>
+                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm" tabindex="-1">+ Add</button>
+                    </div>
+                    <p class="ds-note ds-note--warning">“e.g.” is not a value in this genome, not added.</p>
+                </div>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Barra de color</strong></span> <span class="ds-part"><strong>Texto</strong></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
@@ -374,6 +432,15 @@
         </div>
         <div class="ds-comp" id="c-menu">
             <h3>Menú de secciones <code>quick-nav</code></h3>
+            <div class="ds-example">
+                <nav class="quick-nav ds-ex-quicknav" aria-label="Ejemplo">
+                    <span class="quick-nav-link">Evidence</span>
+                    <span class="quick-nav-link is-active">Downloads</span>
+                    <span class="quick-nav-link">Top targets</span>
+                    <span class="quick-nav-link">Details</span>
+                </nav>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Barra</strong> <code>quick-nav</code></span> <span class="ds-part"><strong>Pestaña</strong> <code>quick-nav-link</code></span> <span class="ds-part"><strong>Línea activa</strong> <code>--tp-color-accent-line</code></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>

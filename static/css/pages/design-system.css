@@ -801,3 +801,106 @@
 .ds-seg--focus input:checked + span {
     box-shadow: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-color-brand-800);
 }
+
+/* ── Full example + parts, above each component's grid ── */
+.ds-example {
+    padding: 20px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-surface);
+    overflow-x: auto;
+}
+
+.ds-ex-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.ds-parts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 18px;
+    margin: 2px 0 6px;
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-parts-label {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.ds-part code {
+    color: var(--tp-color-text-muted);
+}
+
+/* The real quick-nav is sticky and full-bleed; the example sits still. */
+.ds-example .ds-ex-quicknav {
+    position: static;
+    border-image: none;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px 8px 0 0;
+}
+
+.ds-ex-quicknav .quick-nav-link {
+    cursor: default;
+}
+
+.ds-ex-filter {
+    max-width: 360px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.ds-ex-filter-head {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--tp-color-surface-soft);
+    font-weight: 600;
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-ex-filter-param {
+    margin: 12px 12px 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--tp-color-text-secondary);
+}
+
+.ds-ex-filter .ds-ex-row {
+    padding: 0 12px;
+}
+
+.ds-ex-filter .ds-ex-row:last-child {
+    padding-bottom: 12px;
+}
+
+.ds-ex-field {
+    display: grid;
+    gap: 7px;
+    max-width: 380px;
+}
+
+.ds-ex-help {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.ds-ex-fakeinput {
+    flex: 1 1 200px;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 10px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-btn-radius);
+    color: var(--tp-color-text-soft);
+    font-family: var(--ds-mono);
+    font-size: 0.82rem;
+}
