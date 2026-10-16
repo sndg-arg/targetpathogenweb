@@ -57,9 +57,11 @@
 
         field.appendChild(chips);
         field.appendChild(input);
-        field.appendChild(list);
         textarea.hidden = true;
         row.insertBefore(field, textarea);
+        // In the flow under the field, not floating: the filter drawer's
+        // groups clip overflow, which cut a floating list down to one row.
+        row.insertAdjacentElement("afterend", list);
 
         field.addEventListener("click", function (event) {
             if (event.target === field || event.target === chips) input.focus();

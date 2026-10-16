@@ -3688,20 +3688,31 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-token-suggestions {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
-    z-index: 30;
-    max-height: 240px;
-    margin: 0;
+    max-height: 232px;
+    margin: -2px 0 0;
     padding: 4px;
     overflow-y: auto;
+    overscroll-behavior: contain;
     list-style: none;
     border: 1px solid var(--tp-color-border);
     border-radius: 12px;
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-md);
+    box-shadow: var(--tp-shadow-sm);
+    scrollbar-width: thin;
+    scrollbar-color: var(--tp-color-border-strong) transparent;
+}
+
+.filter-token-suggestions::-webkit-scrollbar {
+    width: 6px;
+}
+
+.filter-token-suggestions::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.filter-token-suggestions::-webkit-scrollbar-thumb {
+    background: var(--tp-color-border-strong);
+    border-radius: 999px;
 }
 
 .filter-token-suggestions[hidden] {
