@@ -545,9 +545,9 @@
 
 .ds-filter-chip.ds-filter-chip--applied,
 .ds-filter-chip.ds-filter-chip--applied:hover {
-    background: var(--tp-color-brand-700);
-    border-color: var(--tp-color-brand-700);
-    color: var(--tp-color-brand-050);
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
+    color: var(--tp-color-on-accent);
     font-weight: 500;
 }
 
@@ -621,16 +621,12 @@
 }
 
 .ds-seg input:checked + span {
-    background: var(--tp-color-brand-800);
+    background: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
 }
 
-.tp-dark .ds-seg input:checked + span {
-    background: var(--tp-color-brand-300);
-}
-
 .ds-seg input:focus-visible + span {
-    box-shadow: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-color-brand-800);
+    box-shadow: var(--tp-focus-outline);
 }
 
 /* Notes */
@@ -758,8 +754,8 @@
 
 .ds-page .btn.tp-btn--danger.ds-hover {
     color: var(--tp-color-on-accent) !important;
-    border-color: var(--tp-color-rose-700) !important;
-    background: var(--tp-color-rose-700) !important;
+    border-color: var(--tp-color-danger-fill) !important;
+    background: var(--tp-color-danger-fill) !important;
 }
 
 .ds-page .btn.tp-btn--ghost.ds-hover {
@@ -768,12 +764,12 @@
 }
 
 .ds-page .btn.ds-focus {
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring) !important;
+    box-shadow: var(--tp-focus-outline) !important;
 }
 
 .ds-page .form-control.ds-focus {
-    border-color: var(--tp-color-brand-600);
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    border-color: var(--tp-color-primary);
+    box-shadow: 0 0 0 1px var(--tp-color-primary);
 }
 
 .ds-filter-chip.ds-hover {
@@ -809,7 +805,7 @@
 }
 
 .ds-seg--focus input:checked + span {
-    box-shadow: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-color-brand-800);
+    box-shadow: var(--tp-focus-outline);
 }
 
 /* ── Full example + parts, above each component's grid ── */

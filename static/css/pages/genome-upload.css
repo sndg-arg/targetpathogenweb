@@ -264,7 +264,7 @@
 .genome-upload-field .tp-file-input:focus-visible {
     outline: none;
     border-color: var(--upload-accent-border);
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .genome-upload-field-help,
@@ -483,7 +483,7 @@
 .genome-upload-history-name a:focus-visible {
     outline: none;
     border-radius: 6px;
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .genome-upload-history-row.is-running {

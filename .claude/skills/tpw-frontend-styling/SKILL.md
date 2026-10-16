@@ -73,9 +73,12 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
   view, filled), `.tp-btn--secondary` (every other action, outlined), `.tp-btn--danger`
   (destructive, outlined, fills red on hover), `.tp-btn--ghost` (icon-only / in-row actions such
   as close, refresh, rename, no border until hover) — plus `.tp-btn--sm/md` for size, always
-  paired with `.btn .tp-btn`. Sizes: sm 32px, default 38px, md 40px. Corners come from
-  `--tp-btn-radius` (8px) / `--tp-btn-radius-sm` (6px); round 999px is only for icon-only ghost
-  buttons. A page-specific button class (e.g. `.metabolic-map-btn`, `.tp-table-export-btn`) may
+  paired with `.btn .tp-btn`. Sizes: sm 32px, default 38px, md 40px. Only three radii exist:
+  8px controls (`--tp-btn-radius`), 12px cards (`--tp-radius-md`), 999px pills/icon buttons.
+  Chips have one size (`--sm`/`--md` are legacy aliases). Danger hover fills with
+  `--tp-color-danger-fill`; "selected" fills (filter chip applied, segmented choice) use
+  `--tp-color-primary`; keyboard focus is `box-shadow: var(--tp-focus-outline)` (thin petrol
+  line), never a soft halo. A page-specific button class (e.g. `.metabolic-map-btn`, `.tp-table-export-btn`) may
   set size/layout, but its colors must be exactly one of the four types (secondary = text-primary
   on surface with border-strong; hover is NEUTRAL: text-primary, text-muted border,
   surface-soft fill -- never a brand tint). Toggle groups

@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261016-tokens2">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261016-general">
     <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261013-mobile-fab">
     <style>
         :root {
@@ -50,6 +50,10 @@
             /* Filled primary button (and selected states). */
             --tp-color-primary: var(--tp-color-brand-800);
             --tp-color-primary-hover: var(--tp-color-brand-900);
+            /* Destructive fill (Delete on hover): deep brick, not bright rose. */
+            --tp-color-danger-fill: #8a2c33;
+            /* Keyboard focus: one thin petrol line, everywhere. */
+            --tp-focus-outline: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-color-primary);
             --tp-color-rose-900: #742849;
             --tp-color-rose-700: #ab3f68;
             --tp-color-rose-500: #cf628c;
@@ -201,11 +205,11 @@
             --tp-shadow: var(--tp-shadow-sm);
             --tp-color-scrim: rgba(0, 0, 0, 0.48);
             --tp-topbar-h: 76px;
-            --tp-radius-lg: 26px;
-            --tp-radius-md: 20px;
+            --tp-radius-lg: 12px;
+            --tp-radius-md: 12px;
             /* Buttons and button-like controls (compact ones use -sm). */
             --tp-btn-radius: 8px;
-            --tp-btn-radius-sm: 6px;
+            --tp-btn-radius-sm: 8px;
             --tp-space-1: 4px;
             --tp-space-2: 8px;
             --tp-space-3: 12px;
@@ -261,6 +265,7 @@
             --tp-color-accent-line: #7fb2c0;
             --tp-color-primary: #2f5d6c;
             --tp-color-primary-hover: #3a6e7e;
+            --tp-color-danger-fill: #7a3036;
 
             /* rose */
             --tp-color-rose-900: #f0c4d5;
@@ -507,7 +512,7 @@
         select.form-control:not([multiple]):not([size]):not(.tp-select-native):focus,
         select.form-control:not([multiple]):not([size]):not(.tp-select-native):focus-visible {
             border-color: var(--tp-color-brand-600);
-            box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+            box-shadow: var(--tp-focus-outline);
         }
 
         select.form-control:not([multiple]):not([size]):not(.tp-select-native):disabled {
@@ -725,8 +730,8 @@
         .tp-btn--clear-warn:focus,
         .tp-btn--clear-warn:active {
             color: var(--tp-color-on-accent) !important;
-            border-color: var(--tp-color-rose-700) !important;
-            background: var(--tp-color-rose-700) !important;
+            border-color: var(--tp-color-danger-fill) !important;
+            background: var(--tp-color-danger-fill) !important;
             box-shadow: none !important;
         }
 
@@ -818,7 +823,7 @@
         .btn:focus-visible,
         .btn.focus:focus-visible {
             outline: 0;
-            box-shadow: 0 0 0 0.2rem var(--tp-focus-ring) !important;
+            box-shadow: var(--tp-focus-outline) !important;
         }
 
         .btn:focus:not(:focus-visible),
@@ -887,8 +892,8 @@
         .custom-select:focus,
         .custom-select:focus-visible {
             outline: none;
-            border-color: var(--tp-color-brand-600);
-            box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+            border-color: var(--tp-color-primary);
+            box-shadow: 0 0 0 1px var(--tp-color-primary);
         }
 
         .form-control:disabled,
@@ -2073,7 +2078,7 @@
             box-shadow: var(--tp-shadow-xs);
         }
         .tp-dark .tp-select-trigger:focus-within {
-            box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+            box-shadow: var(--tp-focus-outline);
         }
         .tp-dark .tp-select-option {
             box-shadow: var(--tp-shadow-xs);

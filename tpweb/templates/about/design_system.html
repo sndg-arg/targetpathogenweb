@@ -5,7 +5,7 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016k">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016l">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -160,9 +160,8 @@
             <div>
                 <h3 class="ds-sub">Bordes redondeados</h3>
                 <div class="ds-radii">
-                    <div class="ds-radius"><i style="border-radius: var(--tp-btn-radius-sm)"></i><code>--tp-btn-radius-sm</code><span>6 px · botones chicos</span></div>
                     <div class="ds-radius"><i style="border-radius: var(--tp-btn-radius)"></i><code>--tp-btn-radius</code><span>8 px · botones y campos</span></div>
-                    <div class="ds-radius"><i style="border-radius: 12px"></i><code>12 px</code><span>tarjetas chicas, ejemplos de código</span></div>
+                    <div class="ds-radius"><i style="border-radius: var(--tp-radius-md)"></i><code>--tp-radius-md</code><span>12 px · tarjetas, ejemplos</span></div>
                     <div class="ds-radius"><i style="border-radius: 999px"></i><code>999 px</code><span>chips y botones de solo ícono</span></div>
                 </div>
                 <h3 class="ds-sub">Sombras</h3>
@@ -232,39 +231,33 @@
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
-                    <tr><th scope="col" rowspan="2" class="ds-g-variant">Variante</th><th scope="colgroup" colspan="2">Tamaño</th></tr>
-                    <tr><th scope="col">Normal</th><th scope="col">Chico<code>tp-chip--sm</code></th></tr>
+                    <tr><th scope="col" rowspan="2" class="ds-g-variant">Variante</th><th scope="colgroup" colspan="1">Un solo tamaño</th></tr>
+                    <tr><th scope="col">Ejemplo</th></tr>
                 </thead>
                 <tbody>
                     <tr>
                         <th scope="row"><strong>Neutro</strong><code>tp-chip--meta</code><span>Contexto</span></th>
                         <td><span class="tp-chip tp-chip--meta">Curated analysis</span></td>
-                        <td><span class="tp-chip tp-chip--sm tp-chip--meta">Curated analysis</span></td>
                     </tr>
                     <tr>
                         <th scope="row"><strong>Número</strong><code>tp-chip--count</code><span>Cantidad</span></th>
                         <td><span class="tp-chip tp-chip--count">857</span></td>
-                        <td><span class="tp-chip tp-chip--sm tp-chip--count">857</span></td>
                     </tr>
                     <tr>
                         <th scope="row"><strong>Identificador</strong><code>tp-chip--ec</code><span>Códigos (mono)</span></th>
                         <td><span class="tp-chip tp-chip--ec">2.7.13.3</span></td>
-                        <td><span class="tp-chip tp-chip--sm tp-chip--ec">2.7.13.3</span></td>
                     </tr>
                     <tr>
                         <th scope="row"><strong>Favorable</strong><code>tp-chip--direct</code><span>Dato a favor</span></th>
                         <td><span class="tp-chip tp-chip--direct">Has structure</span></td>
-                        <td><span class="tp-chip tp-chip--sm tp-chip--direct">Has structure</span></td>
                     </tr>
                     <tr>
                         <th scope="row"><strong>Atención</strong><code>tp-chip--warning</code><span>Dato dudoso</span></th>
                         <td><span class="tp-chip tp-chip--warning">Low confidence</span></td>
-                        <td><span class="tp-chip tp-chip--sm tp-chip--warning">Low confidence</span></td>
                     </tr>
                     <tr>
                         <th scope="row"><strong>Secundario</strong><code>tp-chip--homolog</code><span>Evidencia indirecta</span></th>
                         <td><span class="tp-chip tp-chip--homolog">Via homolog</span></td>
-                        <td><span class="tp-chip tp-chip--sm tp-chip--homolog">Via homolog</span></td>
                     </tr>
                 </tbody>
             </table>

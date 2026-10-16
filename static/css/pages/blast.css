@@ -214,7 +214,7 @@
 /* Selected: filled petrol, same as a primary button, so it reads at a
    glance in both modes. */
 .blast-segmented-option input:checked + span {
-    background: var(--tp-color-brand-800);
+    background: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
 }
 
@@ -223,12 +223,8 @@
     opacity: 0.75;
 }
 
-.tp-dark .blast-segmented-option input:checked + span {
-    background: var(--tp-color-brand-300);
-}
-
 .blast-segmented-option input:focus-visible + span {
-    box-shadow: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-color-brand-800);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .blast-actions {

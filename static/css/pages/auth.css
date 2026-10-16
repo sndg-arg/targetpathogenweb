@@ -85,7 +85,7 @@
 .auth-field input:focus {
     outline: none;
     border-color: var(--tp-color-brand-600);
-    box-shadow: 0 0 0 3px var(--tp-focus-ring);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .auth-field input::placeholder {
@@ -206,7 +206,7 @@
 
 .auth-card .form-group .form-control:focus {
     border-color: var(--tp-color-brand-600);
-    box-shadow: 0 0 0 3px var(--tp-focus-ring);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .auth-card .form-group textarea.form-control {

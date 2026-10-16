@@ -359,7 +359,7 @@
 
 .tp-focusable:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .tp-focusable:focus:not(:focus-visible) {
@@ -573,7 +573,7 @@
 .tp-select-trigger:focus-visible {
     outline: none;
     border-color: var(--tp-color-brand-600);
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .tp-select-trigger:active {
@@ -749,22 +749,19 @@
     border-radius: 999px;
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 500;
-    line-height: 1.3;
-    padding: 4px 10px;
-}
-
-.tp-chip--sm {
     font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     line-height: 1.2;
     padding: 3px 8px;
 }
 
+/* One chip size site-wide (see /design); --sm and --md are kept only so
+   existing markup renders the same. */
+.tp-chip--sm,
 .tp-chip--md {
-    font-size: var(--tp-font-size-sm);
-    line-height: 1.3;
-    padding: 4px 10px;
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.2;
+    padding: 3px 8px;
 }
 
 .tp-chip code {
@@ -996,7 +993,7 @@ a.tp-chip--go:hover {
 .tp-pagination .page-link:focus-visible {
     outline: none;
     border-color: var(--tp-color-brand-600);
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .tp-pagination .page-item.active .page-link {
@@ -1293,7 +1290,7 @@ a.tp-chip--go:hover {
 
 .tp-table-export-btn:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .tp-table-export-btn:active {
@@ -1495,7 +1492,7 @@ a.tp-chip--go:hover {
 .tp-dt-wrapper .dataTables_paginate .paginate_button:focus-visible {
     outline: none !important;
     border-color: var(--tp-color-brand-600) !important;
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring) !important;
+    box-shadow: var(--tp-focus-outline) !important;
 }
 
 .tp-dt-wrapper .dataTables_paginate .paginate_button.current,
@@ -1987,7 +1984,7 @@ a.tp-chip--go:hover {
 .tp-file-input:focus-visible {
     outline: none;
     border-color: var(--tp-color-brand-600);
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    box-shadow: var(--tp-focus-outline);
 }
 
 @media (prefers-reduced-motion: reduce) {

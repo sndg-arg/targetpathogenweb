@@ -961,7 +961,7 @@ a.filter-pill .filter-pill-remove {
 .acc-col a:focus-visible {
     outline: none;
     border-radius: 6px;
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .desc-col {
@@ -1412,7 +1412,7 @@ a.filter-pill .filter-pill-remove {
 .page-jump-input:focus-visible {
     outline: none;
     border-color: var(--tp-color-brand-600);
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .tp-overlay {
@@ -2051,7 +2051,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-pill-remove:focus-visible {
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .active-filters.is-empty {
@@ -3445,19 +3445,19 @@ a.filter-pill .filter-pill-remove {
 /* Server-applied, no pending change: solid brand fill — unambiguously "ON" */
 .filter-chip--active:not(.filter-chip--pending) {
     border-style: solid;
-    background: var(--tp-color-brand-700);
-    border-color: var(--tp-color-brand-700);
-    color: var(--tp-color-brand-050);
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
+    color: var(--tp-color-on-accent);
     font-weight: 500;
 }
 
 .filter-chip--active:not(.filter-chip--pending):hover {
-    background: var(--tp-color-brand-800);
-    border-color: var(--tp-color-brand-800);
+    background: var(--tp-color-primary-hover);
+    border-color: var(--tp-color-primary-hover);
 }
 
 .filter-chip--active:not(.filter-chip--pending) .filter-chip-glyph {
-    color: var(--tp-color-brand-050);
+    color: var(--tp-color-on-accent);
     opacity: 0.85;
 }
 
@@ -3466,7 +3466,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-chip--active:not(.filter-chip--pending):is(a, a:visited) {
-    color: var(--tp-color-brand-050);
+    color: var(--tp-color-on-accent);
 }
 
 /* Tones only color the chip at rest. Hover, applied and pending are the

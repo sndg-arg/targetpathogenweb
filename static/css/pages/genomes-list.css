@@ -245,7 +245,7 @@
 .genome-row:focus-visible {
     outline: none;
     background: var(--view-accent-soft-2) !important;
-    box-shadow: inset 3px 0 0 var(--view-accent), 0 0 0 0.2rem var(--tp-focus-ring);
+    box-shadow: inset 3px 0 0 var(--view-accent), var(--tp-focus-outline);
 }
 
 .genome-row.is-processing {
@@ -398,7 +398,7 @@
 .genomes-name a:focus-visible {
     outline: none;
     border-radius: 6px;
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .genome-workspace-empty {
