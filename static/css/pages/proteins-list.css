@@ -3469,40 +3469,22 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-brand-050);
 }
 
+/* Tones only color the chip at rest. Hover, applied and pending are the
+   same for every chip (base rules above), so a "risk" chip that's applied
+   looks applied, not hovered. */
 .filter-chip--risk {
     border-color: var(--tp-color-danger-border);
     color: var(--tp-color-danger-ink);
 }
 
-.filter-chip--risk:hover,
-.filter-chip--risk.filter-chip--active {
-    background: var(--tp-color-danger-bg);
-    border-color: var(--tp-color-danger-border);
-    color: var(--tp-color-danger-ink);
-}
-
 .filter-chip--favorable {
-    border-color: var(--tp-color-sage-200);
-    color: var(--tp-color-sage-900);
-}
-
-.filter-chip--favorable:hover,
-.filter-chip--favorable.filter-chip--active {
-    background: var(--tp-color-sage-050);
-    border-color: var(--tp-color-sage-200);
-    color: var(--tp-color-sage-900);
+    border-color: var(--tp-color-success-border);
+    color: var(--tp-color-success-ink);
 }
 
 .filter-chip--secondary {
     color: var(--tp-color-text-muted);
     border-color: var(--tp-color-border);
-}
-
-.filter-chip--secondary:hover,
-.filter-chip--secondary.filter-chip--active {
-    background: var(--tp-color-surface-muted);
-    border-color: var(--tp-color-border-strong);
-    color: var(--tp-color-text-secondary);
 }
 
 .filter-chip-glyph {

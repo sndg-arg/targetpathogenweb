@@ -5,7 +5,7 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016h">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016i">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -181,36 +181,47 @@
         <div class="ds-comp" id="c-boton">
             <h3>Botón <code>btn tp-btn</code></h3>
             <div class="ds-table-wrap">
-            <table class="ds-variants ds-variants--grid">
-                <thead><tr><th scope="col">Tipo</th><th scope="col">Chico · 32 px<code>tp-btn--sm</code></th><th scope="col">Normal · 38 px</th><th scope="col">Deshabilitado<code>disabled</code></th><th scope="col">Cuándo</th></tr></thead>
+            <table class="ds-grid">
+                <thead>
+                    <tr><th scope="col" rowspan="2" class="ds-g-variant">Variante</th><th scope="colgroup" colspan="2">Tamaño</th><th scope="colgroup" colspan="4" class="ds-g-start">Estado</th></tr>
+                    <tr><th scope="col">Chico<code>tp-btn--sm</code></th><th scope="col">Normal</th><th scope="col" class="ds-g-start">Reposo</th><th scope="col">Hover</th><th scope="col">Foco</th><th scope="col">Deshabilitado<code>disabled</code></th></tr>
+                </thead>
                 <tbody>
                     <tr>
-                        <th scope="row"><strong>Principal</strong><code>tp-btn--primary</code></th>
-                        <td><button type="button" class="btn tp-btn tp-btn--primary tp-btn--sm">Run BLAST</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--primary">Run BLAST</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--primary" disabled>Run BLAST</button></td>
-                        <td>Uno por vista</td>
+                        <th scope="row"><strong>Principal</strong><code>tp-btn--primary</code><span>Uno por vista</span></th>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary tp-btn--sm" tabindex="-1">Run BLAST</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary " tabindex="-1">Run BLAST</button></td>
+                        <td class="ds-g-start"><button type="button" class="btn tp-btn tp-btn--primary " tabindex="-1">Run BLAST</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary ds-hover" tabindex="-1">Run BLAST</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary ds-focus" tabindex="-1">Run BLAST</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary " disabled tabindex="-1">Run BLAST</button></td>
                     </tr>
                     <tr>
-                        <th scope="row"><strong>Secundario</strong><code>tp-btn--secondary</code></th>
-                        <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm">Export CSV</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--secondary">Export CSV</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--secondary" disabled>Export CSV</button></td>
-                        <td>Todo lo demás</td>
+                        <th scope="row"><strong>Secundario</strong><code>tp-btn--secondary</code><span>Todo lo demás</span></th>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm" tabindex="-1">Export CSV</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary " tabindex="-1">Export CSV</button></td>
+                        <td class="ds-g-start"><button type="button" class="btn tp-btn tp-btn--secondary " tabindex="-1">Export CSV</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary ds-hover" tabindex="-1">Export CSV</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary ds-focus" tabindex="-1">Export CSV</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary " disabled tabindex="-1">Export CSV</button></td>
                     </tr>
                     <tr>
-                        <th scope="row"><strong>Peligro</strong><code>tp-btn--danger</code></th>
-                        <td><button type="button" class="btn tp-btn tp-btn--danger tp-btn--sm">Delete</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--danger">Delete</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--danger" disabled>Delete</button></td>
-                        <td>Solo borrar</td>
+                        <th scope="row"><strong>Peligro</strong><code>tp-btn--danger</code><span>Solo borrar</span></th>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger tp-btn--sm" tabindex="-1">Delete</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger " tabindex="-1">Delete</button></td>
+                        <td class="ds-g-start"><button type="button" class="btn tp-btn tp-btn--danger " tabindex="-1">Delete</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger ds-hover" tabindex="-1">Delete</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger ds-focus" tabindex="-1">Delete</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger " disabled tabindex="-1">Delete</button></td>
                     </tr>
                     <tr>
-                        <th scope="row"><strong>Fantasma</strong><code>tp-btn--ghost</code></th>
-                        <td><button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm">Clear all</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--ghost">Clear all</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--ghost" disabled>Clear all</button></td>
-                        <td>Ícono o acción en fila</td>
+                        <th scope="row"><strong>Fantasma</strong><code>tp-btn--ghost</code><span>Ícono o acción en fila</span></th>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm" tabindex="-1">Clear all</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost " tabindex="-1">Clear all</button></td>
+                        <td class="ds-g-start"><button type="button" class="btn tp-btn tp-btn--ghost " tabindex="-1">Clear all</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost ds-hover" tabindex="-1">Clear all</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost ds-focus" tabindex="-1">Clear all</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost " disabled tabindex="-1">Clear all</button></td>
                     </tr>
                 </tbody>
             </table>
@@ -219,44 +230,41 @@
         <div class="ds-comp" id="c-chip">
             <h3>Chip <code>tp-chip</code></h3>
             <div class="ds-table-wrap">
-            <table class="ds-variants ds-variants--grid">
-                <thead><tr><th scope="col">Variante</th><th scope="col">Chico<code>tp-chip--sm</code></th><th scope="col">Normal</th><th scope="col">Cuándo</th></tr></thead>
+            <table class="ds-grid">
+                <thead>
+                    <tr><th scope="col" rowspan="2" class="ds-g-variant">Variante</th><th scope="colgroup" colspan="2">Tamaño</th></tr>
+                    <tr><th scope="col">Chico<code>tp-chip--sm</code></th><th scope="col">Normal</th></tr>
+                </thead>
                 <tbody>
                     <tr>
-                        <th scope="row"><strong>Neutro</strong><code>tp-chip--meta</code></th>
+                        <th scope="row"><strong>Neutro</strong><code>tp-chip--meta</code><span>Contexto</span></th>
                         <td><span class="tp-chip tp-chip--sm tp-chip--meta">Curated analysis</span></td>
-                        <td><span class="tp-chip  tp-chip--meta">Curated analysis</span></td>
-                        <td>Contexto</td>
+                        <td><span class="tp-chip tp-chip--meta">Curated analysis</span></td>
                     </tr>
                     <tr>
-                        <th scope="row"><strong>Número</strong><code>tp-chip--count</code></th>
+                        <th scope="row"><strong>Número</strong><code>tp-chip--count</code><span>Cantidad</span></th>
                         <td><span class="tp-chip tp-chip--sm tp-chip--count">857</span></td>
-                        <td><span class="tp-chip  tp-chip--count">857</span></td>
-                        <td>Cantidad</td>
+                        <td><span class="tp-chip tp-chip--count">857</span></td>
                     </tr>
                     <tr>
-                        <th scope="row"><strong>Identificador</strong><code>tp-chip--ec</code></th>
+                        <th scope="row"><strong>Identificador</strong><code>tp-chip--ec</code><span>Códigos (mono)</span></th>
                         <td><span class="tp-chip tp-chip--sm tp-chip--ec">2.7.13.3</span></td>
-                        <td><span class="tp-chip  tp-chip--ec">2.7.13.3</span></td>
-                        <td>Códigos (mono)</td>
+                        <td><span class="tp-chip tp-chip--ec">2.7.13.3</span></td>
                     </tr>
                     <tr>
-                        <th scope="row"><strong>Favorable</strong><code>tp-chip--direct</code></th>
+                        <th scope="row"><strong>Favorable</strong><code>tp-chip--direct</code><span>Dato a favor</span></th>
                         <td><span class="tp-chip tp-chip--sm tp-chip--direct">Has structure</span></td>
-                        <td><span class="tp-chip  tp-chip--direct">Has structure</span></td>
-                        <td>Dato a favor</td>
+                        <td><span class="tp-chip tp-chip--direct">Has structure</span></td>
                     </tr>
                     <tr>
-                        <th scope="row"><strong>Atención</strong><code>tp-chip--warning</code></th>
+                        <th scope="row"><strong>Atención</strong><code>tp-chip--warning</code><span>Dato dudoso</span></th>
                         <td><span class="tp-chip tp-chip--sm tp-chip--warning">Low confidence</span></td>
-                        <td><span class="tp-chip  tp-chip--warning">Low confidence</span></td>
-                        <td>Dato dudoso</td>
+                        <td><span class="tp-chip tp-chip--warning">Low confidence</span></td>
                     </tr>
                     <tr>
-                        <th scope="row"><strong>Secundario</strong><code>tp-chip--homolog</code></th>
+                        <th scope="row"><strong>Secundario</strong><code>tp-chip--homolog</code><span>Evidencia indirecta</span></th>
                         <td><span class="tp-chip tp-chip--sm tp-chip--homolog">Via homolog</span></td>
-                        <td><span class="tp-chip  tp-chip--homolog">Via homolog</span></td>
-                        <td>Evidencia indirecta</td>
+                        <td><span class="tp-chip tp-chip--homolog">Via homolog</span></td>
                     </tr>
                 </tbody>
             </table>
@@ -265,15 +273,32 @@
         <div class="ds-comp" id="c-filtro">
             <h3>Chip de filtro <code>filter-chip</code></h3>
             <div class="ds-table-wrap">
-            <table class="ds-variants ds-variants--grid">
-                <thead><tr><th scope="col">Variante</th><th scope="col">Normal</th><th scope="col">Aplicado<code>--active</code></th><th scope="col">Pendiente<code>--pending</code></th><th scope="col">Cuándo</th></tr></thead>
+            <table class="ds-grid">
+                <thead>
+                    <tr><th scope="col" rowspan="2" class="ds-g-variant">Variante</th><th scope="colgroup" colspan="4">Estado</th></tr>
+                    <tr><th scope="col">Disponible</th><th scope="col">Hover</th><th scope="col">Aplicado<code>--active</code></th><th scope="col">Pendiente<code>--pending</code></th></tr>
+                </thead>
                 <tbody>
                     <tr>
-                        <th scope="row"><strong>Criterio</strong></th>
+                        <th scope="row"><strong>Neutro</strong><span>Valor común</span></th>
                         <td><span class="ds-filter-chip ">Core</span></td>
-                        <td><span class="ds-filter-chip ds-filter-chip--applied">Core ×</span></td>
-                        <td><span class="ds-filter-chip ds-filter-chip--pending">Core</span></td>
-                        <td>Pendiente = falta Apply filters</td>
+                        <td><span class="ds-filter-chip  ds-hover">Core</span></td>
+                        <td><span class="ds-filter-chip  ds-filter-chip--applied">Core ×</span></td>
+                        <td><span class="ds-filter-chip  ds-filter-chip--pending">Core</span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Riesgo</strong><code>filter-chip--risk</code><span>Valor desfavorable</span></th>
+                        <td><span class="ds-filter-chip ds-filter-chip--risk">Hit</span></td>
+                        <td><span class="ds-filter-chip ds-filter-chip--risk ds-hover">Hit</span></td>
+                        <td><span class="ds-filter-chip ds-filter-chip--risk ds-filter-chip--applied">Hit ×</span></td>
+                        <td><span class="ds-filter-chip ds-filter-chip--risk ds-filter-chip--pending">Hit</span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Favorable</strong><code>filter-chip--favorable</code><span>Valor a favor</span></th>
+                        <td><span class="ds-filter-chip ds-filter-chip--favorable">No hit</span></td>
+                        <td><span class="ds-filter-chip ds-filter-chip--favorable ds-hover">No hit</span></td>
+                        <td><span class="ds-filter-chip ds-filter-chip--favorable ds-filter-chip--applied">No hit ×</span></td>
+                        <td><span class="ds-filter-chip ds-filter-chip--favorable ds-filter-chip--pending">No hit</span></td>
                     </tr>
                 </tbody>
             </table>
@@ -282,20 +307,23 @@
         <div class="ds-comp" id="c-campo">
             <h3>Campo <code>form-control tp-ui-control</code></h3>
             <div class="ds-table-wrap">
-            <table class="ds-variants ds-variants--grid">
-                <thead><tr><th scope="col">Variante</th><th scope="col">Normal</th><th scope="col">Deshabilitado<code>disabled</code></th><th scope="col">Cuándo</th></tr></thead>
+            <table class="ds-grid">
+                <thead>
+                    <tr><th scope="col" rowspan="2" class="ds-g-variant">Variante</th><th scope="colgroup" colspan="3">Estado</th></tr>
+                    <tr><th scope="col">Reposo</th><th scope="col">Foco</th><th scope="col">Deshabilitado<code>disabled</code></th></tr>
+                </thead>
                 <tbody>
                     <tr>
-                        <th scope="row"><strong>Texto</strong></th>
-                        <td><input id="ds-input" type="text" class="form-control tp-ui-control ds-inline-control" placeholder="Search…"></td>
-                        <td><input id="ds-input-off" type="text" class="form-control tp-ui-control ds-inline-control" placeholder="Search…" disabled></td>
-                        <td>Búsqueda, valores</td>
+                        <th scope="row"><strong>Texto</strong><span>Búsqueda, valores</span></th>
+                        <td><input id="ds-in-1" type="text" class="form-control tp-ui-control ds-inline-control " placeholder="Search…" tabindex="-1"></td>
+                        <td><input id="ds-in-2" type="text" class="form-control tp-ui-control ds-inline-control ds-focus" placeholder="Search…" tabindex="-1"></td>
+                        <td><input id="ds-in-3" type="text" class="form-control tp-ui-control ds-inline-control " placeholder="Search…" disabled tabindex="-1"></td>
                     </tr>
                     <tr>
-                        <th scope="row"><strong>Selector</strong></th>
-                        <td><select id="ds-select" class="form-control tp-ui-control ds-inline-control"><option>GCA_030061715.1</option><option>KpATCC43816</option></select></td>
-                        <td><select id="ds-select-off" class="form-control tp-ui-control ds-inline-control" disabled><option>GCA_030061715.1</option><option>KpATCC43816</option></select></td>
-                        <td>Una opción de muchas</td>
+                        <th scope="row"><strong>Selector</strong><span>Una opción de muchas</span></th>
+                        <td><select id="ds-sel-1" class="form-control tp-ui-control ds-inline-control " tabindex="-1"><option>GCA_030061715.1</option></select></td>
+                        <td><select id="ds-sel-2" class="form-control tp-ui-control ds-inline-control ds-focus" tabindex="-1"><option>GCA_030061715.1</option></select></td>
+                        <td><select id="ds-sel-3" class="form-control tp-ui-control ds-inline-control " disabled tabindex="-1"><option>GCA_030061715.1</option></select></td>
                     </tr>
                 </tbody>
             </table>
@@ -304,10 +332,17 @@
         <div class="ds-comp" id="c-seg">
             <h3>Selector de dos opciones <code>segmented</code></h3>
             <div class="ds-table-wrap">
-            <table class="ds-variants">
-                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
+            <table class="ds-grid">
+                <thead>
+                    <tr><th scope="col" rowspan="2" class="ds-g-variant">Variante</th><th scope="colgroup" colspan="2">Estado</th></tr>
+                    <tr><th scope="col">Ambas</th><th scope="col">Foco</th></tr>
+                </thead>
                 <tbody>
-                    <tr><th scope="row"><strong>Elegida / no</strong></th><td><div class="ds-seg"><label><input type="radio" name="ds-seg" checked><span>Nucleotide <small>blastn</small></span></label><label><input type="radio" name="ds-seg"><span>Protein <small>blastp</small></span></label></div></td><td>Dos modos excluyentes</td></tr>
+                    <tr>
+                        <th scope="row"><strong>Par</strong><span>Dos modos excluyentes</span></th>
+                        <td><div class="ds-seg"><label><input type="radio" name="ds-seg" checked tabindex="-1"><span>Nucleotide <small>blastn</small></span></label><label><input type="radio" name="ds-seg" tabindex="-1"><span>Protein <small>blastp</small></span></label></div></td>
+                        <td><div class="ds-seg ds-seg--focus"><label><input type="radio" name="ds-seg2" checked tabindex="-1"><span>Nucleotide <small>blastn</small></span></label><label><input type="radio" name="ds-seg2" tabindex="-1"><span>Protein <small>blastp</small></span></label></div></td>
+                    </tr>
                 </tbody>
             </table>
             </div>
@@ -315,12 +350,24 @@
         <div class="ds-comp" id="c-aviso">
             <h3>Aviso <code>barra a la izquierda</code></h3>
             <div class="ds-table-wrap">
-            <table class="ds-variants">
-                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
+            <table class="ds-grid">
+                <thead>
+                    <tr><th scope="col" rowspan="2" class="ds-g-variant">Variante</th><th scope="colgroup" colspan="1">Tono</th></tr>
+                    <tr><th scope="col">Ejemplo</th></tr>
+                </thead>
                 <tbody>
-                    <tr><th scope="row"><strong>Info</strong></th><td><p class="ds-note ds-note--info">Runs on the genome above.</p></td><td>Contexto</td></tr>
-                    <tr><th scope="row"><strong>Atención</strong></th><td><p class="ds-note ds-note--warning">Not a value in this genome.</p></td><td>Algo no se aplicó</td></tr>
-                    <tr><th scope="row"><strong>Error</strong></th><td><p class="ds-note ds-note--danger">The file was not loaded.</p></td><td>Falló</td></tr>
+                    <tr>
+                        <th scope="row"><strong>Info</strong><span>Contexto</span></th>
+                        <td><p class="ds-note ds-note--info">Runs on the genome above.</p></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Atención</strong><span>Algo no se aplicó</span></th>
+                        <td><p class="ds-note ds-note--warning">Not a value in this genome.</p></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Error</strong><span>Falló</span></th>
+                        <td><p class="ds-note ds-note--danger">The file was not loaded.</p></td>
+                    </tr>
                 </tbody>
             </table>
             </div>
@@ -328,14 +375,17 @@
         <div class="ds-comp" id="c-menu">
             <h3>Menú de secciones <code>quick-nav</code></h3>
             <div class="ds-table-wrap">
-            <table class="ds-variants ds-variants--grid">
-                <thead><tr><th scope="col">Variante</th><th scope="col">Inactiva</th><th scope="col">Activa<code>is-active</code></th><th scope="col">Cuándo</th></tr></thead>
+            <table class="ds-grid">
+                <thead>
+                    <tr><th scope="col" rowspan="2" class="ds-g-variant">Variante</th><th scope="colgroup" colspan="3">Estado</th></tr>
+                    <tr><th scope="col">Inactiva</th><th scope="col">Hover</th><th scope="col">Activa<code>is-active</code></th></tr>
+                </thead>
                 <tbody>
                     <tr>
                         <th scope="row"><strong>Pestaña</strong></th>
                         <td><span class="ds-tab">Downloads</span></td>
+                        <td><span class="ds-tab ds-tab--hover">Downloads</span></td>
                         <td><span class="ds-tab ds-tab--on">Downloads</span></td>
-                        <td>Activa = sección visible</td>
                     </tr>
                 </tbody>
             </table>

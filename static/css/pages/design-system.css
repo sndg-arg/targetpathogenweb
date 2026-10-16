@@ -534,16 +534,16 @@
     color: var(--tp-color-text-primary);
 }
 
-.ds-filter-chip--applied,
-.ds-filter-chip--applied:hover {
+.ds-filter-chip.ds-filter-chip--applied,
+.ds-filter-chip.ds-filter-chip--applied:hover {
     background: var(--tp-color-brand-700);
     border-color: var(--tp-color-brand-700);
     color: var(--tp-color-brand-050);
     font-weight: 500;
 }
 
-.ds-filter-chip--pending,
-.ds-filter-chip--pending:hover {
+.ds-filter-chip.ds-filter-chip--pending,
+.ds-filter-chip.ds-filter-chip--pending:hover {
     border-style: dashed;
     border-color: var(--tp-color-brand-700);
     color: var(--tp-color-brand-800);
@@ -660,4 +660,144 @@
         grid-template-columns: minmax(0, 1fr);
         gap: 2px;
     }
+}
+
+/* ── Combination grids: rows = type/tone, column groups = one dimension
+   each (size, state). Hover and focus are drawn frozen. ── */
+.ds-grid {
+    border-collapse: collapse;
+    min-width: 100%;
+}
+
+.ds-grid th,
+.ds-grid td {
+    padding: 10px 14px 10px 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.ds-grid thead th {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.ds-grid thead tr:first-child th[scope="colgroup"] {
+    color: var(--tp-color-text-primary);
+    font-weight: 600;
+    border-bottom-color: var(--tp-color-border);
+}
+
+.ds-grid thead th code {
+    display: block;
+    margin-top: 2px;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.ds-grid .ds-g-variant {
+    width: 190px;
+    vertical-align: bottom;
+}
+
+.ds-grid tbody th {
+    font-weight: 400;
+    white-space: normal;
+}
+
+.ds-grid tbody th code,
+.ds-grid tbody th span {
+    display: block;
+    margin-top: 2px;
+}
+
+.ds-grid tbody th span {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+/* Divider between dimension groups. */
+.ds-grid .ds-g-start {
+    padding-left: 18px;
+    border-left: 1px solid var(--tp-color-border);
+}
+
+.ds-grid .ds-note {
+    white-space: normal;
+}
+
+/* Frozen states (same values as the real :hover / :focus rules). */
+.ds-page .btn.tp-btn--primary.ds-hover {
+    background: var(--tp-color-primary-hover) !important;
+    background-color: var(--tp-color-primary-hover) !important;
+}
+
+.ds-page .btn.tp-btn--secondary.ds-hover {
+    color: var(--tp-color-text-primary) !important;
+    border-color: var(--tp-color-text-muted) !important;
+    background: var(--tp-color-surface-soft) !important;
+}
+
+.tp-dark .ds-page .btn.tp-btn--secondary.ds-hover {
+    background: var(--tp-color-surface-muted) !important;
+}
+
+.ds-page .btn.tp-btn--danger.ds-hover {
+    color: var(--tp-color-on-accent) !important;
+    border-color: var(--tp-color-rose-700) !important;
+    background: var(--tp-color-rose-700) !important;
+}
+
+.ds-page .btn.tp-btn--ghost.ds-hover {
+    color: var(--tp-color-text-primary) !important;
+    background: var(--tp-color-surface-muted) !important;
+}
+
+.ds-page .btn.ds-focus {
+    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring) !important;
+}
+
+.ds-page .form-control.ds-focus {
+    border-color: var(--tp-color-brand-600);
+    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+}
+
+.ds-filter-chip.ds-hover {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-strong);
+    color: var(--tp-color-text-primary);
+}
+
+.ds-filter-chip--risk {
+    border-color: var(--tp-color-danger-border);
+    color: var(--tp-color-danger-ink);
+}
+
+.ds-filter-chip--favorable {
+    border-color: var(--tp-color-success-border);
+    color: var(--tp-color-success-ink);
+}
+
+.ds-tab--hover {
+    color: var(--tp-color-text-primary);
+}
+
+.ds-tab--hover::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: currentColor;
+    opacity: 0.28;
+}
+
+.ds-seg--focus input:checked + span {
+    box-shadow: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-color-brand-800);
 }
