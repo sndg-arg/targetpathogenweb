@@ -5,7 +5,7 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016g">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016h">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -217,17 +217,47 @@
             </div>
         </div>
         <div class="ds-comp" id="c-chip">
-            <h3>Chip <code>tp-chip tp-chip--sm</code></h3>
+            <h3>Chip <code>tp-chip</code></h3>
             <div class="ds-table-wrap">
-            <table class="ds-variants">
-                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
+            <table class="ds-variants ds-variants--grid">
+                <thead><tr><th scope="col">Variante</th><th scope="col">Chico<code>tp-chip--sm</code></th><th scope="col">Normal</th><th scope="col">Cuándo</th></tr></thead>
                 <tbody>
-                    <tr><th scope="row"><strong>Neutro</strong><code>tp-chip--meta</code></th><td><span class="tp-chip tp-chip--sm tp-chip--meta">Curated analysis</span></td><td>Contexto</td></tr>
-                    <tr><th scope="row"><strong>Número</strong><code>tp-chip--count</code></th><td><span class="tp-chip tp-chip--sm tp-chip--count">857</span></td><td>Cantidad</td></tr>
-                    <tr><th scope="row"><strong>Identificador</strong><code>tp-chip--ec · --go</code></th><td><span class="tp-chip tp-chip--sm tp-chip--ec">2.7.13.3</span> <span class="tp-chip tp-chip--sm tp-chip--go">GO:0005737</span></td><td>Códigos (mono)</td></tr>
-                    <tr><th scope="row"><strong>Favorable</strong><code>tp-chip--direct</code></th><td><span class="tp-chip tp-chip--sm tp-chip--direct">Has structure</span></td><td>Dato a favor</td></tr>
-                    <tr><th scope="row"><strong>Atención</strong><code>tp-chip--warning</code></th><td><span class="tp-chip tp-chip--sm tp-chip--warning">Low confidence</span></td><td>Dato dudoso</td></tr>
-                    <tr><th scope="row"><strong>Secundario</strong><code>tp-chip--homolog</code></th><td><span class="tp-chip tp-chip--sm tp-chip--homolog">Via homolog</span></td><td>Evidencia indirecta</td></tr>
+                    <tr>
+                        <th scope="row"><strong>Neutro</strong><code>tp-chip--meta</code></th>
+                        <td><span class="tp-chip tp-chip--sm tp-chip--meta">Curated analysis</span></td>
+                        <td><span class="tp-chip  tp-chip--meta">Curated analysis</span></td>
+                        <td>Contexto</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Número</strong><code>tp-chip--count</code></th>
+                        <td><span class="tp-chip tp-chip--sm tp-chip--count">857</span></td>
+                        <td><span class="tp-chip  tp-chip--count">857</span></td>
+                        <td>Cantidad</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Identificador</strong><code>tp-chip--ec</code></th>
+                        <td><span class="tp-chip tp-chip--sm tp-chip--ec">2.7.13.3</span></td>
+                        <td><span class="tp-chip  tp-chip--ec">2.7.13.3</span></td>
+                        <td>Códigos (mono)</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Favorable</strong><code>tp-chip--direct</code></th>
+                        <td><span class="tp-chip tp-chip--sm tp-chip--direct">Has structure</span></td>
+                        <td><span class="tp-chip  tp-chip--direct">Has structure</span></td>
+                        <td>Dato a favor</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Atención</strong><code>tp-chip--warning</code></th>
+                        <td><span class="tp-chip tp-chip--sm tp-chip--warning">Low confidence</span></td>
+                        <td><span class="tp-chip  tp-chip--warning">Low confidence</span></td>
+                        <td>Dato dudoso</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Secundario</strong><code>tp-chip--homolog</code></th>
+                        <td><span class="tp-chip tp-chip--sm tp-chip--homolog">Via homolog</span></td>
+                        <td><span class="tp-chip  tp-chip--homolog">Via homolog</span></td>
+                        <td>Evidencia indirecta</td>
+                    </tr>
                 </tbody>
             </table>
             </div>
@@ -235,12 +265,16 @@
         <div class="ds-comp" id="c-filtro">
             <h3>Chip de filtro <code>filter-chip</code></h3>
             <div class="ds-table-wrap">
-            <table class="ds-variants">
-                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
+            <table class="ds-variants ds-variants--grid">
+                <thead><tr><th scope="col">Variante</th><th scope="col">Normal</th><th scope="col">Aplicado<code>--active</code></th><th scope="col">Pendiente<code>--pending</code></th><th scope="col">Cuándo</th></tr></thead>
                 <tbody>
-                    <tr><th scope="row"><strong>Normal</strong></th><td><span class="ds-filter-chip ">Core</span></td><td>Disponible</td></tr>
-                    <tr><th scope="row"><strong>Aplicado</strong><code>--active</code></th><td><span class="ds-filter-chip ds-filter-chip--applied">Accessory ×</span></td><td>Filtro activo</td></tr>
-                    <tr><th scope="row"><strong>Pendiente</strong><code>--pending</code></th><td><span class="ds-filter-chip ds-filter-chip--pending">Shell</span></td><td>Falta Apply filters</td></tr>
+                    <tr>
+                        <th scope="row"><strong>Criterio</strong></th>
+                        <td><span class="ds-filter-chip ">Core</span></td>
+                        <td><span class="ds-filter-chip ds-filter-chip--applied">Core ×</span></td>
+                        <td><span class="ds-filter-chip ds-filter-chip--pending">Core</span></td>
+                        <td>Pendiente = falta Apply filters</td>
+                    </tr>
                 </tbody>
             </table>
             </div>
@@ -248,12 +282,21 @@
         <div class="ds-comp" id="c-campo">
             <h3>Campo <code>form-control tp-ui-control</code></h3>
             <div class="ds-table-wrap">
-            <table class="ds-variants">
-                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
+            <table class="ds-variants ds-variants--grid">
+                <thead><tr><th scope="col">Variante</th><th scope="col">Normal</th><th scope="col">Deshabilitado<code>disabled</code></th><th scope="col">Cuándo</th></tr></thead>
                 <tbody>
-                    <tr><th scope="row"><strong>Texto</strong></th><td><input id="ds-input" type="text" class="form-control tp-ui-control ds-inline-control" placeholder="Search…"></td><td>Búsqueda, valores</td></tr>
-                    <tr><th scope="row"><strong>Selector</strong></th><td><select id="ds-select" class="form-control tp-ui-control ds-inline-control"><option>GCA_030061715.1</option><option>KpATCC43816</option></select></td><td>Una opción de muchas</td></tr>
-                    <tr><th scope="row"><strong>Deshabilitado</strong><code>disabled</code></th><td><input id="ds-input-off" type="text" class="form-control tp-ui-control ds-inline-control" placeholder="Search…" disabled></td><td>No aplica</td></tr>
+                    <tr>
+                        <th scope="row"><strong>Texto</strong></th>
+                        <td><input id="ds-input" type="text" class="form-control tp-ui-control ds-inline-control" placeholder="Search…"></td>
+                        <td><input id="ds-input-off" type="text" class="form-control tp-ui-control ds-inline-control" placeholder="Search…" disabled></td>
+                        <td>Búsqueda, valores</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Selector</strong></th>
+                        <td><select id="ds-select" class="form-control tp-ui-control ds-inline-control"><option>GCA_030061715.1</option><option>KpATCC43816</option></select></td>
+                        <td><select id="ds-select-off" class="form-control tp-ui-control ds-inline-control" disabled><option>GCA_030061715.1</option><option>KpATCC43816</option></select></td>
+                        <td>Una opción de muchas</td>
+                    </tr>
                 </tbody>
             </table>
             </div>
@@ -285,11 +328,15 @@
         <div class="ds-comp" id="c-menu">
             <h3>Menú de secciones <code>quick-nav</code></h3>
             <div class="ds-table-wrap">
-            <table class="ds-variants">
-                <thead><tr><th scope="col">Variante</th><th scope="col">Ejemplo</th><th scope="col">Cuándo</th></tr></thead>
+            <table class="ds-variants ds-variants--grid">
+                <thead><tr><th scope="col">Variante</th><th scope="col">Inactiva</th><th scope="col">Activa<code>is-active</code></th><th scope="col">Cuándo</th></tr></thead>
                 <tbody>
-                    <tr><th scope="row"><strong>Activa</strong><code>is-active</code></th><td><span class="ds-tab ds-tab--on">Downloads</span></td><td>Sección visible</td></tr>
-                    <tr><th scope="row"><strong>Inactiva</strong></th><td><span class="ds-tab">Evidence</span></td><td>Resto</td></tr>
+                    <tr>
+                        <th scope="row"><strong>Pestaña</strong></th>
+                        <td><span class="ds-tab">Downloads</span></td>
+                        <td><span class="ds-tab ds-tab--on">Downloads</span></td>
+                        <td>Activa = sección visible</td>
+                    </tr>
                 </tbody>
             </table>
             </div>
