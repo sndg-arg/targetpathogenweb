@@ -243,7 +243,10 @@ class IdentifierLabelTests(SimpleTestCase):
         from tpweb.services.protein_list import humanize_identifier
 
         self.assertEqual(humanize_identifier("KPN_00002"), "KPN_00002")
-        self.assertEqual(humanize_identifier("MGH78578_locus_tag"), "MGH78578_locus_tag")
+        self.assertEqual(humanize_identifier("VK055_2067"), "VK055_2067")
+        # A column name that contains an identifier gets spaces, nothing else.
+        self.assertEqual(humanize_identifier("MGH78578_locus_tag"), "MGH78578 locus tag")
+        self.assertEqual(humanize_identifier("Locus_tag_MGH78578"), "Locus tag MGH78578")
         self.assertEqual(humanize_identifier("no_hit"), "No hit")
 
 

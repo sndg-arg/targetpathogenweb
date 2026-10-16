@@ -288,6 +288,30 @@ def _looks_like_identifier(text):
     return False
 
 
+def readable_column_name(name):
+    """An uploaded column's own name, readable but never re-cased:
+    underscores become spaces and only the first letter is capitalized
+    ("locus_tag_MGH78578" -> "Locus tag MGH78578", "KPN_list" -> "KPN list")."""
+    tokens = [token for token in re.split(r"_+", str(name or "").strip()) if token]
+    if not tokens:
+        return str(name or "")
+    label = " ".join(tokens)
+    return label[0].upper() + label[1:]
+
+
+def _identifier_name_label(text):
+    """A name that contains an identifier ("Locus_tag_MGH78578") reads with
+    spaces ("Locus tag MGH78578"); every token keeps its own case, so the
+    identifier itself is untouched. A pure identifier (KPN_00002, PA0001,
+    VK055_2067) -- no plain word in it -- is returned as is."""
+    tokens = [token for token in re.split(r"_+", text) if token]
+    has_word = any(token.isalpha() and len(token) >= 3 and not token.isupper() for token in tokens)
+    if len(tokens) < 2 or not has_word:
+        return text
+    label = " ".join(tokens)
+    return label[0].upper() + label[1:]
+
+
 def humanize_identifier(value):
     text = str(value or "").strip()
     if not text:
@@ -296,7 +320,7 @@ def humanize_identifier(value):
     if exact_replacement:
         return exact_replacement
     if _looks_like_identifier(text):
-        return text
+        return _identifier_name_label(text)
     text = re.sub(r"[_-]+", " ", text)
     text = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", text)
     text = re.sub(r"\s+", " ", text).strip()

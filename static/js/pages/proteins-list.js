@@ -437,6 +437,14 @@ function jsloaded() {
         event.preventDefault();
         const payload = formDataToObject(form);
         if (!payload.action) return;
+        // Nothing typed: say so instead of queueing an empty "Locus tag: " filter.
+        if (payload.action === "add_filter_values" && !String(payload.filter_values || "").trim()) {
+            const emptyMessage = form.querySelector(".filter-input-message");
+            if (emptyMessage) emptyMessage.textContent = window.TPW_PROTEINS_I18N.addValueFirst;
+            const field = form.querySelector(".filter-token-text, .filter-values-input");
+            if (field) field.focus();
+            return;
+        }
         payload._summary_label = buildPendingActionLabel(payload, form);
 
         if (payload.action === "set_structure_filter") {

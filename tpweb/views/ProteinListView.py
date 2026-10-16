@@ -19,6 +19,7 @@ from tpweb.models.Metabolism import MetabolicReaction
 from django.shortcuts import redirect
 from urllib.parse import urlencode, parse_qs
 from tpweb.services.protein_list import (
+    readable_column_name,
     suggest_filter_values,
     DEFAULT_PAGE_SIZE,
     EC_ANY_VALUE,
@@ -698,7 +699,7 @@ class ProteinListView(View):
             # file -- humanizing turned "KPN_00002" into "Kpn 00002".
             is_user_column = category in USER_COLUMN_CATEGORIES
             param_label = (
-                score_param.name
+                readable_column_name(score_param.name)
                 if is_user_column
                 else humanize_identifier(score_param.name) or score_param.name
             )
