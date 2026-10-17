@@ -1107,6 +1107,7 @@
 
 .ds-page .ds-fab-sample {
     position: static;
+    z-index: auto; /* the real one sits above the sticky top bar */
     cursor: default;
 }
 
@@ -1205,3 +1206,8 @@
     font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
+
+/* Page header sample: the real classes, with the spacing pages give them. */
+.ds-head-eyebrow { margin: 0 0 8px; }
+.ds-head-title { margin: 0; }
+.ds-head-lead { margin: 10px 0 0; }

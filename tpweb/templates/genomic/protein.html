@@ -30,12 +30,12 @@
         <section class="protein-hero" id="section-overview">
             <div class="protein-hero-top tp-view-head">
                 <div class="protein-hero-content tp-view-head-copy">
-                    <p class="protein-hero-eyebrow">
+                    <p class="tp-view-eyebrow protein-hero-eyebrow">
                         <a class="protein-hero-eyebrow-genome" href="{{ assembly_url }}" title="{% trans "Open this genome's overview" %}">{{ protein.assembly_label }}</a>
                         <span class="protein-hero-eyebrow-sep" aria-hidden="true">&middot;</span>
                         {% trans "Protein target profile" %}
                     </p>
-                    <h1>{{ protein.description|default:protein.accession }}</h1>
+                    <h1 class="tp-view-title">{{ protein.description|default:protein.accession }}</h1>
                     <p class="protein-accession-line" title="{% trans "Accession assigned to this protein in the genome's GenBank record." %}">
                         <span class="protein-accession-label">{% trans "Accession" %}:</span> {{ protein.accession }}
                     </p>

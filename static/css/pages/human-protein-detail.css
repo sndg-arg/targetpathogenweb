@@ -28,7 +28,7 @@
    bacterial side, which keeps its Space Grotesk headings as-is. Loaded via
    human_protein.html / human_protein_list.html's own <link>, not added to
    masterpage.html's shared font set. */
-.human-protein-page .protein-hero h1,
+.tp-main .human-protein-page .protein-hero h1,
 .human-protein-page .protein-card h2 {
     font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
     font-weight: 600;

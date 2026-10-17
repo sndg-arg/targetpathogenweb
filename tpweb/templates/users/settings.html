@@ -20,8 +20,8 @@
 <div class="settings-page">
 
     <section class="settings-hero">
-        <h1>{% trans "Settings" %}</h1>
-        <p class="settings-hero-description">{% trans "Everything you create is private until you share it. Pick who can see each formula and each uploaded column." %}</p>
+        <h1 class="tp-view-title">{% trans "Settings" %}</h1>
+        <p class="tp-view-lead settings-hero-description">{% trans "Everything you create is private until you share it. Pick who can see each formula and each uploaded column." %}</p>
         <dl class="settings-legend">
             <div><dt>{% trans "Only me" %}</dt><dd>{% trans "nobody else sees it" %}</dd></div>
             <div>{% if gates_viewer %}<dt>{% trans "Gates members" %}</dt><dd>{% trans "accounts approved for the Gates project" %}</dd>{% else %}<dt>{% trans "Project members" %}</dt><dd>{% trans "accounts approved for the project" %}</dd>{% endif %}</div>

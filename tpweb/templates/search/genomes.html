@@ -31,14 +31,14 @@
                     </a>
                 </div>
             </div>
-            <span class="genomes-eyebrow">{% trans "Genome collection" %}</span>
+            <span class="tp-view-eyebrow genomes-eyebrow">{% trans "Genome collection" %}</span>
             <div class="genomes-hero-head">
                 <div class="genomes-hero-copy">
-                    <h1>{% trans "Genomes" %}</h1>
+                    <h1 class="tp-view-title">{% trans "Genomes" %}</h1>
                     {% if genomes or has_search %}
-                        <p class="genomes-subtitle">{% trans "Open a genome to inspect proteins, annotations, and structural evidence." %}</p>
+                        <p class="tp-view-lead genomes-subtitle">{% trans "Open a genome to inspect proteins, annotations, and structural evidence." %}</p>
                     {% else %}
-                        <p class="genomes-subtitle">{% trans "Upload the first genome to start exploring proteins, annotations, and structures." %}</p>
+                        <p class="tp-view-lead genomes-subtitle">{% trans "Upload the first genome to start exploring proteins, annotations, and structures." %}</p>
                     {% endif %}
                 </div>
                 {% if perms.tpweb.can_upload_genome and genomes or perms.tpweb.can_upload_genome and has_search %}

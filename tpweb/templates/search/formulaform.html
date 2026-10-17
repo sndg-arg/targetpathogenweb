@@ -32,12 +32,12 @@
 
         {# ── Hero ── #}
         <section class="formula-hero">
-            <span class="formula-eyebrow">
+            <span class="tp-view-eyebrow formula-eyebrow">
                 <span aria-hidden="true">∫</span>
                 {% trans "Custom scoring · Mathematical formula" %}
             </span>
-            <h1>{% if editing %}{% blocktrans with name=editing.name %}Edit score: {{ name }}{% endblocktrans %}{% else %}{% trans "Make my own score" %}{% endif %}</h1>
-            <p class="formula-subtitle">{% trans "Build an optional composite score by combining raw numeric evidence, such as druggability or identity, with binary categorical signals such as essentiality and off-target hits." %}</p>
+            <h1 class="tp-view-title">{% if editing %}{% blocktrans with name=editing.name %}Edit score: {{ name }}{% endblocktrans %}{% else %}{% trans "Make my own score" %}{% endif %}</h1>
+            <p class="tp-view-lead formula-subtitle">{% trans "Build an optional composite score by combining raw numeric evidence, such as druggability or identity, with binary categorical signals such as essentiality and off-target hits." %}</p>
             <div class="formula-chip-group tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm">
                     <strong>{% trans "Genome" %}:</strong>

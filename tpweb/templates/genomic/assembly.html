@@ -25,15 +25,15 @@
         <section class="genome-hero" id="section-overview">
             <div class="genome-hero-top tp-view-head">
                 <div class="genome-hero-content tp-view-head-copy">
-                    <p class="genome-hero-eyebrow">{% trans "Bacterial genome" %}</p>
-                    <h1>{{ assembly.name }}</h1>
+                    <p class="tp-view-eyebrow genome-hero-eyebrow">{% trans "Bacterial genome" %}</p>
+                    <h1 class="tp-view-title">{{ assembly.name }}</h1>
                     {% if workspace_metrics.has_curated_data %}
                         <div class="genome-curated-callout">
                             <span class="tp-chip tp-chip--state finished tp-chip--sm">{% trans "Curated analysis" %}</span>
                             <span class="genome-curated-callout-note">{% trans "Druggability scores from a reviewed external import." %}</span>
                         </div>
                     {% endif %}
-                    {% if assembly.description %}<p class="genome-description">{{ assembly.description }}</p>{% endif %}
+                    {% if assembly.description %}<p class="tp-view-lead genome-description">{{ assembly.description }}</p>{% endif %}
                     <div class="hero-chip-list tp-chip-group">
                         {% for fact in overview.primary_hero_facts %}
                             {% if fact.label != "Annotated features" %}

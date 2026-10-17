@@ -30,15 +30,15 @@
 
         {# ── Hero ── #}
         <section class="blast-hero">
-            <span class="blast-eyebrow">
+            <span class="tp-view-eyebrow blast-eyebrow">
                 {% if blast_locked_to_genome %}
                     {% trans "Sequence search · Genome-specific" %}
                 {% else %}
                     {% trans "Sequence search · blastn / blastp" %}
                 {% endif %}
             </span>
-            <h1>{% trans "BLAST" %}</h1>
-            <p class="blast-subtitle">
+            <h1 class="tp-view-title">{% trans "BLAST" %}</h1>
+            <p class="tp-view-lead blast-subtitle">
                 {% if blast_locked_to_genome %}
                     {% trans "Search the currently selected genome with a nucleotide or protein sequence." %}
                 {% else %}

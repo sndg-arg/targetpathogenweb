@@ -25,9 +25,9 @@
 {% block body %}
 <div class="uploaded-data-page">
     <section class="uploaded-data-hero">
-        <p class="uploaded-data-eyebrow">{{ assembly_label }}</p>
-        <h1>{% trans "Uploaded data" %}</h1>
-        <p class="uploaded-data-subtitle">{% trans "Extra per-protein columns that people uploaded for this genome with Add my own data, such as lab measurements or a list of genes of interest. Yours and the ones shared with you are listed here; add any of them to the protein table from Columns." %}</p>
+        <p class="tp-view-eyebrow uploaded-data-eyebrow">{{ assembly_label }}</p>
+        <h1 class="tp-view-title">{% trans "Uploaded data" %}</h1>
+        <p class="tp-view-lead uploaded-data-subtitle">{% trans "Extra per-protein columns that people uploaded for this genome with Add my own data, such as lab measurements or a list of genes of interest. Yours and the ones shared with you are listed here; add any of them to the protein table from Columns." %}</p>
         {% if columns %}
         <div class="uploaded-data-actions">
             <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'tpwebapp:protein_list' genome=genome %}">

@@ -21,9 +21,9 @@
 {% block body %}
     <div class="genome-upload-page">
         <section class="genome-upload-hero">
-            <span class="genome-upload-eyebrow">{% trans "New genome analysis" %}</span>
-            <h1>{% trans "Upload a genome" %}</h1>
-            <p class="genome-upload-subtitle">{% trans "Upload a compressed GenBank record to create a genome workspace and queue a new target-prioritization run." %}</p>
+            <span class="tp-view-eyebrow genome-upload-eyebrow">{% trans "New genome analysis" %}</span>
+            <h1 class="tp-view-title">{% trans "Upload a genome" %}</h1>
+            <p class="tp-view-lead genome-upload-subtitle">{% trans "Upload a compressed GenBank record to create a genome workspace and queue a new target-prioritization run." %}</p>
             <div class="genome-upload-chip-group tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Workspace" %}:</strong> <span>{{ workspace_label }}</span></span>
                 <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Input" %}:</strong> <code>.gbk.gz</code></span>

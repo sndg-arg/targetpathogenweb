@@ -248,6 +248,37 @@
     flex: 1 1 320px;
 }
 
+/* Page header type (see /design): one eyebrow, title and lead for every page.
+   Prefixed with .tp-main so it outranks the older per-page hero rules
+   (".genome-hero h1" and friends) without !important. Spacing stays with
+   each page's own hero layout. */
+.tp-main .tp-view-eyebrow {
+    color: var(--tp-color-text-muted);
+    font-family: inherit;
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+.tp-main .tp-view-title {
+    color: var(--tp-color-brand-900);
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: var(--tp-heading-lg);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+}
+
+.tp-main .tp-view-lead {
+    max-width: 72ch;
+    color: var(--tp-color-text-secondary);
+    font-size: 1.03rem;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
 .tp-view-head-actions {
     display: inline-flex;
     align-items: center;

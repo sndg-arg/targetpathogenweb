@@ -24,9 +24,9 @@
 
         {# ── Hero ── #}
         <section class="blast-hero">
-            <span class="blast-eyebrow">{% trans "Sequence search · blastn" %}</span>
-            <h1>{% trans "BLAST results" %}</h1>
-            <p class="blast-subtitle">
+            <span class="tp-view-eyebrow blast-eyebrow">{% trans "Sequence search · blastn" %}</span>
+            <h1 class="tp-view-title">{% trans "BLAST results" %}</h1>
+            <p class="tp-view-lead blast-subtitle">
                 {% if genome_label %}
                     {% blocktrans with genome=genome_label %}Nucleotide matches for your query in {{ genome }} (e-value ≤ 1e-6).{% endblocktrans %}
                 {% else %}

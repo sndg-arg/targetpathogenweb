@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261016-contrast">
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-modal">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261017b">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261017c">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -702,8 +702,23 @@
         </header>
 
     <div class="ds-section">
+        <div class="ds-comp" id="c-header">
+            <h4 class="ds-comp-title">Encabezado de página <code>tp-view-head</code></h4>
+            <div class="ds-example">
+                <div class="tp-view-head">
+                    <div class="tp-view-head-copy">
+                        <p class="tp-view-eyebrow ds-head-eyebrow">Bacterial genome</p>
+                        <p class="tp-view-title ds-head-title">KpATCC43816</p>
+                        <p class="tp-view-lead ds-head-lead">Klebsiella pneumoniae ATCC 43816 · 5,572 proteins.</p>
+                    </div>
+                    <div class="tp-view-head-actions">
+                        <button type="button" class="btn tp-btn tp-btn--secondary" tabindex="-1">Download Excel summary</button>
+                    </div>
+                </div>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Rótulo (opcional)</strong> <code>tp-view-eyebrow</code></span> <span class="ds-part"><strong>Título</strong> <code>tp-view-title</code></span> <span class="ds-part"><strong>Una línea</strong> <code>tp-view-lead</code></span> <span class="ds-part"><strong>Acciones</strong> <code>tp-view-head-actions</code></span></p>
+        </div>
         <dl class="ds-usage">
-            <div><dt>Encabezado</dt><dd>Rótulo, título, una línea</dd></div>
             <div><dt>Secciones</dt><dd>Línea fina (2–4) o solo espacio (5+)</dd></div>
             <div><dt>Menú</dt><dd><code>quick-nav</code> en todas</dd></div>
             <div><dt>CSS</dt><dd>Uno por página + <code>ui-system.css</code></dd></div>

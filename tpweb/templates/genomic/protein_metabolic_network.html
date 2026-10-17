@@ -31,9 +31,9 @@
     <section class="genome-hero metabolism-hero">
         <div class="genome-hero-top tp-view-head">
             <div class="genome-hero-content tp-view-head-copy">
-                <p class="genome-hero-eyebrow">{% trans "Metabolic network" %}</p>
-                <h1>{{ protein.accession }}</h1>
-                <p class="genome-description">{{ protein.description }}</p>
+                <p class="tp-view-eyebrow genome-hero-eyebrow">{% trans "Metabolic network" %}</p>
+                <h1 class="tp-view-title">{{ protein.accession }}</h1>
+                <p class="tp-view-lead genome-description">{{ protein.description }}</p>
                 <div class="genome-hero-actions">
                     <a href="{{ protein_url }}#section-metabolic-context" class="btn tp-btn tp-btn--outline tp-btn-with-icon">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_left.html" %}</span>

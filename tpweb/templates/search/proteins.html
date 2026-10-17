@@ -27,7 +27,7 @@
         <section class="proteins-hero">
             <div class="hero-top tp-view-head">
                 <div class="tp-view-head-copy">
-                    <h1>{% trans "Proteins" %}</h1>
+                    <h1 class="tp-view-title">{% trans "Proteins" %}</h1>
                     <p class="hero-context"><strong>{% trans "Genome" %}:</strong> <span class="hero-context-id">{{ biodb_accession }}</span></p>
                     {% if biodb_description and biodb_description != biodb_accession %}
                         <p class="hero-context-note"><strong>{% trans "Description" %}:</strong> {{ biodb_description }}</p>

@@ -25,9 +25,9 @@
     <section class="genome-hero metabolism-hero">
         <div class="genome-hero-top tp-view-head">
             <div class="genome-hero-content tp-view-head-copy">
-                <p class="genome-hero-eyebrow">{% trans "Genome-wide metabolic prioritization" %}</p>
-                <h1>{% trans "Metabolic pathways" %}</h1>
-                <p class="genome-description">{{ assembly.name }}{% if assembly.description %} — {{ assembly.description }}{% endif %}</p>
+                <p class="tp-view-eyebrow genome-hero-eyebrow">{% trans "Genome-wide metabolic prioritization" %}</p>
+                <h1 class="tp-view-title">{% trans "Metabolic pathways" %}</h1>
+                <p class="tp-view-lead genome-description">{{ assembly.name }}{% if assembly.description %} — {{ assembly.description }}{% endif %}</p>
                 <div class="genome-hero-actions">
                     <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Explore proteins" %}</a>
                     <a href="{% url 'tpwebapp:genome_metabolism_network' genome=assembly.slug %}" class="btn tp-btn tp-btn--outline">{% trans "View as network" %}</a>

@@ -30,8 +30,8 @@
         <section class="binder-hero" id="section-overview">
             <div class="binder-hero-top tp-view-head">
                 <div class="binder-hero-content tp-view-head-copy">
-                    <p class="binder-hero-eyebrow">{% trans "Ligand profile" %}</p>
-                    <h1>{{ binder.name }}</h1>
+                    <p class="tp-view-eyebrow binder-hero-eyebrow">{% trans "Ligand profile" %}</p>
+                    <h1 class="tp-view-title">{{ binder.name }}</h1>
                     <p class="binder-description">
                         {% if binder.is_pdb %}
                             {% if binder.is_direct %}{% trans "Ligand co-crystallized with this exact protein (Protein Data Bank)." %}

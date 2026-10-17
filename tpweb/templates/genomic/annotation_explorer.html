@@ -44,11 +44,11 @@
                 </div>
             </div>
 
-            <span class="explorer-eyebrow">
+            <span class="tp-view-eyebrow explorer-eyebrow">
                 {% if explorer.kind == "ec" %}{% trans "Functional annotation · EC hierarchy" %}{% else %}{% trans "Functional annotation · GO terms" %}{% endif %}
             </span>
-            <h1>{% if explorer.kind == "ec" %}{% trans "Browse enzyme classes (EC)" %}{% else %}{% trans "Browse Gene Ontology terms (GO)" %}{% endif %}</h1>
-            <p class="explorer-subtitle">
+            <h1 class="tp-view-title">{% if explorer.kind == "ec" %}{% trans "Browse enzyme classes (EC)" %}{% else %}{% trans "Browse Gene Ontology terms (GO)" %}{% endif %}</h1>
+            <p class="tp-view-lead explorer-subtitle">
                 {% if explorer.kind == "ec" %}
                 {% blocktrans with assembly=assembly_label %}Which enzyme classes the proteins of {{ assembly }} fall into. Pick a class in the chart or a term in the list to open those proteins in the protein table.{% endblocktrans %}
                 {% else %}
