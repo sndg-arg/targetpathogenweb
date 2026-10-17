@@ -26,16 +26,16 @@
     });
 })();
 
-/* ── Auto-dismiss messages ── */
+/* ── Auto-dismiss messages (only the flash stack; /design shows samples that must stay) ── */
 (function () {
     function dismissMsg(el) {
         el.classList.add("is-hiding");
         setTimeout(function () { el.remove(); }, 300);
     }
-    document.querySelectorAll(".tp-message-close").forEach(function (btn) {
+    document.querySelectorAll(".tp-messages .tp-message-close").forEach(function (btn) {
         btn.addEventListener("click", function () { dismissMsg(btn.closest(".tp-message")); });
     });
-    document.querySelectorAll(".tp-message").forEach(function (msg) {
+    document.querySelectorAll(".tp-messages .tp-message").forEach(function (msg) {
         setTimeout(function () { dismissMsg(msg); }, 5000);
     });
 })();
