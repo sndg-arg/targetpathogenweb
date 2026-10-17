@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261016-contrast">
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261016-contrast">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016v">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261017a">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -250,7 +250,6 @@
                 <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Sin datos</strong><code>idle</code></th><th scope="col"><strong>Corriendo</strong><code>running</code></th><th scope="col"><strong>Terminado</strong><code>finished</code></th><th scope="col"><strong>Falló</strong><code>failed</code></th></tr></thead>
                 <tbody>
                     <tr><th scope="row">Ejemplo</th><td><span class="tp-chip tp-chip--state idle">Not run</span></td><td><span class="tp-chip tp-chip--state running">Stage 10 · InterProScan</span></td><td><span class="tp-chip tp-chip--state finished">Finished</span></td><td><span class="tp-chip tp-chip--state failed">Failed</span></td></tr>
-                    <tr><th scope="row">Cuándo</th><td class="ds-use">Nada corrió todavía</td><td class="ds-use">Análisis en curso</td><td class="ds-use">Listo</td><td class="ds-use">Error del análisis</td></tr>
                 </tbody>
             </table>
             </div>
@@ -366,7 +365,17 @@
                 <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Listo</strong><code>--success</code></th><th scope="col"><strong>Info</strong><code>--info</code></th><th scope="col"><strong>Atención</strong><code>--warning</code></th><th scope="col"><strong>Error</strong><code>--error</code></th></tr></thead>
                 <tbody>
                     <tr><th scope="row">Ejemplo</th><td><div class="tp-message tp-message--success"><span>Access requested.</span><button type="button" class="tp-message-close" aria-label="Close" tabindex="-1">&times;</button></div></td><td><div class="tp-message tp-message--info"><span>Already requested.</span><button type="button" class="tp-message-close" aria-label="Close" tabindex="-1">&times;</button></div></td><td><div class="tp-message tp-message--warning"><span>2 values not found.</span><button type="button" class="tp-message-close" aria-label="Close" tabindex="-1">&times;</button></div></td><td><div class="tp-message tp-message--error"><span>Upload failed.</span><button type="button" class="tp-message-close" aria-label="Close" tabindex="-1">&times;</button></div></td></tr>
-                    <tr><th scope="row">Cuándo</th><td class="ds-use">Después de guardar</td><td class="ds-use">Aviso general</td><td class="ds-use">Se aplicó con cambios</td><td class="ds-use">No se pudo</td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="ds-comp" id="c-tooltip">
+            <h4 class="ds-comp-title">Tooltip <code>title="…"</code></h4>
+            <div class="ds-table-wrap">
+            <table class="ds-grid ds-grid--t">
+                <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Arriba</strong></th><th scope="col"><strong>Abajo</strong><code>sin lugar arriba</code></th></tr></thead>
+                <tbody>
+                    <tr><th scope="row">Ejemplo</th><td class="ds-tip-cell ds-tip-cell--above"><span class="ds-tip-anchor"><span class="tp-global-tooltip is-visible ds-tooltip-sample" role="img" aria-label="Ejemplo">Same-protein PDB ligands or ChEMBL bioactivity.</span><span class="tp-chip tp-chip--meta">Direct ligand evidence</span></span></td><td class="ds-tip-cell ds-tip-cell--below"><span class="ds-tip-anchor"><span class="tp-global-tooltip is-visible ds-tooltip-sample is-below" role="img" aria-label="Ejemplo">Same-protein PDB ligands or ChEMBL bioactivity.</span><span class="tp-chip tp-chip--meta">Direct ligand evidence</span></span></td></tr>
                 </tbody>
             </table>
             </div>
@@ -447,7 +456,6 @@
                 <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Página</strong></th><th scope="col"><strong>Actual</strong><code>active</code></th><th scope="col"><strong>No disponible</strong><code>disabled</code></th></tr></thead>
                 <tbody>
                     <tr><th scope="row">Ejemplo</th><td><ul class="pagination tp-pagination ds-pagination-one"><li class="page-item"><span class="page-link">2</span></li></ul></td><td><ul class="pagination tp-pagination ds-pagination-one"><li class="page-item active"><span class="page-link">1</span></li></ul></td><td><ul class="pagination tp-pagination ds-pagination-one"><li class="page-item disabled"><span class="page-link">…</span></li></ul></td></tr>
-                    <tr><th scope="row">Cuándo</th><td class="ds-use">Ir a otra página</td><td class="ds-use">Donde estás</td><td class="ds-use">Salto o fin de la lista</td></tr>
                 </tbody>
             </table>
             </div>
@@ -484,6 +492,7 @@
     <div class="ds-section">
         <div class="ds-comp ds-compound tp-quick-nav-target" id="k-filtros">
             <h4 class="ds-comp-title">Panel de filtros <code>filters-drawer</code></h4>
+            <div class="ds-split">
             <div class="ds-example ds-example--stage">
                 <aside class="filters-drawer ds-drawer-sample" aria-label="Ejemplo">
                     <div class="drawer-head">
@@ -551,7 +560,6 @@
                     </div>
                 </aside>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Aplicados</strong> <code>filter-pill</code></span> <span class="ds-part"><strong>Grupo</strong> <code>filter-group</code></span> <span class="ds-part"><strong>Chip de filtro</strong> <code>filter-chip</code></span> <span class="ds-part"><strong>Valores</strong> <code>filter-token-field</code></span></p>
             <div class="ds-comp ds-comp--nested" id="c-filtro">
                 <h5 class="ds-comp-title ds-comp-title--sub">Chip de filtro <code>filter-chip</code></h5>
                 <div class="ds-table-wrap">
@@ -585,6 +593,8 @@
                 </table>
                 </div>
             </div>
+            </div>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Aplicados</strong> <code>filter-pill</code></span> <span class="ds-part"><strong>Grupo</strong> <code>filter-group</code></span> <span class="ds-part"><strong>Chip de filtro</strong> <code>filter-chip</code></span> <span class="ds-part"><strong>Valores</strong> <code>filter-token-field</code></span></p>
         </div>
         <div class="ds-comp ds-compound tp-quick-nav-target" id="k-numeros">
             <h4 class="ds-comp-title">Tarjetas de números <code>metric-pill · target-evidence-card</code></h4>
