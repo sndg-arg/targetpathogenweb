@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20261017-system3">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -126,7 +126,7 @@
                             <div class="formula-palette-chips">
                                 {% for example in example_formulas %}
                                     <button type="button"
-                                            class="formula-example-chip"
+                                            class="tp-chip tp-chip--link formula-example-chip"
                                             data-example="{{ example.expression }}"
                                             data-desc="{{ example.desc }}"
                                             aria-label="{{ example.desc }}">
@@ -144,7 +144,7 @@
                         <div class="formula-palette-chips">
                             {% for fn in safe_functions %}
                                 <button type="button"
-                                        class="formula-fn-chip"
+                                        class="tp-chip tp-chip--code formula-fn-chip"
                                         data-insert="{{ fn.insert }}"
                                         title="{{ fn.desc }}">{{ fn.label }}</button>
                             {% endfor %}
@@ -155,13 +155,13 @@
                     <div class="formula-palette formula-palette--ops">
                         <p class="formula-palette-label">{% trans "Operators" %}</p>
                         <div class="formula-palette-chips">
-                            <button type="button" class="formula-op-chip" data-insert=" + ">+</button>
-                            <button type="button" class="formula-op-chip" data-insert=" - ">−</button>
-                            <button type="button" class="formula-op-chip" data-insert=" * ">×</button>
-                            <button type="button" class="formula-op-chip" data-insert=" / ">÷</button>
-                            <button type="button" class="formula-op-chip" data-insert=" ** ">^</button>
-                            <button type="button" class="formula-op-chip" data-insert="(">( </button>
-                            <button type="button" class="formula-op-chip" data-insert=")"> )</button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert=" + ">+</button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert=" - ">−</button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert=" * ">×</button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert=" / ">÷</button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert=" ** ">^</button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert="(">( </button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert=")"> )</button>
                         </div>
                     </div>
                 </div>
@@ -195,7 +195,7 @@
                                     <div class="formula-var-chips">
                                         {% for v in vars %}
                                             <button type="button"
-                                                    class="formula-var-chip formula-var-chip--{{ v.kind|default:'categorical' }}"
+                                                    class="tp-chip tp-chip--code formula-var-chip"
                                                     data-var="{{ v.var }}"
                                                     data-desc="{{ v.desc }}"
                                                     title="{{ v.desc }}"

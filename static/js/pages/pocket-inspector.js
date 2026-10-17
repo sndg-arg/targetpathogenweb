@@ -65,7 +65,7 @@
             }
             parts.forEach(function (part) {
                 var chip = document.createElement("span");
-                chip.className = "pocket-property-chip";
+                chip.className = "tp-chip";
                 chip.textContent = part;
                 target.appendChild(chip);
             });

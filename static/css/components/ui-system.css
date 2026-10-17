@@ -325,7 +325,7 @@
 }
 
 .tp-state-note--loading {
-    border-left-color: var(--tp-color-brand-500);
+    border-left-color: var(--tp-color-info-border);
 }
 
 .tp-state-note--success {
@@ -468,7 +468,7 @@
     appearance: none;
     width: 100%;
     min-height: var(--tp-ui-control-height);
-    border: 1px solid var(--tp-color-brand-300);
+    border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
@@ -691,6 +691,12 @@
     text-decoration: none;
 }
 
+.tp-chip svg {
+    flex: none;
+    width: 1em;
+    height: 1em;
+}
+
 .tp-chip code {
     font-family: var(--tp-font-mono);
     font-size: 0.9em;
@@ -737,8 +743,23 @@
     background: transparent;
 }
 
+button.tp-chip {
+    font-family: var(--tp-font-body);
+    cursor: pointer;
+}
+
+button.tp-chip.tp-chip--code {
+    font-family: var(--tp-font-mono);
+}
+
+button.tp-chip:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
 a.tp-chip:hover,
 a.tp-chip:focus-visible,
+button.tp-chip:hover,
 .tp-chip--link:hover,
 .tp-chip--filter:hover,
 .tp-chip--filter:focus-visible {
@@ -961,7 +982,7 @@ a.tp-chip:focus-visible,
     max-width: 100%;
     overflow: auto;
     scrollbar-width: thin;
-    scrollbar-color: var(--tp-color-brand-400) var(--tp-color-surface-muted);
+    scrollbar-color: var(--tp-color-border-strong) var(--tp-color-surface-muted);
 }
 
 .tp-table-shell__scroll::-webkit-scrollbar {
@@ -974,13 +995,13 @@ a.tp-chip:focus-visible,
 }
 
 .tp-table-shell__scroll::-webkit-scrollbar-thumb {
-    background: var(--tp-color-brand-400);
+    background: var(--tp-color-border-strong);
     border-radius: var(--tp-radius-pill);
     border: 2px solid var(--tp-color-surface-muted);
 }
 
 .tp-table-shell__scroll::-webkit-scrollbar-thumb:hover {
-    background: var(--tp-color-brand-500);
+    background: var(--tp-color-text-soft);
 }
 
 .tp-table-shell--with-export > .table,
@@ -1873,7 +1894,7 @@ a.tp-chip:focus-visible,
     padding: var(--tp-space-3) var(--tp-space-3);
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-radius-sm);
-    background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-050));
+    background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-primary);
     box-shadow: var(--tp-shadow-sm);
     font-size: var(--tp-font-size-xs);
@@ -2196,6 +2217,141 @@ a.metric-pill:focus-visible .metric-pill-jump {
     text-decoration-color: currentColor;
 }
 
+/* ── Filter chip (see /design): an on/off choice. Available, hover,
+   applied (--active, filled) and pending (--active --pending, dashed).
+   Tones --risk / --favorable only color it at rest. ── */
+.filter-chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+}
+
+.filter-chip-form {
+    margin: 0;
+}
+
+.filter-chip {
+    appearance: none;
+    background: var(--tp-color-surface);
+    border: 1px solid var(--tp-color-border);
+    color: var(--tp-color-text-secondary);
+    padding: var(--tp-space-1) var(--tp-space-3);
+    border-radius: var(--tp-radius-pill);
+    font: inherit;
+    font-size: var(--tp-font-size-sm);
+    font-weight: 400;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    box-shadow: none;
+    transition: background 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 180ms ease;
+}
+
+/* Hover is neutral (one-accent rule, see /design): a soft gray, no tint. */
+.filter-chip:hover,
+.filter-chip.is-hover {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-strong);
+    color: var(--tp-color-text-primary);
+}
+
+.filter-chip:active {
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-text-muted);
+}
+
+.filter-chip:focus-visible {
+    outline: 2px solid var(--tp-focus-color);
+    outline-offset: 2px;
+}
+
+/* Pending-add state (was inactive, JS added --active + --pending): dashed
+   outline = "waiting for Apply filters". */
+.filter-chip--active {
+    background: var(--tp-color-surface);
+    border: 1px dashed var(--tp-color-brand-700);
+    color: var(--tp-color-brand-800);
+    font-weight: 500;
+}
+
+/* Server-applied, no pending change: solid brand fill — unambiguously "ON" */
+.filter-chip--active:not(.filter-chip--pending) {
+    border-style: solid;
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
+    color: var(--tp-color-on-accent);
+    font-weight: 500;
+}
+
+.filter-chip--active:not(.filter-chip--pending):hover,
+.filter-chip--active.is-hover:not(.filter-chip--pending) {
+    background: var(--tp-color-primary-hover);
+    border-color: var(--tp-color-primary-hover);
+}
+
+.filter-chip--active:not(.filter-chip--pending) .filter-chip-glyph {
+    color: var(--tp-color-on-accent);
+    opacity: 0.85;
+}
+
+/* Tones only color the chip at rest. Hover, applied and pending are the
+   same for every chip (base rules above), so a "risk" chip that's applied
+   looks applied, not hovered. */
+.filter-chip--risk {
+    border-color: var(--tp-color-danger-border);
+    color: var(--tp-color-danger-ink);
+}
+
+.filter-chip--favorable {
+    border-color: var(--tp-color-success-border);
+    color: var(--tp-color-success-ink);
+}
+
+.filter-chip--secondary {
+    color: var(--tp-color-text-muted);
+    border-color: var(--tp-color-border);
+}
+
+.filter-chip-glyph {
+    font-size: var(--tp-font-size-sm);
+    line-height: 1;
+    color: var(--tp-color-brand-700);
+    font-weight: 500;
+    opacity: 0.75;
+    margin-left: 1px;
+}
+
+.filter-chip-label {
+    line-height: 1.2;
+}
+
+.filter-chip-group--active {
+    margin-top: var(--tp-space-2);
+}
+
+/* Pending state: dashed outline (no glowing ring). Same text color for
+   every tone -- a pending "risk" chip used to keep its red text. */
+.filter-chip--pending {
+    border-style: dashed !important;
+    border-color: var(--tp-color-brand-700) !important;
+    color: var(--tp-color-brand-800);
+    box-shadow: none;
+}
+
+.filter-chip:is(a, a:visited) {
+    text-decoration: none;
+    color: var(--tp-color-text-secondary);
+}
+
+.filter-chip--active:is(a, a:visited) {
+    color: var(--tp-color-brand-900);
+}
+
+.filter-chip--active:not(.filter-chip--pending):is(a, a:visited) {
+    color: var(--tp-color-on-accent);
+}
+
 /* ── Tabs (see /design): switch panels inside one section. Same look
    as quick-nav: muted label, underline on the active one. ── */
 .tp-tabs {
@@ -2241,11 +2397,13 @@ a.metric-pill:focus-visible .metric-pill-jump {
     box-shadow: var(--tp-focus-outline);
 }
 
-.tp-tab-count {
-    color: var(--tp-color-text-muted);
+/* A count next to a label (tabs, groups, buttons): plain muted number. */
+.tp-count {
+    color: inherit;
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
     font-variant-numeric: tabular-nums;
+    opacity: 0.72;
 }
 
 @media (prefers-reduced-motion: reduce) {

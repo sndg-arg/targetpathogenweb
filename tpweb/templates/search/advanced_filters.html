@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/advanced-filters.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/advanced-filters.css' %}?v=20261017-system3">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -88,7 +88,7 @@
 </template>
 
 <template id="af-categorical-option-template">
-    <button type="button" class="af-option-chip" data-option-chip aria-pressed="false"></button>
+    <button type="button" class="filter-chip" data-option-chip aria-pressed="false"></button>
 </template>
 
 <template id="af-categorical-or-template">
@@ -116,5 +116,5 @@
         hintAny: "{% trans 'A protein only needs to match one condition below.' %}"
     };
 </script>
-<script src="{% static 'js/pages/advanced-filters.js' %}?v=20261017-system2"></script>
+<script src="{% static 'js/pages/advanced-filters.js' %}?v=20261017-system3"></script>
 {% endblock %}

@@ -3,9 +3,9 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system2">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261017-system2">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system3">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261017-system3">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261017-system3">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -106,7 +106,6 @@
             </div>
             <div class="metabolic-network-genome-body">
                 <div class="metabolic-network-genome-canvas-wrap">
-                    <div class="metabolic-network-genome-glow" aria-hidden="true"></div>
                     <div id="metabolic-network-genome-cy"
                          data-network-url="{{ network_data_url }}"
                          data-expand-url-template="{{ network_expand_url_template }}"

@@ -105,47 +105,6 @@
     min-height: var(--tp-ui-control-height);
 }
 
-.af-option-chip {
-    appearance: none;
-    background: var(--tp-color-surface);
-    border: 1px solid var(--tp-color-border);
-    color: var(--tp-color-text-secondary);
-    padding: var(--tp-space-1) var(--tp-space-3);
-    border-radius: var(--tp-radius-pill);
-    font: inherit;
-    font-size: var(--tp-font-size-sm);
-    font-weight: 500;
-    cursor: pointer;
-    box-shadow: none;
-    transition:
-        background 120ms ease,
-        border-color 120ms ease,
-        color 120ms ease;
-}
-
-.af-option-chip:hover {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-strong);
-    color: var(--tp-color-text-primary);
-}
-
-.af-option-chip:focus-visible {
-    outline: 2px solid var(--tp-focus-color);
-    outline-offset: 2px;
-}
-
-.af-option-chip--active {
-    background: var(--tp-color-primary);
-    border-color: var(--tp-color-primary);
-    color: var(--tp-color-on-accent);
-}
-
-.af-option-chip--active:hover {
-    background: var(--tp-color-primary-hover);
-    border-color: var(--tp-color-primary-hover);
-    color: var(--tp-color-on-accent);
-}
-
 .af-option-chip-sep {
     font-size: var(--tp-font-size-xs);
     font-weight: 600;

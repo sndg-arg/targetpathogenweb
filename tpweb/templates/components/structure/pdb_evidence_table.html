@@ -52,7 +52,7 @@
                     </td>
                     <td class="experimental-status-cell">
                         {% if item.loaded and item.slot_key %}
-                            <span class="experimental-status js-experimental-viewer-status {% if item.viewer_key == 'primary' %}experimental-status--active{% else %}experimental-status--loaded{% endif %}"
+                            <span class="tp-chip tp-chip--state js-experimental-viewer-status {% if item.viewer_key == 'primary' %}running{% else %}finished{% endif %}"
                                   data-pdb-slot="{{ item.slot_key }}"
                                   data-active-label="{% trans 'Viewing' %}"
                                   data-loaded-label="{% trans 'Loaded' %}">
@@ -63,9 +63,9 @@
                                 <span>{% trans "Switch" %}</span>
                             </button>
                         {% elif item.loaded %}
-                            <span class="experimental-status experimental-status--loaded">{% trans "Loaded" %}</span>
+                            <span class="tp-chip tp-chip--state finished">{% trans "Loaded" %}</span>
                         {% else %}
-                            <span class="experimental-status experimental-status--metadata">{% trans "Metadata only" %}</span>
+                            <span class="tp-chip tp-chip--state idle">{% trans "Metadata only" %}</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -101,7 +101,7 @@
                     </td>
                     <td class="experimental-links-cell">—</td>
                     <td class="experimental-status-cell">
-                        <span class="experimental-status js-experimental-viewer-status {% if item.viewer_key == 'primary' %}experimental-status--active{% else %}experimental-status--loaded{% endif %}"
+                        <span class="tp-chip tp-chip--state js-experimental-viewer-status {% if item.viewer_key == 'primary' %}running{% else %}finished{% endif %}"
                               data-pdb-slot="{{ item.slot_key }}"
                               data-active-label="{% trans 'Viewing' %}"
                               data-loaded-label="{% trans 'Loaded' %}">

@@ -81,12 +81,12 @@
 }
 
 .metabolism-pathway-card--top {
-    border-color: var(--tp-color-brand-200);
-    background: var(--tp-color-brand-050);
+    border-color: var(--tp-color-border-strong);
+    background: var(--tp-color-brand-100);
 }
 
 .metabolism-pathway-card--top:hover {
-    border-color: var(--tp-color-brand-300);
+    border-color: var(--tp-color-border-strong);
 }
 
 .metabolism-pathway-main {
@@ -101,18 +101,6 @@
     align-items: baseline;
     gap: var(--tp-space-2);
     flex-wrap: wrap;
-}
-
-.metabolism-source {
-    display: inline-flex;
-    align-items: center;
-    padding: 1px var(--tp-space-2);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-brand-050);
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
-    letter-spacing: var(--tp-tracking-label);
 }
 
 .metabolism-source--model {
@@ -277,7 +265,7 @@
 
 .metabolism-target-chip--top {
     border-color: var(--tp-color-brand-700);
-    background: var(--tp-color-brand-050);
+    background: var(--tp-color-brand-100);
 }
 
 .metabolism-target-id {
@@ -646,20 +634,6 @@
     box-shadow: inset 3px 0 0 var(--tp-color-brand-700);
 }
 
-.pathway-reaction-row .target-evidence-accessory-badge {
-    display: inline-flex;
-    align-items: center;
-    width: fit-content;
-    padding: 3px var(--tp-space-2);
-    border: 1px solid color-mix(in srgb, var(--tp-color-warning-ink) 38%, transparent);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-warning-bg);
-    color: var(--tp-color-warning-ink);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
-    line-height: 1.2;
-}
-
 .pathway-reaction-main {
     display: flex;
     align-items: flex-start;
@@ -737,44 +711,6 @@
     gap: var(--tp-space-2);
 }
 
-.metabolite-chip {
-    display: inline-flex;
-    align-items: center;
-    min-width: 0;
-    max-width: 220px;
-    padding: 3px var(--tp-space-2);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
-    line-height: 1.25;
-    overflow: hidden;
-    vertical-align: middle;
-    transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
-}
-
-.metabolite-chip:hover {
-    border-color: var(--tp-color-border-strong);
-    background: var(--tp-color-surface-soft);
-    transform: translateY(-1px);
-}
-
-.metabolite-chip-label {
-    display: block;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.metabolite-chip.is-currency {
-    color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-muted);
-    font-weight: 500;
-}
-
 .metabolite-arrow {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
@@ -824,8 +760,7 @@
 
     .metabolism-pathway-card,
     .metabolism-target-chip,
-    .pathway-reaction-row,
-    .metabolite-chip {
+    .pathway-reaction-row {
         transition: none;
     }
 }

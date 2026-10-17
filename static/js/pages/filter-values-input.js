@@ -85,7 +85,7 @@
             chips.innerHTML = "";
             values.forEach(function (value, index) {
                 var li = document.createElement("li");
-                li.className = "filter-token-chip";
+                li.className = "tp-chip tp-chip--filter filter-token-chip";
                 var text = document.createElement("span");
                 text.textContent = value;
                 var remove = document.createElement("button");

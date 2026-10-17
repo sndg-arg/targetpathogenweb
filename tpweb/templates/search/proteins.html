@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-system3">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -444,7 +444,7 @@
                                                 <a href="{% url 'tpwebapp:protein_list' genome=genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="tp-chip tp-chip--code annotation-chip-tip">{{ ec.accession }}{% if ec.name %}<span class="cell-tooltip" role="tooltip">{{ ec.name }}</span>{% endif %}</a>
                                             {% endfor %}
                                             {% if protein.ec_remaining %}
-                                                <span class="annotation-more annotation-chip-tip">+{{ protein.ec_remaining }}<span class="cell-tooltip" role="tooltip">{{ protein.ec_total }} {% trans "total" %}</span></span>
+                                                <span class="tp-chip annotation-chip-tip">+{{ protein.ec_remaining }}<span class="cell-tooltip" role="tooltip">{{ protein.ec_total }} {% trans "total" %}</span></span>
                                             {% endif %}
                                         </div>
                                     {% else %}
@@ -458,7 +458,7 @@
                                                 <a href="{% url 'tpwebapp:protein_list' genome=genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="tp-chip tp-chip--code annotation-chip-tip">{{ go.accession }}{% if go.name %}<span class="cell-tooltip" role="tooltip">{{ go.name }}</span>{% endif %}</a>
                                             {% endfor %}
                                             {% if protein.go_remaining %}
-                                                <span class="annotation-more annotation-chip-tip">+{{ protein.go_remaining }}<span class="cell-tooltip" role="tooltip">{{ protein.go_total }} {% trans "total" %}</span></span>
+                                                <span class="tp-chip annotation-chip-tip">+{{ protein.go_remaining }}<span class="cell-tooltip" role="tooltip">{{ protein.go_total }} {% trans "total" %}</span></span>
                                             {% endif %}
                                         </div>
                                     {% else %}
@@ -476,10 +476,10 @@
                                             {% else %}
                                                 {% trans "Mapped" %}
                                             {% endif %}
-                                            <span class="protein-metabolism-chip__count">{{ protein.metabolic_reaction_count }}</span>
+                                            <span class="tp-count">{{ protein.metabolic_reaction_count }}</span>
                                         </a>
                                     {% else %}
-                                        <span class="protein-metabolism-empty" title="{% trans "No metabolic reaction was mapped to this protein." %}">{% trans "Not in model" %}</span>
+                                        <span class="tp-chip tp-chip--muted" title="{% trans "No metabolic reaction was mapped to this protein." %}">{% trans "Not in model" %}</span>
                                     {% endif %}
                                 </td>
                                 {% endif %}
@@ -501,7 +501,7 @@
                                                     <span class="tp-chip tp-chip--code">{{ score_val|floatformat:2 }}</span>
                                                 {% else %}
                                                     <span class="metric-zero">
-                                                        <span class="metric-zero-value">0.00</span>
+                                                        <span class="tp-chip tp-chip--muted">0.00</span>
                                                     </span>
                                                 {% endif %}
                                             {% endwith %}
@@ -719,7 +719,7 @@
                                 {# One live count of active criteria (kept in sync by proteins-list.js #}
                                 {# as chips toggle) -- a separate server count + JS count + dot used #}
                                 {# to show the same number twice. #}
-                                {% if group.param_count %}<span class="filter-group-selected-count" aria-label="{% trans 'Active criteria in this group' %}">{{ group.param_count }}</span>{% endif %}
+                                {% if group.param_count %}<span class="tp-count filter-group-selected-count" aria-label="{% trans 'Active criteria in this group' %}">{{ group.param_count }}</span>{% endif %}
                                 <span class="filter-group-chevron" aria-hidden="true"></span>
                             </span>
                         </summary>
@@ -1028,7 +1028,7 @@
             <details class="filter-pending-summary js-smooth-details" id="filter-pending-summary" aria-live="polite" hidden>
                 <summary class="filter-pending-summary__head">
                     <span class="filter-pending-summary__head-label">
-                        <span class="filter-pending-summary__count" id="filter-pending-count">0</span>
+                        <span class="tp-count" id="filter-pending-count">0</span>
                         <span>{% trans "pending changes" %}</span>
                     </span>
                     <span class="filter-pending-summary__chevron" aria-hidden="true"></span>
@@ -1090,7 +1090,7 @@
                 <section class="columns-section">
                     <header class="columns-section-head">
                         <h3>{% trans "In the table" %}</h3>
-                        <span class="columns-section-count" id="columns-selected-count">{{ selected_column_names|length }}</span>
+                        <span class="tp-count" id="columns-selected-count">{{ selected_column_names|length }}</span>
                     </header>
                     <p class="columns-section-hint">{% trans "Drag to reorder. Click the eye to hide." %}</p>
                     <div class="columns-order-list" id="columns-visible-list">
@@ -1226,7 +1226,7 @@
                                     <span class="scoring-formula-row__body">
                                         <span class="scoring-formula-row__title">
                                             <span class="scoring-formula-row__name">{% trans "No scoring" %}</span>
-                                            <span class="scoring-formula-row__badge">{% trans "Default" %}</span>
+                                            <span class="tp-chip">{% trans "Default" %}</span>
                                         </span>
                                         <code class="scoring-formula-row__expression">{% trans "Sort by any column independently" %}</code>
                                     </span>
@@ -1253,7 +1253,7 @@
                                         <span class="scoring-formula-row__body">
                                             <span class="scoring-formula-row__title">
                                                 <span class="scoring-formula-row__name">{{ entry.name }}</span>
-                                                {% if entry.is_default %}<span class="scoring-formula-row__badge">{% trans "Default" %}</span>{% endif %}
+                                                {% if entry.is_default %}<span class="tp-chip">{% trans "Default" %}</span>{% endif %}
                                             </span>
                                             {% if entry.expression %}
                                                 <span class="scoring-formula-expression-wrap">
@@ -1368,6 +1368,6 @@
             confirmClearAll: "{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}"
         };
     </script>
-    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261017-system"></script>
-    <script src="{% static 'js/pages/filter-values-input.js' %}?v=20261016h"></script>
+    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261017-system3"></script>
+    <script src="{% static 'js/pages/filter-values-input.js' %}?v=20261017-system3"></script>
 {% endblock %}

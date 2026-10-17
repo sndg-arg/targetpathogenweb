@@ -38,8 +38,8 @@
 }
 
 .protein-metabolic-network-page .pathway-reaction-row.is-active {
-    border-color: var(--tp-color-brand-300);
-    background: var(--tp-color-brand-050);
+    border-color: var(--tp-color-border-strong);
+    background: var(--tp-color-brand-100);
 }
 
 /* Brief background flash on the "Selected reaction" card whenever a new node/row is picked, so

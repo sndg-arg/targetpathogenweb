@@ -281,7 +281,7 @@ function jsloaded() {
             if (pendingCount > 0) {
                 if (!badge) {
                     badge = document.createElement("span");
-                    badge.className = "apply-btn-count";
+                    badge.className = "tp-count apply-btn-count";
                     badge.setAttribute("aria-hidden", "true");
                     filtersApplyBtn.appendChild(badge);
                 }
@@ -333,7 +333,7 @@ function jsloaded() {
             if (activeCount > 0) {
                 if (!badge) {
                     badge = document.createElement("span");
-                    badge.className = "filter-group-selected-count";
+                    badge.className = "tp-count filter-group-selected-count";
                     meta.insertBefore(badge, meta.querySelector(".filter-group-chevron"));
                 }
                 badge.hidden = false;

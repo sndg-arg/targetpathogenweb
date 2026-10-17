@@ -107,8 +107,8 @@
 }
 
 .binder-pdb-chip:hover {
-    border-color: var(--tp-color-brand-300) !important;
-    background: var(--tp-color-brand-100) !important;
+    border-color: var(--tp-color-border-strong) !important;
+    background: var(--tp-color-surface-soft) !important;
 }
 
 .binder-ext-icon {
@@ -361,51 +361,6 @@
     color: var(--tp-color-brand-900);
 }
 
-.druglike-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-2);
-    padding: var(--tp-space-1) var(--tp-space-3);
-    border-radius: var(--tp-radius-pill);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: var(--tp-tracking-label);
-    border: 1px solid transparent;
-    /* Never let the pill's own text wrap mid-phrase ("0" / "violations" on
-       separate lines) -- if the card is too narrow for title + badge on one
-       row, .druglike-head wraps them onto their own rows instead, and the
-       badge itself always stays a single, whole line. */
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.druglike-badge.is-pass {
-    background: var(--tp-color-success-bg);
-    color: var(--tp-color-success-ink);
-    border-color: var(--tp-color-success-border);
-}
-
-.druglike-badge.is-fail {
-    background: var(--tp-color-danger-bg);
-    color: var(--tp-color-danger-ink);
-    border-color: var(--tp-color-danger-border);
-}
-
-.druglike-badge.is-warn {
-    background: var(--tp-color-warning-bg);
-    color: var(--tp-color-warning-ink);
-    border-color: var(--tp-color-warning-border);
-}
-
-.druglike-badge-count {
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    opacity: 0.8;
-    text-transform: none;
-    letter-spacing: 0;
-}
-
 .druglike-checks {
     margin: 0;
     padding: 0;
@@ -524,20 +479,6 @@
     background: var(--tp-color-surface-soft);
 }
 
-.binder-link-category {
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: var(--tp-tracking-label);
-    color: var(--tp-color-brand-900);
-    background: var(--tp-color-brand-100);
-    padding: 3px var(--tp-space-2);
-    border-radius: var(--tp-radius-pill);
-    border: 1px solid var(--tp-color-brand-300);
-    flex: 0 0 auto;
-    white-space: nowrap;
-}
-
 .binder-links a {
     color: var(--tp-color-link);
     font-weight: 600;
@@ -593,16 +534,6 @@
     opacity: 0.8;
 }
 
-.siblings-group-count {
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface);
-    padding: 1px var(--tp-space-2);
-    border-radius: var(--tp-radius-pill);
-    border: 1px solid var(--tp-color-border-soft);
-}
-
 .siblings-list {
     margin: 0;
     padding: 0;
@@ -626,7 +557,7 @@
 
 .siblings-list li a:hover,
 .siblings-list li a:focus-visible {
-    background: var(--tp-color-brand-100);
+    background: var(--tp-color-surface-soft);
     outline: none;
 }
 

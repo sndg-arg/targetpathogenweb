@@ -196,7 +196,7 @@
     border-radius: var(--tp-radius-xs);
     font-size: var(--tp-font-size-xs);
     font-weight: 600;
-    background: var(--tp-color-brand-100);
+    background: var(--tp-color-surface-soft);
     color: var(--tp-color-brand-800);
     vertical-align: baseline;
 }
@@ -267,34 +267,6 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-warning-ink);
     background: var(--tp-color-warning-bg);
     border-color: var(--tp-color-warning-border);
-}
-
-.protein-metabolism-chip__count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 18px;
-    padding: 0 var(--tp-space-1);
-    border-radius: var(--tp-radius-pill);
-    background: color-mix(in srgb, var(--tp-color-surface) 72%, transparent);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
-    line-height: 1;
-}
-
-.protein-metabolism-empty {
-    display: inline-flex;
-    align-items: center;
-    min-height: 22px;
-    padding: 2px var(--tp-space-2);
-    border: 1px dashed var(--tp-color-border);
-    border-radius: var(--tp-radius-pill);
-    color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-soft);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
-    white-space: nowrap;
 }
 
 .toolbar-card {
@@ -445,8 +417,8 @@ a.filter-pill .filter-pill-remove {
    but not yet applied -- otherwise pending state is invisible once the
    drawer closes (see #filter-pending-summary, which only exists inside it). */
 #open-filters-btn.has-pending-filters {
-    border-color: var(--tp-color-brand-300) !important;
-    background: color-mix(in srgb, var(--tp-color-brand-100) 35%, var(--tp-color-surface)) !important;
+    border-color: var(--tp-color-border-strong) !important;
+    background: var(--tp-color-brand-100) !important;
 }
 
 #open-filters-btn.has-pending-filters .toolbar-action-btn__meta {
@@ -585,7 +557,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .per-page-control .tp-select-trigger {
-    border-color: var(--tp-color-brand-300);
+    border-color: var(--tp-color-border-strong);
     font-weight: 600;
 }
 
@@ -687,10 +659,8 @@ a.filter-pill .filter-pill-remove {
     align-items: center;
     justify-content: space-between;
     gap: var(--tp-space-3);
-    padding: var(--tp-space-3) var(--tp-space-4);
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-surface);
+    padding: 2px 0 2px var(--tp-space-3);
+    border-left: 3px solid var(--tp-color-border-strong);
     color: var(--tp-color-text-secondary);
 }
 
@@ -725,8 +695,8 @@ a.filter-pill .filter-pill-remove {
     position: relative;
     height: 22px;
     border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-brand-050);
-    border: 1px solid var(--tp-color-brand-200);
+    background: var(--tp-color-surface-muted);
+    border: 1px solid var(--tp-color-border-soft);
     overflow: hidden;
     --protein-scroll-thumb-size: 96px;
     --protein-scroll-thumb-offset: 0px;
@@ -738,18 +708,6 @@ a.filter-pill .filter-pill-remove {
     opacity: 0;
 }
 
-.protein-table-top-scroll::before {
-    content: "";
-    position: absolute;
-    inset: 5px 12px 5px auto;
-    width: 14px;
-    background:
-        linear-gradient(45deg, transparent 35%, var(--tp-color-brand-400) 36%, var(--tp-color-brand-400) 54%, transparent 55%) left center / 6px 10px no-repeat,
-        linear-gradient(45deg, transparent 35%, var(--tp-color-brand-400) 36%, var(--tp-color-brand-400) 54%, transparent 55%) right center / 6px 10px no-repeat;
-    opacity: 0.52;
-    pointer-events: none;
-}
-
 .protein-table-top-scroll::after {
     content: "";
     position: absolute;
@@ -757,8 +715,7 @@ a.filter-pill .filter-pill-remove {
     width: var(--protein-scroll-thumb-size);
     transform: translateX(var(--protein-scroll-thumb-offset));
     border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-brand-600);
-    border: 1px solid var(--tp-color-brand-900);
+    background: var(--tp-color-border-strong);
     transition: transform 120ms ease, width 120ms ease, opacity 120ms ease;
 }
 
@@ -766,10 +723,6 @@ a.filter-pill .filter-pill-remove {
     width: calc(100% - 6px);
     transform: translateX(0);
     opacity: 0.46;
-}
-
-.protein-table-top-scroll.is-disabled::before {
-    opacity: 0.18;
 }
 
 .protein-table-top-scroll.is-dragging {
@@ -976,18 +929,6 @@ a.filter-pill .filter-pill-remove {
     cursor: default;
 }
 
-.metric-zero-value {
-    display: inline-block;
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    color: var(--tp-color-text-muted);
-    padding: 3px var(--tp-space-3);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-}
-
 .metric-zero .metric-tooltip {
     position: absolute;
     bottom: calc(100% + 8px);
@@ -1192,20 +1133,6 @@ a.filter-pill .filter-pill-remove {
     max-width: 220px;
 }
 
-.annotation-more {
-    display: inline-flex;
-    align-items: center;
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 500;
-    color: var(--tp-color-text-muted);
-    padding: 2px var(--tp-space-1);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    cursor: default;
-}
-
 /* Legacy (kept for backward compat) */
 .annotation-badge-stack {
     display: grid;
@@ -1372,7 +1299,7 @@ a.filter-pill .filter-pill-remove {
 .page-jump-input:focus,
 .page-jump-input:focus-visible {
     outline: none;
-    border-color: var(--tp-color-brand-600);
+    border-color: var(--tp-focus-color);
     box-shadow: var(--tp-focus-outline);
 }
 
@@ -1661,13 +1588,13 @@ a.filter-pill .filter-pill-remove {
 }
 
 .tpd-row--active {
-    border-color: var(--tp-color-brand-300);
-    background: var(--tp-color-brand-050);
+    border-color: var(--tp-color-border-strong);
+    background: var(--tp-color-brand-100);
 }
 
 .tpd-row--active:hover,
 .tpd-row--active:focus-within {
-    border-color: var(--tp-color-brand-600);
+    border-color: var(--tp-color-border-strong);
     background: var(--tp-color-brand-100);
 }
 
@@ -1688,7 +1615,7 @@ a.filter-pill .filter-pill-remove {
 
 .tpd-row--active .tpd-rename-form,
 .tpd-row--active .tpd-delete-form {
-    border-left-color: var(--tp-color-brand-200);
+    border-left-color: var(--tp-color-border-strong);
 }
 
 .tpd-apply-btn {
@@ -1756,8 +1683,8 @@ a.filter-pill .filter-pill-remove {
     font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-brand-700);
-    background: var(--tp-color-brand-100);
-    border: 1px solid var(--tp-color-brand-300);
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-xs);
     padding: 2px var(--tp-space-2);
 }
@@ -1773,8 +1700,8 @@ a.filter-pill .filter-pill-remove {
     font-size: var(--tp-font-size-2xs);
     font-weight: 500;
     color: var(--tp-color-brand-800);
-    background: var(--tp-color-brand-050);
-    border: 1px solid var(--tp-color-brand-100);
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-xs);
     padding: 2px var(--tp-space-2);
     white-space: nowrap;
@@ -1783,7 +1710,7 @@ a.filter-pill .filter-pill-remove {
 
 .tpd-row--active .tpd-chip {
     background: var(--tp-color-brand-100);
-    border-color: var(--tp-color-brand-200);
+    border-color: var(--tp-color-border-strong);
 }
 
 /* Full-height trailing action strip, flush with the card it's attached to --
@@ -1962,17 +1889,12 @@ a.filter-pill .filter-pill-remove {
    groups, which combine as AND rather than the OR a user would otherwise
    assume from adjacent same-label chips -- same badge language as the
    advanced filter builder's own group-to-group AND badge (advanced-filters.css). */
+/* "and" between criteria: a quiet word, not a chip. */
 .filter-and-sep {
-    display: inline-flex;
-    align-items: center;
-    background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-muted);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-pill);
-    padding: 2px var(--tp-space-3);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-size: var(--tp-font-size-xs);
     letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
 }
 
 .filter-pill {
@@ -1984,7 +1906,7 @@ a.filter-pill .filter-pill-remove {
 .filter-pill-remove {
     -webkit-appearance: none;
     appearance: none;
-    border: 1px solid var(--tp-color-brand-300);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-pill);
     width: 20px;
     min-width: 20px;
@@ -1993,7 +1915,7 @@ a.filter-pill .filter-pill-remove {
     line-height: 1;
     padding: 0;
     color: var(--tp-color-brand-900);
-    background: var(--tp-color-brand-100);
+    background: var(--tp-color-surface-soft);
     cursor: pointer;
     font-weight: 600;
     font-size: var(--tp-font-size-md);
@@ -2145,7 +2067,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .scoring-formula-row--current {
-    background: var(--tp-color-brand-050);
+    background: var(--tp-color-brand-100);
     border-color: var(--tp-color-brand-700);
     box-shadow: none;
 }
@@ -2207,22 +2129,6 @@ a.filter-pill .filter-pill-remove {
 
 .scoring-formula-row--current .scoring-formula-row__name {
     color: var(--tp-color-brand-900);
-}
-
-.scoring-formula-row__badge {
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-    color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-muted);
-    border-radius: var(--tp-radius-pill);
-    padding: 2px var(--tp-space-2);
-}
-
-.scoring-formula-row--current .scoring-formula-row__badge {
-    color: var(--tp-color-brand-900);
-    background: var(--tp-color-brand-100);
 }
 
 /* The same formula in words, under the raw expression. */
@@ -2296,7 +2202,7 @@ a.filter-pill .filter-pill-remove {
 
 .scoring-formula-row--current .scoring-formula-row__expression {
     background: var(--tp-color-surface);
-    border-color: var(--tp-color-brand-200);
+    border-color: var(--tp-color-border-strong);
 }
 
 /* === Scoring drawer — My data section (custom score + custom files) === */
@@ -2503,18 +2409,6 @@ a.filter-pill .filter-pill-remove {
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-secondary);
-}
-
-.columns-section-count {
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
-    letter-spacing: var(--tp-tracking-label);
-    color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-muted);
-    border-radius: var(--tp-radius-pill);
-    padding: 2px var(--tp-space-2);
-    min-width: 22px;
-    text-align: center;
 }
 
 .columns-section-hint {
@@ -2956,8 +2850,8 @@ a.filter-pill .filter-pill-remove {
 
 /* Active filter pills — brand-teal tint to communicate "applied" state */
 .drawer-active-summary .filter-pill {
-    background: var(--tp-color-brand-050);
-    border-color: var(--tp-color-brand-200);
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border);
     color: var(--tp-color-brand-900);
     border-radius: var(--tp-radius-sm);
     padding: var(--tp-space-1) var(--tp-space-1) var(--tp-space-1) var(--tp-space-3);
@@ -2977,8 +2871,8 @@ a.filter-pill .filter-pill-remove {
 }
 
 .drawer-active-summary .filter-pill-remove {
-    background: var(--tp-color-brand-100);
-    border-color: var(--tp-color-brand-200);
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border);
     color: var(--tp-color-brand-700);
     width: 18px;
     min-width: 18px;
@@ -3192,20 +3086,6 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-muted);
 }
 
-/* Active-criteria count for a filter group — the group's only badge */
-.filter-group-selected-count {
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
-    letter-spacing: var(--tp-tracking-label);
-    color: var(--tp-color-brand-900);
-    background: var(--tp-color-brand-100);
-    border: 1px solid var(--tp-color-brand-200);
-    border-radius: var(--tp-radius-pill);
-    padding: 2px var(--tp-space-2);
-    min-width: 22px;
-    text-align: center;
-}
-
 .filter-group-chevron {
     width: 7px;
     height: 7px;
@@ -3337,131 +3217,6 @@ a.filter-pill .filter-pill-remove {
     opacity: 1;
 }
 
-.filter-chip-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2);
-}
-
-.filter-chip-form {
-    margin: 0;
-}
-
-.filter-chip {
-    appearance: none;
-    background: var(--tp-color-surface);
-    border: 1px solid var(--tp-color-border);
-    color: var(--tp-color-text-secondary);
-    padding: var(--tp-space-1) var(--tp-space-3);
-    border-radius: var(--tp-radius-pill);
-    font: inherit;
-    font-size: var(--tp-font-size-sm);
-    font-weight: 400;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-2);
-    box-shadow: none;
-    transition: background 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 180ms ease;
-}
-
-.filter-chip:is(a, a:visited) {
-    text-decoration: none;
-    color: var(--tp-color-text-secondary);
-}
-
-/* Hover is neutral (one-accent rule, see /design): a soft gray, no tint. */
-.filter-chip:hover,
-.filter-chip.is-hover {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-strong);
-    color: var(--tp-color-text-primary);
-}
-
-.filter-chip:active {
-    background: var(--tp-color-surface-muted);
-    border-color: var(--tp-color-text-muted);
-}
-
-.filter-chip:focus-visible {
-    outline: 2px solid var(--tp-focus-color);
-    outline-offset: 2px;
-}
-
-/* Pending-add state (was inactive, JS added --active + --pending): dashed
-   outline = "waiting for Apply filters". */
-.filter-chip--active {
-    background: var(--tp-color-surface);
-    border: 1px dashed var(--tp-color-brand-700);
-    color: var(--tp-color-brand-800);
-    font-weight: 500;
-}
-
-/* Server-applied, no pending change: solid brand fill — unambiguously "ON" */
-.filter-chip--active:not(.filter-chip--pending) {
-    border-style: solid;
-    background: var(--tp-color-primary);
-    border-color: var(--tp-color-primary);
-    color: var(--tp-color-on-accent);
-    font-weight: 500;
-}
-
-.filter-chip--active:not(.filter-chip--pending):hover,
-.filter-chip--active.is-hover:not(.filter-chip--pending) {
-    background: var(--tp-color-primary-hover);
-    border-color: var(--tp-color-primary-hover);
-}
-
-.filter-chip--active:not(.filter-chip--pending) .filter-chip-glyph {
-    color: var(--tp-color-on-accent);
-    opacity: 0.85;
-}
-
-.filter-chip--active:is(a, a:visited) {
-    color: var(--tp-color-brand-900);
-}
-
-.filter-chip--active:not(.filter-chip--pending):is(a, a:visited) {
-    color: var(--tp-color-on-accent);
-}
-
-/* Tones only color the chip at rest. Hover, applied and pending are the
-   same for every chip (base rules above), so a "risk" chip that's applied
-   looks applied, not hovered. */
-.filter-chip--risk {
-    border-color: var(--tp-color-danger-border);
-    color: var(--tp-color-danger-ink);
-}
-
-.filter-chip--favorable {
-    border-color: var(--tp-color-success-border);
-    color: var(--tp-color-success-ink);
-}
-
-.filter-chip--secondary {
-    color: var(--tp-color-text-muted);
-    border-color: var(--tp-color-border);
-}
-
-.filter-chip-glyph {
-    font-size: var(--tp-font-size-sm);
-    line-height: 1;
-    color: var(--tp-color-brand-700);
-    font-weight: 500;
-    opacity: 0.75;
-    margin-left: 1px;
-}
-
-.filter-chip-label {
-    line-height: 1.2;
-}
-
-/* === Filter drawer — Function group + numeric range UI === */
-
-.filter-chip-group--active {
-    margin-top: var(--tp-space-2);
-}
-
 /* "Show N more" for a criterion with more chips than fit at a glance. */
 .filter-chip-more {
     flex-basis: 100%;
@@ -3549,35 +3304,6 @@ a.filter-pill .filter-pill-remove {
     box-shadow: var(--tp-focus-outline);
 }
 
-.filter-token-chips {
-    display: contents;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.filter-token-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-1);
-    max-width: 100%;
-    padding: 3px var(--tp-space-1) 3px var(--tp-space-3);
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-primary);
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-xs);
-    line-height: 1.3;
-    animation: filter-token-in 140ms ease;
-}
-
-.filter-token-chip > span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 .filter-token-remove {
     display: inline-grid;
     place-items: center;
@@ -3659,7 +3385,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-token-suggestions li.is-highlighted {
-    background: var(--tp-color-brand-050);
+    background: var(--tp-color-brand-100);
     color: var(--tp-color-brand-900);
 }
 
@@ -3740,7 +3466,6 @@ a.filter-pill .filter-pill-remove {
 
 @media (prefers-reduced-motion: reduce) {
     .filter-token-notice { animation: none; transition: none; }
-    .filter-token-chip { animation: none; }
     .filter-token-field { transition: none; }
 }
 
@@ -3982,8 +3707,8 @@ a.filter-pill .filter-pill-remove {
 
 .filter-numeric-form.has-pending-filter,
 .filter-text-form.has-pending-filter {
-    border-color: var(--tp-color-brand-200);
-    background: color-mix(in srgb, var(--tp-color-brand-100) 28%, var(--tp-color-surface));
+    border-color: var(--tp-color-border-strong);
+    background: var(--tp-color-brand-100);
 }
 
 .filter-numeric-form.has-pending-filter .filter-input-message,
@@ -4163,15 +3888,6 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-primary);
 }
 
-/* Pending state: dashed outline (no glowing ring). Same text color for
-   every tone -- a pending "risk" chip used to keep its red text. */
-.filter-chip--pending {
-    border-style: dashed !important;
-    border-color: var(--tp-color-brand-700) !important;
-    color: var(--tp-color-brand-800);
-    box-shadow: none;
-}
-
 /* Apply button disabled state */
 .drawer-done-btn:disabled {
     cursor: not-allowed;
@@ -4181,24 +3897,6 @@ a.filter-pill .filter-pill-remove {
 /* Hidden apply form (data carrier only) */
 .filters-apply-form {
     display: none;
-}
-
-/* Count badge inside the Apply button */
-.apply-btn-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 var(--tp-space-1);
-    border-radius: var(--tp-radius-pill);
-    background: color-mix(in srgb, white 22%, transparent);
-    border: 1px solid color-mix(in srgb, white 18%, transparent);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
-    margin-left: var(--tp-space-2);
-    font-variant-numeric: tabular-nums;
-    vertical-align: middle;
 }
 
 /* Pending summary in the drawer footer. At this drawer's actual width
@@ -4256,20 +3954,6 @@ a.filter-pill .filter-pill-remove {
     display: inline-flex;
     align-items: center;
     gap: var(--tp-space-2);
-}
-
-.filter-pending-summary__count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 15px;
-    height: 15px;
-    padding: 0 var(--tp-space-1);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-primary);
-    color: var(--tp-color-on-accent);
-    font-size: var(--tp-font-size-2xs);
-    font-variant-numeric: tabular-nums;
 }
 
 .filter-pending-summary__chevron {
@@ -4343,8 +4027,8 @@ a.filter-pill .filter-pill-remove {
 
 .filter-pending-summary__remove:hover,
 .filter-pending-summary__remove:focus-visible {
-    border-color: var(--tp-color-brand-300);
-    background: var(--tp-color-brand-100);
+    border-color: var(--tp-color-border-strong);
+    background: var(--tp-color-surface-soft);
     color: var(--tp-color-brand-900);
 }
 
@@ -4498,8 +4182,8 @@ a.filter-pill .filter-pill-remove {
     font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-brand-700);
-    background: var(--tp-color-brand-100);
-    border: 1px solid var(--tp-color-brand-300);
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-xs);
     padding: 2px var(--tp-space-2);
 }
@@ -4516,8 +4200,8 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-preset-row--active .filter-preset-apply-btn {
-    border-color: var(--tp-color-brand-300);
-    background: var(--tp-color-brand-050);
+    border-color: var(--tp-color-border-strong);
+    background: var(--tp-color-brand-100);
 }
 
 .filter-preset-row--active .filter-preset-apply-btn:hover,

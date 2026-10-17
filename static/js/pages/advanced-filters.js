@@ -68,7 +68,7 @@
                 chip.textContent = opt.label;
                 if (selectedIds.some(function (id) { return String(id) === String(opt.id); })) {
                     chip.setAttribute("aria-pressed", "true");
-                    chip.classList.add("af-option-chip--active");
+                    chip.classList.add("filter-chip--active");
                 }
                 checklist.appendChild(chip);
             });
@@ -79,7 +79,7 @@
                 }
                 var isActive = chip.getAttribute("aria-pressed") === "true";
                 chip.setAttribute("aria-pressed", isActive ? "false" : "true");
-                chip.classList.toggle("af-option-chip--active", !isActive);
+                chip.classList.toggle("filter-chip--active", !isActive);
             });
             valueAreaEl.appendChild(node);
         } else {

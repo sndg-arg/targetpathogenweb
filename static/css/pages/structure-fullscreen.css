@@ -520,9 +520,9 @@ body:has(.sv-root) { overflow: hidden; }
 .sv-pocket-inspector {
     margin-top: var(--tp-space-3);
     padding: var(--tp-space-4);
-    border: 1px solid var(--tp-color-brand-300);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-sm);
-    background: color-mix(in srgb, var(--tp-color-brand-100) 45%, var(--tp-color-surface));
+    background: var(--tp-color-surface-soft);
     box-shadow: none;
 }
 
@@ -617,23 +617,6 @@ body:has(.sv-root) { overflow: hidden; }
 
 .sv-pocket-inspector-wide {
     grid-column: 1 / -1;
-}
-
-.pocket-property-chip {
-    display: inline-block;
-    max-width: 100%;
-    margin: 0 var(--tp-space-2) var(--tp-space-2) 0;
-    padding: var(--tp-space-1) var(--tp-space-3);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-surface-muted);
-    border: 1px solid var(--tp-color-border-soft);
-    color: var(--tp-color-text-secondary);
-    font-family: var(--tp-font-body);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
-    line-height: 1.4;
-    white-space: normal;
-    overflow-wrap: anywhere;
 }
 
 .sv-pocket-inspector-note {
@@ -731,14 +714,14 @@ body:has(.sv-root) { overflow: hidden; }
 
 .pocket-card.is-visible-in-viewer,
 .residueset-row.is-visible-in-viewer {
-    border-color: var(--tp-color-brand-300);
-    background: color-mix(in srgb, var(--tp-color-brand-100) 38%, var(--tp-color-surface));
+    border-color: var(--tp-color-border-strong);
+    background: var(--tp-color-brand-100);
     box-shadow: inset 3px 0 0 var(--tp-color-brand-800);
 }
 
 .pocket-card.is-selected-pocket {
     border-color: var(--tp-color-brand-800);
-    background: color-mix(in srgb, var(--tp-color-brand-100) 52%, var(--tp-color-surface));
+    background: var(--tp-color-brand-100);
     box-shadow: inset 3px 0 0 var(--tp-color-brand-800);
 }
 
@@ -754,7 +737,7 @@ body:has(.sv-root) { overflow: hidden; }
 }
 
 .pocket-card-head:hover {
-    background: var(--tp-color-brand-100);
+    background: var(--tp-color-surface-soft);
 }
 
 .pocket-card-head:focus-visible {
@@ -977,22 +960,6 @@ body:has(.sv-root) { overflow: hidden; }
     margin-left: auto;
 }
 .data-details[open] > summary::after { transform: rotate(-135deg); }
-
-/* ── 12. Score tags ── */
-.tp-score-tag {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 56px;
-    border-radius: var(--tp-radius-pill);
-    border: 1px solid transparent;
-    padding: 2px var(--tp-space-2);
-    font-weight: 500;
-    font-size: var(--tp-font-size-xs);
-}
-.tp-score-tag.high   { color: var(--tp-color-success-ink);  background: var(--tp-color-success-bg);  border-color: var(--tp-color-success-border); }
-.tp-score-tag.medium { color: var(--tp-color-warning-ink);  background: var(--tp-color-warning-bg);  border-color: var(--tp-color-warning-border); }
-.tp-score-tag.low    { color: var(--tp-color-danger-ink);   background: var(--tp-color-danger-bg);   border-color: var(--tp-color-danger-border); }
 
 /* ── 13. Structure toggle (checkbox pill) ── */
 .structure-toggle {

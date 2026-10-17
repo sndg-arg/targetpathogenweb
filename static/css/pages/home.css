@@ -139,7 +139,7 @@
 }
 
 .home-pipeline-refresh.home-pipeline-refresh:active {
-    background: color-mix(in srgb, var(--tp-color-brand-800) var(--_refresh-active-mix, 16%), transparent) !important;
+    background: var(--tp-color-surface-soft) !important;
     box-shadow: none !important;
     transform: none !important;
 }
@@ -211,7 +211,7 @@
 }
 
 .home-pipeline-info-btn.home-pipeline-info-btn:active {
-    background: color-mix(in srgb, var(--tp-color-brand-800) var(--_refresh-active-mix, 16%), transparent) !important;
+    background: var(--tp-color-surface-soft) !important;
     box-shadow: none !important;
     transform: none !important;
 }
@@ -513,26 +513,6 @@ body.pipeline-info-open {
     color: var(--tp-color-brand-700);
 }
 
-.pipeline-info-overview-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2);
-}
-
-.pipeline-info-overview-tag {
-    display: inline-flex;
-    align-items: center;
-    min-height: 32px;
-    padding: 0 var(--tp-space-3);
-    border-radius: var(--tp-radius-pill);
-    border: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    letter-spacing: 0;
-}
-
 .pipeline-info-sequential {
     padding: var(--tp-space-2) 2px 0;
 }
@@ -544,7 +524,7 @@ body.pipeline-info-open {
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
-    color: var(--tp-color-brand-600);
+    color: var(--tp-color-text-muted);
     text-align: center;
     position: relative;
 }
@@ -648,8 +628,8 @@ body.pipeline-info-open {
 }
 
 .pipeline-info-step.is-done .pipeline-info-step-num {
-    background: var(--tp-color-brand-100);
-    border-color: var(--tp-color-brand-600);
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border);
     color: var(--tp-color-brand-800);
 }
 
@@ -859,11 +839,6 @@ body.pipeline-info-open {
     box-shadow: none;
 }
 
-.tp-dark .pipeline-info-overview-tag {
-    background: var(--tp-color-surface-muted);
-    border-color: var(--tp-color-border);
-}
-
 .tp-dark .pipeline-info-branch {
     background: var(--tp-color-surface-soft);
     border-color: var(--tp-color-border-soft);
@@ -876,8 +851,8 @@ body.pipeline-info-open {
 }
 
 .tp-dark .pipeline-info-step.is-done .pipeline-info-step-num {
-    background: color-mix(in srgb, var(--tp-color-brand-800) 22%, transparent);
-    border-color: var(--tp-color-brand-600);
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border);
     color: var(--tp-color-brand-700);
 }
 

@@ -5,8 +5,8 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-system2">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-system3">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-system3">
     <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261017-system2">
 {% endblock %}
 
@@ -50,6 +50,7 @@
             <ul class="ds-rules">
                 <li><strong>Un acento.</strong> Petróleo solo en la acción principal, links, seleccionado y la sección activa.</li>
                 <li><strong>Hover neutro.</strong> Gris en todo; nunca un tinte de color.</li>
+                <li><strong>Seleccionado.</strong> En un control (chip, opción, página), relleno principal; en una fila de lista, fondo <code>brand-100</code>.</li>
                 <li><strong>Plano.</strong> Secciones sin caja ni sombra. Sombra solo en lo que flota.</li>
                 <li><strong>Foco.</strong> Una línea petróleo con aire, en todo lo que se enfoca con Tab.</li>
                 <li><strong>Solo tokens.</strong> Colores, tamaños, radios y sombras salen de <code>masterpage.html</code>.</li>
@@ -225,7 +226,7 @@
                     <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Neutro</strong><code>(base)</code></th><th scope="col"><strong>Código</strong><code>--code</code></th><th scope="col"><strong>Link</strong><code>--link</code></th><th scope="col"><strong>Favorable</strong><code>--success</code></th><th scope="col"><strong>Atención</strong><code>--warning</code></th><th scope="col"><strong>Riesgo</strong><code>--danger</code></th><th scope="col"><strong>Indirecto</strong><code>--muted</code></th></tr></thead>
                     <tbody>
                         <tr><th scope="row">Ejemplo</th><td><span class="tp-chip">857 proteins</span></td><td><span class="tp-chip tp-chip--code">2.7.13.3</span></td><td><a class="tp-chip tp-chip--link" href="#" tabindex="-1">UniProt</a></td><td><span class="tp-chip tp-chip--success">Has structure</span></td><td><span class="tp-chip tp-chip--warning">Low confidence</span></td><td><span class="tp-chip tp-chip--danger">0.21</span></td><td><span class="tp-chip tp-chip--muted">Via homolog</span></td></tr>
-                        <tr><th scope="row">Cuándo</th><td class="ds-use">Contexto, cantidad</td><td class="ds-use">EC, GO, puntajes</td><td class="ds-use">Va a otra página</td><td class="ds-use">Dato a favor</td><td class="ds-use">Dato dudoso</td><td class="ds-use">Dato en contra</td><td class="ds-use">Por homología</td></tr>
+                        <tr><th scope="row">Cuándo</th><td class="ds-use">Contexto, etiqueta</td><td class="ds-use">EC, GO, puntajes</td><td class="ds-use">Va a otra página</td><td class="ds-use">Dato a favor</td><td class="ds-use">Dato dudoso</td><td class="ds-use">Dato en contra</td><td class="ds-use">Por homología</td></tr>
                     </tbody>
                 </table>
                 </div>
@@ -371,12 +372,12 @@
                 <h3 class="ds-comp-title">Pestañas <code>tp-tabs · tp-tab</code></h3>
                 <div class="ds-example">
                     <div class="tp-tabs" role="tablist" aria-label="Ejemplo">
-                        <button type="button" class="tp-tab is-active" tabindex="-1">PDB co-crystal <span class="tp-tab-count">12</span></button>
-                        <button type="button" class="tp-tab is-hover" tabindex="-1">ChEMBL bioactive <span class="tp-tab-count">48</span></button>
-                        <button type="button" class="tp-tab" tabindex="-1">ZINC <span class="tp-tab-count">50+</span></button>
+                        <button type="button" class="tp-tab is-active" tabindex="-1">PDB co-crystal <span class="tp-count">12</span></button>
+                        <button type="button" class="tp-tab is-hover" tabindex="-1">ChEMBL bioactive <span class="tp-count">48</span></button>
+                        <button type="button" class="tp-tab" tabindex="-1">ZINC <span class="tp-count">50+</span></button>
                     </div>
                 </div>
-                <p class="ds-intro">Cambian el contenido dentro de una sección. Para saltar entre secciones, <code>quick-nav</code>.</p>
+                <p class="ds-intro">Cambian el contenido dentro de una sección. Para saltar entre secciones, <code>quick-nav</code>. Los números al lado de un rótulo, en pestañas, grupos o botones, van con <code>tp-count</code>.</p>
             </div>
 
             <div class="ds-comp" id="c-table">
@@ -440,7 +441,7 @@
                                 <details class="filter-group" open>
                                     <summary class="filter-group-summary" tabindex="-1">
                                         <span class="filter-group-name">Off-target</span>
-                                        <span class="filter-group-meta"><span class="filter-group-selected-count">1</span><span class="filter-group-chevron" aria-hidden="true"></span></span>
+                                        <span class="filter-group-meta"><span class="tp-count filter-group-selected-count">1</span><span class="filter-group-chevron" aria-hidden="true"></span></span>
                                     </summary>
                                     <div class="filter-group-body">
                                         <div class="filter-param">

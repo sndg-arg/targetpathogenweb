@@ -10,7 +10,7 @@
     styling this page deliberately reuses verbatim (same markup, same tokens) --
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-system3">
     <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261017-system2">
 {% endblock %}
 
@@ -297,7 +297,7 @@
                     {% for tab in structure.sub_tabs %}
                     <button type="button" class="tp-tab human-structure-tab {% if tab.key == structure.default_tab %}is-active{% endif %}" role="tab" data-structure-tab="{{ tab.key }}">
                         <span>{{ tab.label }}</span>
-                        <span class="tp-tab-count">{{ tab.count }}</span>
+                        <span class="tp-count">{{ tab.count }}</span>
                     </button>
                     {% endfor %}
                 </div>
@@ -386,19 +386,19 @@
 
                 <div class="tp-tabs binders-tabs" role="tablist" data-binders-tabs>
                     <button type="button" class="tp-tab binders-tab {% if binders.default_tab == 'pdb_direct' %}is-active{% endif %}" role="tab" aria-selected="{% if binders.default_tab == 'pdb_direct' %}true{% else %}false{% endif %}" data-binders-tab="pdb_direct">
-                        <span>{% trans "PDB co-crystal" %}</span>{% if binders.pdb_direct_count %}<span class="tp-tab-count">{{ binders.pdb_direct_count }}</span>{% endif %}
+                        <span>{% trans "PDB co-crystal" %}</span>{% if binders.pdb_direct_count %}<span class="tp-count">{{ binders.pdb_direct_count }}</span>{% endif %}
                     </button>
                     <button type="button" class="tp-tab binders-tab {% if binders.default_tab == 'pdb_homolog' %}is-active{% endif %}" role="tab" aria-selected="{% if binders.default_tab == 'pdb_homolog' %}true{% else %}false{% endif %}" data-binders-tab="pdb_homolog">
-                        <span>{% trans "PDB via homologs" %}</span>{% if binders.pdb_homolog_count %}<span class="tp-tab-count">{{ binders.pdb_homolog_count }}</span>{% endif %}
+                        <span>{% trans "PDB via homologs" %}</span>{% if binders.pdb_homolog_count %}<span class="tp-count">{{ binders.pdb_homolog_count }}</span>{% endif %}
                     </button>
                     <button type="button" class="tp-tab binders-tab {% if binders.default_tab == 'chembl_direct' %}is-active{% endif %}" role="tab" aria-selected="{% if binders.default_tab == 'chembl_direct' %}true{% else %}false{% endif %}" data-binders-tab="chembl_direct">
-                        <span>{% trans "ChEMBL bioactive" %}</span>{% if binders.chembl_direct_count %}<span class="tp-tab-count">{{ binders.chembl_direct_count }}</span>{% endif %}
+                        <span>{% trans "ChEMBL bioactive" %}</span>{% if binders.chembl_direct_count %}<span class="tp-count">{{ binders.chembl_direct_count }}</span>{% endif %}
                     </button>
                     <button type="button" class="tp-tab binders-tab {% if binders.default_tab == 'chembl_homolog' %}is-active{% endif %}" role="tab" aria-selected="{% if binders.default_tab == 'chembl_homolog' %}true{% else %}false{% endif %}" data-binders-tab="chembl_homolog">
-                        <span>{% trans "ChEMBL via homologs" %}</span>{% if binders.chembl_homolog_count %}<span class="tp-tab-count">{{ binders.chembl_homolog_count }}{% if binders.chembl_homolog_capped %}+{% endif %}</span>{% endif %}
+                        <span>{% trans "ChEMBL via homologs" %}</span>{% if binders.chembl_homolog_count %}<span class="tp-count">{{ binders.chembl_homolog_count }}{% if binders.chembl_homolog_capped %}+{% endif %}</span>{% endif %}
                     </button>
                     <button type="button" class="tp-tab binders-tab {% if binders.default_tab == 'zinc' %}is-active{% endif %}" role="tab" aria-selected="{% if binders.default_tab == 'zinc' %}true{% else %}false{% endif %}" data-binders-tab="zinc">
-                        <span>{% trans "ZINC" %}</span>{% if binders.zinc_count %}<span class="tp-tab-count">{{ binders.zinc_count }}{% if binders.zinc_capped %}+{% endif %}</span>{% endif %}
+                        <span>{% trans "ZINC" %}</span>{% if binders.zinc_count %}<span class="tp-count">{{ binders.zinc_count }}{% if binders.zinc_capped %}+{% endif %}</span>{% endif %}
                     </button>
                 </div>
 
@@ -611,6 +611,6 @@
 {% endblock %}
 
 {% block jsloaded %}
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261017-system"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261017-system3"></script>
     <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261017-system"></script>
 {% endblock %}

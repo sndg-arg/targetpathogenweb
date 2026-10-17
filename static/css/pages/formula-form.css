@@ -220,60 +220,14 @@
     gap: var(--tp-space-2);
 }
 
-.formula-fn-chip,
-.formula-op-chip,
 .formula-example-chip {
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-brand-900);
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    padding: var(--tp-space-1) var(--tp-space-3);
-    cursor: pointer;
-    transition: background 0.14s, border-color 0.14s;
-    line-height: 1.4;
-}
-
-.formula-fn-chip:hover,
-.formula-op-chip:hover,
-.formula-example-chip:hover {
-    background: var(--tp-color-surface-muted);
-    border-color: var(--tp-color-border);
-}
-
-.formula-op-chip {
-    font-size: var(--tp-font-size-md);
-    padding: 3px var(--tp-space-3);
-    min-width: 38px;
-    justify-content: center;
-}
-
-.formula-example-chip {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 3px;
     max-width: 100%;
-    padding: var(--tp-space-2) var(--tp-space-3);
-    font-family: inherit;
-}
-
-.formula-example-chip span {
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
 }
 
 .formula-example-chip code {
-    max-width: 100%;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--tp-color-text-secondary);
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-xs);
     white-space: nowrap;
 }
 
@@ -348,25 +302,7 @@
 }
 
 .formula-var-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-2);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-secondary);
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    padding: 3px var(--tp-space-2);
-    cursor: pointer;
-    transition: background 0.12s, border-color 0.12s, color 0.12s;
-    line-height: 1.4;
-    text-align: left;
     max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .formula-var-name {
@@ -375,34 +311,14 @@
     text-overflow: ellipsis;
 }
 
+/* The variable kind is a quiet word after the name, not a chip in a chip. */
 .formula-var-kind {
     flex: 0 0 auto;
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-muted);
     font-family: var(--tp-font-body);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
-    line-height: 1;
-    padding: 3px var(--tp-space-2);
     text-transform: uppercase;
-}
-
-.formula-var-chip--numeric {
-    border-color: var(--tp-color-success-border);
-    background: color-mix(in srgb, var(--tp-color-success-bg) 58%, var(--tp-color-surface));
-}
-
-.formula-var-chip--numeric .formula-var-kind {
-    background: var(--tp-color-success-bg);
-    color: var(--tp-color-success-ink);
-}
-
-.formula-var-chip:hover {
-    background: var(--tp-color-surface-muted);
-    border-color: var(--tp-color-border);
-    color: var(--tp-color-brand-900);
 }
 
 /* ── Field error ── */
@@ -556,7 +472,7 @@
 
 .formula-autocomplete-item.is-active,
 .formula-autocomplete-item:hover {
-    background: var(--tp-color-brand-050);
+    background: var(--tp-color-brand-100);
 }
 
 .formula-autocomplete-kind {

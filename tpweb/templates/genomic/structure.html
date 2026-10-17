@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261017-system3">
 {% endblock %}
 
 {% block body %}
@@ -343,7 +343,7 @@
 {% endblock %}
 
 {% block jsloaded %}
-<script src="{% static 'js/pages/pocket-inspector.js' %}?v=20261012-drugg-label"></script>
+<script src="{% static 'js/pages/pocket-inspector.js' %}?v=20261017-system3"></script>
 <script src="{% static 'js/pages/ngl-shape-registry.js' %}?v=20260720-shaperegistry1"></script>
 {% comment %}
 json_script emits its own complete <script>...</script> tag -- it MUST sit
@@ -650,12 +650,12 @@ function jsloaded() {
         document.querySelectorAll(".js-score-tag").forEach(function (tag) {
             var score = Number.parseFloat(tag.dataset.score || "");
             var scoreType = tag.dataset.scoreType || "";
-            tag.classList.remove("high", "medium", "low");
-            if (Number.isNaN(score)) { tag.classList.add("medium"); return; }
+            tag.classList.remove("tp-chip--success", "tp-chip--warning", "tp-chip--danger");
+            if (Number.isNaN(score)) { tag.classList.add("tp-chip--warning"); return; }
             if (scoreType === "p2rank-prob") {
-                tag.classList.add(score >= 0.5 ? "high" : score >= 0.2 ? "medium" : "low");
+                tag.classList.add(score >= 0.5 ? "tp-chip--success" : score >= 0.2 ? "tp-chip--warning" : "tp-chip--danger");
             } else {
-                tag.classList.add(score >= 0.7 ? "high" : score >= 0.4 ? "medium" : "low");
+                tag.classList.add(score >= 0.7 ? "tp-chip--success" : score >= 0.4 ? "tp-chip--warning" : "tp-chip--danger");
             }
         });
     }

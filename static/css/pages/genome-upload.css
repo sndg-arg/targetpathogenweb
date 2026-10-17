@@ -200,7 +200,7 @@
 
 .genome-upload-field .tp-file-input:focus-visible {
     outline: none;
-    border-color: var(--tp-color-brand-300);
+    border-color: var(--tp-focus-color);
     box-shadow: var(--tp-focus-outline);
 }
 
@@ -286,7 +286,7 @@
     height: 30px;
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-info-bg);
-    border: 1px solid var(--tp-color-brand-300);
+    border: 1px solid var(--tp-color-border);
     color: var(--tp-color-brand-900);
     font-weight: 700;
     font-size: var(--tp-font-size-sm);
@@ -351,7 +351,7 @@
 }
 
 .genome-upload-refresh-btn.genome-upload-refresh-btn:active {
-    background: color-mix(in srgb, var(--tp-color-brand-800) 16%, transparent) !important;
+    background: var(--tp-color-surface-soft) !important;
     box-shadow: none !important;
     transform: none !important;
 }

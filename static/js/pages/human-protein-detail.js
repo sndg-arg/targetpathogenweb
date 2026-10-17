@@ -271,7 +271,7 @@
         function applyFilters(bar) {
             var panel = bar.closest(".binders-panel");
             var rows = panel.querySelectorAll(".binder-tbl__row");
-            var activeChips = bar.querySelectorAll(".binder-filter-chip.is-active");
+            var activeChips = bar.querySelectorAll(".binder-filter-chip.filter-chip--active");
             var filters = Array.from(activeChips).map(function (c) { return c.dataset.filter; });
             var shown = 0;
             rows.forEach(function (row) {
@@ -313,14 +313,14 @@
             var clear = e.target.closest(".binder-filter-clear");
             if (chip) {
                 e.stopPropagation();
-                chip.classList.toggle("is-active");
+                chip.classList.toggle("filter-chip--active");
                 applyFilters(chip.closest(".binder-filter-bar"));
             }
             if (clear) {
                 e.stopPropagation();
                 clear.closest(".binder-filter-bar")
-                    .querySelectorAll(".binder-filter-chip.is-active")
-                    .forEach(function (c) { c.classList.remove("is-active"); });
+                    .querySelectorAll(".binder-filter-chip.filter-chip--active")
+                    .forEach(function (c) { c.classList.remove("filter-chip--active"); });
                 applyFilters(clear.closest(".binder-filter-bar"));
             }
         });

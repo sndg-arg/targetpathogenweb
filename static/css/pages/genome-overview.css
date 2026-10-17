@@ -855,14 +855,14 @@
 .genome-raw-details summary:hover,
 .genome-raw-details summary:focus-visible {
     outline: none;
-    border-color: var(--tp-color-brand-300);
+    border-color: var(--tp-color-border-strong);
     background: var(--tp-color-surface-soft);
 }
 
 .genome-raw-details[open] summary {
     margin-bottom: var(--tp-space-3);
-    border-color: var(--tp-color-brand-300);
-    background: var(--tp-color-brand-050);
+    border-color: var(--tp-color-border-strong);
+    background: var(--tp-color-brand-100);
 }
 
 .genome-raw-table {

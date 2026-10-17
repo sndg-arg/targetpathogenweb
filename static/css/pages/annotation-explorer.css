@@ -99,7 +99,7 @@
 }
 
 .explorer-selection.is-active {
-    border-left-color: var(--tp-color-brand-600);
+    border-left-color: var(--tp-color-border-strong);
 }
 
 .explorer-selection-text {
@@ -243,7 +243,7 @@
 }
 
 .explorer-annotation-row.is-active .explorer-term {
-    background: var(--tp-color-brand-050);
+    background: var(--tp-color-brand-100);
     box-shadow: inset 3px 0 0 var(--tp-color-brand-600);
 }
 

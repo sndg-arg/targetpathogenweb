@@ -583,35 +583,6 @@
     gap: var(--tp-space-2);
 }
 
-.activity-error-chip {
-    display: inline-flex;
-    align-items: center;
-    border-radius: var(--tp-radius-pill);
-    padding: 2px var(--tp-space-2);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    border: 1px solid transparent;
-}
-
-.activity-error-chip--4xx {
-    background: var(--tp-color-warning-bg);
-    border-color: var(--tp-color-warning-border);
-    color: var(--tp-color-warning-ink);
-}
-
-.activity-error-chip--5xx {
-    background: var(--tp-color-danger-bg);
-    border-color: var(--tp-color-danger-border);
-    color: var(--tp-color-danger-ink);
-}
-
-.activity-error-chip--neutral {
-    background: var(--tp-color-surface-muted);
-    border-color: var(--tp-color-border-soft);
-    color: var(--tp-color-text-secondary);
-}
-
 @media (max-width: 640px) {
     .activity-error-path-row {
         grid-template-columns: 1fr;

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-system3">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -270,7 +270,7 @@
                         </dd>
                         {% elif item.tone == "good" or item.tone == "bad" %}
                         <dd class="target-profile-value">
-                            <span class="target-profile-risk-pill target-profile-risk-pill--{{ item.tone }}">
+                            <span class="tp-chip{% if item.tone == 'good' %} tp-chip--success{% elif item.tone == 'bad' %} tp-chip--warning{% endif %}">
                                 {% if item.tone == "good" %}
                                 {% include "components/icons/check.html" %}
                                 {% else %}
@@ -380,12 +380,12 @@
                     <div class="target-evidence-card" title="{% trans "Conservation across the strains analyzed for this species. A gene is flagged as core only when both Roary and CoreCruncher agree." %}">
                         <span class="target-evidence-label">{% trans "Core conservation" %}</span>
                         {% if conservation_profile.is_core %}
-                        <span class="target-evidence-core-badge">
+                        <span class="tp-chip tp-chip--success">
                             {% include "components/icons/check.html" %}
                             {% trans "Conserved core gene" %}
                         </span>
                         {% else %}
-                        <span class="target-evidence-accessory-badge" title="{% trans 'Not present in all analyzed genomes. Found only in a subset of strains — may be plasmid-borne, mobile element, or strain-specific acquisition.' %}">{% trans "Accessory gene" %}</span>
+                        <span class="tp-chip" title="{% trans 'Not present in all analyzed genomes. Found only in a subset of strains — may be plasmid-borne, mobile element, or strain-specific acquisition.' %}">{% trans "Accessory gene" %}</span>
                         {% endif %}
                         <div class="target-evidence-meta target-evidence-meta--top">
                             <div class="target-evidence-meta-row">
@@ -402,7 +402,7 @@
                     {% if gates_metabolic_priority %}
                     <div class="target-evidence-card" title="{% trans "Curated pan-genome metabolic model: how strongly this gene's ortholog mapping and its reaction are supported across the modeled Klebsiella strains. The curated replacement for the automatic BioCyc/Pathway Tools metrics below." %}">
                         <span class="target-evidence-label">{% trans "Metabolic priority" %} <span class="tp-chip">{% if gates_viewer %}{% trans "Gates pan-genome model" %}{% else %}{% trans "pan-genome model" %}{% endif %}</span></span>
-                        <span class="target-evidence-priority-badge target-evidence-priority-badge--{{ gates_metabolic_priority.tone }}">{{ gates_metabolic_priority.priority }}</span>
+                        <span class="tp-chip{% if gates_metabolic_priority.tone == 'success' %} tp-chip--success{% elif gates_metabolic_priority.tone == 'warning' %} tp-chip--warning{% endif %}">{{ gates_metabolic_priority.priority }}</span>
                         {% if gates_metabolic_priority.quadrant %}
                         <span class="target-evidence-subtext">{{ gates_metabolic_priority.quadrant }}</span>
                         {% endif %}
@@ -502,12 +502,12 @@
                         <div class="metabolic-score-card" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - inhibiting it is harder for the pathogen to route around, making it an attractive drug target." %}">
                             <span class="target-evidence-label">{% trans "Chokepoint" %}</span>
                             {% if metabolic_context.is_chokepoint %}
-                            <span class="target-evidence-core-badge">
+                            <span class="tp-chip tp-chip--success">
                                 {% include "components/icons/check.html" %}
                                 {% trans "Chokepoint gene" %}
                             </span>
                             {% else %}
-                            <span class="target-evidence-accessory-badge">{% trans "Not a chokepoint" %}</span>
+                            <span class="tp-chip">{% trans "Not a chokepoint" %}</span>
                             {% endif %}
                         </div>
                     </div>
@@ -604,7 +604,7 @@
                             <div class="annotation-panel annotation-panel--ec">
                                 <div class="annotation-panel-head">
                                     <h3>{% trans "Enzyme Commission (EC)" %}</h3>
-                                    <span class="annotation-panel-count">{{ ec_annotations|length }}</span>
+                                    <span class="tp-count">{{ ec_annotations|length }}</span>
                                 </div>
                                 <ul class="annotation-entries">
                                     {% for ec in ec_annotations %}
@@ -620,7 +620,7 @@
                             <div class="annotation-panel annotation-panel--go">
                                 <div class="annotation-panel-head">
                                     <h3>{% trans "Gene Ontology (GO)" %}</h3>
-                                    <span class="annotation-panel-count">{{ go_annotations|length }}</span>
+                                    <span class="tp-count">{{ go_annotations|length }}</span>
                                 </div>
                                 <ul class="annotation-entries">
                                     {% for go in go_annotations %}
@@ -774,7 +774,6 @@
                         <p class="table-hint">{% blocktrans with source=pocket_structure_label %}No pocket predictions are available for this {{ source }} structure yet.{% endblocktrans %}</p>
                     {% endif %}
                     <div class="structure-viewport-wrap">
-                        <div class="structure-viewport-glow" aria-hidden="true"></div>
                         <div id="viewport"></div>
                         <div id="viewport-overlay" class="viewport-overlay" title="{% trans 'Click to interact' %}"></div>
                         <p class="structure-loading-note" id="structure-loading-note">
@@ -1043,7 +1042,7 @@
                                 aria-selected="{% if binders.default_tab == 'pdb_direct' %}true{% else %}false{% endif %}"
                                 data-binders-tab="pdb_direct">
                             <span>{% trans "PDB co-crystal" %}</span>
-                            {% if binders.pdb_direct_count %}<span class="tp-tab-count">{{ binders.pdb_direct_count }}</span>{% endif %}
+                            {% if binders.pdb_direct_count %}<span class="tp-count">{{ binders.pdb_direct_count }}</span>{% endif %}
                         </button>
                         <button type="button"
                                 class="tp-tab binders-tab {% if binders.default_tab == 'pdb_homolog' %}is-active{% endif %}"
@@ -1051,7 +1050,7 @@
                                 aria-selected="{% if binders.default_tab == 'pdb_homolog' %}true{% else %}false{% endif %}"
                                 data-binders-tab="pdb_homolog">
                             <span>{% trans "PDB via homologs" %}</span>
-                            {% if binders.pdb_homolog_count %}<span class="tp-tab-count">{{ binders.pdb_homolog_count }}</span>{% endif %}
+                            {% if binders.pdb_homolog_count %}<span class="tp-count">{{ binders.pdb_homolog_count }}</span>{% endif %}
                         </button>
                         <button type="button"
                                 class="tp-tab binders-tab {% if binders.default_tab == 'chembl_direct' %}is-active{% endif %}"
@@ -1059,7 +1058,7 @@
                                 aria-selected="{% if binders.default_tab == 'chembl_direct' %}true{% else %}false{% endif %}"
                                 data-binders-tab="chembl_direct">
                             <span>{% trans "ChEMBL bioactive" %}</span>
-                            {% if binders.chembl_direct_count %}<span class="tp-tab-count">{{ binders.chembl_direct_count }}</span>{% endif %}
+                            {% if binders.chembl_direct_count %}<span class="tp-count">{{ binders.chembl_direct_count }}</span>{% endif %}
                         </button>
                         <button type="button"
                                 class="tp-tab binders-tab {% if binders.default_tab == 'chembl_homolog' %}is-active{% endif %}"
@@ -1067,7 +1066,7 @@
                                 aria-selected="{% if binders.default_tab == 'chembl_homolog' %}true{% else %}false{% endif %}"
                                 data-binders-tab="chembl_homolog">
                             <span>{% trans "ChEMBL via homologs" %}</span>
-                            {% if binders.chembl_homolog_count %}<span class="tp-tab-count">{{ binders.chembl_homolog_count }}{% if binders.chembl_homolog_capped %}+{% endif %}</span>{% endif %}
+                            {% if binders.chembl_homolog_count %}<span class="tp-count">{{ binders.chembl_homolog_count }}{% if binders.chembl_homolog_capped %}+{% endif %}</span>{% endif %}
                         </button>
                         <button type="button"
                                 class="tp-tab binders-tab {% if binders.default_tab == 'zinc' %}is-active{% endif %}"
@@ -1075,7 +1074,7 @@
                                 aria-selected="{% if binders.default_tab == 'zinc' %}true{% else %}false{% endif %}"
                                 data-binders-tab="zinc">
                             <span>{% trans "ZINC" %}</span>
-                            {% if binders.zinc_count %}<span class="tp-tab-count">{{ binders.zinc_count }}{% if binders.zinc_capped %}+{% endif %}</span>{% endif %}
+                            {% if binders.zinc_count %}<span class="tp-count">{{ binders.zinc_count }}{% if binders.zinc_capped %}+{% endif %}</span>{% endif %}
                         </button>
                     </div>
 
@@ -1200,8 +1199,8 @@
 {% block jsloaded %}
     {{ graphic_features|json_script:"seqfeatures" }}
 
-    <script src="{% static 'js/pages/protein-detail.js' %}?v=20260807-quicknav-fix"></script>
-    <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20261012-drugg-label"></script>
+    <script src="{% static 'js/pages/protein-detail.js' %}?v=20261017-system3"></script>
+    <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20261017-system3"></script>
     <script src="{% static 'js/pages/ngl-shape-registry.js' %}?v=20260720-shaperegistry1"></script>
     <script>
         function jsloaded() {
@@ -1714,8 +1713,8 @@
                         status.textContent = isActive
                             ? status.getAttribute("data-active-label")
                             : status.getAttribute("data-loaded-label");
-                        status.classList.toggle("experimental-status--active", isActive);
-                        status.classList.toggle("experimental-status--loaded", !isActive);
+                        status.classList.toggle("running", isActive);
+                        status.classList.toggle("finished", !isActive);
                     });
                     document.querySelectorAll("tr[data-pdb-slot]").forEach(function (row) {
                         row.classList.toggle(
@@ -2081,7 +2080,7 @@
             function applyFilters(bar) {
                 const panel = bar.closest('.binders-panel');
                 const rows = panel.querySelectorAll('.binder-tbl__row');
-                const activeChips = bar.querySelectorAll('.binder-filter-chip.is-active');
+                const activeChips = bar.querySelectorAll('.binder-filter-chip.filter-chip--active');
                 const filters = Array.from(activeChips).map(function (c) { return c.dataset.filter; });
                 let shown = 0;
                 rows.forEach(function (row) {
@@ -2121,14 +2120,14 @@
                 const clear = e.target.closest('.binder-filter-clear');
                 if (chip) {
                     e.stopPropagation();
-                    chip.classList.toggle('is-active');
+                    chip.classList.toggle('filter-chip--active');
                     applyFilters(chip.closest('.binder-filter-bar'));
                 }
                 if (clear) {
                     e.stopPropagation();
                     clear.closest('.binder-filter-bar')
-                        .querySelectorAll('.binder-filter-chip.is-active')
-                        .forEach(function (c) { c.classList.remove('is-active'); });
+                        .querySelectorAll('.binder-filter-chip.filter-chip--active')
+                        .forEach(function (c) { c.classList.remove('filter-chip--active'); });
                     applyFilters(clear.closest('.binder-filter-bar'));
                 }
             });

@@ -21,14 +21,6 @@
     overflow: hidden;
 }
 
-.auth-card::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-success-ink) 55%, var(--tp-color-brand-500) 100%);
-}
-
 .auth-header {
     text-align: center;
     padding-top: var(--tp-space-1);
@@ -215,7 +207,7 @@
 }
 
 .auth-card .form-group .form-control:focus {
-    border-color: var(--tp-color-brand-600);
+    border-color: var(--tp-focus-color);
     box-shadow: var(--tp-focus-outline);
 }
 

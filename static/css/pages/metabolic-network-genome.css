@@ -98,7 +98,7 @@
     gap: var(--tp-space-2);
     padding: var(--tp-space-2) var(--tp-space-4);
     border-bottom: 1px solid var(--tp-color-border-soft);
-    background: color-mix(in srgb, var(--tp-color-brand-500) 5%, var(--tp-color-surface));
+    background: var(--tp-color-surface-soft);
     font-size: var(--tp-font-size-xs);
 }
 
@@ -122,18 +122,6 @@
     position: relative;
     min-width: 0;
     border-right: 1px solid var(--tp-color-border-soft);
-}
-
-.metabolic-network-genome-glow {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background: radial-gradient(
-        ellipse at 50% 35%,
-        color-mix(in srgb, var(--tp-color-brand-500) 6%, transparent),
-        transparent 65%
-    );
 }
 
 #metabolic-network-genome-cy {

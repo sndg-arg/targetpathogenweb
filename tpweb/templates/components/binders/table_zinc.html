@@ -36,12 +36,12 @@
                     </td>
                     <td>
                         {% if binder.props.lipinski_class %}
-                            <span class="binder-quality binder-quality--{{ binder.props.lipinski_class }}">{{ binder.props.lipinski_label }}</span>
+                            <span class="tp-chip {% if binder.props.lipinski_class == 'ok' %}tp-chip--success{% elif binder.props.lipinski_class == 'check' %}tp-chip--warning{% else %}tp-chip--danger{% endif %}">{{ binder.props.lipinski_label }}</span>
                         {% else %}—{% endif %}
                     </td>
                     <td>
                         {% if binder.props %}
-                            <span class="binder-quality {% if binder.props.pains_alert %}binder-quality--alert{% else %}binder-quality--ok{% endif %}">{% if binder.props.pains_alert %}{{ binder.props.pains_label }}{% else %}✓ Clean{% endif %}</span>
+                            <span class="tp-chip {% if binder.props.pains_alert %}tp-chip--danger{% else %}tp-chip--success{% endif %}">{% if binder.props.pains_alert %}{{ binder.props.pains_label }}{% else %}✓ Clean{% endif %}</span>
                         {% else %}—{% endif %}
                     </td>
                     <td class="binder-tbl__smiles"

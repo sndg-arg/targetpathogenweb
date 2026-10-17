@@ -21,7 +21,7 @@
                         <div class="pocket-card-label">
                             <strong class="pocket-card-name" title="P2Rank #{{ p2.name }}">{% trans "Pocket" %} {{ p2.name }}</strong>
                         </div>
-                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob" title="{{ p2.score_label }}">{{ p2.probability }}{% if p2.score_band %} · {{ p2.score_band }}{% endif %}</span>
+                        <span class="tp-chip js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob" title="{{ p2.score_label }}">{{ p2.probability }}{% if p2.score_band %} · {{ p2.score_band }}{% endif %}</span>
                     </div>
                     {% if p2.consensus_label %}
                     <div class="pocket-consensus"
@@ -76,7 +76,7 @@
                             <strong class="pocket-card-name" title="FPocket #{{ p.name }}">{% trans "Pocket" %} {{ p.name }}</strong>
                         </div>
                         <div class="pocket-card-badges">
-                            <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}" title="{{ p.score_label }}">{{ p.druggability }}{% if p.score_band %} · {{ p.score_band }}{% endif %}</span>
+                            <span class="tp-chip js-score-tag" data-score="{{ p.druggability }}" title="{{ p.score_label }}">{{ p.druggability }}{% if p.score_band %} · {{ p.score_band }}{% endif %}</span>
                             {% if p.size_outlier %}
                                 <span class="tp-chip tp-chip--warning" title="{{ p.size_outlier_note }}">{% trans "Unusual size" %}</span>
                             {% else %}

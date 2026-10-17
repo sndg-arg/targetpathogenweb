@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261017-system3">
 {% endblock %}
 
 {% block body %}
@@ -507,7 +507,7 @@
                     html += '<p class="pipeline-info-overview-kicker">Evidence collected across the workflow</p>';
                     html += '<div class="pipeline-info-overview-tags">';
                     PIPELINE_LAYOUT.summary.forEach(function (item) {
-                        html += '<span class="pipeline-info-overview-tag">' + escapeHtml(item) + '</span>';
+                        html += '<span class="tp-chip">' + escapeHtml(item) + '</span>';
                     });
                     html += '</div>';
                     html += '</div>';

@@ -188,13 +188,13 @@
 }
 
 .genome-row:hover {
-    background: var(--tp-color-brand-050) !important;
+    background: var(--tp-color-surface-soft) !important;
     box-shadow: inset 3px 0 0 var(--tp-color-brand-300);
 }
 
 .genome-row:focus-visible {
     outline: none;
-    background: var(--tp-color-brand-050) !important;
+    background: var(--tp-color-surface-soft) !important;
     box-shadow: inset 3px 0 0 var(--tp-color-primary), var(--tp-focus-outline);
 }
 
@@ -225,10 +225,6 @@
     align-items: center;
     flex-wrap: wrap;
     gap: var(--tp-space-2);
-}
-
-.genomes-name-main .genome-processing-badge {
-    margin-left: 0;
 }
 
 .genome-curated-badge {
@@ -289,42 +285,6 @@
     margin: 0;
 }
 
-.genome-processing-badge {
-    display: inline-flex;
-    align-items: center;
-    margin-left: var(--tp-space-2);
-    border-radius: var(--tp-radius-pill);
-    border: 1px solid var(--tp-color-success-border);
-    background: var(--tp-color-success-bg);
-    color: var(--tp-color-success-ink);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    padding: 2px var(--tp-space-2);
-    vertical-align: middle;
-}
-
-.genome-status-badge {
-    display: inline-flex;
-    align-items: center;
-    border-radius: var(--tp-radius-pill);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    padding: 2px var(--tp-space-2);
-    vertical-align: middle;
-}
-
-.genome-status-badge--failed {
-    border: 1px solid var(--tp-color-danger-border);
-    background: var(--tp-color-danger-bg);
-    color: var(--tp-color-danger-ink);
-}
-
-.genome-status-badge--incomplete {
-    border: 1px solid var(--tp-color-warning-border);
-    background: var(--tp-color-warning-bg);
-    color: var(--tp-color-warning-ink);
-}
-
 .genome-status-note {
     margin: var(--tp-space-2) 0 0;
     font-size: var(--tp-font-size-sm);
@@ -362,21 +322,6 @@
     display: grid;
     gap: var(--tp-space-2);
     max-width: 620px;
-}
-
-.genome-workspace-empty-kicker {
-    display: inline-flex;
-    align-items: center;
-    width: fit-content;
-    padding: var(--tp-space-1) var(--tp-space-3);
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-radius-pill);
-    color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
 }
 
 .genome-workspace-empty-copy h2 {

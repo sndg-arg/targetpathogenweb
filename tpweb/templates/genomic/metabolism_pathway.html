@@ -3,9 +3,9 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system2">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261017-system2">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system3">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261017-system3">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261017-system3">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -93,7 +93,6 @@
                 </div>
             </div>
             <div class="metabolic-network-genome-canvas-wrap">
-                <div class="metabolic-network-genome-glow" aria-hidden="true"></div>
                 <div id="metabolic-pathway-graph-cy"></div>
                 <div class="metabolic-network-genome-loading" id="metabolic-pathway-graph-loading">
                     <span class="metabolic-network-genome-spinner" aria-hidden="true"></span>
@@ -151,26 +150,26 @@
                         </p>
                     </div>
                     {% if reaction.is_chokepoint %}
-                    <span class="target-evidence-accessory-badge">{{ reaction.chokepoint_role }}</span>
+                    <span class="tp-chip">{{ reaction.chokepoint_role }}</span>
                     {% endif %}
                 </div>
                 <div class="pathway-reaction-equation">
                     <div>
                         {% for item in reaction.substrates %}
-                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{% trans 'Substrate metabolite' %}: {{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
+                        <span class="tp-chip{% if item.is_currency %} tp-chip--muted{% endif %}" title="{% trans 'Substrate metabolite' %}: {{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
                         {% empty %}
                         <span class="annotation-empty">-</span>
                         {% endfor %}
-                        {% if reaction.substrate_hidden %}<span class="metabolite-chip is-currency" title="{{ reaction.substrate_hidden }} additional substrate{{ reaction.substrate_hidden|pluralize }}"><span class="metabolite-chip-label">+{{ reaction.substrate_hidden }}</span></span>{% endif %}
+                        {% if reaction.substrate_hidden %}<span class="tp-chip tp-chip--muted" title="{{ reaction.substrate_hidden }} additional substrate{{ reaction.substrate_hidden|pluralize }}"><span class="metabolite-chip-label">+{{ reaction.substrate_hidden }}</span></span>{% endif %}
                     </div>
                     <span class="metabolite-arrow{% if reaction.reversible %} metabolite-arrow--reversible{% endif %}" title="{% if reaction.reversible %}{% trans "Reversible reaction" %}{% else %}{% trans "Not reversible" %}{% endif %}">{% if reaction.reversible %}&#8652;{% else %}&rarr;{% endif %}</span>
                     <div>
                         {% for item in reaction.products %}
-                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{% trans 'Product metabolite' %}: {{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
+                        <span class="tp-chip{% if item.is_currency %} tp-chip--muted{% endif %}" title="{% trans 'Product metabolite' %}: {{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
                         {% empty %}
                         <span class="annotation-empty">-</span>
                         {% endfor %}
-                        {% if reaction.product_hidden %}<span class="metabolite-chip is-currency" title="{{ reaction.product_hidden }} additional product{{ reaction.product_hidden|pluralize }}"><span class="metabolite-chip-label">+{{ reaction.product_hidden }}</span></span>{% endif %}
+                        {% if reaction.product_hidden %}<span class="tp-chip tp-chip--muted" title="{{ reaction.product_hidden }} additional product{{ reaction.product_hidden|pluralize }}"><span class="metabolite-chip-label">+{{ reaction.product_hidden }}</span></span>{% endif %}
                     </div>
                 </div>
                 <div class="pathway-reaction-genes">

@@ -393,9 +393,9 @@
         }
         container.innerHTML = rows.map(function (row) {
             var chips = row.codes.map(function (c) {
-                var variant = c.code >= 500 ? "activity-error-chip--5xx" : "activity-error-chip--4xx";
+                var variant = c.code >= 500 ? "tp-chip--danger" : "tp-chip--warning";
                 return (
-                    '<span class="activity-error-chip ' + variant + '">' +
+                    '<span class="tp-chip ' + variant + '">' +
                     c.code + " × " + numberFormat.format(c.count) +
                     "</span>"
                 );

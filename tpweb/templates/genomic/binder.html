@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261017-system3">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -246,7 +246,7 @@
                         <div class="druglike-block">
                             <div class="druglike-head">
                                 <span class="druglike-title">{% trans "Permeability proxy" %}</span>
-                                <span class="druglike-badge {% if properties.permeability_ok %}is-pass{% else %}is-warn{% endif %}">
+                                <span class="tp-chip {% if properties.permeability_ok %}tp-chip--success{% else %}tp-chip--warning{% endif %}">
                                     {{ properties.permeability_label }}
                                 </span>
                             </div>
@@ -267,9 +267,9 @@
                         <div class="druglike-block">
                             <div class="druglike-head">
                                 <span class="druglike-title">Lipinski's Rule of Five</span>
-                                <span class="druglike-badge {% if properties.lipinski_pass %}is-pass{% else %}is-fail{% endif %}">
+                                <span class="tp-chip {% if properties.lipinski_pass %}tp-chip--success{% else %}tp-chip--danger{% endif %}">
                                     {% if properties.lipinski_pass %}{% trans "Pass" %}{% else %}{% trans "Fail" %}{% endif %}
-                                    <span class="druglike-badge-count">{{ properties.lipinski_violations }} {% trans "violation" %}{{ properties.lipinski_violations|pluralize }}</span>
+                                    <span class="tp-count">{{ properties.lipinski_violations }} {% trans "violation" %}{{ properties.lipinski_violations|pluralize }}</span>
                                 </span>
                             </div>
                             <ul class="druglike-checks">
@@ -402,7 +402,7 @@
                     <ul class="binder-links">
                         {% for link in external_links %}
                             <li>
-                                <span class="binder-link-category">{{ link.category }}</span>
+                                <span class="tp-chip">{{ link.category }}</span>
                                 <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }} →</a>
                             </li>
                         {% endfor %}
@@ -421,7 +421,7 @@
                     <div class="siblings-grid">
                         {% if siblings.pdb %}
                             <div class="siblings-group">
-                                <h3 class="siblings-group-title">PDB <span class="siblings-group-count">{{ siblings.pdb_total }}</span></h3>
+                                <h3 class="siblings-group-title">PDB <span class="tp-count">{{ siblings.pdb_total }}</span></h3>
                                 <p class="siblings-group-desc">{% trans "Ligands co-crystallized with this protein (structural evidence)." %}</p>
                                 <div class="siblings-col-head">
                                     <span>{% trans "Ligand" %}</span>
@@ -436,7 +436,7 @@
                         {% endif %}
                         {% if siblings.chembl %}
                             <div class="siblings-group">
-                                <h3 class="siblings-group-title">ChEMBL <span class="siblings-group-count">{{ siblings.chembl_total }}</span></h3>
+                                <h3 class="siblings-group-title">ChEMBL <span class="tp-count">{{ siblings.chembl_total }}</span></h3>
                                 <p class="siblings-group-desc">{% trans "Compounds with measured inhibitory activity on this target (higher pchembl = more potent)." %}</p>
                                 <div class="siblings-col-head">
                                     <span>{% trans "Compound" %}</span>
@@ -451,7 +451,7 @@
                         {% endif %}
                         {% if siblings.proposed %}
                             <div class="siblings-group">
-                                <h3 class="siblings-group-title">ZINC <span class="siblings-group-count">{{ siblings.proposed_total }}</span></h3>
+                                <h3 class="siblings-group-title">ZINC <span class="tp-count">{{ siblings.proposed_total }}</span></h3>
                                 <p class="siblings-group-desc">{% trans "Virtual screening candidates selected by structural similarity to known actives (Tanimoto ≥ 0.5)." %}</p>
                                 <div class="siblings-col-head">
                                     <span>{% trans "Compound" %}</span>

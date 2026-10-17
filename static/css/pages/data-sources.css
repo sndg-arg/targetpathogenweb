@@ -171,44 +171,6 @@
     color: var(--tp-color-text-muted);
 }
 
-/* Personal links (LinkedIn/ORCID/CONICET) -- solid now that they're real
-   URLs. .ds-partner-tile below is still a placeholder (no real logos yet),
-   so it keeps the dashed "not final" treatment on its own. */
-.ds-pipeline-card-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2);
-    /* Pins to the bottom of the card regardless of how much text sits above
-       it -- without this, a shorter bio (Ana, no "previous degree" block)
-       left the pills floating right under the role line while taller cards
-       in the same grid row pushed theirs down near the bottom edge, so the
-       row read as unevenly aligned. */
-    margin-top: auto;
-    padding-top: var(--tp-space-2);
-    border-top: 1px solid var(--tp-color-border-soft);
-}
-
-.ds-pipeline-card-link {
-    padding: 3px var(--tp-space-3);
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-radius-pill);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
-    color: var(--tp-color-text-muted);
-    text-decoration: none;
-    transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.ds-pipeline-card-link:hover,
-.ds-pipeline-card-link:focus-visible {
-    color: var(--tp-color-link-hover);
-    border-color: var(--tp-color-border-strong);
-    background: var(--tp-color-surface-soft);
-    outline: none;
-}
-
 /* ── Partner/logo tiles ── */
 .ds-partner-grid {
     display: grid;
@@ -252,8 +214,8 @@
     font-size: var(--tp-font-size-2xs);
     font-weight: 600;
     color: var(--tp-color-brand-800);
-    background: var(--tp-color-brand-050);
-    border: 1px solid var(--tp-color-brand-200);
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-xs);
     padding: 2px var(--tp-space-2);
     white-space: nowrap;
@@ -634,8 +596,8 @@
     font-size: var(--tp-font-size-xs);
     font-weight: 600;
     color: var(--tp-color-brand-800);
-    background: var(--tp-color-brand-050);
-    border: 1px solid var(--tp-color-brand-200);
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-xs);
     padding: 2px var(--tp-space-2);
     flex-shrink: 0;

@@ -12,15 +12,15 @@
     }
 
     function classifyScore(score, scoreType) {
-        if (Number.isNaN(score)) return "medium";
+        if (Number.isNaN(score)) return "tp-chip--warning";
         if (scoreType === "p2rank-prob") {
-            if (score >= 0.5) return "high";
-            if (score >= 0.2) return "medium";
-            return "low";
+            if (score >= 0.5) return "tp-chip--success";
+            if (score >= 0.2) return "tp-chip--warning";
+            return "tp-chip--danger";
         }
-        if (score >= 0.7) return "high";
-        if (score >= 0.4) return "medium";
-        return "low";
+        if (score >= 0.7) return "tp-chip--success";
+        if (score >= 0.4) return "tp-chip--warning";
+        return "tp-chip--danger";
     }
 
     function parseResidues(rawResidues) {
@@ -191,7 +191,7 @@
             var score = parseScore(tag.getAttribute("data-score") || tag.textContent);
             var scoreType = tag.getAttribute("data-score-type") || "";
             var statusClass = classifyScore(score, scoreType);
-            tag.classList.remove("high", "medium", "low");
+            tag.classList.remove("tp-chip--success", "tp-chip--warning", "tp-chip--danger");
             tag.classList.add(statusClass);
         });
     }

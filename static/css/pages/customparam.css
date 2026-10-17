@@ -249,7 +249,7 @@
     height: 30px;
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-info-bg);
-    border: 1px solid var(--tp-color-brand-300);
+    border: 1px solid var(--tp-color-border);
     color: var(--tp-color-brand-900);
     font-weight: 600;
     font-size: var(--tp-font-size-sm);

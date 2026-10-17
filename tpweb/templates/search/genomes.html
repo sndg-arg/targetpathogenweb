@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261017-system3">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -143,11 +143,11 @@
                                             <div class="genomes-name-main">
                                                 <a href="{% url 'tpwebapp:assembly' genome.slug %}">{{ genome.name }}</a>
                                                 {% if pipeline_status.running and pipeline_status.genome_accession == genome.internal_name %}
-                                                    <span class="genome-processing-badge">{% trans "In progress" %}</span>
+                                                    <span class="tp-chip tp-chip--state running">{% trans "In progress" %}</span>
                                                 {% elif genome.failed_for_current_genome %}
-                                                    <span class="genome-status-badge genome-status-badge--failed">{% trans "Failed" %}</span>
+                                                    <span class="tp-chip tp-chip--state failed">{% trans "Failed" %}</span>
                                                 {% elif genome.incomplete_for_current_genome %}
-                                                    <span class="genome-status-badge genome-status-badge--incomplete">{% trans "Incomplete" %}</span>
+                                                    <span class="tp-chip tp-chip--warning">{% trans "Incomplete" %}</span>
                                                 {% endif %}
                                             </div>
                                             {% if genome.has_curated_data %}
@@ -202,7 +202,7 @@
                     <p class="tp-state-note tp-state-note--empty mb-0">{% trans "No genomes match the current search." %}</p>
                 {% else %}
                     <div class="genome-workspace-empty-copy">
-                        <span class="genome-workspace-empty-kicker">{% trans "Genome collection" %}</span>
+                        <span class="tp-view-eyebrow">{% trans "Genome collection" %}</span>
                         <h2>{% trans "No genomes yet" %}</h2>
                         <p>{% trans "Upload a compressed GenBank file to create the first genome overview for this account." %}</p>
                     </div>
