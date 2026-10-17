@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261017-modal">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block body %}
@@ -330,7 +330,7 @@
             <section class="viewer-settings-section">
                 <div class="viewer-settings-section-head">
                     <h4 class="viewer-settings-section-title">{% trans "Colors" %}</h4>
-                    <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm" id="viewer-settings-reset-btn">
+                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm" id="viewer-settings-reset-btn">
                         {% trans "Reset to defaults" %}
                     </button>
                 </div>
@@ -453,9 +453,9 @@ function jsloaded() {
     // outside the token system.
     var PRESET_TOKENS = [
         "--tp-color-brand-700", "--tp-color-brand-500",
-        "--tp-color-rose-700", "--tp-color-rose-500",
-        "--tp-color-sage-700", "--tp-color-sage-500",
-        "--tp-color-amber-700", "--tp-color-amber-500"
+        "--tp-color-danger-ink", "--tp-color-structure-hetero",
+        "--tp-color-success-ink", "--tp-color-structure-cartoon",
+        "--tp-color-warning-ink", "--tp-color-structure-p2-apolar"
     ];
 
     function readSavedColors() {
@@ -1452,7 +1452,7 @@ function jsloaded() {
             try {
                 representations.__ligand_focus = component.addRepresentation("ball+stick", {
                     sele: ligandSele,
-                    color: tpColor("--tp-color-rose-500", "#cf628c"),
+                    color: tpColor("--tp-color-structure-hetero", "#cf628c"),
                     multipleBond: true
                 });
                 visible.__ligand_focus = true;

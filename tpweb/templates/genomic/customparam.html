@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20261014-settings-link">
+    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -27,19 +27,19 @@
 
 {% block body %}
     <div class="customparam-page">
-        <section class="customparam-hero">
+        <section class="tp-page-hero customparam-hero">
             <span class="tp-view-eyebrow customparam-eyebrow">{% trans "Protein data · Per-genome import" %}</span>
             <h1 class="tp-view-title">{% trans "Add my own data" %}</h1>
             <p class="tp-view-lead customparam-subtitle">{% trans "Import a tab-separated file with per-protein values — experimental, computational, or literature-derived — and use it as an additional signal in scoring and filtering." %}</p>
 
             <div class="customparam-chip-group tp-chip-group">
-                <span class="tp-chip tp-chip--meta tp-chip--sm">
+                <span class="tp-chip">
                     <strong>{% trans "Genome" %}:</strong>
                     <span class="customparam-chip-id">{{ assembly_label|default:assembly_name }}</span>
                 </span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Format" %}:</strong> TSV / CSV</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Columns" %}:</strong> {% trans "gene, then one column per value" %}</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Value type" %}:</strong> {% trans "numeric or categorical" %}</span>
+                <span class="tp-chip"><strong>{% trans "Format" %}:</strong> TSV / CSV</span>
+                <span class="tp-chip"><strong>{% trans "Columns" %}:</strong> {% trans "gene, then one column per value" %}</span>
+                <span class="tp-chip"><strong>{% trans "Value type" %}:</strong> {% trans "numeric or categorical" %}</span>
             </div>
         </section>
 

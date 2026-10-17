@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261016-contrast">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -24,7 +24,7 @@
 {% block body %}
 
     <div class="proteins-page">
-        <section class="proteins-hero">
+        <section class="tp-page-hero proteins-hero">
             <div class="hero-top tp-view-head">
                 <div class="tp-view-head-copy">
                     <h1 class="tp-view-title">{% trans "Proteins" %}</h1>
@@ -32,17 +32,17 @@
                     {% if biodb_description and biodb_description != biodb_accession %}
                         <p class="hero-context-note"><strong>{% trans "Description" %}:</strong> {{ biodb_description }}</p>
                     {% endif %}
-                    <p class="hero-subtitle">{% trans "Search, filter, and prioritize proteins." %}</p>
+                    <p class="tp-view-lead hero-subtitle">{% trans "Search, filter, and prioritize proteins." %}</p>
                 </div>
                 <div class="tp-view-head-actions">
                     {# Same filtered/sorted/scored view, two formats: Excel (every row + #}
                     {# a Data sources sheet) or a printable report with sources and references. #}
-                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link"
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon tp-view-export-link"
                        title="{% trans 'Excel workbook: current view, every protein, data sources and references' %}">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
                         {% trans "Excel" %}
                     </a>
-                    <a href="{{ report_url }}" target="_blank" rel="noopener" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link"
+                    <a href="{{ report_url }}" target="_blank" rel="noopener" class="btn tp-btn tp-btn--secondary tp-btn-with-icon tp-view-export-link"
                        title="{% trans 'Printable report with data sources and references — save it as PDF from the print dialog' %}">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span>
                         {% trans "Report (PDF)" %}
@@ -52,17 +52,17 @@
             <div class="hero-chips tp-chip-group">
                 {# The match count already sits right above the table; the hero only says how #}
                 {# the table is ordered. Filters/search are listed in the Active criteria tray. #}
-                <span class="tp-chip tp-chip--meta">{% trans "Sorted by" %}: {{ sorted_by_label }}</span>
+                <span class="tp-chip">{% trans "Sorted by" %}: {{ sorted_by_label }}</span>
                 {% if formula %}
-                    <span class="tp-chip tp-chip--meta">{% trans "Scoring" %}: {{ formula.name }}</span>
+                    <span class="tp-chip">{% trans "Scoring" %}: {{ formula.name }}</span>
                 {% endif %}
                 {% if structure_source %}
-                    <span class="tp-chip tp-chip--meta">{% trans "Structure" %}: {{ structure_source|humanize_identifier }}</span>
+                    <span class="tp-chip">{% trans "Structure" %}: {{ structure_source|humanize_identifier }}</span>
                 {% endif %}
             </div>
             {% if pipeline_status.available and pipeline_status.running_for_current_genome %}
                 <div class="hero-pipeline-group">
-                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
+                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state" %}
                 </div>
             {% endif %}
             {% if pipeline_status.available and pipeline_status.current_genome_status_note %}
@@ -215,7 +215,7 @@
                                                     <input type="hidden" name="preset_name" value="">
                                                     <input type="hidden" name="return_query" value="{{ query_string }}">
                                                     <button type="button"
-                                                            class="btn tp-btn tp-btn--clear tpd-rename-btn"
+                                                            class="btn tp-btn tp-btn--secondary tpd-rename-btn"
                                                             data-preset-rename
                                                             data-current-name="{{ preset.name }}"
                                                             data-prompt="{% trans 'New name for this preset:' %}"
@@ -231,11 +231,11 @@
                                                     <input type="hidden" name="preset_id" value="{{ preset.id }}">
                                                     <input type="hidden" name="return_query" value="{{ query_string }}">
                                                     {% if user.is_authenticated %}
-                                                    <button type="submit" class="btn tp-btn tp-btn--clear tpd-delete-btn" title="{% trans 'Delete preset' %}" aria-label="{% trans 'Delete preset' %}">
+                                                    <button type="submit" class="btn tp-btn tp-btn--secondary tpd-delete-btn" title="{% trans 'Delete preset' %}" aria-label="{% trans 'Delete preset' %}">
                                                         {% include "components/icons/trash.html" %}
                                                     </button>
                                                     {% else %}
-                                                    <button type="submit" class="btn tp-btn tp-btn--clear tpd-delete-btn" title="{% trans 'Sign in to delete this preset.' %}" aria-label="{% trans 'Delete preset' %}" disabled>
+                                                    <button type="submit" class="btn tp-btn tp-btn--secondary tpd-delete-btn" title="{% trans 'Sign in to delete this preset.' %}" aria-label="{% trans 'Delete preset' %}" disabled>
                                                         {% include "components/icons/trash.html" %}
                                                     </button>
                                                     {% endif %}
@@ -244,7 +244,7 @@
                                             {% endfor %}
                                         </ul>
                                         <div class="tpd-foot">
-                                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon tpd-open-drawer-btn" id="tpd-open-drawer-btn">
+                                            <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon tpd-open-drawer-btn" id="tpd-open-drawer-btn">
                                                 <span>{% trans "Save a new preset in Filters" %}</span>
                                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                                             </button>
@@ -252,7 +252,7 @@
                                     </div>
                                 </div>
                                 {% else %}
-                                <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn" title="{% trans 'Narrow the table by evidence: off-target, essentiality, pockets, function, ligands.' %}">
+                                <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn" title="{% trans 'Narrow the table by evidence: off-target, essentiality, pockets, function, ligands.' %}">
                                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
                                     <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
                                     <span class="toolbar-action-btn__meta">
@@ -267,7 +267,7 @@
                                 {# Always shown: the drawer also hosts "No scoring" and the #}
                                 {# "Make my own score" / "Add my own data" entry points, so #}
                                 {# hiding it for users with no formulas yet left them no way in. #}
-                                <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary{% if not formula_active %} toolbar-action-btn--cta{% endif %}" id="open-formula-btn">
+                                <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary{% if not formula_active %} toolbar-action-btn--cta{% endif %}" id="open-formula-btn">
                                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/calculator.html" %}</span>
                                     <span class="toolbar-action-btn__title">{% trans "Scoring" %}</span>
                                     <span class="toolbar-action-btn__meta">
@@ -276,7 +276,7 @@
                                 </button>
                             </div>
                             <div class="toolbar-workbench__group toolbar-workbench__group--secondary" aria-label="{% trans 'Table display' %}">
-                                <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--secondary" id="open-columns-btn">
+                                <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon toolbar-action-btn toolbar-action-btn--secondary" id="open-columns-btn">
                                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/columns.html" %}</span>
                                     <span class="toolbar-action-btn__title">{% trans "Columns" %}</span>
                                     <span class="toolbar-action-btn__meta">{% blocktrans count total=selected_column_count %}{{ total }} visible{% plural %}{{ total }} visible{% endblocktrans %}</span>
@@ -292,7 +292,7 @@
         <section class="filter-tray" role="region" aria-label="{% trans 'Active criteria' %}">
             <div class="filter-tray-head">
                 <span class="filter-tray-label">{% trans "Active criteria" %}</span>
-                <span class="filter-tray-count tp-chip tp-chip--count tp-chip--sm">{{ selection_criteria_count }}</span>
+                <span class="filter-tray-count tp-chip">{{ selection_criteria_count }}</span>
             </div>
             <div class="filter-tray-pills">
                 {% if structure_filter %}
@@ -320,7 +320,7 @@
                 {% endfor %}
             </div>
             <div class="filter-tray-actions">
-                <button type="button" id="copy-share-link-btn" class="btn tp-btn tp-btn--outline tp-btn-with-icon filter-tray-share-btn"
+                <button type="button" id="copy-share-link-btn" class="btn tp-btn tp-btn--secondary tp-btn-with-icon filter-tray-share-btn"
                         data-share-url="{{ share_url }}"
                         data-default-label="{% trans 'Copy link' %}"
                         data-copied-label="{% trans 'Copied' %}"
@@ -332,7 +332,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="reset_filters">
                     <input type="hidden" name="return_query" value="{{ query_string }}">
-                    <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon filter-tray-clear-btn">
+                    <button type="submit" class="btn tp-btn tp-btn--danger tp-btn-with-icon filter-tray-clear-btn">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
                         <span>{% trans "Clear all" %}</span>
                     </button>
@@ -361,14 +361,14 @@
                             {% csrf_token %}
                             <input type="hidden" name="action" value="reset_filters">
                             <input type="hidden" name="return_query" value="{{ query_string }}">
-                            <button type="submit" class="btn tp-btn tp-btn--outline tp-btn-with-icon">
+                            <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn-with-icon">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
                                 <span>{% trans "Clear all filters" %}</span>
                             </button>
                         </form>
                         {% endif %}
                         {% if search_query %}
-                        <a href="{{ clear_search_url }}" class="btn tp-btn tp-btn--outline tp-btn-with-icon">
+                        <a href="{{ clear_search_url }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
                             <span>{% trans "Clear search" %}</span>
                         </a>
@@ -432,16 +432,16 @@
                                 <td class="gene-col">{{ protein.genes|join:', ' }}</td>
                                 <td data-col="structure-source">
                                     {% if protein.has_structure %}
-                                        <span class="tp-chip tp-chip--meta tp-chip--sm">{{ protein.structure_source_label }}</span>
+                                        <span class="tp-chip">{{ protein.structure_source_label }}</span>
                                     {% else %}
-                                        <span class="tp-chip tp-chip--warning tp-chip--sm structure-unavailable">{{ protein.structure_source_label }}<span class="cell-tooltip" role="tooltip">{% trans "No 3D model loaded (no PDB entry, AlphaFold DB model or ColabFold prediction)." %}</span></span>
+                                        <span class="tp-chip tp-chip--warning structure-unavailable">{{ protein.structure_source_label }}<span class="cell-tooltip" role="tooltip">{% trans "No 3D model loaded (no PDB entry, AlphaFold DB model or ColabFold prediction)." %}</span></span>
                                     {% endif %}
                                 </td>
                                 <td data-col="ec">
                                     {% if protein.ec_badges %}
                                         <div class="annotation-cell">
                                             {% for ec in protein.ec_badges %}
-                                                <a href="{% url 'tpwebapp:protein_list' genome=genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="tp-chip tp-chip--ec tp-chip--sm annotation-chip-tip">{{ ec.accession }}{% if ec.name %}<span class="cell-tooltip" role="tooltip">{{ ec.name }}</span>{% endif %}</a>
+                                                <a href="{% url 'tpwebapp:protein_list' genome=genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="tp-chip tp-chip--code annotation-chip-tip">{{ ec.accession }}{% if ec.name %}<span class="cell-tooltip" role="tooltip">{{ ec.name }}</span>{% endif %}</a>
                                             {% endfor %}
                                             {% if protein.ec_remaining %}
                                                 <span class="annotation-more annotation-chip-tip">+{{ protein.ec_remaining }}<span class="cell-tooltip" role="tooltip">{{ protein.ec_total }} {% trans "total" %}</span></span>
@@ -455,7 +455,7 @@
                                     {% if protein.go_badges %}
                                         <div class="annotation-cell">
                                             {% for go in protein.go_badges %}
-                                                <a href="{% url 'tpwebapp:protein_list' genome=genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="tp-chip tp-chip--go tp-chip--sm annotation-chip-tip">{{ go.accession }}{% if go.name %}<span class="cell-tooltip" role="tooltip">{{ go.name }}</span>{% endif %}</a>
+                                                <a href="{% url 'tpwebapp:protein_list' genome=genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="tp-chip tp-chip--code annotation-chip-tip">{{ go.accession }}{% if go.name %}<span class="cell-tooltip" role="tooltip">{{ go.name }}</span>{% endif %}</a>
                                             {% endfor %}
                                             {% if protein.go_remaining %}
                                                 <span class="annotation-more annotation-chip-tip">+{{ protein.go_remaining }}<span class="cell-tooltip" role="tooltip">{{ protein.go_total }} {% trans "total" %}</span></span>
@@ -469,7 +469,7 @@
                                 <td data-col="metabolism">
                                     {% if protein.has_metabolic_context %}
                                         <a href="{% url 'tpwebapp:protein' protein.id %}#section-metabolic-context"
-                                           class="tp-chip tp-chip--sm protein-metabolism-chip{% if protein.has_metabolic_chokepoint %} protein-metabolism-chip--chokepoint{% else %} protein-metabolism-chip--mapped{% endif %}"
+                                           class="tp-chip protein-metabolism-chip{% if protein.has_metabolic_chokepoint %} protein-metabolism-chip--chokepoint{% else %} protein-metabolism-chip--mapped{% endif %}"
                                            title="{{ protein.metabolism_text }}">
                                             {% if protein.has_metabolic_chokepoint %}
                                                 <span class="metric-value-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>{% trans "Chokepoint" %}
@@ -498,7 +498,7 @@
                                                     {# No score is not a score of zero. #}
                                                     <span class="metric-na" title="{% trans 'Not computed for this protein.' %}">—</span>
                                                 {% elif score_val %}
-                                                    <span class="tp-chip tp-chip--score">{{ score_val|floatformat:2 }}</span>
+                                                    <span class="tp-chip tp-chip--code">{{ score_val|floatformat:2 }}</span>
                                                 {% else %}
                                                     <span class="metric-zero">
                                                         <span class="metric-zero-value">0.00</span>
@@ -508,7 +508,7 @@
                                         {% elif col == "Druggability" %}
                                             {% with val=tdata|dictkey:protein.id|dictkey:col %}
                                                 {% if val and val != "-" %}
-                                                    <span class="tp-chip tp-chip--score tp-chip--drugg-{{ val|druggability_tone }} druggability-tip" data-score="{{ val }}">
+                                                    <span class="tp-chip tp-chip--code {% with tone=val|druggability_tone %}{% if tone == "high" %}tp-chip--success{% elif tone == "mid" %}tp-chip--warning{% elif tone == "low" %}tp-chip--danger{% endif %}{% endwith %} druggability-tip" data-score="{{ val }}">
                                                         {{ val|druggability_display }}
                                                     </span>
                                                 {% else %}
@@ -634,7 +634,7 @@
     <aside class="filters-drawer" id="filters-drawer" aria-hidden="true">
         <div class="drawer-head">
             <h2>{% trans "Filters" %}</h2>
-            <button type="button" class="btn tp-btn tp-btn--neutral drawer-expand-btn" id="filters-drawer-expand"
+            <button type="button" class="btn tp-btn tp-btn--secondary drawer-expand-btn" id="filters-drawer-expand"
                     aria-pressed="false"
                     data-label-expand="{% trans 'Expand to a wider panel' %}"
                     data-label-collapse="{% trans 'Back to the side panel' %}"
@@ -642,7 +642,7 @@
                     aria-label="{% trans 'Expand to a wider panel' %}">
                 {% include "components/icons/maximize.html" %}
             </button>
-            <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-filters-btn" aria-label="{% trans 'Close' %}">
+            <button class="btn tp-btn tp-btn--ghost drawer-close-btn" type="button" id="close-filters-btn" aria-label="{% trans 'Close' %}">
                 <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
             </button>
         </div>
@@ -697,7 +697,7 @@
                 <span class="drawer-catalogue-count">
                     {% blocktrans count total=filter_groups_total_options with groups=filter_groups|length %}{{ total }} criterion across {{ groups }} categories{% plural %}{{ total }} criteria across {{ groups }} categories{% endblocktrans %}
                 </span>
-                <button type="button" class="btn tp-btn tp-btn--clear tp-btn-with-icon drawer-catalogue-toggle" id="filter-expand-all" data-expand-all="false">
+                <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon drawer-catalogue-toggle" id="filter-expand-all" data-expand-all="false">
                     <span data-expand-all-label>{% trans "Expand all" %}</span>
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
                 </button>
@@ -1018,7 +1018,7 @@
                         <input type="hidden" name="pending_annotation_kind" value="{% if annotation_filter %}{{ annotation_filter.kind }}{% endif %}">
                         <input type="hidden" name="pending_annotation_value" value="{% if annotation_filter %}{{ annotation_filter.value }}{% endif %}">
                         <input type="text" name="preset_name" class="filter-preset-name-input" placeholder="{% trans 'Name this selection…' %}" autocomplete="off" required{% if not user.is_authenticated %} disabled{% endif %}>
-                        <button type="submit" class="btn tp-btn tp-btn--neutral tp-btn-with-icon filter-preset-save-btn"{% if not user.is_authenticated %} disabled{% endif %}>
+                        <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn-with-icon filter-preset-save-btn"{% if not user.is_authenticated %} disabled{% endif %}>
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/save.html" %}</span>
                             <span>{% trans "Save" %}</span>
                         </button>
@@ -1042,9 +1042,9 @@
                     <input type="hidden" name="return_query" value="{{ query_string }}">
                     {% trans "Clear all criteria" as clear_filters_label %}
                     {% if parameters or annotation_filter or structure_filter %}
-                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
+                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--danger tp-btn-with-icon drawer-clear-btn" %}
                     {% else %}
-                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
+                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--danger tp-btn-with-icon drawer-clear-btn" %}
                     {% endif %}
                 </form>
                 <form method="POST" action="" id="filters-apply-form" class="filters-apply-form">
@@ -1068,7 +1068,7 @@
     <aside class="filters-drawer columns-drawer" id="columns-modal" aria-hidden="true" aria-label="{% trans 'Columns' %}">
         <div class="drawer-head">
             <h2>{% trans "Columns" %}</h2>
-            <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-columns-btn" aria-label="{% trans 'Close' %}">
+            <button class="btn tp-btn tp-btn--ghost drawer-close-btn" type="button" id="close-columns-btn" aria-label="{% trans 'Close' %}">
                 <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
             </button>
         </div>
@@ -1077,7 +1077,7 @@
                 <span class="columns-fixed-note__label">{% trans "Always shown" %}</span>
                 <div class="columns-fixed-note__chips">
                     {% for label in fixed_column_labels %}
-                        <span class="tp-chip tp-chip--meta tp-chip--sm columns-fixed-chip">{{ label }}</span>
+                        <span class="tp-chip columns-fixed-chip">{{ label }}</span>
                     {% endfor %}
                 </div>
             </div>
@@ -1186,7 +1186,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="reset_columns">
                 <input type="hidden" name="return_query" value="{{ query_string }}">
-                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn-with-icon columns-restore-link">
+                <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn-with-icon columns-restore-link">
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
                     <span>{% trans "Restore defaults" %}</span>
                 </button>
@@ -1202,7 +1202,7 @@
         <aside class="filters-drawer scoring-drawer" id="formula-modal" aria-hidden="true" aria-label="{% trans 'Scoring' %}">
             <div class="drawer-head">
                 <h2>{% trans "Scoring" %}</h2>
-                <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-formula-btn" aria-label="{% trans 'Close' %}">
+                <button class="btn tp-btn tp-btn--ghost drawer-close-btn" type="button" id="close-formula-btn" aria-label="{% trans 'Close' %}">
                     <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -1271,7 +1271,7 @@
                                 <div class="scoring-formula-actions">
                                     {% if entry.is_editable and user.is_authenticated %}
                                         <a href="{{ custom_score_url }}?edit={{ entry.pk }}"
-                                           class="btn tp-btn tp-btn--clear scoring-formula-edit-btn"
+                                           class="btn tp-btn tp-btn--secondary scoring-formula-edit-btn"
                                            title="{% trans 'Edit formula' %}"
                                            aria-label="{% trans 'Edit formula' %}">
                                             {% include "components/icons/pencil.html" %}
@@ -1283,11 +1283,11 @@
                                           onsubmit="return confirm('{% trans "Delete this formula?" %}')">
                                         {% csrf_token %}
                                         {% if user.is_authenticated %}
-                                        <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution scoring-formula-delete-btn" title="{% trans 'Delete formula' %}">
+                                        <button type="submit" class="btn tp-btn tp-btn--danger scoring-formula-delete-btn" title="{% trans 'Delete formula' %}">
                                             {% include "components/icons/trash.html" %}
                                         </button>
                                         {% else %}
-                                        <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution scoring-formula-delete-btn" title="{% trans 'Sign in to delete this formula.' %}" disabled>
+                                        <button type="submit" class="btn tp-btn tp-btn--danger scoring-formula-delete-btn" title="{% trans 'Sign in to delete this formula.' %}" disabled>
                                             {% include "components/icons/trash.html" %}
                                         </button>
                                         {% endif %}
@@ -1368,6 +1368,6 @@
             confirmClearAll: "{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}"
         };
     </script>
-    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261016-add-disabled"></script>
+    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261017-system"></script>
     <script src="{% static 'js/pages/filter-values-input.js' %}?v=20261016h"></script>
 {% endblock %}

@@ -1,11 +1,6 @@
 .customparam-page {
     display: grid;
     gap: var(--tp-space-4);
-    --cp-accent-ink: var(--tp-color-brand-900);
-    --cp-accent-soft: var(--tp-color-info-bg);
-    --cp-accent-soft-2: var(--tp-color-brand-050);
-    --cp-accent-border: var(--tp-color-brand-300);
-    --cp-border: var(--tp-color-border-soft);
 }
 
 /* No hairline -- spacing only, same treatment as about-us/data-sources.css
@@ -18,48 +13,19 @@
 .customparam-page h1,
 .customparam-page h2,
 .customparam-page h3 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--tp-tracking-tight);
 }
 .customparam-page h1 { font-weight: 700; }
-
-/* ── Hero ── */
-
-/* No longer its own boxed card -- sits directly on the page background
-   (see tpw-editorial-redesign). */
-.customparam-hero {
-    padding: 22px 18px 18px;
-}
-
 .customparam-eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: 0 0 8px;
-    color: var(--tp-color-text-muted);
     /* Same sans uppercase eyebrow as Genomes/Proteins -- this page used the
        monospace font here, one of the things that made it look unlike the
        rest of the site. */
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.customparam-hero h1 {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    line-height: 1.05;
-    color: var(--cp-accent-ink);
-}
-
-.customparam-subtitle {
-    margin: 10px 0 0;
-    max-width: 900px;
-    color: var(--tp-color-text-secondary);
-    font-size: 1.03rem;
-    line-height: 1.52;
+    font-size: var(--tp-font-size-xs);
 }
 
 .customparam-chip-group {
@@ -72,7 +38,7 @@
 
 .customparam-chip-id {
     font-weight: 600;
-    color: var(--cp-accent-ink);
+    color: var(--tp-color-brand-900);
 }
 
 /* ── Layout ── */
@@ -111,8 +77,8 @@
 
 .customparam-card h2 {
     margin: 0 0 14px;
-    color: var(--cp-accent-ink);
-    font-size: var(--tp-heading-sm);
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-lg);
     line-height: 1.15;
 }
 
@@ -120,7 +86,7 @@
     margin: 6px 0 0;
     max-width: 720px;
     color: var(--tp-color-text-muted);
-    font-size: 0.95rem;
+    font-size: var(--tp-font-size-md);
     line-height: 1.45;
 }
 
@@ -155,7 +121,7 @@
 .customparam-field .form-control,
 .customparam-field input[type="file"] {
     min-height: 44px;
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
 }
 
 .customparam-visibility {
@@ -175,7 +141,7 @@
     gap: 10px;
     margin: 0;
     font-size: var(--tp-font-size-md);
-    font-weight: var(--tp-font-weight-normal);
+    font-weight: 400;
     color: var(--tp-color-text-primary);
     cursor: pointer;
 }
@@ -226,7 +192,7 @@
     justify-content: space-between;
     padding: 14px 16px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 18px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
 }
 
@@ -236,15 +202,15 @@
 
 .customparam-submit-title {
     margin: 0;
-    color: var(--cp-accent-ink);
-    font-size: 0.96rem;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-md);
     font-weight: 600;
 }
 
 .customparam-submit-note {
     margin: 4px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.45;
 }
 
@@ -281,26 +247,26 @@
     justify-content: center;
     width: 30px;
     height: 30px;
-    border-radius: 999px;
-    background: var(--cp-accent-soft);
-    border: 1px solid var(--cp-accent-border);
-    color: var(--cp-accent-ink);
+    border-radius: var(--tp-radius-pill);
+    background: var(--tp-color-info-bg);
+    border: 1px solid var(--tp-color-brand-300);
+    color: var(--tp-color-brand-900);
     font-weight: 600;
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     flex-shrink: 0;
 }
 
 .customparam-guide-item h3 {
     margin: 0;
-    color: var(--cp-accent-ink);
-    font-size: 0.98rem;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-md);
     line-height: 1.25;
 }
 
 .customparam-guide-item p {
     margin: 5px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.91rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
@@ -309,24 +275,24 @@
 .customparam-example {
     padding: 12px 14px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 14px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
 }
 
 .customparam-example-label {
     margin: 0 0 8px;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.07em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
 .customparam-example-code {
     display: block;
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     color: var(--tp-color-text-secondary);
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.55;
     white-space: pre;
     overflow-x: auto;
@@ -370,9 +336,6 @@
 }
 
 @media (max-width: 768px) {
-    .customparam-hero {
-        padding: 18px 16px 16px;
-    }
 
     .customparam-submit-row {
         flex-direction: column;

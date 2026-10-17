@@ -3,7 +3,7 @@
    only small overlay elements like the edit modal keep their own box). ── */
 
 .profile-page {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-body);
     color: var(--tp-color-text-primary);
     margin: 0;
     max-width: 640px;
@@ -14,20 +14,13 @@
 }
 
 .profile-page h1 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 700;
-    letter-spacing: 0.2px;
+    letter-spacing: 0;
 }
 
-.profile-hero,
 .profile-section {
     padding: 20px 18px;
-}
-
-.profile-hero-description {
-    margin: 8px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-md);
 }
 
 .profile-fields {
@@ -49,9 +42,9 @@
 }
 
 .profile-field dt {
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
 }
@@ -83,7 +76,7 @@
     gap: 1px;
     background: var(--tp-color-border-soft);
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
     overflow: hidden;
 }
 
@@ -109,7 +102,7 @@
     flex: 0 0 auto;
     width: 28px;
     height: 28px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-success-bg);
     color: var(--tp-color-success-ink);
 }
@@ -166,7 +159,7 @@
     justify-content: center;
     padding: 0;
     border: 1px solid transparent;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: transparent;
     color: var(--tp-color-text-muted);
     cursor: pointer;
@@ -182,7 +175,7 @@
 .profile-field-edit-btn:focus-visible {
     background: var(--tp-color-surface-muted);
     border-color: var(--tp-color-border-soft);
-    color: var(--tp-color-brand-700);
+    color: var(--tp-color-text-primary);
 }
 
 /* The edit dialog uses the shared .tp-modal (ui-system.css). */

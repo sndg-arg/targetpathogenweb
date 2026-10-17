@@ -15,29 +15,12 @@
 .settings-page h1,
 .settings-page h2,
 .settings-page h3 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    letter-spacing: -0.01em;
+    font-family: var(--tp-font-head);
+    letter-spacing: var(--tp-tracking-tight);
 }
 
-.settings-hero,
 .settings-section {
     padding: 28px 18px;
-}
-
-.settings-hero h1 {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    font-weight: 700;
-    line-height: 1.05;
-    color: var(--tp-color-brand-900);
-}
-
-.settings-hero-description {
-    margin: 10px 0 0;
-    max-width: 760px;
-    color: var(--tp-color-text-secondary);
-    font-size: 1.03rem;
-    line-height: 1.52;
 }
 
 .settings-legend {
@@ -66,9 +49,9 @@
 .settings-eyebrow {
     margin: 0 0 6px;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
@@ -105,7 +88,7 @@
 
 .settings-count {
     color: var(--tp-color-text-muted);
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-body);
     font-size: var(--tp-font-size-sm);
     font-weight: 500;
     letter-spacing: 0;
@@ -151,8 +134,8 @@
     display: block;
     margin-top: 4px;
     color: var(--tp-color-text-secondary);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.8rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
     white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
@@ -197,7 +180,11 @@
     white-space: nowrap;
 }
 
-.settings-empty,
+.settings-empty {
+    margin: 10px 0 0;
+    max-width: 760px;
+}
+
 .settings-note {
     margin: 10px 0 0;
     max-width: 760px;
@@ -235,7 +222,7 @@
 .settings-user summary::before {
     content: "▸";
     color: var(--tp-color-text-muted);
-    font-size: 0.8em;
+    font-size: 0.9em;
     transition: transform 0.15s ease;
 }
 

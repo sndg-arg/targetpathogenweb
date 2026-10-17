@@ -26,7 +26,7 @@
             {% csrf_token %}
             <input type="hidden" name="action" value="delete_formula">
             <input type="hidden" name="formula_id" value="{{ row.obj.pk }}">
-            <button type="submit" class="btn tp-btn tp-btn--outline tp-btn--sm">{% trans "Delete" %}</button>
+            <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Delete" %}</button>
         </form>
         {% endif %}
     </div>

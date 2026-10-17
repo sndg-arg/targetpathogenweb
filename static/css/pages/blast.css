@@ -7,8 +7,6 @@
 .blast-page {
     display: grid;
     gap: var(--tp-space-4);
-    --blast-ink: var(--tp-color-brand-900);
-    --blast-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
 .blast-page > section ~ section {
@@ -18,43 +16,16 @@
 .blast-page h1,
 .blast-page h2,
 .blast-page h3 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--tp-tracking-tight);
 }
 .blast-page h1 { font-weight: 700; }
-
-/* ── Hero ── */
-
-.blast-hero {
-    padding: 22px 18px 18px;
-}
 
 .blast-eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: 0 0 8px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.blast-hero h1 {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    line-height: 1.05;
-    color: var(--blast-ink);
-}
-
-.blast-subtitle {
-    margin: 10px 0 0;
-    max-width: 820px;
-    color: var(--tp-color-text-secondary);
-    font-size: 1.03rem;
-    line-height: 1.52;
 }
 
 .blast-genome-note {
@@ -92,15 +63,15 @@
 
 .blast-card h2 {
     margin: 0;
-    color: var(--blast-ink);
-    font-size: var(--tp-heading-sm);
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-lg);
     line-height: 1.15;
 }
 
 .blast-card-note {
     margin: 6px 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.93rem;
+    font-size: var(--tp-font-size-md);
     line-height: 1.45;
 }
 
@@ -119,12 +90,12 @@
 .blast-form-inner .form-control,
 .blast-form-inner .tp-ui-control {
     min-height: 44px;
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
 }
 
 .blast-seq-input {
-    font-family: var(--blast-mono) !important;
-    font-size: 0.88rem !important;
+    font-family: var(--tp-font-mono) !important;
+    font-size: var(--tp-font-size-sm) !important;
     min-height: 180px !important;
     resize: vertical;
     line-height: 1.55 !important;
@@ -163,70 +134,6 @@
     margin-bottom: 7px;
 }
 
-.blast-segmented {
-    display: inline-flex;
-    justify-self: start;
-    width: max-content;
-    padding: 3px;
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-btn-radius);
-    background: var(--tp-color-surface);
-}
-
-.blast-segmented-option {
-    position: relative;
-    margin: 0;
-    cursor: pointer;
-}
-
-.blast-segmented-option input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.blast-segmented-option span {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 6px;
-    padding: 7px 16px;
-    border-radius: calc(var(--tp-btn-radius) - 3px);
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    transition:
-        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.blast-segmented-option small {
-    color: var(--tp-color-text-muted);
-    font-family: var(--blast-mono);
-    font-size: 0.74rem;
-    font-weight: 500;
-}
-
-.blast-segmented-option:hover span {
-    color: var(--tp-color-text-primary);
-}
-
-/* Selected: filled petrol, same as a primary button, so it reads at a
-   glance in both modes. */
-.blast-segmented-option input:checked + span {
-    background: var(--tp-color-primary);
-    color: var(--tp-color-on-accent);
-}
-
-.blast-segmented-option input:checked + span small {
-    color: inherit;
-    opacity: 0.75;
-}
-
-.blast-segmented-option input:focus-visible + span {
-    box-shadow: var(--tp-focus-outline);
-}
-
 .blast-actions {
     display: flex;
     flex-wrap: wrap;
@@ -242,30 +149,30 @@
     display: grid;
     gap: 6px;
     color: var(--tp-color-text-secondary);
-    font-size: 0.91rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
 .blast-example {
     padding: 12px 14px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 14px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
 }
 
 .blast-example-label {
     margin: 0 0 8px;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.07em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
 .blast-format-block {
     margin: 0;
-    font-family: var(--blast-mono);
-    font-size: 0.8rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
     line-height: 1.55;
     color: var(--tp-color-text-secondary);
     white-space: pre-wrap;
@@ -291,8 +198,8 @@
 
 .blast-result-head h2 {
     margin: 0;
-    color: var(--blast-ink);
-    font-size: var(--tp-heading-sm);
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-lg);
 }
 
 .blast-result-count {
@@ -302,7 +209,7 @@
 }
 
 .blast-hit-link {
-    font-family: var(--blast-mono);
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
 }
@@ -336,11 +243,11 @@
     overflow: auto;
     padding: 14px 16px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
     white-space: pre;
-    font-family: var(--blast-mono);
-    font-size: 0.84rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-sm);
     line-height: 1.5;
     color: var(--tp-color-text-primary);
     scrollbar-width: thin;
@@ -366,8 +273,7 @@
 @media (prefers-reduced-motion: reduce) {
     .blast-hero,
     .blast-workbench,
-    .blast-results,
-    .blast-segmented-option span {
+    .blast-results {
         animation: none;
         transition: none;
     }
@@ -385,22 +291,5 @@
         padding-top: 18px;
         border-left: 0;
         border-top: 1px solid var(--tp-color-border-soft);
-    }
-}
-
-@media (max-width: 560px) {
-    .blast-segmented {
-        display: flex;
-        justify-self: stretch;
-        width: auto;
-    }
-
-    .blast-segmented-option {
-        flex: 1 1 0;
-    }
-
-    .blast-segmented-option span {
-        justify-content: center;
-        width: 100%;
     }
 }

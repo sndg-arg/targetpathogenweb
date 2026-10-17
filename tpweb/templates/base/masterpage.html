@@ -25,16 +25,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261017-headers">
-    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261016-contrast">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261017-system">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
             --tp-color-text-secondary: #2b4f60;
             --tp-color-text-muted: #4f6d7a;
             --tp-color-text-soft: #7f97a5;
-            --tp-color-link: #23596b;
-            --tp-color-link-hover: #0f2f3a;
+            /* ── The whole palette: one petrol brand scale, neutrals (text,
+               surface, border), five semantic tones, and the dark top bar.
+               Every other color in the app is one of these. Data colors for
+               the 3D viewer (structure/sstruc/plddt) are the only extras. ── */
+            --tp-color-link: var(--tp-color-brand-700);
+            --tp-color-link-hover: var(--tp-color-brand-900);
             --tp-color-brand-900: #0f2f3a;
             --tp-color-brand-800: #1d4b5a;
             --tp-color-brand-700: #2c6274;
@@ -45,8 +49,8 @@
             --tp-color-brand-200: #c9d8dd;
             --tp-color-brand-100: #e2eaed;
             --tp-color-brand-050: #f1f5f6;
-            /* The one brighter accent: the line under the active tab/section. */
-            --tp-color-accent-line: #3f8a9c;
+            /* The line under the active tab/section. */
+            --tp-color-accent-line: var(--tp-color-brand-700);
             /* Filled primary button (and selected states). */
             --tp-color-primary: var(--tp-color-brand-800);
             --tp-color-primary-hover: var(--tp-color-brand-900);
@@ -55,56 +59,26 @@
             /* Keyboard focus: one thin petrol line, everywhere. */
             --tp-focus-color: var(--tp-color-brand-800);
             --tp-focus-outline: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-focus-color);
-            --tp-color-rose-900: #742849;
-            --tp-color-rose-700: #ab3f68;
-            --tp-color-rose-500: #cf628c;
-            --tp-color-rose-300: #e7b7ca;
-            --tp-color-rose-100: #f9e7ef;
-            --tp-color-rose-050: #fdf2f7;
-            --tp-color-sage-900: #1d5b4f;
-            --tp-color-sage-700: #2f7d67;
-            --tp-color-sage-500: #45a088;
-            --tp-color-sage-200: #b8e0d1;
-            --tp-color-sage-100: #d6eee5;
-            --tp-color-sage-050: #eaf7f1;
-            --tp-color-amber-900: #6f4712;
-            --tp-color-amber-700: #8f611d;
-            --tp-color-amber-500: #b8842e;
-            --tp-color-amber-200: #e8d09d;
-            --tp-color-amber-100: #f5e6c8;
-            --tp-color-amber-050: #fbf3e4;
+            /* Top bar: stays dark in both themes. */
             --tp-color-nav-900: #0f2a33;
-            --tp-color-nav-800: #163843;
-            --tp-color-nav-700: #1f4a57;
-            --tp-color-nav-600: #2c6274;
-            /* Matches --tp-color-surface below -- the page background used
-               to be a visibly darker gray specifically to create contrast
-               for white cards floating on it. Now that content sections
-               sit directly on the page background instead of on separate
-               card surfaces, that contrast has no job to do anymore and
-               just reads as an unwanted gray margin around white content. */
-            --tp-color-page-start: #ffffff;
-            --tp-color-page-end: #ffffff;
+            /* Page background = surface: sections sit on it, no cards. */
             --tp-color-surface: #ffffff;
             --tp-color-surface-soft: #f6f7f9;
             --tp-color-surface-muted: #eef0f3;
-            --tp-color-surface-panel: #e7eaee;
-            --tp-color-surface-alt: #eef0f3;
             --tp-color-border: #dde0e6;
             --tp-color-border-soft: #e8eaed;
             --tp-color-border-strong: #c9cdd5;
-            --tp-color-border-accent: #a6bec6;
-            --tp-color-highlight: #a6bec6;
-            --tp-color-selection: #e8f0fa;
+            /* Semantic tones: ink (text/icons), bg (fill), border. */
             --tp-color-success-ink: #145843;
             --tp-color-success-bg: #e3f3ea;
             --tp-color-success-border: #b5d8c7;
-            --tp-color-info-ink: #23596b;
-            --tp-color-info-bg: #eef3f5;
-            --tp-color-info-border: #a6bec6;
-            --tp-color-idle-ink: #56707d;
-            --tp-color-idle-bg: #edf4f6;
-            --tp-color-idle-border: #d0dee4;
+            --tp-color-info-ink: var(--tp-color-brand-700);
+            --tp-color-info-bg: var(--tp-color-brand-050);
+            --tp-color-info-border: var(--tp-color-brand-300);
+            /* idle = "no data / not run": plain neutral gray. */
+            --tp-color-idle-ink: var(--tp-color-text-muted);
+            --tp-color-idle-bg: var(--tp-color-surface-muted);
+            --tp-color-idle-border: var(--tp-color-border);
             --tp-color-warning-ink: #7a5416;
             --tp-color-warning-bg: #f9efdc;
             --tp-color-warning-border: #e9d6ae;
@@ -120,11 +94,7 @@
             --tp-color-structure-bg: #f6fbf9;
             --tp-color-structure-label: #0e2330;
             --tp-color-structure-label-bg: rgba(255, 255, 255, 0.78);
-            /* Dedicated token so the structure viewer's "Heteroatoms" color
-               can be user-overridden without also touching the generic
-               rose/danger family used elsewhere in the app -- seeded with
-               the exact value it used to borrow from --tp-color-rose-500,
-               so this introduces no visual change on its own. */
+            /* Structure viewer "Heteroatoms" color (user-overridable). */
             --tp-color-structure-hetero: #cf628c;
             /* "By structure" mode -- fed into a custom NGL colormaker
                (structure.html/protein.html registers "tpSstruc" against
@@ -165,52 +135,21 @@
             --sv-btn-active-bg: rgba(29, 75, 90, 0.12);
             --sv-btn-active-color: #1d4b5a;
             --sv-sep: rgba(10, 40, 70, 0.10);
-            --sv-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
-            --tp-ink: var(--tp-color-text-primary);
-            --tp-muted: var(--tp-color-text-muted);
-            --tp-accent: var(--tp-color-brand-800);
-            --tp-accent-deep: var(--tp-color-brand-900);
-            --tp-accent-soft-2: var(--tp-color-sage-050);
-            --tp-accent-soft: var(--tp-color-brand-100);
-            --tp-accent-mist: var(--tp-color-surface-muted);
-            --tp-accent-2: var(--tp-color-sage-700);
-            --tp-accent-2-soft: var(--tp-color-sage-100);
-            --tp-accent-warm: var(--tp-color-amber-700);
-            --tp-accent-warm-soft: var(--tp-color-amber-100);
-            --tp-accent-rose: var(--tp-color-rose-700);
-            --tp-accent-rose-soft: var(--tp-color-rose-100);
-            --tp-accent-contrast: var(--tp-color-rose-700);
-            --tp-accent-contrast-soft: var(--tp-color-rose-050);
-            --tp-moss: var(--tp-color-text-soft);
-            --tp-moss-deep: var(--tp-color-text-muted);
-            --tp-border: var(--tp-color-border);
-            --tp-surface: var(--tp-color-surface);
-            --tp-navbar: var(--tp-color-nav-900);
-            --tp-state-running-ink: var(--tp-color-info-ink);
-            --tp-state-running-bg: var(--tp-color-info-bg);
-            --tp-state-running-border: var(--tp-color-info-border);
-            --tp-state-finished-ink: var(--tp-color-success-ink);
-            --tp-state-finished-bg: var(--tp-color-success-bg);
-            --tp-state-finished-border: var(--tp-color-success-border);
-            --tp-state-idle-ink: var(--tp-color-text-muted);
-            --tp-state-idle-bg: var(--tp-color-surface-muted);
-            --tp-state-idle-border: var(--tp-color-border);
-            --tp-focus-ring: rgba(29, 75, 90, 0.28);
-            --tp-grid-line: rgba(0, 0, 0, 0.04);
             --tp-tooltip-bg: #1a2e38;
             --tp-tooltip-color: #e2e8f0;
-            --tp-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-            --tp-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-            --tp-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-            --tp-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.10);
-            --tp-shadow: var(--tp-shadow-sm);
             --tp-color-scrim: rgba(0, 0, 0, 0.48);
+            /* Shadows: only things that float. sm = menus, tooltips,
+               popovers; lg = modals, drawers, the assistant button.
+               Content on the page is flat (border or nothing). */
+            --tp-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --tp-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.14);
             --tp-topbar-h: 76px;
-            --tp-radius-lg: 12px;
+            /* Radii: xs tiny marks, sm controls (buttons, fields, chips
+               with corners, menus), md cards and dialogs, pill chips. */
+            --tp-radius-xs: 4px;
+            --tp-radius-sm: 8px;
             --tp-radius-md: 12px;
-            /* Buttons and button-like controls (compact ones use -sm). */
-            --tp-btn-radius: 8px;
-            --tp-btn-radius-sm: 8px;
+            --tp-radius-pill: 999px;
             --tp-space-1: 4px;
             --tp-space-2: 8px;
             --tp-space-3: 12px;
@@ -219,22 +158,23 @@
             --tp-space-6: 24px;
             --tp-space-7: 32px;
             --tp-space-8: 40px;
+            /* Type: three families, six text sizes + three headings.
+               Weights 400/500/600/700. */
+            --tp-font-head: "Space Grotesk", "Segoe UI", sans-serif;
+            --tp-font-body: "Source Sans 3", "Segoe UI", sans-serif;
+            --tp-font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+            --tp-font-size-2xs: 0.7rem;
             --tp-font-size-xs: 0.78rem;
             --tp-font-size-sm: 0.88rem;
             --tp-font-size-md: 0.98rem;
             --tp-font-size-lg: 1.12rem;
             --tp-font-size-xl: 1.28rem;
-            --tp-font-size-2xl: clamp(1.55rem, 2.2vw, 2.05rem);
-            --tp-heading-2xl: clamp(2.15rem, 3vw, 3.45rem);
-            --tp-heading-xl: clamp(1.92rem, 2.5vw, 2.48rem);
+            --tp-heading-xl: clamp(2rem, 3vw, 3rem);
             --tp-heading-lg: clamp(1.55rem, 2.2vw, 2.05rem);
             --tp-heading-md: clamp(1.2rem, 1.8vw, 1.45rem);
-            --tp-heading-sm: 1.12rem;
-            --tp-font-label: 0.75rem;
-            --tp-font-weight-normal: 400;
-            --tp-font-weight-medium: 500;
-            --tp-font-weight-semibold: 600;
-            --tp-font-weight-bold: 700;
+            /* Uppercase labels use label tracking; display headings tight. */
+            --tp-tracking-label: 0.06em;
+            --tp-tracking-tight: -0.01em;
             --tp-chevron-size: 0.44rem;
             --tp-chevron-stroke: 2px;
             --tp-chevron-opacity: 0.82;
@@ -249,8 +189,6 @@
             --tp-color-text-secondary: #c3cdd5;
             --tp-color-text-muted: #8a9baa;
             --tp-color-text-soft: #5d7282;
-            --tp-color-link: #8fb8c4;
-            --tp-color-link-hover: #b9d3da;
 
             /* brand */
             --tp-color-brand-900: #dbe7ea;
@@ -263,75 +201,28 @@
             --tp-color-brand-200: #2c434a;
             --tp-color-brand-100: #1f3138;
             --tp-color-brand-050: #172328;
-            --tp-color-accent-line: #7fb2c0;
             --tp-color-primary: #2f5d6c;
             --tp-color-primary-hover: #3a6e7e;
             --tp-color-danger-fill: #7a3036;
-            --tp-focus-color: #8fb8c4;
-
-            /* rose */
-            --tp-color-rose-900: #f0c4d5;
-            --tp-color-rose-700: #d47a9e;
-            --tp-color-rose-500: #b85a80;
-            --tp-color-rose-300: #6e3050;
-            --tp-color-rose-100: #3a1a2b;
-            --tp-color-rose-050: #2c1421;
-
-            /* sage */
-            --tp-color-sage-900: #b8e8d8;
-            --tp-color-sage-700: #5db898;
-            --tp-color-sage-500: #3d9478;
-            --tp-color-sage-200: #1a4d3e;
-            --tp-color-sage-100: #143a30;
-            --tp-color-sage-050: #0f2c24;
-
-            /* amber */
-            --tp-color-amber-900: #f0d8a0;
-            --tp-color-amber-700: #c89838;
-            --tp-color-amber-500: #a07828;
-            --tp-color-amber-200: #4a3618;
-            --tp-color-amber-100: #382a14;
-            --tp-color-amber-050: #2c2010;
 
             /* nav — stays dark, slight lighten for contrast */
             --tp-color-nav-900: #0a151a;
-            --tp-color-nav-800: #0c171c;
-            --tp-color-nav-700: #122128;
-            --tp-color-nav-600: #1c3640;
-
-            /* page */
-            --tp-color-page-start: #10181e;
-            --tp-color-page-end: #0c1218;
 
             /* surfaces */
             --tp-color-surface: #151e24;
             --tp-color-surface-soft: #1a252d;
             --tp-color-surface-muted: #1e2b34;
-            --tp-color-surface-panel: #232f38;
-            --tp-color-surface-alt: #1e2b34;
 
             /* borders */
             --tp-color-border: #2a3844;
             --tp-color-border-soft: #222e38;
             --tp-color-border-strong: #36485a;
-            --tp-color-border-accent: #3d5a63;
-            --tp-color-highlight: #3d5a63;
-            --tp-color-selection: #1a3048;
 
             /* state — success */
             --tp-color-success-ink: #6ccba0;
             --tp-color-success-bg: #0f2a20;
             --tp-color-success-border: #1a4a36;
 
-            /* state — info */
-            --tp-color-info-ink: #8fb8c4;
-            --tp-color-info-bg: #152227;
-            --tp-color-info-border: #3d5a63;
-
-            /* state — idle */
-            --tp-color-idle-ink: #7a9aaa;
-            --tp-color-idle-bg: #14222c;
-            --tp-color-idle-border: #1e3444;
 
             /* state — warning */
             --tp-color-warning-ink: #d4a84a;
@@ -374,17 +265,11 @@
             --sv-btn-active-bg: rgba(143, 184, 196, 0.18);
             --sv-btn-active-color: #b9d3da;
             --sv-sep: rgba(255, 255, 255, 0.11);
-            --sv-shadow: 0 8px 28px rgba(0, 0, 0, 0.32);
 
             /* shadows — stronger in dark mode */
-            --tp-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.16);
             --tp-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.22);
-            --tp-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.28);
             --tp-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.36);
             --tp-color-scrim: rgba(0, 0, 0, 0.6);
-
-            --tp-focus-ring: rgba(143, 184, 196, 0.32);
-            --tp-grid-line: rgba(255, 255, 255, 0.04);
 
             color-scheme: dark;
         }
@@ -413,12 +298,9 @@
         }
 
         body {
-            font-family: "Source Sans 3", "Segoe UI", sans-serif;
-            color: var(--tp-ink);
-            background:
-                radial-gradient(920px 380px at 4% -8%, rgba(29, 75, 90, 0.05) 0%, transparent 62%),
-                linear-gradient(180deg, var(--tp-color-page-start) 0%, var(--tp-color-page-end) 100%);
-            background-attachment: fixed;
+            font-family: var(--tp-font-body);
+            color: var(--tp-color-text-primary);
+            background: var(--tp-color-surface);
             margin: 0;
             padding-top: 64px;
             transition: padding-left var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
@@ -428,7 +310,7 @@
         }
 
         h1, h2, h3, h4, h5 {
-            font-family: "Space Grotesk", "Segoe UI", sans-serif;
+            font-family: var(--tp-font-head);
         }
 
         a {
@@ -438,6 +320,13 @@
 
         a:hover {
             color: var(--tp-color-link-hover);
+        }
+
+        /* Inline code takes the text color around it (Bootstrap paints it pink). */
+        code {
+            color: inherit;
+            font-family: var(--tp-font-mono);
+            font-size: 0.9em;
         }
 
         .tp-chevron {
@@ -486,9 +375,9 @@
             color: var(--tp-color-text-secondary);
             font-weight: 600;
             border: 1px solid var(--tp-color-border-strong);
-            border-radius: var(--tp-ui-radius-control);
+            border-radius: var(--tp-radius-sm);
             background-image:
-                linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%),
+                linear-gradient(var(--tp-color-surface), var(--tp-color-surface)),
                 linear-gradient(45deg, transparent 50%, currentColor 50%),
                 linear-gradient(135deg, currentColor 50%, transparent 50%);
             background-position:
@@ -498,21 +387,21 @@
             background-size: auto, 6px 6px, 6px 6px;
             background-repeat: no-repeat;
             padding-right: 2.2rem;
-            box-shadow: var(--tp-shadow-xs);
+            box-shadow: none;
             transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), background-image var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
         }
 
         select.form-control:not([multiple]):not([size]):not(.tp-select-native):hover {
-            border-color: var(--tp-color-brand-300);
+            border-color: var(--tp-color-text-muted);
             background-image:
-                linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%),
+                linear-gradient(var(--tp-color-surface-soft), var(--tp-color-surface-soft)),
                 linear-gradient(45deg, transparent 50%, currentColor 50%),
                 linear-gradient(135deg, currentColor 50%, transparent 50%);
         }
 
         select.form-control:not([multiple]):not([size]):not(.tp-select-native):focus,
         select.form-control:not([multiple]):not([size]):not(.tp-select-native):focus-visible {
-            border-color: var(--tp-color-brand-600);
+            border-color: var(--tp-focus-color);
             box-shadow: var(--tp-focus-outline);
         }
 
@@ -520,7 +409,7 @@
             color: var(--tp-color-text-soft);
             border-color: var(--tp-color-border-soft);
             background-image:
-                linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%),
+                linear-gradient(var(--tp-color-surface-muted), var(--tp-color-surface-muted)),
                 linear-gradient(45deg, transparent 50%, currentColor 50%),
                 linear-gradient(135deg, currentColor 50%, transparent 50%);
             box-shadow: none;
@@ -538,8 +427,8 @@
 
         select.form-control option:checked,
         select.form-control option:focus {
-            color: var(--tp-color-nav-800);
-            background: var(--tp-color-surface-panel);
+            color: var(--tp-color-text-primary);
+            background: var(--tp-color-surface-muted);
         }
 
         .btn,
@@ -548,7 +437,7 @@
             align-items: center;
             justify-content: center;
             gap: 0.45rem;
-            border-radius: var(--tp-btn-radius);
+            border-radius: var(--tp-radius-sm);
             font-weight: 500;
             line-height: 1;
             text-align: center;
@@ -566,270 +455,116 @@
             display: none !important;
         }
 
-        /* Button sizes (see /design): default 38px, sm 32px, md 40px. The
-           size classes are excluded here: this selector's specificity used
-           to beat .tp-btn--sm/--md, so every button ended up the same size. */
-        .btn:not(.btn-sm):not(.btn-lg):not(.tp-btn--sm):not(.tp-btn--md),
-        .tp-btn:not(.btn-sm):not(.btn-lg):not(.tp-btn--sm):not(.tp-btn--md) {
-            min-height: 38px;
+        /* ── Buttons: four types, two sizes, nothing else (see /design) ──────
+           primary   -- the one main action of a view (filled)
+           secondary -- every other action (outlined; neutral gray hover)
+           danger    -- destructive actions (outlined; fills red on hover)
+           ghost     -- icon-only or in-row actions (no border until hover)
+           Size: default 38px, tp-btn--sm 32px. Colors come only from tokens,
+           so dark mode needs no overrides. Keyboard focus: the focus line.
+           .is-hover / .is-focus freeze a state (used only by /design). */
+        .btn:not(.tp-btn--sm),
+        .tp-btn:not(.tp-btn--sm) {
+            min-height: var(--tp-ui-control-height);
             padding: 0.4rem 1rem;
-            font-size: 0.9rem;
+            font-size: var(--tp-font-size-sm);
         }
 
         .btn.tp-btn--sm,
         .tp-btn.tp-btn--sm {
-            min-height: 32px;
+            min-height: var(--tp-ui-control-height-compact);
             padding: 0.3rem 0.75rem;
-            font-size: 0.84rem;
-        }
-
-        .btn.tp-btn--md,
-        .tp-btn.tp-btn--md {
-            min-height: 40px;
-            padding: 0.45rem 1.05rem;
             font-size: var(--tp-font-size-sm);
         }
 
-        /* ── Buttons: three variants + ghost, nothing else ─────────────────────
-           primary   -- the one main action of a view (filled brand)
-           secondary -- every other action (outlined)
-           danger    -- destructive actions (outlined; fills red on hover)
-           The older names (neutral, outline, clear, dark, light, success, info,
-           clear-caution, clear-warn) are kept only as aliases of these three so
-           existing markup keeps working. New markup: tp-btn--primary,
-           tp-btn--secondary or tp-btn--danger, optionally + tp-btn--sm. The
-           only other type is tp-btn--ghost (below), for icon/in-row actions. */
-        .btn-primary,
-        .tp-btn--primary,
-        .btn-success,
-        .tp-btn--success,
-        .btn-info,
-        .tp-btn--info {
+        .tp-btn--primary {
             font-weight: 600;
-            background: var(--tp-color-brand-800);
-            background-color: var(--tp-color-brand-800) !important;
-            border-color: transparent !important;
             color: var(--tp-color-on-accent) !important;
+            border-color: transparent !important;
+            background: var(--tp-color-primary) !important;
         }
 
-        .btn-primary:hover,
-        .btn-primary:focus,
-        .btn-primary:active,
         .tp-btn--primary:hover,
-        .tp-btn--primary:focus,
-        .tp-btn--primary:active,
-        .btn-success:hover,
-        .btn-success:focus,
-        .btn-success:active,
-        .tp-btn--success:hover,
-        .tp-btn--success:focus,
-        .tp-btn--success:active,
-        .btn-info:hover,
-        .btn-info:focus,
-        .btn-info:active,
-        .tp-btn--info:hover,
-        .tp-btn--info:focus,
-        .tp-btn--info:active {
-            background: var(--tp-color-brand-900) !important;
-            background-color: var(--tp-color-brand-900) !important;
-            border-color: transparent !important;
-            color: var(--tp-color-on-accent) !important;
+        .tp-btn--primary.is-hover,
+        .tp-btn--primary:active {
+            background: var(--tp-color-primary-hover) !important;
         }
 
-        .btn-secondary,
-        .tp-btn--secondary,
-        .btn-outline-info,
-        .btn-outline-primary,
-        .tp-btn--outline,
-        .btn-outline-secondary,
-        .tp-btn--neutral,
-        .btn-outline-dark,
-        .tp-btn--dark,
-        .btn-outline-light,
-        .tp-btn--light,
-        .btn.tp-btn--clear,
-        .tp-btn--clear {
+        .tp-btn--secondary {
             color: var(--tp-color-text-primary) !important;
             border-color: var(--tp-color-border-strong) !important;
             background: var(--tp-color-surface) !important;
-            box-shadow: none !important;
         }
 
-        .btn-secondary:hover,
-        .btn-secondary:focus,
-        .btn-secondary:active,
         .tp-btn--secondary:hover,
-        .tp-btn--secondary:focus,
-        .tp-btn--secondary:active,
-        .btn-outline-info:hover,
-        .btn-outline-info:focus,
-        .btn-outline-info:active,
-        .btn-outline-primary:hover,
-        .btn-outline-primary:focus,
-        .btn-outline-primary:active,
-        .tp-btn--outline:hover,
-        .tp-btn--outline:focus,
-        .tp-btn--outline:active,
-        .btn-outline-secondary:hover,
-        .btn-outline-secondary:focus,
-        .btn-outline-secondary:active,
-        .tp-btn--neutral:hover,
-        .tp-btn--neutral:focus,
-        .tp-btn--neutral:active,
-        .btn-outline-dark:hover,
-        .btn-outline-dark:focus,
-        .btn-outline-dark:active,
-        .tp-btn--dark:hover,
-        .tp-btn--dark:focus,
-        .tp-btn--dark:active,
-        .btn-outline-light:hover,
-        .btn-outline-light:focus,
-        .btn-outline-light:active,
-        .tp-btn--light:hover,
-        .tp-btn--light:focus,
-        .tp-btn--light:active,
-        .btn.tp-btn--clear:hover,
-        .btn.tp-btn--clear:focus,
-        .btn.tp-btn--clear:active,
-        .tp-btn--clear:hover,
-        .tp-btn--clear:focus,
-        .tp-btn--clear:active {
-            color: var(--tp-color-text-primary) !important;
+        .tp-btn--secondary.is-hover,
+        .tp-btn--secondary:active {
             border-color: var(--tp-color-text-muted) !important;
             background: var(--tp-color-surface-soft) !important;
-            box-shadow: none !important;
         }
 
-        .btn-danger,
-        .tp-btn--danger,
-        .btn.tp-btn--clear.tp-btn--clear-caution,
-        .tp-btn--clear.tp-btn--clear-caution,
-        .btn.tp-btn--clear-warn,
-        .tp-btn--clear-warn {
+        .tp-btn--danger {
             color: var(--tp-color-danger-ink) !important;
             border-color: var(--tp-color-danger-border) !important;
             background: var(--tp-color-surface) !important;
-            box-shadow: none !important;
         }
 
-        .btn-danger:hover,
-        .btn-danger:focus,
-        .btn-danger:active,
         .tp-btn--danger:hover,
-        .tp-btn--danger:focus,
-        .tp-btn--danger:active,
-        .btn.tp-btn--clear.tp-btn--clear-caution:hover,
-        .btn.tp-btn--clear.tp-btn--clear-caution:focus,
-        .btn.tp-btn--clear.tp-btn--clear-caution:active,
-        .tp-btn--clear.tp-btn--clear-caution:hover,
-        .tp-btn--clear.tp-btn--clear-caution:focus,
-        .tp-btn--clear.tp-btn--clear-caution:active,
-        .btn.tp-btn--clear-warn:hover,
-        .btn.tp-btn--clear-warn:focus,
-        .btn.tp-btn--clear-warn:active,
-        .tp-btn--clear-warn:hover,
-        .tp-btn--clear-warn:focus,
-        .tp-btn--clear-warn:active {
+        .tp-btn--danger.is-hover,
+        .tp-btn--danger:active {
             color: var(--tp-color-on-accent) !important;
             border-color: var(--tp-color-danger-fill) !important;
             background: var(--tp-color-danger-fill) !important;
-            box-shadow: none !important;
         }
 
-        /* ghost -- the 4th and last type: icon-only or in-row actions (close,
-           refresh, rename, remove) with no border until hovered. */
         .tp-btn--ghost {
             color: var(--tp-color-text-muted) !important;
             border-color: transparent !important;
             background: transparent !important;
-            box-shadow: none !important;
         }
 
         .tp-btn--ghost:hover,
-        .tp-btn--ghost:focus,
+        .tp-btn--ghost.is-hover,
         .tp-btn--ghost:active {
             color: var(--tp-color-text-primary) !important;
-            border-color: transparent !important;
             background: var(--tp-color-surface-muted) !important;
+        }
+
+        .btn,
+        .tp-btn {
             box-shadow: none !important;
         }
 
-        .tp-btn--secondary:disabled,
-        .tp-btn--secondary.disabled,
-        .tp-btn--outline:disabled,
-        .tp-btn--outline.disabled,
-        .tp-btn--neutral:disabled,
-        .tp-btn--neutral.disabled,
-        .tp-btn--clear:disabled,
-        .tp-btn--clear.disabled,
-        .tp-btn--danger:disabled,
-        .tp-btn--danger.disabled,
-        .tp-btn--clear-warn:disabled,
-        .tp-btn--clear-warn.disabled {
-            color: var(--tp-color-text-soft) !important;
-            border-color: var(--tp-color-border-soft) !important;
-            background: var(--tp-color-surface-soft) !important;
-            opacity: 1;
-        }
-
-        /* Scoped by its real ancestor container (.tp-view-head-actions, used
-           consistently in all five templates that render this link) AND
-           the class doubled -- .tp-dark .tp-btn--neutral (0,2,0) / :hover
-           (0,3,0) lives LATER in this same file, so this needs to
-           genuinely EXCEED that specificity, not just tie it (a tie would
-           still lose to source order). Otherwise "Export view" reverts to
-           a plain gray neutral button in dark mode. Same specificity bug
-           fixed on .tpd-delete-btn earlier this session. */
-        .tp-view-head-actions .tp-view-export-link.tp-view-export-link {
-            min-height: 34px;
-            padding: 0 14px 0 10px;
-            gap: 7px;
-            border: 1px solid var(--tp-color-border-strong) !important;
-            border-radius: var(--tp-btn-radius) !important;
-            background: var(--tp-color-surface) !important;
-            color: var(--tp-color-text-primary) !important;
-            font-size: var(--tp-font-size-sm);
-            font-weight: 600;
-        }
-
-        .tp-view-head-actions .tp-view-export-link.tp-view-export-link:hover,
-        .tp-view-head-actions .tp-view-export-link.tp-view-export-link:focus {
-            border-color: var(--tp-color-brand-600) !important;
-            background: var(--tp-color-brand-050) !important;
-            color: var(--tp-color-brand-800) !important;
-        }
-
-        .btn:disabled,
-        .btn.disabled {
-            opacity: 0.65;
-            box-shadow: none;
-            transform: none;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
-        .btn:hover {
-            transform: none;
+        .btn:focus-visible,
+        .tp-btn:focus-visible,
+        .tp-btn.is-focus {
+            outline: 0;
+            box-shadow: var(--tp-focus-outline) !important;
         }
 
         .btn:active {
             transform: scale(0.98);
         }
 
-        .btn:disabled:active,
-        .btn.disabled:active {
+        /* Disabled looks the same for every type: neutral gray, full opacity.
+           Ghost stays borderless. */
+        .btn:disabled,
+        .btn.disabled,
+        .tp-btn:disabled,
+        .tp-btn.disabled {
+            color: var(--tp-color-text-soft) !important;
+            border-color: var(--tp-color-border-soft) !important;
+            background: var(--tp-color-surface-muted) !important;
+            opacity: 1;
             transform: none;
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
-        .btn:focus-visible,
-        .btn.focus:focus-visible {
-            outline: 0;
-            box-shadow: var(--tp-focus-outline) !important;
-        }
-
-        .btn:focus:not(:focus-visible),
-        .btn.focus:focus:not(:focus-visible) {
-            box-shadow: none !important;
+        .tp-btn--ghost:disabled,
+        .tp-btn--ghost.disabled {
+            border-color: transparent !important;
+            background: transparent !important;
         }
 
         .tp-btn-with-icon {
@@ -866,7 +601,7 @@
         .form-control,
         .custom-select {
             border-color: var(--tp-color-border-strong);
-            border-radius: var(--tp-ui-radius-control);
+            border-radius: var(--tp-radius-sm);
             background: var(--tp-color-surface);
             color: var(--tp-color-text-secondary);
             font-weight: 600;
@@ -885,16 +620,17 @@
 
         .form-control:hover,
         .custom-select:hover {
-            border-color: var(--tp-color-brand-300);
+            border-color: var(--tp-color-text-muted);
         }
 
         .form-control:focus,
         .form-control:focus-visible,
+        .form-control.is-focus,
         .custom-select:focus,
         .custom-select:focus-visible {
             outline: none;
             border-color: var(--tp-focus-color);
-            box-shadow: 0 0 0 1px var(--tp-focus-color);
+            box-shadow: var(--tp-focus-outline);
         }
 
         .form-control:disabled,
@@ -907,36 +643,12 @@
             box-shadow: none;
         }
 
-        /* Disabled looks the same for every button type, in both themes:
-           neutral gray, full opacity (the variant colors are !important and
-           used to win in dark mode). Ghost stays borderless. */
-        .btn.tp-btn:disabled,
-        .btn.tp-btn.disabled,
-        .tp-dark .btn.tp-btn:disabled,
-        .tp-dark .btn.tp-btn.disabled {
-            color: var(--tp-color-text-soft) !important;
-            border-color: var(--tp-color-border-soft) !important;
-            background: var(--tp-color-surface-muted) !important;
-            background-color: var(--tp-color-surface-muted) !important;
-            box-shadow: none !important;
-            opacity: 1;
-        }
-
-        .btn.tp-btn.tp-btn--ghost:disabled,
-        .btn.tp-btn.tp-btn--ghost.disabled,
-        .tp-dark .btn.tp-btn.tp-btn--ghost:disabled,
-        .tp-dark .btn.tp-btn.tp-btn--ghost.disabled {
-            border-color: transparent !important;
-            background: transparent !important;
-            background-color: transparent !important;
-        }
-
         .tp-state-chip {
             display: inline-flex;
             align-items: center;
-            border-radius: 999px;
+            border-radius: var(--tp-radius-pill);
             padding: 4px 10px;
-            font-size: 0.82rem;
+            font-size: var(--tp-font-size-sm);
             font-weight: 500;
             border: 1px solid var(--tp-color-border-strong);
             background: var(--tp-color-surface);
@@ -944,21 +656,21 @@
         }
 
         .tp-state-chip.running {
-            color: var(--tp-state-running-ink);
-            background: var(--tp-state-running-bg);
-            border-color: var(--tp-state-running-border);
+            color: var(--tp-color-info-ink);
+            background: var(--tp-color-info-bg);
+            border-color: var(--tp-color-info-border);
         }
 
         .tp-state-chip.finished {
-            color: var(--tp-state-finished-ink);
-            background: var(--tp-state-finished-bg);
-            border-color: var(--tp-state-finished-border);
+            color: var(--tp-color-success-ink);
+            background: var(--tp-color-success-bg);
+            border-color: var(--tp-color-success-border);
         }
 
         .tp-state-chip.idle {
-            color: var(--tp-state-idle-ink);
-            background: var(--tp-state-idle-bg);
-            border-color: var(--tp-state-idle-border);
+            color: var(--tp-color-idle-ink);
+            background: var(--tp-color-idle-bg);
+            border-color: var(--tp-color-idle-border);
         }
 
         .tp-toolbar {
@@ -972,7 +684,7 @@
         .page-link {
             color: var(--tp-color-text-secondary);
             border-color: var(--tp-color-border);
-            border-radius: 8px;
+            border-radius: var(--tp-radius-sm);
             background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
         }
 
@@ -987,9 +699,9 @@
         }
 
         .tp-topbar-mobile {
-            background: linear-gradient(96deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 64%, var(--tp-color-nav-600) 100%) !important;
+            background: var(--tp-color-nav-900);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 16px rgba(10, 24, 33, 0.18);
+            box-shadow: var(--tp-shadow-sm);
         }
 
         /* Explicit show/hide for the hamburger collapse, owned by this file
@@ -1010,31 +722,31 @@
 
         .tp-topbar-mobile .navbar-brand {
             font-weight: 700;
-            letter-spacing: 0.3px;
+            letter-spacing: 0;
         }
 
         .tp-topbar-mobile .nav-link {
             color: rgba(235, 246, 251, 0.9) !important;
             font-weight: 600;
-            border-radius: 8px;
+            border-radius: var(--tp-radius-sm);
             padding: 6px 10px;
         }
 
         #main_header {
-            background: linear-gradient(96deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 64%, var(--tp-color-nav-600) 100%) !important;
+            background: var(--tp-color-nav-900);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 16px rgba(10, 24, 33, 0.18);
+            box-shadow: var(--tp-shadow-sm);
         }
 
         #main_header .navbar-brand {
             font-weight: 700;
-            letter-spacing: 0.3px;
+            letter-spacing: 0;
         }
 
         #main_header .nav-link {
             color: rgba(235, 246, 251, 0.9) !important;
             font-weight: 600;
-            border-radius: 8px;
+            border-radius: var(--tp-radius-sm);
             padding: 6px 10px;
             transition: background var(--tp-ui-motion-base) var(--tp-ui-ease-standard), color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
         }
@@ -1068,10 +780,10 @@
 
         .tp-table-shell {
             border: 1px solid var(--tp-color-border);
-            border-radius: calc(var(--tp-ui-radius-panel) - 2px);
+            border-radius: calc(var(--tp-radius-md) - var(--tp-radius-xs));
             overflow: auto;
             background: var(--tp-color-surface);
-            box-shadow: var(--tp-shadow-sm);
+            box-shadow: none;
         }
 
         .tp-table-shell .table {
@@ -1081,7 +793,7 @@
         .tp-table-shell thead th,
         .tp-table-shell thead td {
             background: var(--tp-color-surface-soft);
-            font-size: 0.87rem;
+            font-size: var(--tp-font-size-sm);
             font-weight: 600;
             color: var(--tp-color-text-secondary);
             position: sticky;
@@ -1104,8 +816,8 @@
             justify-content: space-between;
             gap: 12px;
             padding: 10px 16px;
-            border-radius: 10px;
-            font-size: 0.9rem;
+            border-radius: var(--tp-radius-sm);
+            font-size: var(--tp-font-size-sm);
             font-weight: 500;
             line-height: 1.4;
             animation: tp-msg-in 200ms ease;
@@ -1142,7 +854,7 @@
             border: none;
             background: none;
             color: inherit;
-            font-size: 1.2rem;
+            font-size: var(--tp-font-size-lg);
             cursor: pointer;
             opacity: 0.6;
             padding: 0 2px;
@@ -1227,7 +939,7 @@
             .tp-topbar-mobile .navbar-collapse {
                 margin-top: 8px;
                 padding: 8px;
-                border-radius: 12px;
+                border-radius: var(--tp-radius-md);
                 background: rgba(0, 0, 0, 0.22);
                 border: 1px solid rgba(255, 255, 255, 0.08);
             }
@@ -1245,7 +957,7 @@
                 padding: 10px 12px !important;
                 display: flex;
                 align-items: center;
-                font-size: 0.98rem;
+                font-size: var(--tp-font-size-md);
             }
 
             .tp-topbar-mobile .nav-link:hover,
@@ -1304,8 +1016,8 @@
                 align-items: stretch;
                 background: var(--tp-color-nav-900);
                 border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-                box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset;
-                color: var(--tp-color-selection);
+                box-shadow: none;
+                color: var(--tp-color-brand-100);
                 z-index: 1030;
                 transition: box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
             }
@@ -1317,7 +1029,7 @@
                with the previous 10px/28px version). This still reads as
                "floating" without smearing onto the strip below. */
             body.tp-scrolled .tp-topbar-desktop {
-                box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 2px 6px rgba(6, 16, 23, 0.22);
+                box-shadow: var(--tp-shadow-sm);
             }
 
             .tp-topbar-desktop-inner {
@@ -1351,10 +1063,10 @@
             }
 
             .tp-topbar-desktop-wordmark {
-                font-family: "Space Grotesk", "Segoe UI", sans-serif;
-                font-size: 1.5rem;
+                font-family: var(--tp-font-head);
+                font-size: var(--tp-heading-md);
                 font-weight: 700;
-                letter-spacing: 0.03em;
+                letter-spacing: var(--tp-tracking-label);
                 color: var(--tp-color-on-accent);
                 white-space: nowrap;
             }
@@ -1375,12 +1087,12 @@
                 display: inline-flex;
                 align-items: center;
                 gap: 8px;
-                border-radius: 9px;
+                border-radius: var(--tp-radius-sm);
                 color: rgba(232, 245, 250, 0.88);
                 text-decoration: none;
                 font-weight: 600;
-                font-size: 0.87rem;
-                letter-spacing: 0.01em;
+                font-size: var(--tp-font-size-sm);
+                letter-spacing: 0;
                 padding: 9px 15px;
                 white-space: nowrap;
                 transition: background var(--tp-ui-motion-base) var(--tp-ui-ease-standard), color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
@@ -1453,7 +1165,7 @@
                 padding: 5px 6px 5px 11px;
                 background: rgba(255, 255, 255, 0.07);
                 border: 1px solid rgba(255, 255, 255, 0.14);
-                border-radius: 999px;
+                border-radius: var(--tp-radius-pill);
             }
 
             .tp-topbar-desktop-account-icon {
@@ -1475,7 +1187,7 @@
             .tp-topbar-desktop-user {
                 font-weight: 600;
                 color: rgba(231, 244, 249, 0.92);
-                font-size: 0.82rem;
+                font-size: var(--tp-font-size-sm);
                 white-space: nowrap;
                 /* Primary truncation is at the word level, in the template
                    (|truncatewords:1 -- "Alumnos Bioinformatica Estructural"
@@ -1500,7 +1212,7 @@
                 height: 22px;
                 padding: 0;
                 border: none;
-                border-radius: 999px;
+                border-radius: var(--tp-radius-pill);
                 background: transparent;
                 color: rgba(232, 245, 250, 0.7);
                 cursor: pointer;
@@ -1588,8 +1300,8 @@
                 backdrop-filter: blur(16px);
                 -webkit-backdrop-filter: blur(16px);
                 border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 12px;
-                box-shadow: 0 18px 40px rgba(0, 0, 0, 0.38), 0 2px 10px rgba(0, 0, 0, 0.22);
+                border-radius: var(--tp-radius-md);
+                box-shadow: var(--tp-shadow-sm);
             }
 
             .tp-topbar-desktop-account-item {
@@ -1599,10 +1311,10 @@
                 width: 100%;
                 padding: 9px 10px;
                 border: none;
-                border-radius: 8px;
+                border-radius: var(--tp-radius-sm);
                 background: transparent;
                 color: rgba(232, 245, 250, 0.88);
-                font-size: 0.85rem;
+                font-size: var(--tp-font-size-sm);
                 font-weight: 500;
                 text-align: left;
                 text-decoration: none;
@@ -1655,8 +1367,8 @@
                 border: none;
                 color: rgba(232, 245, 250, 0.88);
                 font-weight: 600;
-                font-size: 0.85rem;
-                letter-spacing: 0.01em;
+                font-size: var(--tp-font-size-sm);
+                letter-spacing: 0;
                 padding: 6px 2px;
                 cursor: pointer;
                 text-decoration: none;
@@ -1698,11 +1410,11 @@
                 padding: 5px 14px 5px 11px;
                 background: rgba(255, 255, 255, 0.07);
                 border: 1px solid rgba(255, 255, 255, 0.14);
-                border-radius: 999px;
+                border-radius: var(--tp-radius-pill);
                 color: rgba(231, 244, 249, 0.92);
                 font-weight: 600;
-                font-size: 0.82rem;
-                letter-spacing: 0.01em;
+                font-size: var(--tp-font-size-sm);
+                letter-spacing: 0;
                 text-decoration: none;
                 transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
                     border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -1773,7 +1485,7 @@
                 justify-content: center;
                 flex: 0 0 auto;
                 padding: 8px;
-                border-radius: 9px;
+                border-radius: var(--tp-radius-sm);
                 color: rgba(231, 244, 249, 0.72);
                 transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
                             color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -1851,7 +1563,7 @@
 
         @media (min-width: 992px) and (max-width: 1099.98px) {
             .tp-topbar-desktop-wordmark {
-                font-size: 1.2rem;
+                font-size: var(--tp-font-size-lg);
             }
 
             .tp-topbar-desktop-user {
@@ -1869,10 +1581,10 @@
             min-width: 0;
             padding: 7px 8px;
             border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 9px;
+            border-radius: var(--tp-radius-sm);
             background: rgba(255, 255, 255, 0.06);
             color: rgba(231, 244, 249, 0.72);
-            font-size: 0.78rem;
+            font-size: var(--tp-font-size-xs);
             font-weight: 600;
             cursor: pointer;
             transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -1919,118 +1631,7 @@
         .tp-dark .tp-state-chip,
         .tp-dark .tp-chip--state,
         .tp-dark .tp-chip {
-            box-shadow: var(--tp-shadow-xs) !important;
-        }
-
-        /* Buttons, dark mode -- same variants (ghost needs no override). */
-        .tp-dark .btn-primary,
-        .tp-dark .tp-btn--primary,
-        .tp-dark .btn-success,
-        .tp-dark .tp-btn--success,
-        .tp-dark .btn-info,
-        .tp-dark .tp-btn--info {
-            background: var(--tp-color-primary) !important;
-            background-color: var(--tp-color-primary) !important;
-            border-color: transparent !important;
-            color: #f1f5f6 !important;
-        }
-
-        .tp-dark .btn-primary:hover,
-        .tp-dark .btn-primary:focus,
-        .tp-dark .btn-primary:active,
-        .tp-dark .tp-btn--primary:hover,
-        .tp-dark .tp-btn--primary:focus,
-        .tp-dark .tp-btn--primary:active,
-        .tp-dark .btn-success:hover,
-        .tp-dark .btn-success:focus,
-        .tp-dark .btn-success:active,
-        .tp-dark .tp-btn--success:hover,
-        .tp-dark .tp-btn--success:focus,
-        .tp-dark .tp-btn--success:active,
-        .tp-dark .btn-info:hover,
-        .tp-dark .btn-info:focus,
-        .tp-dark .btn-info:active,
-        .tp-dark .tp-btn--info:hover,
-        .tp-dark .tp-btn--info:focus,
-        .tp-dark .tp-btn--info:active {
-            background: var(--tp-color-primary-hover) !important;
-            background-color: var(--tp-color-primary-hover) !important;
-            border-color: transparent !important;
-            color: #f1f5f6 !important;
-        }
-
-        .tp-dark .btn-secondary,
-        .tp-dark .tp-btn--secondary,
-        .tp-dark .btn-outline-info,
-        .tp-dark .btn-outline-primary,
-        .tp-dark .tp-btn--outline,
-        .tp-dark .btn-outline-secondary,
-        .tp-dark .tp-btn--neutral,
-        .tp-dark .btn-outline-dark,
-        .tp-dark .tp-btn--dark,
-        .tp-dark .btn-outline-light,
-        .tp-dark .tp-btn--light,
-        .tp-dark .btn.tp-btn--clear,
-        .tp-dark .tp-btn--clear {
-            color: var(--tp-color-text-primary) !important;
-            border-color: var(--tp-color-border-strong) !important;
-            background: var(--tp-color-surface-soft) !important;
             box-shadow: none !important;
-        }
-
-        .tp-dark .btn-secondary:hover,
-        .tp-dark .btn-secondary:focus,
-        .tp-dark .btn-secondary:active,
-        .tp-dark .tp-btn--secondary:hover,
-        .tp-dark .tp-btn--secondary:focus,
-        .tp-dark .tp-btn--secondary:active,
-        .tp-dark .btn-outline-info:hover,
-        .tp-dark .btn-outline-info:focus,
-        .tp-dark .btn-outline-info:active,
-        .tp-dark .btn-outline-primary:hover,
-        .tp-dark .btn-outline-primary:focus,
-        .tp-dark .btn-outline-primary:active,
-        .tp-dark .tp-btn--outline:hover,
-        .tp-dark .tp-btn--outline:focus,
-        .tp-dark .tp-btn--outline:active,
-        .tp-dark .btn-outline-secondary:hover,
-        .tp-dark .btn-outline-secondary:focus,
-        .tp-dark .btn-outline-secondary:active,
-        .tp-dark .tp-btn--neutral:hover,
-        .tp-dark .tp-btn--neutral:focus,
-        .tp-dark .tp-btn--neutral:active,
-        .tp-dark .btn-outline-dark:hover,
-        .tp-dark .btn-outline-dark:focus,
-        .tp-dark .btn-outline-dark:active,
-        .tp-dark .tp-btn--dark:hover,
-        .tp-dark .tp-btn--dark:focus,
-        .tp-dark .tp-btn--dark:active,
-        .tp-dark .btn-outline-light:hover,
-        .tp-dark .btn-outline-light:focus,
-        .tp-dark .btn-outline-light:active,
-        .tp-dark .tp-btn--light:hover,
-        .tp-dark .tp-btn--light:focus,
-        .tp-dark .tp-btn--light:active,
-        .tp-dark .btn.tp-btn--clear:hover,
-        .tp-dark .btn.tp-btn--clear:focus,
-        .tp-dark .btn.tp-btn--clear:active,
-        .tp-dark .tp-btn--clear:hover,
-        .tp-dark .tp-btn--clear:focus,
-        .tp-dark .tp-btn--clear:active {
-            color: var(--tp-color-text-primary) !important;
-            border-color: var(--tp-color-text-muted) !important;
-            background: var(--tp-color-surface-muted) !important;
-        }
-
-        .tp-dark .btn-danger,
-        .tp-dark .tp-btn--danger,
-        .tp-dark .btn.tp-btn--clear.tp-btn--clear-caution,
-        .tp-dark .tp-btn--clear.tp-btn--clear-caution,
-        .tp-dark .btn.tp-btn--clear-warn,
-        .tp-dark .tp-btn--clear-warn {
-            color: var(--tp-color-danger-ink) !important;
-            border-color: var(--tp-color-danger-border) !important;
-            background: var(--tp-color-surface-soft) !important;
         }
 
         /* headings / components using nav-800 for text */
@@ -2091,7 +1692,7 @@
         /* Bootstrap .table-hover sets color: #212529 on hover — override */
         .tp-dark .table-hover tbody tr:hover {
             color: var(--tp-color-text-primary);
-            background-color: var(--tp-color-surface-panel);
+            background-color: var(--tp-color-surface-muted);
         }
 
         /* table row hover — more visible in dark */
@@ -2099,7 +1700,7 @@
         .tp-dark .tp-table--sortable tbody tr:hover,
         .tp-dark .genome-row:hover,
         .tp-dark .genome-row:focus-visible {
-            background: var(--tp-color-surface-panel) !important;
+            background: var(--tp-color-surface-muted) !important;
             color: var(--tp-color-text-primary);
         }
 
@@ -2107,7 +1708,7 @@
 
         /* select option base + all states: kill white inset */
         .tp-dark .tp-select-trigger {
-            box-shadow: var(--tp-shadow-xs);
+            box-shadow: none;
         }
         .tp-dark .tp-select-trigger:focus-within {
             box-shadow: var(--tp-focus-outline);
@@ -2145,7 +1746,7 @@
         /* scroll hint pill */
         .tp-dark .tp-table-scroll-hint {
             border-color: var(--tp-color-border-strong);
-            background: var(--tp-color-surface-panel);
+            background: var(--tp-color-surface-muted);
         }
 
         /* export bar — border too bright */
@@ -2159,23 +1760,23 @@
             background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
         }
         .tp-dark .tp-table-export-btn:hover {
-            border-color: var(--tp-color-brand-300);
-            background: linear-gradient(180deg, var(--tp-color-surface-muted) 0%, var(--tp-color-brand-050) 100%);
+            border-color: var(--tp-color-text-muted);
+            background: var(--tp-color-surface-soft);
         }
 
         /* protein table custom scrollbar — swap color-mix(white) */
         .tp-dark .protein-table-scroll-note {
             border-color: var(--tp-color-border-strong);
-            background: var(--tp-color-surface-panel);
+            background: var(--tp-color-surface-muted);
         }
         .tp-dark .protein-table-top-scroll {
             background: linear-gradient(180deg, var(--tp-color-brand-100) 0%, var(--tp-color-brand-200) 100%);
             border-color: var(--tp-color-brand-300);
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+            box-shadow: none;
         }
         .tp-dark .protein-table-top-scroll::after {
             background: linear-gradient(180deg, var(--tp-color-brand-700) 0%, var(--tp-color-brand-600) 100%);
-            box-shadow: var(--tp-shadow-sm);
+            box-shadow: none;
             border-color: var(--tp-color-brand-300);
         }
         .tp-dark .protein-table-top-scroll::before {
@@ -2188,10 +1789,10 @@
             left: 0;
             max-width: min(340px, calc(100vw - 24px));
             padding: 8px 12px;
-            border-radius: 8px;
+            border-radius: var(--tp-radius-sm);
             background: var(--tp-tooltip-bg);
             color: var(--tp-tooltip-color);
-            font-size: var(--tp-font-label);
+            font-size: var(--tp-font-size-xs);
             font-weight: 500;
             line-height: 1.4;
             text-align: center;
@@ -2200,7 +1801,7 @@
             transform: translate3d(0, 0, 0);
             transition: opacity 120ms ease;
             z-index: 3000;
-            box-shadow: var(--tp-shadow-lg);
+            box-shadow: var(--tp-shadow-sm);
         }
 
         .tp-global-tooltip.is-visible {
@@ -2257,7 +1858,7 @@
         .tp-page-loader-card {
             width: min(380px, 100%);
             border: 1px solid var(--tp-color-border);
-            border-radius: 16px;
+            border-radius: var(--tp-radius-md);
             background:
                 linear-gradient(180deg, rgba(253, 253, 253, 0.94) 0%, rgba(246, 247, 249, 0.94) 100%);
             box-shadow: var(--tp-shadow-lg);
@@ -2339,12 +1940,12 @@
             height: 4px;
             border-radius: 50%;
             background: var(--tp-color-accent-line);
-            box-shadow: 0 0 4px 0 color-mix(in srgb, var(--tp-color-accent-line) 65%, transparent);
+            box-shadow: none;
         }
 
         .tp-page-loader-title {
             margin: 0;
-            font-family: "Space Grotesk", "Segoe UI", sans-serif;
+            font-family: var(--tp-font-head);
             font-size: var(--tp-font-size-lg);
             font-weight: 700;
             letter-spacing: 0;

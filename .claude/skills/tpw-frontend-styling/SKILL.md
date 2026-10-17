@@ -16,21 +16,26 @@ none slipped through.
 
 ## Token inventory (defined in masterpage.html, light values + parallel dark overrides)
 
-- **Colors**: `--tp-color-text-{primary,secondary,muted,soft}`, `--tp-color-link{,-hover}`,
-  `--tp-color-brand-{900,800,700,600,500,300,200,100,050}`, `--tp-color-rose-{900,700,500,300,100,050}`,
-  `--tp-color-sage-{900,700,500,200,100,050}`, `--tp-color-amber-{900,700,500,200,100,050}`,
-  `--tp-color-nav-{900,800,700,600}`, `--tp-color-surface{,-soft,-muted,-panel,-alt}`,
-  `--tp-color-border{,-soft,-strong,-accent}`, `--tp-color-{success,info,idle,warning,danger}-{ink,bg,border}`
-  (this is the semantic set to use for "good/present" vs "warning" vs "error" states — reach for
-  these before raw brand/rose/sage/amber), `--tp-color-structure-*` (3D-viewer-specific),
-  `--tp-color-on-accent`, `--tp-color-highlight`, `--tp-color-selection`.
+This is the whole system (standardized 2026-10-17). Nothing outside it: no literal px radii,
+no raw rem font sizes, no raw shadows, no page-local color aliases (`--blast-ink` style).
+- **Colors**: brand `--tp-color-brand-{900..050}`; neutrals `--tp-color-text-{primary,secondary,muted,soft}`,
+  `--tp-color-surface{,-soft,-muted}`, `--tp-color-border{-soft,,-strong}`; links
+  `--tp-color-link{,-hover}` (= brand-700/900); `--tp-color-primary{,-hover}`, `--tp-color-accent-line`;
+  five tones `--tp-color-{success,info,warning,danger,idle}-{ink,bg,border}` + `--tp-color-danger-fill`;
+  `--tp-color-nav-900` (top bar), `--tp-color-on-accent`, `--tp-color-scrim`, `--tp-tooltip-*`;
+  viewer-only `--tp-color-structure-*`, `-sstruc-*`, `-plddt-*`. The old rose/sage/amber scales,
+  surface-panel/alt, border-accent, page-start/end and `--tp-ink`-style aliases are gone — use tones.
+  Data-viz palettes in JS read tones too (`success-ink`, `danger-ink`, `warning-ink`, `info-ink`).
 - **Spacing**: `--tp-space-1..8` = 4/8/12/16/20/24/32/40px.
-- **Type**: `--tp-font-size-{xs:0.78rem, sm:0.88rem, md:0.98rem, lg:1.12rem, xl:1.28rem, 2xl:clamp(...)}`,
-  `--tp-font-label: 0.75rem` (the uppercase-micro-label size used everywhere), `--tp-font-weight-{normal,medium,semibold,bold}`.
-- **Shadows**: `--tp-shadow-{xs,sm,md,lg}`.
-- **Radius**: `--tp-radius-{lg:26px, md:20px}` only. There is no small-radius token — `12px` is the
-  established de-facto small-card radius used throughout `protein-detail.css` and friends; reuse
-  that literal value for small cards rather than inventing a new token or picking an arbitrary number.
+- **Type**: families `--tp-font-{head,body,mono}`; sizes `--tp-font-size-{2xs .7, xs .78, sm .88,
+  md .98, lg 1.12, xl 1.28}rem` + `--tp-heading-{md,lg,xl}`; tracking `--tp-tracking-label` (uppercase
+  labels) / `--tp-tracking-tight` (display headings); weights only 400/500/600/700 as numbers.
+- **Shadows**: `--tp-shadow-sm` (menus, tooltips, popovers) and `--tp-shadow-lg` (modals, drawers,
+  FAB). In-flow content is flat. Focus = `--tp-focus-outline` (or `outline: 2px solid var(--tp-focus-color)`).
+- **Radius**: `--tp-radius-{xs:4, sm:8, md:12, pill:999}`. Circles may use `50%`.
+- **Controls**: `--tp-ui-control-height` 38px / `-compact` 32px (fields = buttons).
+- **Page header**: `<section class="tp-page-hero …">` + `tp-view-eyebrow/title/lead`; spacing comes
+  from ui-system, pages never restyle them.
 
 ## Palette: deep petrol, one accent (since 2026-10-16)
 
@@ -68,28 +73,21 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
   container gets `gap: 1px` + `background: var(--tp-color-border-soft)`, each grid item gets
   `background: var(--tp-color-surface)` — the 1px gaps read as thin dividers. See
   `.target-profile-grid` in `protein-detail.css`.
-- `.tp-chip` / `.tp-chip--{sm,meta,link,count,ec,go,...}` for small pill labels/links.
-- Buttons: **four types, site-wide, no more** — `.tp-btn--primary` (the one main action of a
-  view, filled), `.tp-btn--secondary` (every other action, outlined), `.tp-btn--danger`
-  (destructive, outlined, fills red on hover), `.tp-btn--ghost` (icon-only / in-row actions such
-  as close, refresh, rename, no border until hover) — plus `.tp-btn--sm/md` for size, always
-  paired with `.btn .tp-btn`. Sizes: sm 32px, default 38px, md 40px. Only three radii exist:
-  8px controls (`--tp-btn-radius`), 12px cards (`--tp-radius-md`), 999px pills/icon buttons.
-  Chips have one size (`--sm`/`--md` are legacy aliases). Danger hover fills with
-  `--tp-color-danger-fill`; "selected" fills (filter chip applied, segmented choice) use
-  `--tp-color-primary`; keyboard focus is `box-shadow: var(--tp-focus-outline)` (thin petrol
-  line), never a soft halo. A page-specific button class (e.g. `.metabolic-map-btn`, `.tp-table-export-btn`) may
-  set size/layout, but its colors must be exactly one of the four types (secondary = text-primary
-  on surface with border-strong; hover is NEUTRAL: text-primary, text-muted border,
-  surface-soft fill -- never a brand tint). Toggle groups
-  (segmented controls, viewer toolbar) and dropdown triggers are separate components, not
-  button types.
-  The older names (`neutral`, `outline`, `clear`, `dark`, `light`, `success`, `info`,
-  `clear-caution`, `clear-warn`, Bootstrap's `btn-outline-*`/`btn-success`/`btn-info`) are only
-  aliases kept in `masterpage.html` so old markup renders the same; never use them in new markup
-  and never add a fourth color/variant. Same idea for every other component (chips, notes,
-  cards): reuse the existing variant, don't invent a page-local look.
-- `.tp-state-note--{empty,error}` for "nothing here yet" / error inline messages.
+- Chip `.tp-chip` (neutral by default, one size) + only: `--code` (mono ids: EC/GO/scores),
+  `--link`, `--success`, `--warning`, `--danger`, `--muted`, `--filter` (removable applied
+  filter), `--state` + `idle|running|finished|failed`.
+- Buttons: **four types, two sizes, nothing else** — `btn tp-btn` + `--primary` (the one main action),
+  `--secondary` (everything else), `--danger` (destructive; fills `--tp-color-danger-fill` on
+  hover), `--ghost` (icon-only, close, in-row). Size: default 38px or `tp-btn--sm` 32px. All aliases
+  (neutral/outline/clear/success/info/md, Bootstrap btn-*) were removed from CSS and markup — they no
+  longer render. A page class may set size/layout only, never colors. Hover everywhere is neutral
+  (surface-soft fill, text-muted/border-strong border, text-primary ink) — never a brand tint.
+  Selected = filled `--tp-color-primary`. Toggle groups use `.tp-segmented` (ui-system.css).
+- Frozen states for /design: `.is-hover` / `.is-focus` are matched by the real rules — add them to
+  any new hover/focus rule you want shown there.
+- `.tp-state-note--{empty,loading,success,warning,error}` for every inline status message (left
+  bar, left-aligned, never centered or boxed).
+- `.tp-card` only for repeated grid items (border, no shadow). Sections are never boxed.
 - Dialogs: `.tp-modal` (backdrop, `.is-open` shows it) > `.tp-modal-panel[--sm|--lg]` >
   `.tp-modal-head` (`.tp-modal-title`, optional `.tp-modal-meta`, close =
   `btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close` with `icons/x.html`) + `.tp-modal-body` +

@@ -96,7 +96,7 @@
             if (!stage) {
                 var rootStyle = getComputedStyle(document.documentElement);
                 var bg = (rootStyle.getPropertyValue("--tp-color-structure-bg") || "").trim()
-                    || (rootStyle.getPropertyValue("--tp-color-surface-panel") || "").trim();
+                    || (rootStyle.getPropertyValue("--tp-color-surface-muted") || "").trim();
                 stage = new window.NGL("human-structure-viewport", { backgroundColor: bg || undefined });
             }
             return stage;

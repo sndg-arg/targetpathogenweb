@@ -3,12 +3,6 @@
 .formula-page {
     display: grid;
     gap: var(--tp-space-4);
-    --ff-accent-ink: var(--tp-color-brand-900);
-    --ff-accent-soft: var(--tp-color-info-bg);
-    --ff-accent-soft-2: var(--tp-color-brand-050);
-    --ff-accent-border: var(--tp-color-brand-300);
-    --ff-border: var(--tp-color-border-soft);
-    --ff-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     --ff-editor-bg: var(--tp-color-brand-900);
     --ff-editor-color: var(--tp-color-brand-100);
 }
@@ -16,9 +10,9 @@
 .formula-page h1,
 .formula-page h2,
 .formula-page h3 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--tp-tracking-tight);
 }
 .formula-page h1 { font-weight: 700; }
 
@@ -26,43 +20,10 @@
     display: contents;
 }
 
-/* ── Hero ── */
-
-/* No longer its own boxed card -- sits directly on the page background
-   (see tpw-editorial-redesign). The workbench cards below stay
-   individually boxed -- a side-by-side editor/variable-picker tool
-   layout, not sequential page sections (same call as customparam.html's
-   form+guide pair). */
-.formula-hero {
-    padding: 22px 18px 18px;
-}
-
 .formula-eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: 0 0 8px;
-    color: var(--tp-color-text-muted);
-    font-family: var(--ff-mono);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.formula-hero h1 {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    line-height: 1.05;
-    color: var(--ff-accent-ink);
-}
-
-.formula-subtitle {
-    margin: 10px 0 0;
-    max-width: 900px;
-    color: var(--tp-color-text-secondary);
-    font-size: 1.03rem;
-    line-height: 1.52;
 }
 
 .formula-chip-group {
@@ -72,24 +33,24 @@
 }
 
 .formula-chip-group code {
-    font-family: var(--ff-mono);
-    font-size: 0.82em;
-    color: var(--ff-accent-ink);
+    font-family: var(--tp-font-mono);
+    font-size: 0.9em;
+    color: var(--tp-color-brand-900);
     background: none;
     padding: 0;
 }
 
 .formula-chip-id {
-    font-family: var(--ff-mono);
+    font-family: var(--tp-font-mono);
     font-weight: 600;
-    color: var(--ff-accent-ink);
+    color: var(--tp-color-brand-900);
 }
 
 /* ── Alert ── */
 
 .formula-alert {
     border: 1px solid var(--tp-color-danger-border);
-    border-radius: var(--tp-ui-radius-panel);
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-danger-bg);
     padding: 14px 16px;
 }
@@ -115,7 +76,7 @@
 
 .formula-card {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
     padding: 16px;
     display: grid;
@@ -134,15 +95,15 @@
 
 .formula-card h2 {
     margin: 0;
-    color: var(--ff-accent-ink);
-    font-size: var(--tp-heading-sm);
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-lg);
     line-height: 1.15;
 }
 
 .formula-card-note {
     margin: 5px 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.45;
 }
 
@@ -151,8 +112,8 @@
 }
 
 .formula-hidden-var {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.88em;
+    font-family: var(--tp-font-mono);
+    font-size: 0.9em;
     color: var(--tp-color-text-secondary);
 }
 
@@ -164,15 +125,15 @@
 }
 
 .formula-expression-input {
-    font-family: var(--ff-mono) !important;
-    font-size: 0.92rem !important;
+    font-family: var(--tp-font-mono) !important;
+    font-size: var(--tp-font-size-sm) !important;
     line-height: 1.65 !important;
     resize: vertical;
     min-height: 120px;
     background: var(--ff-editor-bg) !important;
     color: var(--ff-editor-color) !important;
     border: 1px solid var(--tp-color-brand-700) !important;
-    border-radius: 12px !important;
+    border-radius: var(--tp-radius-md) !important;
     caret-color: var(--tp-color-brand-300);
     padding: 14px 16px !important;
     transition: border-color 0.18s, box-shadow 0.18s;
@@ -184,7 +145,7 @@
 
 .formula-expression-input:focus {
     border-color: var(--tp-color-brand-600) !important;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-brand-600) 22%, transparent) !important;
+    box-shadow: var(--tp-focus-outline) !important;
     outline: none !important;
 }
 
@@ -200,9 +161,9 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 0.84rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
     padding: 3px 10px;
 }
 
@@ -230,15 +191,15 @@
 .formula-katex-label {
     margin: 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.07em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
 .formula-katex-block {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
     padding: 14px 16px;
     min-height: 58px;
@@ -247,12 +208,12 @@
     justify-content: center;
     overflow-x: auto;
     color: var(--tp-color-text-primary);
-    font-size: 1.08rem;
+    font-size: var(--tp-font-size-lg);
 }
 
 .formula-katex-placeholder {
     color: var(--tp-color-text-muted);
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     font-style: italic;
 }
 
@@ -266,9 +227,9 @@
 .formula-palette-label {
     margin: 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.07em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
@@ -284,11 +245,11 @@
     display: inline-flex;
     align-items: center;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface-soft);
-    color: var(--ff-accent-ink);
-    font-family: var(--ff-mono);
-    font-size: 0.82rem;
+    color: var(--tp-color-brand-900);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     padding: 4px 10px;
     cursor: pointer;
@@ -304,7 +265,7 @@
 }
 
 .formula-op-chip {
-    font-size: 1.05rem;
+    font-size: var(--tp-font-size-md);
     padding: 3px 12px;
     min-width: 38px;
     justify-content: center;
@@ -320,8 +281,8 @@
 }
 
 .formula-example-chip span {
-    color: var(--ff-accent-ink);
-    font-size: 0.82rem;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
 }
 
@@ -330,8 +291,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     color: var(--tp-color-text-secondary);
-    font-family: var(--ff-mono);
-    font-size: 0.76rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
     white-space: nowrap;
 }
 
@@ -389,9 +350,9 @@
 .formula-var-group-label {
     margin: 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     padding-bottom: 2px;
     border-bottom: 1px solid var(--tp-color-border-soft);
@@ -408,11 +369,11 @@
     align-items: center;
     gap: 6px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 7px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
-    font-family: var(--ff-mono);
-    font-size: var(--tp-font-label);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     padding: 3px 8px;
     cursor: pointer;
@@ -433,13 +394,13 @@
 
 .formula-var-kind {
     flex: 0 0 auto;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-muted);
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    font-size: 0.64rem;
+    font-family: var(--tp-font-body);
+    font-size: var(--tp-font-size-2xs);
     font-weight: 500;
-    letter-spacing: 0.04em;
+    letter-spacing: var(--tp-tracking-label);
     line-height: 1;
     padding: 3px 6px;
     text-transform: uppercase;
@@ -458,7 +419,7 @@
 .formula-var-chip:hover {
     background: var(--tp-color-surface-muted);
     border-color: var(--tp-color-border);
-    color: var(--ff-accent-ink);
+    color: var(--tp-color-brand-900);
 }
 
 /* ── Field error ── */
@@ -478,7 +439,7 @@
     gap: 24px;
     justify-content: space-between;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
     padding: 18px 22px;
     /* Same border-alignment fix as .formula-workbench above. */
@@ -493,15 +454,15 @@
 
 .formula-footer-title {
     margin: 0;
-    color: var(--ff-accent-ink);
-    font-size: 0.96rem;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-md);
     font-weight: 600;
 }
 
 .formula-footer-note {
     margin: 6px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
@@ -563,9 +524,6 @@
 }
 
 @media (max-width: 768px) {
-    .formula-hero {
-        padding: 18px 16px 16px;
-    }
 
     .formula-card {
         padding: 14px;
@@ -601,9 +559,9 @@
     display: grid;
     gap: 2px;
     border: 1px solid var(--tp-color-border);
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-sm);
+    box-shadow: none;
     max-height: 260px;
     overflow-y: auto;
 }
@@ -614,7 +572,7 @@
     justify-content: space-between;
     gap: var(--tp-space-3);
     padding: 6px 10px;
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
     cursor: pointer;
 }
 

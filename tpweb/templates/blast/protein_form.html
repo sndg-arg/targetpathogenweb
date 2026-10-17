@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261016-general">
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -25,7 +25,7 @@
     <div class="blast-page">
 
         {# ── Hero ── #}
-        <section class="blast-hero">
+        <section class="tp-page-hero blast-hero">
             <span class="tp-view-eyebrow blast-eyebrow">{% trans "Sequence search · blastp · genome-specific" %}</span>
             <h1 class="tp-view-title">{% trans "Protein BLAST" %}</h1>
             <p class="tp-view-lead blast-subtitle">

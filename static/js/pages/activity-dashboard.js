@@ -149,16 +149,16 @@
         if (!container) return;
         var accounts = data.accounts || [];
         if (!accounts.length) {
-            container.innerHTML = '<p class="activity-accounts-empty">No active accounts.</p>';
+            container.innerHTML = '<p class="tp-state-note tp-state-note--empty">No active accounts.</p>';
             return;
         }
         container.innerHTML = accounts.map(function (account) {
             var lastLogin = account.last_login ? relativeSince(account.last_login) : "Never logged in";
             var badge = account.is_superuser
-                ? '<span class="tp-chip tp-chip--sm">admin</span>'
+                ? '<span class="tp-chip">admin</span>'
                 : account.is_staff
-                ? '<span class="tp-chip tp-chip--sm tp-chip--meta">staff</span>'
-                : '<span class="tp-chip tp-chip--sm tp-chip--homolog">user</span>';
+                ? '<span class="tp-chip">staff</span>'
+                : '<span class="tp-chip tp-chip--muted">user</span>';
             return (
                 '<div class="activity-account-row">' +
                 '<span class="activity-account-name">' + escapeHtml(account.name) + "</span>" +
@@ -207,7 +207,7 @@
             ? '<span class="activity-user-agent" title="' + safe + '">' + safe + "</span>"
             : '<span class="activity-user-agent activity-user-agent--empty">—</span>';
         var badgeHtml = botLabel
-            ? '<span class="tp-chip tp-chip--sm activity-bot-chip">' + escapeHtml(botLabel) + "</span>"
+            ? '<span class="tp-chip activity-bot-chip">' + escapeHtml(botLabel) + "</span>"
             : "";
         return '<span class="activity-user-agent-cell">' + agentHtml + badgeHtml + "</span>";
     }
@@ -281,7 +281,7 @@
         var details = el.nextElementSibling;
         if (details && details.tagName === "DETAILS") details.hidden = !chips.length;
         if (!chips.length) {
-            el.innerHTML = '<p class="activity-accounts-empty">' + emptyText + "</p>";
+            el.innerHTML = '<p class="tp-state-note tp-state-note--empty">' + emptyText + "</p>";
             return;
         }
         el.innerHTML = chips.map(function (chip) {
@@ -302,7 +302,7 @@
         var container = document.querySelector("[data-locations-list]");
         if (!container) return;
         if (!rows.length) {
-            container.innerHTML = '<p class="activity-accounts-empty">No logged-in sessions yet.</p>';
+            container.innerHTML = '<p class="tp-state-note tp-state-note--empty">No logged-in sessions yet.</p>';
             return;
         }
         container.innerHTML = rows.map(function (row) {
@@ -328,7 +328,7 @@
         var container = document.querySelector("[data-login-attempts-list]");
         if (!container) return;
         if (!rows.length) {
-            container.innerHTML = '<p class="activity-accounts-empty">No failed login attempts in this window.</p>';
+            container.innerHTML = '<p class="tp-state-note tp-state-note--empty">No failed login attempts in this window.</p>';
             return;
         }
         container.innerHTML = rows.map(function (row) {
@@ -367,7 +367,7 @@
         if (!container) return;
         var rows = data.blocked_attempts || [];
         if (!rows.length) {
-            container.innerHTML = '<p class="activity-accounts-empty">No scanning traffic in this window — nice.</p>';
+            container.innerHTML = '<p class="tp-state-note tp-state-note--empty">No scanning traffic in this window — nice.</p>';
             return;
         }
         container.innerHTML = rows.map(function (row) {
@@ -388,7 +388,7 @@
         if (!container) return;
         var rows = data.top_error_paths || [];
         if (!rows.length) {
-            container.innerHTML = '<p class="activity-accounts-empty">No errors in this window — nice.</p>';
+            container.innerHTML = '<p class="tp-state-note tp-state-note--empty">No errors in this window — nice.</p>';
             return;
         }
         container.innerHTML = rows.map(function (row) {
@@ -419,7 +419,7 @@
         if (!container) return;
         var rows = data.top_scanned_paths || [];
         if (!rows.length) {
-            container.innerHTML = '<p class="activity-accounts-empty">No scanning traffic in this window — nice.</p>';
+            container.innerHTML = '<p class="tp-state-note tp-state-note--empty">No scanning traffic in this window — nice.</p>';
             return;
         }
         container.innerHTML = rows.map(function (row) {

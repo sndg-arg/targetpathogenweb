@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20261016-general">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -20,16 +20,16 @@
 
 {% block body %}
     <div class="genome-upload-page">
-        <section class="genome-upload-hero">
+        <section class="tp-page-hero genome-upload-hero">
             <span class="tp-view-eyebrow genome-upload-eyebrow">{% trans "New genome analysis" %}</span>
             <h1 class="tp-view-title">{% trans "Upload a genome" %}</h1>
             <p class="tp-view-lead genome-upload-subtitle">{% trans "Upload a compressed GenBank record to create a genome workspace and queue a new target-prioritization run." %}</p>
             <div class="genome-upload-chip-group tp-chip-group">
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Workspace" %}:</strong> <span>{{ workspace_label }}</span></span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Input" %}:</strong> <code>.gbk.gz</code></span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Gram" %}:</strong> <span>{% trans "positive or negative" %}</span></span>
+                <span class="tp-chip"><strong>{% trans "Workspace" %}:</strong> <span>{{ workspace_label }}</span></span>
+                <span class="tp-chip"><strong>{% trans "Input" %}:</strong> <code>.gbk.gz</code></span>
+                <span class="tp-chip"><strong>{% trans "Gram" %}:</strong> <span>{% trans "positive or negative" %}</span></span>
                 {% if pipeline_status.running %}
-                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="global" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
+                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="global" chip_class="tp-chip tp-chip--state" %}
                 {% endif %}
             </div>
             <div class="genome-upload-hero-actions">
@@ -45,7 +45,7 @@
                     </button>
                 </form>
                 {% endif %}
-                <a href="{% url 'tpwebapp:genomes_list' %}" class="btn tp-btn tp-btn--outline tp-btn-with-icon">
+                <a href="{% url 'tpwebapp:genomes_list' %}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon">
                     <span>{% trans "Browse genomes" %}</span>
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                 </a>
@@ -152,10 +152,10 @@
                     <p class="genome-upload-card-note">{% trans "Finished runs link directly to the resulting protein ranking. Failed runs keep the reported pipeline message for review." %}</p>
                 </div>
                 <div class="genome-upload-history-tools">
-                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ jobs|length }}</span>
+                    <span class="tp-chip">{{ jobs|length }}</span>
                     <button
                         type="button"
-                        class="btn tp-btn tp-btn--neutral btn-sm genome-upload-refresh-btn tp-focusable"
+                        class="btn tp-btn tp-btn--secondary tp-btn--sm genome-upload-refresh-btn tp-focusable"
                         aria-label="{% trans 'Refresh submission list' %}"
                         title="{% trans 'Refresh submission list' %}"
                     >
@@ -168,7 +168,7 @@
                             {% csrf_token %}
                             <input type="hidden" name="action" value="clear_failed_history">
                             {% trans "Clear failed" as clear_failed_label %}
-                            {% include "components/buttons/clear_action.html" with label=clear_failed_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn-with-icon genome-upload-history-clear-btn" %}
+                            {% include "components/buttons/clear_action.html" with label=clear_failed_label button_type="submit" classes="btn tp-btn tp-btn--secondary tp-btn-with-icon genome-upload-history-clear-btn" %}
                         </form>
                     {% endif %}
                     {% if jobs %}
@@ -176,7 +176,7 @@
                             {% csrf_token %}
                             <input type="hidden" name="action" value="clear_history">
                             {% trans "Clear history" as clear_history_label %}
-                            {% include "components/buttons/clear_action.html" with label=clear_history_label button_type="submit" disabled=has_active_jobs classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon genome-upload-history-clear-btn" %}
+                            {% include "components/buttons/clear_action.html" with label=clear_history_label button_type="submit" disabled=has_active_jobs classes="btn tp-btn tp-btn--danger tp-btn-with-icon genome-upload-history-clear-btn" %}
                         </form>
                     {% endif %}
                 </div>
@@ -205,7 +205,7 @@
                                 </td>
                                 <td>{{ job.gram }}</td>
                                 <td>{{ job.created_at_label }}</td>
-                                <td><span class="genome-upload-status tp-chip tp-chip--sm genome-upload-status--{{ job.state_class }}">{{ job.state_label }}</span></td>
+                                <td><span class="genome-upload-status tp-chip genome-upload-status--{{ job.state_class }}">{{ job.state_label }}</span></td>
                                 <td>
                                     {% if job.state_class == "finished" %}
                                         <a href="{% url 'tpwebapp:protein_list' job.protein_workspace_url %}">{% trans "Explore proteins" %}</a>
@@ -317,7 +317,7 @@
                                 <p class="genome-upload-submit-note">{% trans "Validate first to confirm the genome, TSV columns, archive layout, protein matching, structure directory, and LigQ_2 ligand-evidence output before writing anything." %}</p>
                             </div>
                             <div class="tp-ui-actions genome-upload-actions">
-                                <button type="submit" class="btn tp-btn tp-btn--outline tp-btn-with-icon" onclick="document.getElementById('external-import-action').value='validate_external_import';">
+                                <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn-with-icon" onclick="document.getElementById('external-import-action').value='validate_external_import';">
                                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>
                                     <span>{% trans "Validate import" %}</span>
                                 </button>
@@ -473,7 +473,7 @@
                         <tr>
                             <td><code>{{ job.genome_name }}</code></td>
                             <td>{{ job.created_at_label }}</td>
-                            <td><span class="genome-upload-status tp-chip tp-chip--sm genome-upload-status--{{ job.status }}">{{ job.status_label }}</span></td>
+                            <td><span class="genome-upload-status tp-chip genome-upload-status--{{ job.status }}">{{ job.status_label }}</span></td>
                             <td>{% if job.report_path %}<code>{{ job.report_path }}</code>{% else %}<span class="text-muted">{% trans "No report" %}</span>{% endif %}</td>
                             <td>
                                 {% if job.can_retry %}
@@ -481,7 +481,7 @@
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="retry_curated_import">
                                         <input type="hidden" name="curated_import_job_id" value="{{ job.id }}">
-                                        <button type="submit" class="btn tp-btn tp-btn--outline btn-sm tp-btn-with-icon">
+                                        <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon">
                                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
                                             <span>{% trans "Retry" %}</span>
                                         </button>

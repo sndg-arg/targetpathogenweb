@@ -1,56 +1,22 @@
 .genome-upload-page {
     display: grid;
     gap: var(--tp-space-4);
-    --upload-accent: var(--tp-accent);
-    --upload-accent-ink: var(--tp-color-brand-900);
-    --upload-accent-soft: var(--tp-color-info-bg);
-    --upload-accent-soft-2: var(--tp-color-brand-050);
-    --upload-accent-border: var(--tp-color-brand-300);
-    --upload-border: var(--tp-color-border-soft);
 }
 
 .genome-upload-page h1,
 .genome-upload-page h2,
 .genome-upload-page h3,
 .genome-upload-page h4 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--tp-tracking-tight);
 }
 .genome-upload-page h1 { font-weight: 700; }
-
-/* No longer its own boxed card -- sits directly on the page background
-   (see tpw-editorial-redesign). */
-.genome-upload-hero {
-    padding: 22px 18px 18px;
-}
 
 .genome-upload-eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: 0 0 8px;
-    color: var(--tp-color-text-muted);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.genome-upload-hero h1 {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    line-height: 1.05;
-    color: var(--upload-accent-ink);
-}
-
-.genome-upload-subtitle {
-    margin: 10px 0 0;
-    max-width: 900px;
-    color: var(--tp-color-text-secondary);
-    font-size: 1.03rem;
-    line-height: 1.52;
 }
 
 .genome-upload-chip-group {
@@ -94,21 +60,21 @@
     gap: 6px;
     padding: 13px 15px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 14px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
 }
 
 .metric-label {
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
 .metric-value {
-    color: var(--upload-accent-ink);
-    font-size: 1.15rem;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-lg);
     font-weight: 600;
     line-height: 1.05;
 }
@@ -160,8 +126,8 @@
 .genome-upload-card h2,
 .genome-upload-history h2 {
     margin: 0 0 14px;
-    color: var(--upload-accent-ink);
-    font-size: 1.22rem;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-xl);
     line-height: 1.15;
 }
 
@@ -169,7 +135,7 @@
     margin: 0 0 14px;
     max-width: 720px;
     color: var(--tp-color-text-muted);
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.45;
 }
 
@@ -222,7 +188,7 @@
 .genome-upload-field select,
 .genome-upload-field input[type="text"] {
     min-height: 46px;
-    border-radius: 14px;
+    border-radius: var(--tp-radius-md);
 }
 
 /* The native file input otherwise renders as unstyled browser chrome --
@@ -236,7 +202,7 @@
     min-height: 46px;
     padding: 4px 6px;
     border: 1px solid var(--tp-color-border);
-    border-radius: 14px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
@@ -246,7 +212,7 @@
     margin-right: 10px;
     padding: 8px 14px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-btn-radius-sm);
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font-weight: 600;
@@ -256,14 +222,14 @@
 }
 
 .genome-upload-field .tp-file-input::file-selector-button:hover {
-    background: var(--tp-color-brand-050);
-    border-color: var(--tp-color-brand-600);
-    color: var(--tp-color-brand-800);
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-text-muted);
+    color: var(--tp-color-text-primary);
 }
 
 .genome-upload-field .tp-file-input:focus-visible {
     outline: none;
-    border-color: var(--upload-accent-border);
+    border-color: var(--tp-color-brand-300);
     box-shadow: var(--tp-focus-outline);
 }
 
@@ -286,7 +252,7 @@
     justify-content: space-between;
     padding: 14px 16px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 18px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
 }
 
@@ -296,15 +262,15 @@
 
 .genome-upload-submit-title {
     margin: 0;
-    color: var(--upload-accent-ink);
-    font-size: 0.96rem;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-md);
     font-weight: 600;
 }
 
 .genome-upload-submit-note {
     margin: 4px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.45;
 }
 
@@ -347,25 +313,25 @@
     justify-content: center;
     width: 30px;
     height: 30px;
-    border-radius: 999px;
-    background: var(--upload-accent-soft);
-    border: 1px solid var(--upload-accent-border);
-    color: var(--upload-accent-ink);
+    border-radius: var(--tp-radius-pill);
+    background: var(--tp-color-info-bg);
+    border: 1px solid var(--tp-color-brand-300);
+    color: var(--tp-color-brand-900);
     font-weight: 700;
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
 }
 
 .genome-upload-guide-item h3 {
     margin: 0;
-    color: var(--upload-accent-ink);
-    font-size: 0.98rem;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-md);
     line-height: 1.25;
 }
 
 .genome-upload-guide-item p {
     margin: 5px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.91rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
@@ -376,7 +342,7 @@
     padding: 2px 0 2px 12px;
     border-left: 3px solid var(--tp-color-info-border);
     color: var(--tp-color-text-secondary);
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
@@ -400,7 +366,7 @@
     padding: 0 !important;
     justify-content: center;
     border: 0 !important;
-    border-radius: 999px !important;
+    border-radius: var(--tp-radius-pill) !important;
     background: transparent !important;
     box-shadow: none !important;
     transform: none !important;
@@ -409,7 +375,7 @@
 
 .genome-upload-refresh-btn.genome-upload-refresh-btn:hover,
 .genome-upload-refresh-btn.genome-upload-refresh-btn:focus-visible {
-    background: color-mix(in srgb, var(--tp-color-brand-800) 8%, transparent) !important;
+    background: var(--tp-color-surface-soft) !important;
     box-shadow: none !important;
 }
 
@@ -443,7 +409,7 @@
 .genome-upload-history .tp-table-shell {
     border-color: var(--tp-color-border);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-sm);
+    box-shadow: none;
 }
 
 .genome-upload-history .table {
@@ -468,7 +434,7 @@
 
 .genome-upload-history-name {
     font-weight: 600;
-    color: var(--upload-accent-ink);
+    color: var(--tp-color-brand-900);
 }
 
 .genome-upload-history-name a {
@@ -482,7 +448,7 @@
 
 .genome-upload-history-name a:focus-visible {
     outline: none;
-    border-radius: 6px;
+    border-radius: var(--tp-radius-sm);
     box-shadow: var(--tp-focus-outline);
 }
 
@@ -587,9 +553,6 @@
 }
 
 @media (max-width: 768px) {
-    .genome-upload-hero {
-        padding: 18px 16px 16px;
-    }
 
     .genome-upload-layout {
         margin: 0 16px;
@@ -631,11 +594,11 @@
     cursor: pointer;
     display: inline-block;
     margin: 0 16px;
-    color: var(--upload-accent-ink);
+    color: var(--tp-color-brand-900);
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     text-decoration: underline;
-    text-decoration-color: var(--upload-accent-border);
+    text-decoration-color: var(--tp-color-brand-300);
     text-underline-offset: 3px;
     list-style: none;
 }
@@ -689,7 +652,7 @@
     font-size: var(--tp-font-size-sm);
     font-weight: 500;
     color: var(--tp-color-text-muted);
-    letter-spacing: 0.04em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
@@ -698,9 +661,9 @@
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border-soft);
     padding: 8px 12px;
-    border-radius: 8px;
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.82rem;
+    border-radius: var(--tp-radius-sm);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-sm);
     word-break: break-all;
     color: var(--tp-color-text-primary);
 }
@@ -713,9 +676,9 @@
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border-soft);
     padding: 10px 12px;
-    border-radius: 8px;
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.82rem;
+    border-radius: var(--tp-radius-sm);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-primary);
 }
 

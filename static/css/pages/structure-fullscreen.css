@@ -15,10 +15,6 @@ body:has(.sv-root) { overflow: hidden; }
 
 /* ── 2. Root layout ── */
 .sv-root {
-    --structure-accent:        var(--tp-color-brand-800);
-    --structure-accent-ink:    var(--tp-color-brand-900);
-    --structure-accent-soft:   var(--tp-color-brand-100);
-    --structure-accent-border: var(--tp-color-brand-300);
 
     display: flex;
     height: calc(100dvh - var(--sv-nav-h, 58px));
@@ -75,11 +71,11 @@ body:has(.sv-root) { overflow: hidden; }
     align-items: center;
     gap: 4px;
     color: var(--sv-overlay-text);
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     text-decoration: none;
     opacity: 0.78;
-    letter-spacing: 0.01em;
+    letter-spacing: 0;
     transition: opacity 0.14s;
     white-space: nowrap;
     max-width: 200px;
@@ -103,34 +99,34 @@ body:has(.sv-root) { overflow: hidden; }
 }
 
 .sv-pdb-code {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-weight: 600;
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--sv-overlay-text);
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     background: var(--sv-code-bg);
-    border-radius: 4px;
+    border-radius: var(--tp-radius-xs);
     padding: 2px 7px;
     line-height: 1.6;
 }
 
 .sv-meta-pill {
-    font-size: 0.74rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     color: var(--sv-overlay-text);
     opacity: 0.78;
     background: var(--sv-btn-bg);
-    border-radius: 4px;
+    border-radius: var(--tp-radius-xs);
     padding: 2px 8px;
     line-height: 1.6;
-    letter-spacing: 0.01em;
+    letter-spacing: 0;
     white-space: nowrap;
 }
 .sv-meta-pill--dim { opacity: 0.54; }
 .sv-meta-pill--focus {
     opacity: 1;
-    color: var(--tp-color-rose-050);
-    background: color-mix(in srgb, var(--tp-color-rose-500) 55%, var(--sv-btn-bg));
+    color: var(--tp-color-danger-bg);
+    background: color-mix(in srgb, var(--tp-color-danger-ink) 55%, var(--sv-btn-bg));
 }
 
 /* ── 5. Loading / Legend (overlaid on canvas) ── */
@@ -145,7 +141,7 @@ body:has(.sv-root) { overflow: hidden; }
     justify-content: center;
     gap: 8px;
     color: var(--sv-overlay-text-muted);
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     pointer-events: none;
 }
 
@@ -154,8 +150,8 @@ body:has(.sv-root) { overflow: hidden; }
     width: 14px;
     height: 14px;
     border: 2px solid var(--sv-overlay-border);
-    border-top-color: var(--structure-accent);
-    border-radius: 999px;
+    border-top-color: var(--tp-color-brand-800);
+    border-radius: var(--tp-radius-pill);
     animation: sv-loading-spin 800ms linear infinite;
 }
 
@@ -189,15 +185,15 @@ body:has(.sv-root) { overflow: hidden; }
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--sv-overlay-border);
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
 }
 
 .sv-legend-label {
-    font-size: 0.7rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 500;
     color: var(--sv-overlay-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.07em;
+    letter-spacing: var(--tp-tracking-label);
     margin-right: 2px;
 }
 
@@ -205,7 +201,7 @@ body:has(.sv-root) { overflow: hidden; }
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     color: var(--sv-overlay-text);
 }
@@ -254,8 +250,8 @@ body:has(.sv-root) { overflow: hidden; }
     backdrop-filter: blur(18px) saturate(1.4);
     -webkit-backdrop-filter: blur(18px) saturate(1.4);
     border: 1px solid var(--sv-toolbar-border);
-    border-radius: 14px;
-    box-shadow: var(--sv-shadow);
+    border-radius: var(--tp-radius-md);
+    box-shadow: var(--tp-shadow-lg);
     white-space: nowrap;
     max-width: calc(100% - 32px);
     /* .sv-tb-btn is flex-shrink: 0 (buttons never compress) and this row has
@@ -272,7 +268,7 @@ body:has(.sv-root) { overflow: hidden; }
 .sv-toolbar::-webkit-scrollbar { height: 4px; }
 .sv-toolbar::-webkit-scrollbar-thumb {
     background: var(--sv-toolbar-border);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
 }
 
 /* Generic toolbar button */
@@ -283,13 +279,13 @@ body:has(.sv-root) { overflow: hidden; }
     height: 30px;
     padding: 0 8px;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
     background: var(--sv-btn-bg);
     color: var(--sv-overlay-text);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     font-family: inherit;
-    letter-spacing: 0.01em;
+    letter-spacing: 0;
     cursor: pointer;
     text-decoration: none;
     transition:
@@ -311,7 +307,7 @@ body:has(.sv-root) { overflow: hidden; }
     outline: none;
     transform: translateY(-1px);
 }
-.sv-tb-btn:focus-visible { outline: 2px solid var(--sv-btn-active-color); outline-offset: 2px; }
+.sv-tb-btn:focus-visible { outline: 2px solid var(--tp-focus-color); outline-offset: 2px; }
 .sv-tb-btn:disabled { opacity: 0.30; cursor: default; pointer-events: none; }
 
 .sv-tb-btn.sv-tb-active,
@@ -361,17 +357,17 @@ body:has(.sv-root) { overflow: hidden; }
     gap: 2px;
     padding: 3px;
     background: var(--sv-btn-bg);
-    border-radius: 9px;
+    border-radius: var(--tp-radius-sm);
 }
 
 .sv-mode-btn {
     height: 24px;
     padding: 0 8px;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--tp-radius-sm);
     background: transparent;
     color: var(--sv-overlay-text);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
@@ -409,14 +405,14 @@ body:has(.sv-root) { overflow: hidden; }
     display: flex;
     flex-direction: column;
     border-left: 1px solid var(--tp-color-border-strong);
-    background: var(--tp-color-surface-panel);
+    background: var(--tp-color-surface-muted);
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--tp-color-border-strong) transparent;
 }
 .sv-sidebar::-webkit-scrollbar { width: 5px; }
 .sv-sidebar::-webkit-scrollbar-track { background: transparent; }
-.sv-sidebar::-webkit-scrollbar-thumb { background: var(--tp-color-border-strong); border-radius: 4px; }
+.sv-sidebar::-webkit-scrollbar-thumb { background: var(--tp-color-border-strong); border-radius: var(--tp-radius-xs); }
 
 .sv-sidebar-inner {
     padding: 18px 16px 32px;
@@ -435,11 +431,11 @@ body:has(.sv-root) { overflow: hidden; }
 
 .sv-sidebar-protein-name {
     margin: 0 0 4px;
-    font-size: 0.75rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.07em;
+    letter-spacing: var(--tp-tracking-label);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -447,11 +443,11 @@ body:has(.sv-root) { overflow: hidden; }
 
 .sv-sidebar-code {
     margin: 0 0 8px;
-    font-size: 1.5rem;
+    font-size: var(--tp-heading-md);
     font-weight: 600;
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     color: var(--tp-color-text-primary);
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tp-tracking-label);
     line-height: 1.2;
 }
 
@@ -493,12 +489,12 @@ body:has(.sv-root) { overflow: hidden; }
 }
 
 .sv-sidebar-meta-tag {
-    font-size: 0.72rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 600;
     color: var(--tp-color-text-secondary);
     background: var(--tp-color-surface-muted);
     border: 1px solid var(--tp-color-border);
-    border-radius: 4px;
+    border-radius: var(--tp-radius-xs);
     padding: 2px 7px;
     white-space: nowrap;
 }
@@ -513,10 +509,10 @@ body:has(.sv-root) { overflow: hidden; }
     margin: 10px 0 0;
     padding: 8px 10px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-muted);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     line-height: 1.35;
 }
@@ -524,10 +520,10 @@ body:has(.sv-root) { overflow: hidden; }
 .sv-pocket-inspector {
     margin-top: 10px;
     padding: var(--tp-space-4);
-    border: 1px solid var(--structure-accent-border);
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--structure-accent-soft) 45%, var(--tp-color-surface));
-    box-shadow: var(--tp-shadow-xs);
+    border: 1px solid var(--tp-color-brand-300);
+    border-radius: var(--tp-radius-sm);
+    background: color-mix(in srgb, var(--tp-color-brand-100) 45%, var(--tp-color-surface));
+    box-shadow: none;
 }
 
 .sv-pocket-inspector[hidden] {
@@ -544,9 +540,9 @@ body:has(.sv-root) { overflow: hidden; }
 
 .sv-pocket-inspector-kicker {
     color: var(--tp-color-text-muted);
-    font-size: 0.66rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
@@ -561,12 +557,12 @@ body:has(.sv-root) { overflow: hidden; }
 .sv-pocket-inspector-toggle {
     appearance: none;
     border: 1px solid var(--tp-color-border);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
     cursor: pointer;
     font: inherit;
-    font-size: 0.68rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 700;
     line-height: 1;
     padding: 4px 8px;
@@ -577,13 +573,13 @@ body:has(.sv-root) { overflow: hidden; }
     background: var(--tp-color-primary);
     border-color: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
-    box-shadow: var(--tp-shadow-xs);
+    box-shadow: none;
 }
 
 .sv-pocket-inspector-title {
     display: block;
-    color: var(--structure-accent-ink);
-    font-size: 0.92rem;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-sm);
     line-height: 1.2;
 }
 
@@ -600,17 +596,17 @@ body:has(.sv-root) { overflow: hidden; }
 
 .sv-pocket-inspector-grid dt {
     color: var(--tp-color-text-muted);
-    font-size: 0.66rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
 .sv-pocket-inspector-grid dd {
     margin: 1px 0 0;
     color: var(--tp-color-text-secondary);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.74rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     overflow-wrap: anywhere;
 }
@@ -628,12 +624,12 @@ body:has(.sv-root) { overflow: hidden; }
     max-width: 100%;
     margin: 0 6px 8px 0;
     padding: 5px 11px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface-muted);
     border: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-secondary);
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    font-size: 0.72rem;
+    font-family: var(--tp-font-body);
+    font-size: var(--tp-font-size-2xs);
     font-weight: 600;
     line-height: 1.4;
     white-space: normal;
@@ -643,13 +639,13 @@ body:has(.sv-root) { overflow: hidden; }
 .sv-pocket-inspector-note {
     margin: 8px 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.74rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.35;
 }
 
 .sv-no-pockets {
     margin: 24px 0 0;
-    font-size: 0.84rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-muted);
     font-style: italic;
     text-align: center;
@@ -660,8 +656,8 @@ body:has(.sv-root) { overflow: hidden; }
     height: 26px !important;
     min-height: 26px !important;
     padding: 0 10px !important;
-    border-radius: 6px !important;
-    font-size: 0.74rem !important;
+    border-radius: var(--tp-radius-sm) !important;
+    font-size: var(--tp-font-size-xs) !important;
     font-weight: 600 !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -678,11 +674,11 @@ body:has(.sv-root) { overflow: hidden; }
 
 .mini-section h3 {
     margin: 0 0 3px;
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.07em;
+    letter-spacing: var(--tp-tracking-label);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -691,17 +687,17 @@ body:has(.sv-root) { overflow: hidden; }
     content: "";
     width: 0.5rem;
     height: 0.5rem;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     flex-shrink: 0;
     background: var(--tp-color-border-strong);
 }
 .mini-section-title--fpocket::before { background: var(--tp-color-brand-500); }
-.mini-section-title--p2rank::before { background: var(--tp-color-sage-500); }
+.mini-section-title--p2rank::before { background: var(--tp-color-success-ink); }
 
 .table-hint {
     margin: 0 0 8px;
     color: var(--tp-color-text-muted);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.5;
 }
 
@@ -715,12 +711,12 @@ body:has(.sv-root) { overflow: hidden; }
 
 .pocket-card {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     padding: 10px 12px;
     display: grid;
     gap: 8px;
-    box-shadow: var(--tp-shadow-xs);
+    box-shadow: none;
     transition:
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -729,21 +725,21 @@ body:has(.sv-root) { overflow: hidden; }
 }
 
 .pocket-card:hover {
-    box-shadow: var(--tp-shadow-sm);
+    box-shadow: none;
     transform: translateY(-1px);
 }
 
 .pocket-card.is-visible-in-viewer,
 .residueset-row.is-visible-in-viewer {
-    border-color: var(--structure-accent-border);
-    background: color-mix(in srgb, var(--structure-accent-soft) 38%, var(--tp-color-surface));
-    box-shadow: inset 3px 0 0 var(--structure-accent), var(--tp-shadow-xs);
+    border-color: var(--tp-color-brand-300);
+    background: color-mix(in srgb, var(--tp-color-brand-100) 38%, var(--tp-color-surface));
+    box-shadow: inset 3px 0 0 var(--tp-color-brand-800);
 }
 
 .pocket-card.is-selected-pocket {
-    border-color: var(--structure-accent);
-    background: color-mix(in srgb, var(--structure-accent-soft) 52%, var(--tp-color-surface));
-    box-shadow: inset 4px 0 0 var(--structure-accent), var(--tp-shadow-sm);
+    border-color: var(--tp-color-brand-800);
+    background: color-mix(in srgb, var(--tp-color-brand-100) 52%, var(--tp-color-surface));
+    box-shadow: inset 3px 0 0 var(--tp-color-brand-800);
 }
 
 .pocket-card-head {
@@ -751,25 +747,25 @@ body:has(.sv-root) { overflow: hidden; }
     align-items: flex-start;
     gap: 6px;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: var(--tp-radius-sm);
     padding: 2px 4px;
     margin: -2px -4px;
     transition: background-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .pocket-card-head:hover {
-    background: var(--structure-accent-soft);
+    background: var(--tp-color-brand-100);
 }
 
 .pocket-card-head:focus-visible {
-    outline: 2px solid var(--structure-accent-border);
+    outline: 2px solid var(--tp-focus-color);
     outline-offset: 2px;
 }
 
 .pocket-consensus {
     margin-top: 6px;
     padding: 6px 10px;
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface-muted);
     border: 1px solid var(--tp-color-border-soft);
     display: flex;
@@ -777,7 +773,7 @@ body:has(.sv-root) { overflow: hidden; }
     align-items: baseline;
     column-gap: 6px;
     row-gap: 2px;
-    font-size: 0.74rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-secondary);
     line-height: 1.4;
 }
@@ -785,7 +781,7 @@ body:has(.sv-root) { overflow: hidden; }
 .pocket-consensus-status {
     flex-basis: 100%;
     font-weight: 700;
-    color: var(--structure-accent-ink);
+    color: var(--tp-color-brand-900);
 }
 
 .pocket-consensus span:not(.pocket-consensus-status):not(:last-child)::after {
@@ -811,9 +807,9 @@ body:has(.sv-root) { overflow: hidden; }
 }
 
 .pocket-card-name {
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
-    color: var(--structure-accent-ink);
+    color: var(--tp-color-brand-900);
     flex: 1 1 auto;
     /* Carries the predictor's raw internal pocket number as a title
        tooltip instead of visible text -- see protein-detail.css for why. */
@@ -821,7 +817,7 @@ body:has(.sv-root) { overflow: hidden; }
 }
 
 .pocket-card-p2score {
-    font-size: 0.72rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 600;
     color: var(--tp-color-text-muted);
     white-space: nowrap;
@@ -835,9 +831,9 @@ body:has(.sv-root) { overflow: hidden; }
 
 .pocket-card-layer-label {
     color: var(--tp-color-text-muted);
-    font-size: 0.66rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     line-height: 1;
     text-transform: uppercase;
 }
@@ -852,9 +848,9 @@ body:has(.sv-root) { overflow: hidden; }
 .pocket-card-repr-group {
     grid-column: 1 / -1;
     color: var(--tp-color-text-muted);
-    font-size: 0.66rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     line-height: 1;
     text-transform: uppercase;
     margin-top: 2px;
@@ -868,10 +864,10 @@ body:has(.sv-root) { overflow: hidden; }
     justify-content: center;
     padding: 5px 6px;
     border: 1px solid var(--tp-color-border);
-    border-radius: 7px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
@@ -884,7 +880,7 @@ body:has(.sv-root) { overflow: hidden; }
     line-height: 1.2;
 }
 .pocket-repr-btn:hover {
-    background: var(--tp-color-surface-alt);
+    background: var(--tp-color-surface-muted);
     border-color: var(--tp-color-border-strong);
     color: var(--tp-color-text-primary);
 }
@@ -892,7 +888,7 @@ body:has(.sv-root) { overflow: hidden; }
     background: var(--tp-color-primary);
     border-color: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tp-color-on-accent) 20%, transparent), var(--tp-shadow-xs);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tp-color-on-accent) 20%, transparent);
 }
 
 .pocket-card-actions {
@@ -918,7 +914,7 @@ body:has(.sv-root) { overflow: hidden; }
     gap: 8px;
     padding: 6px 8px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     transition:
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -927,26 +923,26 @@ body:has(.sv-root) { overflow: hidden; }
 }
 .residueset-row-info { flex: 1 1 0; min-width: 0; display: grid; gap: 1px; }
 .residueset-type {
-    font-size: 0.7rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 500;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tp-tracking-label);
 }
 .residueset-name {
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-secondary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .residueset-row-actions { display: flex; gap: 4px; flex-shrink: 0; }
-.residueset-row-actions .btn { font-size: 0.76rem; padding: 4px 8px; }
+.residueset-row-actions .btn { font-size: var(--tp-font-size-xs); padding: 4px 8px; }
 
 /* ── 11. Collapsible residue sets ── */
 .data-details {
     border: 1px solid var(--tp-color-border);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     overflow: hidden;
     margin-top: 8px;
@@ -959,14 +955,14 @@ body:has(.sv-root) { overflow: hidden; }
     padding: 9px 12px;
     color: var(--tp-color-text-secondary);
     font-weight: 500;
-    font-size: 0.84rem;
+    font-size: var(--tp-font-size-sm);
     border-bottom: 1px solid transparent;
     transition: background 0.12s, border-color 0.12s;
 }
 .data-details > summary:focus,
 .data-details > summary:focus-visible { outline: none; box-shadow: none; }
-.data-details > summary:hover { background: var(--tp-color-surface-alt); }
-.data-details[open] > summary { border-bottom-color: var(--tp-color-border-soft); background: var(--structure-accent-soft); }
+.data-details > summary:hover { background: var(--tp-color-surface-muted); }
+.data-details[open] > summary { border-bottom-color: var(--tp-color-border-soft); background: var(--tp-color-brand-100); }
 .data-details > summary::-webkit-details-marker { display: none; }
 .data-details > summary::marker { content: ""; }
 .data-details > summary::after {
@@ -988,11 +984,11 @@ body:has(.sv-root) { overflow: hidden; }
     align-items: center;
     justify-content: center;
     min-width: 56px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     border: 1px solid transparent;
     padding: 2px 9px;
     font-weight: 500;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
 }
 .tp-score-tag.high   { color: var(--tp-color-success-ink);  background: var(--tp-color-success-bg);  border-color: var(--tp-color-success-border); }
 .tp-score-tag.medium { color: var(--tp-color-warning-ink);  background: var(--tp-color-warning-bg);  border-color: var(--tp-color-warning-border); }
@@ -1005,7 +1001,7 @@ body:has(.sv-root) { overflow: hidden; }
     display: inline-block;
     width: 2.1rem;
     height: 1.18rem;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     border: 1px solid var(--tp-color-border-strong);
     background: var(--tp-color-surface-muted);
     position: relative;
@@ -1022,12 +1018,12 @@ body:has(.sv-root) { overflow: hidden; }
     height: 0.94rem;
     border-radius: 50%;
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-xs);
+    box-shadow: none;
     transition: transform 0.12s;
 }
-.structure-toggle:checked { background: var(--structure-accent); border-color: var(--structure-accent); }
+.structure-toggle:checked { background: var(--tp-color-brand-800); border-color: var(--tp-color-brand-800); }
 .structure-toggle:checked::after { transform: translateX(0.9rem); }
-.structure-toggle:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--tp-color-border-accent); }
+.structure-toggle:focus-visible { outline: none; box-shadow: var(--tp-focus-outline); }
 
 /* ── 14. Residue modal ── */
 /* Residue list inside the shared .tp-modal (ui-system.css). */
@@ -1035,7 +1031,7 @@ body:has(.sv-root) { overflow: hidden; }
     margin: 0;
     max-height: 320px;
     color: var(--tp-color-text-secondary);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-sm);
     line-height: 1.6;
     white-space: pre-wrap;
@@ -1066,9 +1062,9 @@ body.viewer-settings-open { overflow: hidden; }
 
 .viewer-settings-section-title {
     margin: 0 0 8px;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 700;
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
 }
@@ -1079,7 +1075,7 @@ body.viewer-settings-open { overflow: hidden; }
 
 .viewer-settings-section-note {
     margin: 8px 0 14px;
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.45;
     color: var(--tp-color-text-muted);
 }
@@ -1099,9 +1095,9 @@ body.viewer-settings-open { overflow: hidden; }
     gap: 8px;
     padding: 8px 12px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 9px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface-soft);
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
 }
 
@@ -1110,7 +1106,7 @@ body.viewer-settings-open { overflow: hidden; }
     width: 6px;
     height: 6px;
     flex: 0 0 auto;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-brand-500);
 }
 
@@ -1134,7 +1130,7 @@ body.viewer-settings-open { overflow: hidden; }
     flex-wrap: wrap;
     padding: 9px 6px;
     margin: 0 -6px;
-    border-radius: 9px;
+    border-radius: var(--tp-radius-sm);
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
@@ -1147,7 +1143,7 @@ body.viewer-settings-open { overflow: hidden; }
 }
 
 .viewer-settings-color-label {
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--tp-color-text-primary);
 }
@@ -1163,7 +1159,7 @@ body.viewer-settings-open { overflow: hidden; }
     height: 22px;
     padding: 0;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     cursor: pointer;
     transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -1180,7 +1176,7 @@ body.viewer-settings-open { overflow: hidden; }
    and there's no way to tell which one is actually applied. */
 .viewer-settings-swatch.is-selected {
     border-color: transparent;
-    box-shadow: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-color-brand-500);
+    box-shadow: var(--tp-focus-outline);
 }
 
 /* Separates "pick one of these four" from "or customize the current
@@ -1203,8 +1199,8 @@ body.viewer-settings-open { overflow: hidden; }
        actually applied right now, so it stays visually marked as "current"
        even when no preset matches it. */
     border: 2px solid var(--tp-color-surface);
-    border-radius: 999px;
-    box-shadow: 0 0 0 1.5px var(--tp-color-brand-500);
+    border-radius: var(--tp-radius-pill);
+    box-shadow: none;
     cursor: pointer;
     background: none;
     /* Native color inputs paint their own swatch inside a rectangular
@@ -1214,8 +1210,8 @@ body.viewer-settings-open { overflow: hidden; }
 }
 
 .viewer-settings-custom-input::-webkit-color-swatch-wrapper { padding: 0; }
-.viewer-settings-custom-input::-webkit-color-swatch { border: none; border-radius: 999px; }
-.viewer-settings-custom-input::-moz-color-swatch { border: none; border-radius: 999px; }
+.viewer-settings-custom-input::-webkit-color-swatch { border: none; border-radius: var(--tp-radius-pill); }
+.viewer-settings-custom-input::-moz-color-swatch { border: none; border-radius: var(--tp-radius-pill); }
 
 /* ── 15. Dark mode sidebar overrides ── */
 .tp-dark .sv-sidebar { background: var(--tp-color-surface-soft); border-left-color: var(--tp-color-border-strong); }
@@ -1246,13 +1242,13 @@ body.viewer-settings-open { overflow: hidden; }
     height: 30px;
     padding: 0 8px 0 10px;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
     background: var(--sv-btn-bg);
     color: var(--sv-overlay-text);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     font-family: inherit;
-    letter-spacing: 0.01em;
+    letter-spacing: 0;
     cursor: pointer;
     opacity: 0.88;
     max-width: 100%;
@@ -1274,7 +1270,7 @@ body.viewer-settings-open { overflow: hidden; }
 
 .sv-struct-picker-btn:focus-visible {
     opacity: 1;
-    outline: 2px solid var(--sv-btn-active-color);
+    outline: 2px solid var(--tp-focus-color);
     outline-offset: 2px;
 }
 
@@ -1308,10 +1304,10 @@ body.viewer-settings-open { overflow: hidden; }
     max-width: min(420px, 90vw);
     max-height: 320px;
     overflow-y: auto;
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--sv-overlay-bg);
     border: 1px solid var(--sv-overlay-border);
-    box-shadow: var(--sv-shadow);
+    box-shadow: var(--tp-shadow-sm);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     scrollbar-width: thin;
@@ -1322,10 +1318,10 @@ body.viewer-settings-open { overflow: hidden; }
     align-items: center;
     gap: 8px;
     padding: 7px 10px;
-    border-radius: 7px;
+    border-radius: var(--tp-radius-sm);
     cursor: pointer;
     color: var(--sv-overlay-text);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     line-height: 1.3;
     transition: background 0.1s;
@@ -1356,9 +1352,9 @@ body.viewer-settings-open { overflow: hidden; }
 
 .sv-struct-picker-item-res {
     flex-shrink: 0;
-    font-size: 0.72rem;
+    font-size: var(--tp-font-size-2xs);
     opacity: 0.5;
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
 }
 
 /* ── 17. Pocket card label ── */
@@ -1376,7 +1372,7 @@ body.viewer-settings-open { overflow: hidden; }
     background: var(--tp-color-primary);
     border-color: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--structure-accent) 45%, transparent), var(--tp-shadow-sm);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--tp-color-brand-800) 45%, transparent);
 }
 .tp-dark .residueset-row { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
 .tp-dark .data-details { background: var(--tp-color-surface); border-color: var(--tp-color-border); }

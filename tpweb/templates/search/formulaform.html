@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20261014-hidden-vars">
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -31,7 +31,7 @@
     <div class="formula-page">
 
         {# ── Hero ── #}
-        <section class="formula-hero">
+        <section class="tp-page-hero formula-hero">
             <span class="tp-view-eyebrow formula-eyebrow">
                 <span aria-hidden="true">∫</span>
                 {% trans "Custom scoring · Mathematical formula" %}
@@ -39,11 +39,11 @@
             <h1 class="tp-view-title">{% if editing %}{% blocktrans with name=editing.name %}Edit score: {{ name }}{% endblocktrans %}{% else %}{% trans "Make my own score" %}{% endif %}</h1>
             <p class="tp-view-lead formula-subtitle">{% trans "Build an optional composite score by combining raw numeric evidence, such as druggability or identity, with binary categorical signals such as essentiality and off-target hits." %}</p>
             <div class="formula-chip-group tp-chip-group">
-                <span class="tp-chip tp-chip--meta tp-chip--sm">
+                <span class="tp-chip">
                     <strong>{% trans "Genome" %}:</strong>
                     <span class="formula-chip-id">{{ assembly_label|default:assembly_name }}</span>
                 </span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Supports" %}: <code>+  −  ×  ÷  ^  sqrt  log  exp  abs  max  min</code></span>
+                <span class="tp-chip">{% trans "Supports" %}: <code>+  −  ×  ÷  ^  sqrt  log  exp  abs  max  min</code></span>
             </div>
         </section>
 
@@ -237,7 +237,7 @@
                     <span>{% trans "Save scoring formula" %}</span>
                 </button>
                 <button type="submit" form="formula-form" name="reset_process" value="true"
-                        class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon">
+                        class="btn tp-btn tp-btn--danger tp-btn-with-icon">
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
                     <span>{% trans "Clear editor" %}</span>
                 </button>

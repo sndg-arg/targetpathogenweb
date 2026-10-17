@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261015-shared-quick-nav">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -27,7 +27,7 @@
 
 {% block body %}
     <div class="binder-page">
-        <section class="binder-hero" id="section-overview">
+        <section class="tp-page-hero binder-hero" id="section-overview">
             <div class="binder-hero-top tp-view-head">
                 <div class="binder-hero-content tp-view-head-copy">
                     <p class="tp-view-eyebrow binder-hero-eyebrow">{% trans "Ligand profile" %}</p>
@@ -49,11 +49,11 @@
                         {% if protein.description %}<span class="binder-context-desc">— {{ protein.description }}</span>{% endif %}
                     </p>
                     <div class="hero-chip-list tp-chip-group">
-                        <span class="hero-chip tp-chip {% if binder.is_direct %}tp-chip--direct{% else %}tp-chip--homolog{% endif %} tp-chip--sm">
+                        <span class="hero-chip tp-chip {% if binder.is_direct %}tp-chip--success{% else %}tp-chip--muted{% endif %}">
                             {% if binder.is_direct %}{% trans "Direct evidence" %}{% else %}{% trans "Via homolog" %}{% endif %}
                         </span>
                         {% if binder.pdb_id %}
-                            <a class="hero-chip tp-chip tp-chip--meta tp-chip--sm binder-pdb-chip"
+                            <a class="hero-chip tp-chip binder-pdb-chip"
                                href="https://www.rcsb.org/structure/{{ binder.pdb_id }}"
                                target="_blank" rel="noopener noreferrer"
                                title="{% trans 'View in RCSB PDB' %}">
@@ -62,12 +62,12 @@
                             </a>
                         {% endif %}
                         {% if binder.uniprot %}
-                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                            <span class="hero-chip tp-chip">
                                 <strong>UniProt</strong>&thinsp;<span>{{ binder.uniprot }}</span>
                             </span>
                         {% endif %}
                         {% if properties.formula %}
-                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm binder-formula-chip">
+                            <span class="hero-chip tp-chip binder-formula-chip">
                                 <strong>{% trans "Formula" %}</strong>&thinsp;<span>{{ properties.formula }}</span>
                             </span>
                         {% endif %}
@@ -106,23 +106,23 @@
         </section>
 
         <nav class="quick-nav" aria-label="{% trans 'Ligand sections' %}">
-            <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
+            <a href="#section-overview" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
             {% if binder.svg %}
-                <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Structure" %}</a>
+                <a href="#section-structure" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Structure" %}</a>
             {% endif %}
             {% if properties %}
-                <a href="#section-properties" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Properties" %}</a>
-                <a href="#section-druglikeness" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Drug-likeness" %}</a>
+                <a href="#section-properties" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Properties" %}</a>
+                <a href="#section-druglikeness" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Drug-likeness" %}</a>
             {% endif %}
-            <a href="#section-strings" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Chemical representations" %}</a>
+            <a href="#section-strings" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Chemical representations" %}</a>
             {% if binder.notes_items %}
-                <a href="#section-provenance" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Provenance" %}</a>
+                <a href="#section-provenance" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Provenance" %}</a>
             {% endif %}
             {% if external_links %}
-                <a href="#section-external" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "External" %}</a>
+                <a href="#section-external" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "External" %}</a>
             {% endif %}
             {% if siblings.pdb or siblings.chembl or siblings.proposed %}
-                <a href="#section-siblings" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Other ligands" %}</a>
+                <a href="#section-siblings" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Other ligands" %}</a>
             {% endif %}
         </nav>
 
@@ -331,7 +331,7 @@
                     <div class="binder-string-head">
                         <span class="binder-string-label">SMILES</span>
                         <button type="button"
-                                class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-copy-btn"
+                                class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon binder-copy-btn"
                                 data-copy-target="binder-smiles-text">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
                             <span data-copy-label>{% trans "Copy" %}</span>
@@ -345,7 +345,7 @@
                         <div class="binder-string-head">
                             <span class="binder-string-label">InChI</span>
                             <button type="button"
-                                    class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-copy-btn"
+                                    class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon binder-copy-btn"
                                     data-copy-target="binder-inchi-text">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
                                 <span data-copy-label>{% trans "Copy" %}</span>
@@ -360,7 +360,7 @@
                         <div class="binder-string-head">
                             <span class="binder-string-label">InChIKey</span>
                             <button type="button"
-                                    class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-copy-btn"
+                                    class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon binder-copy-btn"
                                     data-copy-target="binder-inchikey-text">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
                                 <span data-copy-label>{% trans "Copy" %}</span>

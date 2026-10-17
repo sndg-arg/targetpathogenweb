@@ -1080,14 +1080,14 @@ function jsloaded() {
         columnsSelectedList.innerHTML = "";
         if (!visibleRows.length) {
             const chip = document.createElement("span");
-            chip.className = "tp-chip tp-chip--meta tp-chip--sm columns-selected-chip columns-selected-chip--empty";
+            chip.className = "tp-chip columns-selected-chip columns-selected-chip--empty";
             chip.textContent = "No optional columns visible";
             columnsSelectedList.appendChild(chip);
             return;
         }
         visibleRows.forEach(function (row) {
             const chip = document.createElement("span");
-            chip.className = "tp-chip tp-chip--meta tp-chip--sm columns-selected-chip";
+            chip.className = "tp-chip columns-selected-chip";
             chip.textContent = row.getAttribute("data-column-label") || "";
             columnsSelectedList.appendChild(chip);
         });

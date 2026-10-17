@@ -10,8 +10,8 @@
     here for the dashboard stat tiles -- same reuse pattern as the protein
     detail page's own head block.
     {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-modal">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-list.css' %}?v=20261017-cards">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-list.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block body %}
@@ -66,7 +66,7 @@
             <a class="human-protein-card tp-ui-panel" href="{% url 'human_target:human_protein' hp.uniprot_accession %}">
                 <div class="human-protein-card__head">
                     <span class="human-protein-card__acc">{{ hp.uniprot_accession }}</span>
-                    {% if hp.is_reviewed %}<span class="tp-chip tp-chip--sm">{% trans "Reviewed" %}</span>{% endif %}
+                    {% if hp.is_reviewed %}<span class="tp-chip">{% trans "Reviewed" %}</span>{% endif %}
                 </div>
                 <h3>{{ hp.protein_name|default:hp.uniprot_accession }}</h3>
                 <p class="human-protein-card__gene">{{ hp.gene_symbol|default:"—" }}</p>

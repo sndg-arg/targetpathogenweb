@@ -22,7 +22,7 @@
                     <td class="binder-tbl__name">
                         <a href="{% url 'tpwebapp:binder_detail' binder_id=binder.id %}" class="binder-tbl__name-main" onclick="event.stopPropagation()">{{ binder.name }}</a>
                         {% if binder.external_url %}
-                        <a href="{{ binder.external_url }}" class="tp-chip tp-chip--meta tp-chip--sm binder-tbl__source-link" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="{% trans 'Open source in RCSB PDB' %}">{{ binder.external_label }}</a>
+                        <a href="{{ binder.external_url }}" class="tp-chip binder-tbl__source-link" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="{% trans 'Open source in RCSB PDB' %}">{{ binder.external_label }}</a>
                         {% endif %}
                     </td>
                     <td class="binder-tbl__pdb binder-tbl__crystal">
@@ -41,7 +41,7 @@
                                     <span class="binder-crystal-res">{{ binder.crystal.resolution|floatformat:2 }}&thinsp;Å</span>
                                 {% endif %}
                                 {% if binder.crystal.loaded and binder.crystal.structure_id %}
-                                    <a class="btn tp-btn tp-btn--outline tp-btn-with-icon binder-crystal-viewer"
+                                    <a class="btn tp-btn tp-btn--secondary tp-btn-with-icon binder-crystal-viewer"
                                        href="{% url 'tpwebapp:structure' binder.crystal.structure_id %}?protein_id={{ protein.id }}&focus_ligand={{ binder.name|urlencode }}"
                                        onclick="event.stopPropagation()"
                                        title="{% trans 'Open this loaded source crystal in the Target structure viewer, focused on this ligand' %}">

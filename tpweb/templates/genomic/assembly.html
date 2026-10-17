@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261015-shared-quick-nav">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -22,14 +22,14 @@
 
 {% block body %}
     <div class="genome-page">
-        <section class="genome-hero" id="section-overview">
+        <section class="tp-page-hero genome-hero" id="section-overview">
             <div class="genome-hero-top tp-view-head">
                 <div class="genome-hero-content tp-view-head-copy">
                     <p class="tp-view-eyebrow genome-hero-eyebrow">{% trans "Bacterial genome" %}</p>
                     <h1 class="tp-view-title">{{ assembly.name }}</h1>
                     {% if workspace_metrics.has_curated_data %}
                         <div class="genome-curated-callout">
-                            <span class="tp-chip tp-chip--state finished tp-chip--sm">{% trans "Curated analysis" %}</span>
+                            <span class="tp-chip tp-chip--state finished">{% trans "Curated analysis" %}</span>
                             <span class="genome-curated-callout-note">{% trans "Druggability scores from a reviewed external import." %}</span>
                         </div>
                     {% endif %}
@@ -37,20 +37,20 @@
                     <div class="hero-chip-list tp-chip-group">
                         {% for fact in overview.primary_hero_facts %}
                             {% if fact.label != "Annotated features" %}
-                                <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                                <span class="hero-chip tp-chip">
                                     <strong>{{ fact.label }}:</strong>
                                     <span>{{ fact.value }}</span>
                                 </span>
                             {% endif %}
                         {% endfor %}
                         {% if overview.strain_display %}
-                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                            <span class="hero-chip tp-chip">
                                 <strong>{% trans "Strain" %}:</strong>
                                 <span>{{ overview.strain_display }}</span>
                             </span>
                         {% endif %}
                         {% if overview.completion_display %}
-                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                            <span class="hero-chip tp-chip">
                                 <strong>{% trans "Completion" %}:</strong>
                                 <span>{{ overview.completion_display }}</span>
                             </span>
@@ -59,7 +59,7 @@
                     {% if pipeline_status.available %}
                         {% if pipeline_status.running_for_current_genome or pipeline_status.current_genome_status_note %}
                             <div class="genome-pipeline-group">
-                                {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
+                                {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state" %}
                             </div>
                             {% if pipeline_status.current_genome_status_note %}
                                 <p class="tp-state-note {% if pipeline_status.failed_for_current_genome %}tp-state-note--error{% else %}tp-state-note--empty{% endif %}">
@@ -79,7 +79,7 @@
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                         </a>
                         {% if workspace_metrics.metabolic_reaction_count %}
-                        <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--outline tp-btn-with-icon">
+                        <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon">
                             <span>{% trans "Explore metabolism" %}</span>
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                         </a>
@@ -87,11 +87,10 @@
                     </div>
                     <p class="genome-hero-actions-hint">{% trans "Filters, scoring and the full protein table are under Explore proteins." %}</p>
                     <div class="genome-hero-actions genome-hero-actions--secondary">
-                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon">
+                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span>
                             <span>{% trans "Add my own data" %}</span>
                         </a>
-                        <a href="{{ workspace_links.formula_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Make my own score" %}</a>
                         <div class="genome-blast-group" role="group" aria-label="{% trans 'BLAST' %}">
                             <span class="genome-blast-group-label" aria-hidden="true">{% trans "BLAST" %}</span>
                             <a href="{{ workspace_links.blast_url }}" class="genome-blast-group-option" title="{% trans 'Nucleotide sequence (blastn) against this genome.' %}">{% trans "Genome" %}</a>
@@ -100,7 +99,7 @@
                     </div>
                 </div>
                 <div class="tp-view-head-actions">
-                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon tp-view-export-link">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
                         {% trans "Download Excel summary" %}
                     </a>
@@ -140,17 +139,17 @@
         </section>
 
         <nav class="quick-nav" aria-label="{% trans 'Genome sections' %}">
-            <a href="#section-evidence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Evidence" %}</a>
+            <a href="#section-evidence" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Evidence" %}</a>
             {% if jbrowse_embed.enabled %}
-                <a href="#section-browse" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Genome browser" %}</a>
+                <a href="#section-browse" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Genome browser" %}</a>
             {% endif %}
-            <a href="#section-downloads" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Downloads" %}</a>
+            <a href="#section-downloads" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Downloads" %}</a>
             {% if top_targets_by_score.items or unexplored_targets.items %}
-                <a href="#section-targets" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Top targets" %}</a>
+                <a href="#section-targets" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Top targets" %}</a>
             {% endif %}
-            <a href="#section-details" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Details" %}</a>
+            <a href="#section-details" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Details" %}</a>
             {% if can_delete_workspace %}
-                <a href="#section-dataset" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Delete genome" %}</a>
+                <a href="#section-dataset" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Delete genome" %}</a>
             {% endif %}
         </nav>
 
@@ -204,7 +203,7 @@
                             {% endif %}
                         </ul>
                         {% if workspace_metrics.ec_annotated %}
-                        <a href="{{ workspace_links.ec_explorer_url }}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon evidence-card-action">
+                        <a href="{{ workspace_links.ec_explorer_url }}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon evidence-card-action">
                             <span>{% trans "Explore EC tree" %}</span>
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                         </a>
@@ -254,7 +253,7 @@
                             <li><span class="evidence-bd-label" title="{% trans 'Chokepoint reactions in the imported Pathway Tools/MetaFlux network.' %}">{% trans "Chokepoint reactions" %}</span><span class="evidence-bd-value">{{ workspace_metrics.metabolic_chokepoint_reaction_count }}</span></li>
                             <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Proteins that are both metabolic chokepoints and druggable (P2Rank >= 0.5, or FPocket >= 0.4 when no P2Rank value is loaded).' %}">{% trans "Chokepoint + pocket" %}</span><span class="evidence-bd-value">{{ workspace_metrics.metabolic_druggable_target_count }}</span></li>
                         </ul>
-                        <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon evidence-card-action">
+                        <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon evidence-card-action">
                             <span>{% trans "Open metabolism" %}</span>
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                         </a>
@@ -299,7 +298,7 @@
                             <p class="section-subtitle">{% trans "Interactive view of contigs and annotation tracks." %}</p>
                         </div>
                         <div class="section-tools">
-                            <a href="{{ jbrowse_url }}" target="_blank" rel="noopener" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon">
+                            <a href="{{ jbrowse_url }}" target="_blank" rel="noopener" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon">
                                 <span>{% trans "Open in new tab" %}</span>
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/external_link.html" %}</span>
                             </a>
@@ -389,7 +388,7 @@
                                         </p>
                                     </details>
                                 </div>
-                                <a href="?export=ranking_csv" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon targets-export-btn" title="{% trans "Export every scored protein with its full score breakdown, not just the top candidates shown here." %}">
+                                <a href="?export=ranking_csv" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon targets-export-btn" title="{% trans "Export every scored protein with its full score breakdown, not just the top candidates shown here." %}">
                                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
                                     {% trans "Export CSV" %}
                                 </a>
@@ -498,7 +497,7 @@
                                 >
                             </div>
                             <div class="genome-delete-actions">
-                                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon">
+                                <button type="submit" class="btn tp-btn tp-btn--danger tp-btn-with-icon">
                                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
                                     <span>{% trans "Delete dataset" %}</span>
                                 </button>

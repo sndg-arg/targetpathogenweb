@@ -1,7 +1,7 @@
 /* ── User management (owner-only: approve pending signups, view roster) ── */
 
 .user-mgmt-page {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-body);
     color: var(--tp-color-text-primary);
     margin: 0;
 }
@@ -12,37 +12,13 @@
 
 .user-mgmt-page h1,
 .user-mgmt-page h2 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 700;
-    letter-spacing: 0.2px;
+    letter-spacing: 0;
 }
 
-.user-mgmt-hero,
 .user-mgmt-section {
     padding: 28px 18px;
-}
-
-.user-mgmt-eyebrow {
-    margin: 0 0 12px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.user-mgmt-hero-title {
-    margin: 0;
-    font-size: var(--tp-font-size-2xl);
-    line-height: 1.1;
-}
-
-.user-mgmt-hero-description {
-    margin: 14px 0 0;
-    max-width: 640px;
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-md);
-    line-height: 1.5;
 }
 
 .user-mgmt-section .section-head {
@@ -101,9 +77,9 @@
 .user-mgmt-list-row--head {
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     border-bottom: 1px solid var(--tp-color-border-soft);
 }
@@ -111,7 +87,7 @@
 .user-mgmt-list-cell--meta,
 .user-mgmt-list-cell--role {
     color: var(--tp-color-text-secondary);
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
 }
 
 .user-mgmt-list-cell--role {
@@ -146,7 +122,7 @@
 }
 
 .user-mgmt-person-email {
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-muted);
 }
 
@@ -171,7 +147,7 @@
 .user-mgmt-edit-subtitle {
     margin: 0 0 12px;
     color: var(--tp-color-text-secondary);
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 

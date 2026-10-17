@@ -1,15 +1,11 @@
 /* Genome overview — mirrors protein-detail / binder-detail design language. */
 
 .genome-page {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    color: var(--tp-ink);
+    font-family: var(--tp-font-body);
+    color: var(--tp-color-text-primary);
     margin: 0;
     display: grid;
     gap: var(--tp-space-4);
-    --genome-accent: var(--tp-color-brand-800);
-    --genome-accent-ink: var(--tp-color-brand-900);
-    --genome-accent-soft: var(--tp-color-brand-100);
-    --genome-accent-border: var(--tp-color-brand-300);
 }
 
 /* No hairline -- spacing only, same treatment as about-us/data-sources.css
@@ -27,9 +23,9 @@
 .genome-page h1,
 .genome-page h2,
 .genome-page h3 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
-    letter-spacing: 0.2px;
+    letter-spacing: 0;
 }
 .genome-page h1 { font-weight: 700; }
 
@@ -56,15 +52,6 @@
 .genome-card:nth-of-type(3) { animation-delay: 140ms; }
 .genome-card:nth-of-type(4) { animation-delay: 170ms; }
 
-/* ── Hero ─────────────────────────────────────────────────────────── */
-
-/* No longer boxed via .tp-page-hero -- sits directly on the page
-   background (see tpw-editorial-redesign), so it needs its own padding
-   now instead of inheriting that shared class's. */
-.genome-hero {
-    padding: 20px 18px;
-}
-
 .genome-hero-top {
     display: flex;
     justify-content: space-between;
@@ -79,20 +66,7 @@
     min-width: 0;
 }
 
-.genome-hero-eyebrow {
-    margin: 6px 0 10px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
 .genome-hero h1 {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    line-height: 1.1;
-    color: var(--genome-accent-ink);
     word-break: break-all;
 }
 
@@ -107,14 +81,6 @@
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.35;
-}
-
-.genome-description {
-    margin: 10px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-md);
-    line-height: 1.42;
-    max-width: 920px;
 }
 
 .genome-hero .hero-chip-list {
@@ -177,18 +143,18 @@
 .genome-blast-group {
     display: inline-flex;
     align-items: center;
-    min-height: 40px;
-    padding: 0 6px;
-    gap: 4px;
+    min-height: var(--tp-ui-control-height-compact);
+    padding: 0 3px 0 10px;
+    gap: 2px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: 11px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
 }
 
 .genome-blast-group-label {
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
-    letter-spacing: 0.04em;
+    font-weight: 600;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
     margin-right: 6px;
@@ -198,9 +164,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 32px;
-    padding: 0 12px;
-    border-radius: 8px;
+    min-height: 24px;
+    padding: 0 10px;
+    border-radius: var(--tp-radius-xs);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--tp-color-text-secondary);
@@ -227,7 +193,7 @@
 
 .genome-page .metric-pill {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface-soft);
     padding: 10px 12px;
     min-height: 68px;
@@ -237,17 +203,17 @@
 }
 
 .genome-page .metric-label {
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
 }
 
 .genome-page .metric-value {
-    color: var(--genome-accent-ink);
+    color: var(--tp-color-brand-900);
     /* Matches .evidence-headline/.targets-score-number's "big number" role. */
-    font-size: 1.45rem;
+    font-size: var(--tp-heading-md);
     line-height: 1.1;
     font-weight: 600;
     display: flex;
@@ -304,16 +270,16 @@
    chip/tile pair, per tpw-editorial-redesign's exception rule. */
 .genome-card--ranking {
     border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-ui-radius-panel);
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-xs);
+    box-shadow: none;
 }
 
 .genome-card h2 {
     margin: 0;
-    font-size: var(--tp-heading-sm);
+    font-size: var(--tp-font-size-lg);
     font-weight: 600;
-    color: var(--genome-accent-ink);
+    color: var(--tp-color-brand-900);
 }
 
 .genome-page .section-head {
@@ -402,9 +368,9 @@
     display: block;
     margin-bottom: 2px;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
@@ -430,8 +396,8 @@
 
 .targets-methodology summary:hover,
 .targets-methodology summary:focus-visible {
-    color: var(--genome-accent-ink);
-    text-decoration-color: var(--genome-accent-border);
+    color: var(--tp-color-brand-900);
+    text-decoration-color: var(--tp-color-brand-300);
 }
 
 .targets-methodology p {
@@ -473,9 +439,9 @@
 
 .targets-item {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-xs);
+    box-shadow: none;
     transition:
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -485,7 +451,7 @@
 .targets-item:hover,
 .targets-item:focus-within {
     border-color: var(--tp-color-border-strong);
-    box-shadow: var(--tp-shadow-sm);
+    box-shadow: none;
     transform: translateY(-1px);
 }
 
@@ -506,9 +472,9 @@
    a crisp ring on the link itself so keyboard users see exactly what's
    focused, instead of the outline:none-with-no-replacement it had before. */
 .targets-link:focus-visible {
-    outline: 2px solid var(--genome-accent-border);
+    outline: 2px solid var(--tp-focus-color);
     outline-offset: -2px;
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
 }
 
 .targets-main {
@@ -543,7 +509,7 @@
 }
 
 .targets-rank {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-md);
     font-weight: 600;
     color: var(--tp-color-text-muted);
@@ -551,10 +517,10 @@
 }
 
 .targets-accession {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-lg);
     font-weight: 600;
-    color: var(--genome-accent-ink);
+    color: var(--tp-color-brand-900);
 }
 
 .targets-description {
@@ -587,10 +553,10 @@
 }
 
 .targets-score-number {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     /* Matches .evidence-headline's size -- same page, same "big highlighted
        number" role, so they should read as the same visual weight. */
-    font-size: 1.45rem;
+    font-size: var(--tp-heading-md);
     font-weight: 700;
     line-height: 1;
     font-variant-numeric: tabular-nums;
@@ -605,7 +571,7 @@
 .targets-score-bar {
     width: 72px;
     height: 3px;
-    border-radius: 2px;
+    border-radius: var(--tp-radius-xs);
     background: var(--tp-color-border-soft);
     overflow: hidden;
 }
@@ -613,15 +579,15 @@
 .targets-score-fill {
     display: block;
     height: 100%;
-    border-radius: 2px;
+    border-radius: var(--tp-radius-xs);
     background: currentColor;
 }
 
 .targets-score-tier {
-    font-size: 0.66rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
 }
 
@@ -750,7 +716,7 @@
 
 .evidence-card {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     padding: 16px 18px;
     display: flex;
@@ -775,7 +741,7 @@
 }
 
 .evidence-card--annotation {
-    --evidence-accent: var(--tp-color-sage-700);
+    --evidence-accent: var(--tp-color-success-ink);
 }
 
 .evidence-card--binders {
@@ -787,17 +753,17 @@
 }
 
 .evidence-label {
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
 }
 
 .evidence-headline {
-    font-size: 1.45rem;
+    font-size: var(--tp-heading-md);
     font-weight: 600;
-    color: var(--genome-accent-ink);
+    color: var(--tp-color-brand-900);
     line-height: 1.1;
     display: flex;
     flex-direction: column;
@@ -832,16 +798,16 @@
 .evidence-breakdown-priority {
     padding: 5px 8px;
     margin-inline: -8px;
-    border-radius: 8px;
-    background: var(--tp-color-sage-050);
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-color-success-bg);
 }
 
 .evidence-breakdown-priority .evidence-bd-label {
-    color: var(--tp-color-sage-900);
+    color: var(--tp-color-success-ink);
 }
 
 .evidence-breakdown-priority .evidence-bd-value {
-    color: var(--tp-color-sage-900);
+    color: var(--tp-color-success-ink);
     font-weight: 700;
     font-size: var(--tp-font-size-lg);
 }
@@ -852,7 +818,7 @@
 }
 
 .evidence-bd-value {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     color: var(--tp-color-text-muted);
     font-weight: 500;
     font-size: var(--tp-font-size-sm);
@@ -869,10 +835,10 @@
     margin-top: 4px;
     padding-top: 8px;
     border-top: 1px dashed var(--tp-color-border-soft);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
     cursor: help;
 }
@@ -900,18 +866,18 @@
 }
 
 .evidence-composition-label {
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
 }
 
 .evidence-composition-value {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
-    color: var(--genome-accent-ink);
+    color: var(--tp-color-brand-900);
 }
 
 /* ── JBrowse iframe ──────────────────────────────────────────────── */
@@ -920,7 +886,7 @@
     width: 100%;
     height: 540px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     overflow: hidden;
     background: var(--tp-color-surface-soft);
 }
@@ -947,7 +913,7 @@
 
 .genome-raw-details summary {
     cursor: pointer;
-    color: var(--genome-accent-ink);
+    color: var(--tp-color-brand-900);
     font-weight: 500;
     list-style: none;
     display: inline-flex;
@@ -956,7 +922,7 @@
     min-height: 34px;
     padding: 0 14px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface);
     transition: border-color 140ms ease, background 140ms ease;
 }
@@ -968,13 +934,13 @@
 .genome-raw-details summary:hover,
 .genome-raw-details summary:focus-visible {
     outline: none;
-    border-color: var(--genome-accent-border);
+    border-color: var(--tp-color-brand-300);
     background: var(--tp-color-surface-soft);
 }
 
 .genome-raw-details[open] summary {
     margin-bottom: 12px;
-    border-color: var(--genome-accent-border);
+    border-color: var(--tp-color-brand-300);
     background: var(--tp-color-brand-050);
 }
 
@@ -1002,7 +968,7 @@
     min-height: 34px;
     padding: 0 14px;
     border: 1px solid var(--tp-color-danger-border);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-danger-bg);
     color: var(--tp-color-danger-ink);
     font-size: var(--tp-font-size-sm);
@@ -1038,9 +1004,6 @@
 }
 
 @media (max-width: 640px) {
-    .genome-hero {
-        padding: 18px 16px 16px;
-    }
 
     .genome-hero-actions .btn,
     .genome-delete-actions .btn {

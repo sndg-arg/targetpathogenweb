@@ -5,15 +5,9 @@
    line felt like one signal too many on top of the heading/whitespace
    already doing the job. See tpw-editorial-redesign skill. */
 .genomes-page {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    color: var(--tp-ink);
+    font-family: var(--tp-font-body);
+    color: var(--tp-color-text-primary);
     margin: 0;
-    --view-accent: var(--tp-accent);
-    --view-accent-ink: var(--tp-color-brand-900);
-    --view-accent-soft: var(--tp-color-info-bg);
-    --view-accent-soft-2: var(--tp-color-brand-050);
-    --view-accent-border: var(--tp-color-brand-300);
-    --genomes-border: var(--tp-color-border);
 }
 
 .genomes-page > section ~ section {
@@ -24,18 +18,11 @@
 .genomes-page h2,
 .genomes-page h3,
 .genomes-page h4 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
-    letter-spacing: 0.2px;
+    letter-spacing: 0;
 }
 .genomes-page h1 { font-weight: 700; }
-
-/* No longer boxed via .tp-page-hero -- sits directly on the page
-   background (see tpw-editorial-redesign), so it needs its own padding
-   now instead of inheriting that shared class's. */
-.genomes-hero {
-    padding: 20px 18px;
-}
 
 .genomes-hero-head {
     display: flex;
@@ -53,26 +40,6 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: 6px 0 10px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.genomes-hero h1 {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    color: var(--view-accent-ink, var(--tp-color-brand-900));
-    line-height: 1.1;
-}
-
-.genomes-subtitle {
-    margin: 10px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: 1rem;
-    line-height: 1.42;
 }
 
 .genomes-upload-btn {
@@ -153,7 +120,7 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: var(--tp-ui-gap-sm);
+    gap: var(--tp-space-2);
 }
 
 .genomes-search {
@@ -183,15 +150,15 @@
 
 .genome-list-head-copy h2 {
     margin: 0;
-    color: var(--view-accent-ink);
-    font-size: 1rem;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-md);
     line-height: 1.2;
 }
 
 .genome-list-head-copy p {
     margin: 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.35;
 }
 
@@ -206,16 +173,15 @@
 }
 
 .genome-list-card .table thead th {
-    background: var(--tp-table-thead-bg);
+    background: var(--tp-color-surface-soft);
     position: sticky;
     top: 0;
     z-index: var(--tp-table-sticky-z);
     white-space: nowrap;
-    font-size: var(--tp-table-thead-font);
-    font-weight: var(--tp-table-thead-weight);
-    color: var(--tp-table-thead-color);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    color: var(--tp-color-text-secondary);
 }
-
 
 .genome-list-card .table thead th,
 .genome-list-card .table tbody td {
@@ -238,14 +204,14 @@
 }
 
 .genome-row:hover {
-    background: var(--view-accent-soft-2) !important;
-    box-shadow: inset 2px 0 0 var(--view-accent-border);
+    background: var(--tp-color-brand-050) !important;
+    box-shadow: inset 3px 0 0 var(--tp-color-brand-300);
 }
 
 .genome-row:focus-visible {
     outline: none;
-    background: var(--view-accent-soft-2) !important;
-    box-shadow: inset 3px 0 0 var(--view-accent), var(--tp-focus-outline);
+    background: var(--tp-color-brand-050) !important;
+    box-shadow: inset 3px 0 0 var(--tp-color-primary), var(--tp-focus-outline);
 }
 
 .genome-row.is-processing {
@@ -294,7 +260,7 @@
 
 .genomes-name a {
     font-weight: 600;
-    color: var(--view-accent-ink);
+    color: var(--tp-color-brand-900);
     text-decoration: none;
 }
 
@@ -343,11 +309,11 @@
     display: inline-flex;
     align-items: center;
     margin-left: 8px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     border: 1px solid var(--tp-color-success-border);
     background: var(--tp-color-success-bg);
     color: var(--tp-color-success-ink);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     padding: 2px 8px;
     vertical-align: middle;
@@ -356,8 +322,8 @@
 .genome-status-badge {
     display: inline-flex;
     align-items: center;
-    border-radius: 999px;
-    font-size: var(--tp-font-label);
+    border-radius: var(--tp-radius-pill);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     padding: 2px 8px;
     vertical-align: middle;
@@ -377,7 +343,7 @@
 
 .genome-status-note {
     margin: 6px 0 0;
-    font-size: 0.84rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     line-height: 1.35;
 }
@@ -397,7 +363,7 @@
 
 .genomes-name a:focus-visible {
     outline: none;
-    border-radius: 6px;
+    border-radius: var(--tp-radius-sm);
     box-shadow: var(--tp-focus-outline);
 }
 
@@ -420,18 +386,18 @@
     width: fit-content;
     padding: 4px 10px;
     border: 1px solid var(--tp-color-border);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     color: var(--tp-color-text-muted);
     background: var(--tp-color-surface-muted);
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.04em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
 .genome-workspace-empty-copy h2 {
     margin: 0;
-    color: var(--view-accent-ink);
+    color: var(--tp-color-brand-900);
     font-size: var(--tp-heading-md);
     line-height: 1.15;
 }
@@ -488,13 +454,6 @@
 }
 
 @media (max-width: 700px) {
-    .genomes-hero {
-        padding: 14px;
-    }
-
-    .genomes-hero h1 {
-        font-size: clamp(1.3rem, 5vw, 1.55rem);
-    }
 
     .genomes-upload-btn {
         width: 100%;

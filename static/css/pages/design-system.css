@@ -1,57 +1,70 @@
-/* ── /design: the unlisted visual reference. Editorial layout like every
-   other page; swatches and samples are drawn from the real tokens. ── */
+/* ── /design: the unlisted visual reference. Only layout for the samples
+   lives here; every sample is the real component with its real classes. ── */
 
 .ds-page {
     display: grid;
     gap: var(--tp-space-4);
-    --ds-head: "Space Grotesk", "Segoe UI", sans-serif;
-    --ds-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     color: var(--tp-color-text-primary);
 }
 
-.ds-hero h1,
-.ds-chapter-head h2,
-.ds-section-title,
-.ds-comp-title {
-    font-family: var(--ds-head);
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    text-wrap: balance;
-}
-
 .ds-page code {
-    font-family: var(--ds-mono);
-    font-size: 0.82em;
-    color: var(--tp-color-text-secondary);
-}
-
-.ds-hero {
-    padding: 22px 18px 18px;
-}
-
-.ds-eyebrow {
-    margin: 0 0 8px;
+    font-family: var(--tp-font-mono);
+    font-size: 0.9em;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
 }
 
-.ds-hero h1 {
+.ds-page [id] {
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 61px);
+}
+
+/* ── Chapters and sections ── */
+.ds-chapter {
+    display: grid;
+    gap: var(--tp-space-4);
+    min-width: 0;
+}
+
+.ds-chapter ~ .ds-chapter {
+    margin-top: var(--tp-space-8);
+}
+
+.ds-chapter-head {
+    margin: 0 18px;
+    display: grid;
+    gap: var(--tp-space-2);
+}
+
+.ds-chapter ~ .ds-chapter .ds-chapter-head {
+    padding-top: var(--tp-space-6);
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-chapter-head h2 {
     margin: 0;
+    color: var(--tp-color-brand-900);
+    font-family: var(--tp-font-head);
     font-size: var(--tp-heading-lg);
     font-weight: 700;
-    line-height: 1.05;
-    color: var(--tp-color-brand-900);
+    letter-spacing: var(--tp-tracking-tight);
+    line-height: 1.1;
 }
 
-.ds-lead {
-    margin: 10px 0 0;
-    max-width: 760px;
+.ds-index {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-1) var(--tp-space-4);
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-index a {
     color: var(--tp-color-text-secondary);
-    font-size: 1.03rem;
-    line-height: 1.52;
+    text-decoration: none;
+}
+
+.ds-index a:hover {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .ds-section {
@@ -66,61 +79,98 @@
     margin-top: var(--tp-space-6);
 }
 
-.ds-section-title {
+.ds-section-title,
+.ds-comp-title {
     margin: 0;
-    font-size: var(--tp-heading-md);
     color: var(--tp-color-brand-900);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-heading-md);
+    font-weight: 600;
+    letter-spacing: var(--tp-tracking-tight);
+}
+
+.ds-comp-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--tp-space-1) var(--tp-space-3);
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-lg);
+}
+
+.ds-comp-title code {
+    font-weight: 400;
+}
+
+.ds-comp-title--sub {
+    font-size: var(--tp-font-size-md);
 }
 
 .ds-sub {
     margin: var(--tp-space-2) 0 0;
-    font-size: var(--tp-heading-sm);
     color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-md);
+    font-weight: 600;
 }
 
 .ds-intro {
     margin: 0;
-    max-width: 70ch;
+    max-width: 72ch;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
-/* Principles */
-.ds-principles {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--tp-space-5);
-}
-
-.ds-principle {
-    padding-left: var(--tp-space-3);
-    border-left: 3px solid var(--tp-color-border);
-}
-
-.ds-principle h3 {
-    margin: 0 0 4px;
-    font-size: var(--tp-font-size-md);
-}
-
-.ds-principle p {
+.ds-rules {
     margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--tp-space-1);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.5;
 }
 
-/* Swatches */
+.ds-rules strong {
+    color: var(--tp-color-text-primary);
+}
+
+.ds-usage {
+    display: grid;
+    gap: var(--tp-space-1);
+    margin: 0;
+    max-width: 860px;
+}
+
+.ds-usage > div {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-1) 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-usage dt {
+    font-weight: 600;
+}
+
+.ds-usage dd {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+}
+
+/* ── Color ── */
 .ds-scale {
     display: grid;
     grid-template-columns: repeat(10, minmax(0, 1fr));
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
     overflow: hidden;
 }
 
 .ds-swatch {
-    position: relative;
     min-height: 84px;
     display: flex;
     flex-direction: column;
@@ -133,11 +183,11 @@
 .ds-swatch .ds-hex {
     align-self: flex-start;
     padding: 1px 5px;
-    border-radius: 4px;
+    border-radius: var(--tp-radius-xs);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
-    font-family: var(--ds-mono);
-    font-size: 0.66rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-2xs);
     font-style: normal;
 }
 
@@ -146,112 +196,83 @@
     min-height: 44px;
     padding: 0;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
-}
-
-.ds-swatch--sm .ds-hex {
-    display: none;
+    border-radius: var(--tp-radius-sm);
 }
 
 .ds-tokens {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: var(--tp-space-3) var(--tp-space-5);
 }
 
 .ds-token {
     display: grid;
     grid-template-columns: 44px minmax(0, 1fr);
-    grid-template-rows: auto auto;
     column-gap: var(--tp-space-3);
     align-items: center;
 }
 
 .ds-token .ds-swatch {
-    grid-row: 1 / 3;
+    grid-row: 1 / 4;
 }
 
 .ds-token code {
     color: var(--tp-color-text-primary);
     font-weight: 600;
-    font-size: 0.76rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.ds-token span {
+.ds-token span,
+.ds-token .ds-hex {
+    grid-column: 2;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
+    font-style: normal;
     line-height: 1.35;
 }
 
-/* Rules */
-.ds-rules {
-    margin: 0;
-    padding: 0;
-    list-style: none;
+.ds-token .ds-hex {
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-2xs);
+}
+
+.ds-tones {
     display: grid;
-    gap: 6px;
-    font-size: var(--tp-font-size-sm);
-    color: var(--tp-color-text-secondary);
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: var(--tp-space-4);
 }
 
-.ds-rules strong {
-    color: var(--tp-color-text-primary);
-}
-
-/* Usage lists */
-.ds-usage {
+.ds-tone {
     display: grid;
-    gap: 6px;
-    margin: 0;
-    max-width: 860px;
-}
-
-.ds-usage > div {
-    display: grid;
-    grid-template-columns: 120px minmax(0, 1fr);
-    gap: var(--tp-space-3);
-    padding: 4px 0;
-    border-bottom: 1px solid var(--tp-color-border-soft);
-}
-
-.ds-usage dt {
-    font-weight: 600;
+    gap: var(--tp-space-1);
     font-size: var(--tp-font-size-sm);
 }
 
-.ds-usage dd {
-    margin: 0;
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
+.ds-tone strong {
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
 }
 
-/* Semantic */
-.ds-semantic {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: var(--tp-space-3);
+.ds-tone span {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
 }
 
-.ds-sem {
-    display: grid;
-    gap: 4px;
-    padding: 10px 12px;
-    border: 1px solid;
-    border-radius: 10px;
-    font-size: var(--tp-font-size-sm);
+.ds-tone-chips {
+    display: flex;
+    gap: var(--tp-space-1);
 }
 
-.ds-sem strong { font-family: var(--ds-mono); font-size: 0.8rem; }
-.ds-sem--success { color: var(--tp-color-success-ink); background: var(--tp-color-success-bg); border-color: var(--tp-color-success-border); }
-.ds-sem--info { color: var(--tp-color-info-ink); background: var(--tp-color-info-bg); border-color: var(--tp-color-info-border); }
-.ds-sem--warning { color: var(--tp-color-warning-ink); background: var(--tp-color-warning-bg); border-color: var(--tp-color-warning-border); }
-.ds-sem--danger { color: var(--tp-color-danger-ink); background: var(--tp-color-danger-bg); border-color: var(--tp-color-danger-border); }
-.ds-sem--idle { color: var(--tp-color-idle-ink); background: var(--tp-color-idle-bg); border-color: var(--tp-color-idle-border); }
+.ds-tone-chips i {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-sm);
+}
 
-/* Type */
+/* ── Type ── */
 .ds-fonts {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -260,20 +281,20 @@
 
 .ds-font-sample {
     margin: 0;
-    font-size: 1.8rem;
-    line-height: 1.1;
     color: var(--tp-color-brand-900);
+    font-size: var(--tp-heading-md);
+    font-weight: 600;
+    line-height: 1.1;
 }
 
-.ds-font-sample--head { font-family: var(--ds-head); font-weight: 700; }
-.ds-font-sample--body { font-family: "Source Sans 3", "Segoe UI", sans-serif; font-weight: 600; }
-.ds-font-sample--mono { font-family: var(--ds-mono); font-weight: 600; font-size: 1.5rem; }
+.ds-font-sample--head { font-family: var(--tp-font-head); }
+.ds-font-sample--body { font-family: var(--tp-font-body); }
+.ds-font-sample--mono { font-family: var(--tp-font-mono); }
 
 .ds-font-role {
-    margin: 6px 0 0;
+    margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
 }
 
 .ds-typescale {
@@ -296,7 +317,26 @@
     overflow-wrap: anywhere;
 }
 
-/* Space, radius, shadow */
+.ds-t--head { font-family: var(--tp-font-head); font-weight: 700; letter-spacing: var(--tp-tracking-tight); line-height: 1.1; }
+.ds-t--heading-xl { font-size: var(--tp-heading-xl); }
+.ds-t--heading-lg { font-size: var(--tp-heading-lg); }
+.ds-t--heading-md { font-size: var(--tp-heading-md); }
+.ds-t--xl { font-size: var(--tp-font-size-xl); }
+.ds-t--lg { font-size: var(--tp-font-size-lg); }
+.ds-t--md { font-size: var(--tp-font-size-md); }
+.ds-t--sm { font-size: var(--tp-font-size-sm); }
+.ds-t--xs { font-size: var(--tp-font-size-xs); }
+.ds-t--2xs { font-size: var(--tp-font-size-2xs); }
+
+.ds-t--label {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+/* ── Space, radius, elevation ── */
 .ds-two {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -304,336 +344,390 @@
 }
 
 .ds-spaces,
-.ds-radii {
+.ds-radii,
+.ds-elevations {
     display: grid;
-    gap: 8px;
+    gap: var(--tp-space-2);
     margin: var(--tp-space-3) 0;
 }
 
 .ds-space {
     display: grid;
-    grid-template-columns: 110px 44px auto;
+    grid-template-columns: 24px 44px auto;
     gap: var(--tp-space-3);
     align-items: center;
     font-size: var(--tp-font-size-sm);
 }
 
-.ds-space i {
+.ds-space-bar {
     display: block;
     height: 12px;
     background: var(--tp-color-brand-500);
-    border-radius: 2px;
+    border-radius: var(--tp-radius-xs);
 }
 
+.ds-space-bar--1 { width: var(--tp-space-1); }
+.ds-space-bar--2 { width: var(--tp-space-2); }
+.ds-space-bar--3 { width: var(--tp-space-3); }
+.ds-space-bar--4 { width: var(--tp-space-4); }
+.ds-space-bar--5 { width: var(--tp-space-5); }
+.ds-space-bar--6 { width: var(--tp-space-6); }
+.ds-space-bar--7 { width: var(--tp-space-7); }
+.ds-space-bar--8 { width: var(--tp-space-8); }
+
 .ds-space span,
-.ds-radius span {
+.ds-radius span,
+.ds-elevation span {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
 }
 
 .ds-radius {
     display: grid;
-    grid-template-columns: 40px 180px minmax(0, 1fr);
+    grid-template-columns: 40px 40px minmax(0, 1fr);
     gap: var(--tp-space-3);
     align-items: center;
 }
 
-.ds-radius code {
-    white-space: nowrap;
-}
-
-.ds-radius i {
+.ds-radius-box {
     display: block;
     width: 40px;
     height: 28px;
-    border: 1.5px solid var(--tp-color-brand-700);
+    border: 1px solid var(--tp-color-brand-700);
     background: var(--tp-color-brand-050);
 }
 
-/* Buttons matrix */
+.ds-radius-box--xs { border-radius: var(--tp-radius-xs); }
+.ds-radius-box--sm { border-radius: var(--tp-radius-sm); }
+.ds-radius-box--md { border-radius: var(--tp-radius-md); }
+.ds-radius-box--pill { border-radius: var(--tp-radius-pill); }
+
+.ds-elevations {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--tp-space-4);
+}
+
+.ds-elevation {
+    display: grid;
+    gap: 2px;
+    padding: var(--tp-space-3);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-color-surface);
+}
+
+.ds-elevation--sm { box-shadow: var(--tp-shadow-sm); }
+.ds-elevation--lg { box-shadow: var(--tp-shadow-lg); }
+.ds-elevation--focus { box-shadow: var(--tp-focus-outline); }
+
+/* ── Component samples ── */
+.ds-comp {
+    display: grid;
+    gap: var(--tp-space-2);
+    min-width: 0; /* lets wide grids scroll inside .ds-table-wrap on phones */
+}
+
+.ds-comp + .ds-comp {
+    margin-top: var(--tp-space-6);
+}
+
+.ds-comp--nested {
+    margin-top: 0;
+}
+
+/* One frame for every live sample. No overflow clipping: menus open
+   below their control. */
+.ds-example {
+    min-width: 0;
+    padding: var(--tp-space-5);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface);
+}
+
+.ds-example--stage {
+    background: var(--tp-color-surface-soft);
+}
+
+.ds-example--flush {
+    padding: 0;
+}
+
+.ds-stack {
+    display: grid;
+    gap: var(--tp-space-5);
+    justify-items: start;
+}
+
+.ds-parts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2) var(--tp-space-4);
+    margin: var(--tp-space-1) 0 0;
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-parts-label {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+/* Variant x state grids. */
 .ds-table-wrap {
     max-width: 100%;
     overflow-x: auto;
 }
 
-.ds-matrix {
-    width: 100%;
-    min-width: 560px;
+.ds-grid {
     border-collapse: collapse;
+    min-width: 100%;
 }
 
-.ds-matrix th,
-.ds-matrix td {
-    padding: 12px 10px;
+.ds-grid th,
+.ds-grid td {
+    padding: 10px 14px 10px 0;
     border-bottom: 1px solid var(--tp-color-border-soft);
     text-align: left;
     vertical-align: middle;
+    white-space: nowrap;
 }
 
-.ds-matrix thead th {
+.ds-grid thead th {
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
-.ds-matrix thead th code {
+.ds-grid th code {
+    display: block;
+    margin-top: 2px;
     text-transform: none;
     letter-spacing: 0;
 }
 
-.ds-matrix tbody th {
-    display: grid;
-    gap: 2px;
+.ds-grid .ds-g-variant {
+    width: 190px;
+    vertical-align: bottom;
+}
+
+.ds-grid tbody th {
     font-weight: 400;
+    white-space: normal;
 }
 
-/* Components */
-.ds-comp {
-    display: grid;
-    gap: var(--tp-space-2);
-    min-width: 0; /* let wide grids scroll inside .ds-table-wrap on phones */
-}
-
-.ds-comp + .ds-comp {
-    margin-top: var(--tp-space-5);
-}
-
-.ds-comp-title {
-    margin: 0;
-    font-size: var(--tp-heading-sm);
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-}
-
-.ds-comp-title code {
-    font-weight: 400;
-    color: var(--tp-color-text-muted);
-}
-
-/* Same column widths in every component table, so they line up. */
-.ds-variants {
-    width: 100%;
-    min-width: 560px;
-    border-collapse: collapse;
-    table-layout: fixed;
-}
-
-.ds-variants th:first-child { width: 200px; }
-.ds-variants th:last-child { width: 30%; }
-
-.ds-variants th,
-.ds-variants td {
-    padding: 10px 10px 10px 0;
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    text-align: left;
-    vertical-align: middle;
-}
-
-.ds-variants thead th {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
-.ds-variants tbody th {
-    font-weight: 400;
-}
-
-.ds-variants tbody th code {
+.ds-grid tbody th span {
     display: block;
     margin-top: 2px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
 }
 
-.ds-variants td:last-child {
-    color: var(--tp-color-text-muted);
+/* Transposed grid: variants across the top, one example each. */
+.ds-grid--t thead th {
+    vertical-align: bottom;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
 }
 
-/* Button grid: every type x size x state. */
-.ds-variants--grid {
-    min-width: 680px;
-}
-
-.ds-variants--grid th:first-child { width: 170px; }
-.ds-variants--grid th:last-child { width: 22%; }
-
-.ds-variants thead th code {
+.ds-grid--t thead th strong {
     display: block;
-    margin-top: 2px;
-    text-transform: none;
-    letter-spacing: 0;
-}
-
-.ds-variants .ds-note {
-    margin: 0;
-}
-
-.ds-inline-control {
-    max-width: 260px;
-}
-
-.ds-tab {
-    position: relative;
-    display: inline-block;
-    padding-bottom: 6px;
-    font-family: var(--ds-head);
-    font-size: 0.85rem;
     font-weight: 600;
+}
+
+.ds-grid--t tbody th {
+    width: 110px;
     color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
 }
 
-.ds-tab--on {
-    color: var(--tp-color-link-hover);
+.ds-grid--t td.ds-use {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    white-space: normal;
 }
 
-.ds-tab--on::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 2px;
-    border-radius: 2px 2px 0 0;
-    background: var(--tp-color-accent-line);
+.ds-grid .tp-message {
+    min-width: 200px;
+    white-space: normal;
 }
 
-/* Chips */
-.ds-demo-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-}
-
-/* Same look as proteins-list.css's .filter-chip states. */
-.ds-filter-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 5px 13px;
-    border: 1px solid var(--tp-color-border);
-    border-radius: 999px;
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
-    font-size: 0.83rem;
-}
-
-.ds-filter-chip:hover {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-strong);
-    color: var(--tp-color-text-primary);
-}
-
-.ds-filter-chip.ds-filter-chip--applied,
-.ds-filter-chip.ds-filter-chip--applied:hover {
-    background: var(--tp-color-primary);
-    border-color: var(--tp-color-primary);
-    color: var(--tp-color-on-accent);
-    font-weight: 500;
-}
-
-.ds-filter-chip.ds-filter-chip--pending,
-.ds-filter-chip.ds-filter-chip--pending:hover {
-    border-style: dashed;
-    border-color: var(--tp-color-brand-700);
-    color: var(--tp-color-brand-800);
-    font-weight: 500;
-}
-
-/* Forms */
-.ds-form-demo {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: var(--tp-space-5);
-    align-items: end;
-    max-width: 920px;
-}
-
-.ds-form-demo .tp-ui-field {
-    display: grid;
-    gap: 7px;
-}
-
-.ds-seg-field {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    min-width: 0;
-}
-
-/* Same look as blast.css's segmented control. */
-.ds-seg {
-    display: inline-flex;
-    justify-self: start;
-    padding: 3px;
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-btn-radius);
-    background: var(--tp-color-surface);
-}
-
-.ds-seg label {
-    position: relative; /* keeps the hidden radio inside (it widened the page on phones) */
-    margin: 0;
-    cursor: pointer;
-}
-
-.ds-seg input {
-    position: absolute;
-    opacity: 0;
+/* Samples are pictures, not controls. */
+.ds-grid .tp-select,
+.ds-grid .tp-select-menu,
+.ds-compound .ds-example * {
     pointer-events: none;
 }
 
-.ds-seg span {
-    display: inline-flex;
-    gap: 6px;
-    align-items: baseline;
-    padding: 6px 14px;
-    border-radius: calc(var(--tp-btn-radius) - 3px);
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
+.ds-inline-control {
+    max-width: 240px;
 }
 
-.ds-seg small {
-    font-family: var(--ds-mono);
-    font-size: 0.72rem;
-    font-weight: 400;
-    opacity: 0.75;
+.ds-grid .tp-select {
+    position: relative;
+    min-width: 200px;
 }
 
-.ds-seg input:checked + span {
-    background: var(--tp-color-primary);
-    color: var(--tp-color-on-accent);
+.ds-grid tr:has(.ds-static-menu) > td {
+    vertical-align: top;
 }
 
-.ds-seg input:focus-visible + span {
-    box-shadow: var(--tp-focus-outline);
+/* The menu drawn in place under its trigger instead of floating. */
+.ds-static-menu {
+    position: static;
+    width: 100%;
+    margin-top: var(--tp-space-1);
 }
 
-/* Notes */
-.ds-notes {
-    display: grid;
+.ds-tip-stage {
+    display: flex;
+    justify-content: center;
+    padding-top: var(--tp-space-6);
+}
+
+.ds-tip-anchor {
+    display: inline-grid;
+    justify-items: center;
     gap: 10px;
 }
 
-.ds-note {
-    margin: 0;
-    padding: 2px 0 2px 12px;
-    border-left: 3px solid;
-    font-size: var(--tp-font-size-sm);
+.ds-page .ds-tooltip-sample {
+    position: relative;
+    width: 240px;
+    max-width: 100%;
+    white-space: normal;
+    opacity: 1;
+    z-index: auto;
 }
 
-.ds-note--info { border-color: var(--tp-color-brand-500); color: var(--tp-color-text-secondary); }
-.ds-note--warning { border-color: var(--tp-color-warning-border); color: var(--tp-color-warning-ink); }
-.ds-note--danger { border-color: var(--tp-color-danger-border); color: var(--tp-color-danger-ink); font-weight: 600; }
+.ds-modal-stage {
+    display: flex;
+    justify-content: center;
+    padding: var(--tp-space-7) var(--tp-space-4);
+    background: var(--tp-color-scrim);
+}
 
-/* Sections reached from the menu stop below it. */
-.ds-page [id] {
-    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 61px);
+.ds-modal-text {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.ds-example .ds-ex-quicknav {
+    position: static;
+    border-image: none;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-ex-quicknav .quick-nav-link {
+    cursor: default;
+}
+
+.ds-crumb-sample {
+    position: static;
+}
+
+.ds-pagination-sample {
+    margin: 0;
+}
+
+.ds-loader-sample {
+    max-width: 360px;
+}
+
+.ds-table-sample {
+    max-width: 760px;
+}
+
+/* Filter panel next to its chip grid on wide screens. */
+.ds-split {
+    display: grid;
+    gap: var(--tp-space-5);
+    align-items: start;
+    min-width: 0;
+}
+
+@media (min-width: 1100px) {
+    .ds-split {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+}
+
+.ds-page .ds-drawer-sample {
+    position: static;
+    transform: none;
+    transition: none;
+    height: auto;
+    width: min(440px, 100%);
+    z-index: auto;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    box-shadow: var(--tp-shadow-lg);
+    overflow: hidden;
+}
+
+.ds-drawer-title {
+    margin: 0;
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-lg);
+    font-weight: 600;
+}
+
+.ds-drawer-sample .drawer-body {
+    overflow: visible;
+}
+
+.ds-protein-sample {
+    display: grid;
+    gap: var(--tp-space-4);
+}
+
+.ds-agent-sample {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--tp-space-6);
+}
+
+.ds-page .ds-fab-sample {
+    position: static;
+    z-index: auto;
+    cursor: default;
+}
+
+.ds-agent-panel {
+    width: min(380px, 100%);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-shadow-lg);
+    overflow: hidden;
+}
+
+.ds-agent-panel .tp-agent-drawer-messages {
+    overflow: visible;
+}
+
+.ds-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--tp-space-3);
+    background: var(--tp-color-surface-soft);
+}
+
+.ds-card-grid .tp-card + .tp-card {
+    margin-top: 0;
 }
 
 @media (max-width: 860px) {
@@ -652,562 +746,3 @@
         gap: 2px;
     }
 }
-
-/* ── Combination grids: rows = type/tone, column groups = one dimension
-   each (size, state). Hover and focus are drawn frozen. ── */
-.ds-grid {
-    border-collapse: collapse;
-    min-width: 100%;
-}
-
-.ds-grid th,
-.ds-grid td {
-    padding: 10px 14px 10px 0;
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    text-align: left;
-    vertical-align: middle;
-    white-space: nowrap;
-}
-
-.ds-grid thead th {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
-.ds-grid thead tr:first-child th[scope="colgroup"] {
-    color: var(--tp-color-text-primary);
-    font-weight: 600;
-    border-bottom-color: var(--tp-color-border);
-}
-
-.ds-grid thead th code {
-    display: block;
-    margin-top: 2px;
-    text-transform: none;
-    letter-spacing: 0;
-}
-
-.ds-grid .ds-g-variant {
-    width: 190px;
-    vertical-align: bottom;
-}
-
-.ds-grid tbody th {
-    font-weight: 400;
-    white-space: normal;
-}
-
-.ds-grid tbody th code,
-.ds-grid tbody th span {
-    display: block;
-    margin-top: 2px;
-}
-
-.ds-grid tbody th span {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-}
-
-/* Divider between dimension groups. */
-.ds-grid .ds-g-start {
-    padding-left: 18px;
-    border-left: 1px solid var(--tp-color-border);
-}
-
-.ds-grid .ds-note {
-    white-space: normal;
-}
-
-/* Frozen states (same values as the real :hover / :focus rules). */
-.ds-page .btn.tp-btn--primary.ds-hover {
-    background: var(--tp-color-primary-hover) !important;
-    background-color: var(--tp-color-primary-hover) !important;
-}
-
-.ds-page .btn.tp-btn--secondary.ds-hover {
-    color: var(--tp-color-text-primary) !important;
-    border-color: var(--tp-color-text-muted) !important;
-    background: var(--tp-color-surface-soft) !important;
-}
-
-.tp-dark .ds-page .btn.tp-btn--secondary.ds-hover {
-    background: var(--tp-color-surface-muted) !important;
-}
-
-.ds-page .btn.tp-btn--danger.ds-hover {
-    color: var(--tp-color-on-accent) !important;
-    border-color: var(--tp-color-danger-fill) !important;
-    background: var(--tp-color-danger-fill) !important;
-}
-
-.ds-page .btn.tp-btn--ghost.ds-hover {
-    color: var(--tp-color-text-primary) !important;
-    background: var(--tp-color-surface-muted) !important;
-}
-
-.ds-page .form-control.ds-focus {
-    border-color: var(--tp-focus-color);
-    box-shadow: 0 0 0 1px var(--tp-focus-color);
-}
-
-.ds-filter-chip.ds-hover {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-strong);
-    color: var(--tp-color-text-primary);
-}
-
-.ds-filter-chip--risk {
-    border-color: var(--tp-color-danger-border);
-    color: var(--tp-color-danger-ink);
-}
-
-.ds-filter-chip--favorable {
-    border-color: var(--tp-color-success-border);
-    color: var(--tp-color-success-ink);
-}
-
-.ds-tab--hover {
-    color: var(--tp-color-text-primary);
-}
-
-.ds-tab--hover::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 2px;
-    border-radius: 2px 2px 0 0;
-    background: currentColor;
-    opacity: 0.28;
-}
-
-
-/* ── Full example + parts, above each component's grid ── */
-/* No overflow clipping here: dropdowns (the custom select) open below
-   their control and must not be cut by this box. */
-.ds-example {
-    min-width: 0;
-    padding: 20px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-surface);
-}
-
-.ds-ex-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-}
-
-.ds-parts {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 6px 18px;
-    margin: 2px 0 6px;
-    font-size: var(--tp-font-size-sm);
-}
-
-.ds-parts-label {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
-.ds-part code {
-    color: var(--tp-color-text-muted);
-}
-
-/* The real quick-nav is sticky and full-bleed; the example sits still. */
-.ds-example .ds-ex-quicknav {
-    position: static;
-    border-image: none;
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px 8px 0 0;
-}
-
-.ds-ex-quicknav .quick-nav-link {
-    cursor: default;
-}
-
-.ds-ex-filter {
-    max-width: 360px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.ds-ex-filter-head {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 12px;
-    background: var(--tp-color-surface-soft);
-    font-weight: 600;
-    font-size: var(--tp-font-size-sm);
-}
-
-.ds-ex-filter-param {
-    margin: 12px 12px 6px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--tp-color-text-secondary);
-}
-
-.ds-ex-filter .ds-ex-row {
-    padding: 0 12px;
-}
-
-.ds-ex-filter .ds-ex-row:last-child {
-    padding-bottom: 12px;
-}
-
-.ds-ex-field {
-    display: grid;
-    gap: 7px;
-    max-width: 380px;
-}
-
-.ds-ex-help {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-}
-
-.ds-ex-fakeinput {
-    flex: 1 1 200px;
-    min-height: 32px;
-    display: inline-flex;
-    align-items: center;
-    padding: 0 10px;
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-btn-radius);
-    color: var(--tp-color-text-soft);
-    font-family: var(--ds-mono);
-    font-size: 0.82rem;
-}
-
-/* Selects inside the grids are samples only: opening one would be clipped
-   by the grid's horizontal scroll box. The full example above opens fine. */
-.ds-grid .tp-select,
-.ds-grid .tp-select-menu,
-.ds-grid select {
-    pointer-events: none;
-}
-
-/* Transposed grid: one example per variant, variants across the top. */
-.ds-grid--t thead th {
-    vertical-align: bottom;
-    text-transform: none;
-    letter-spacing: 0;
-    font-size: var(--tp-font-size-sm);
-    color: var(--tp-color-text-primary);
-}
-
-.ds-grid--t thead th strong {
-    display: block;
-    font-weight: 600;
-}
-
-.ds-grid--t thead th code {
-    font-size: 0.72rem;
-    color: var(--tp-color-text-muted);
-}
-
-.ds-grid--t tbody th {
-    width: 110px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
-.ds-grid--t td.ds-use {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    white-space: normal;
-}
-
-/* Selector samples: the menu and options drawn in place (not floating),
-   and frozen hover/focus for the trigger and an option. */
-.ds-static-menu {
-    position: static;
-    width: 200px;
-    box-shadow: var(--tp-shadow-sm);
-}
-
-.ds-grid .tp-select {
-    position: relative;
-    min-width: 200px;
-}
-
-.ds-page .tp-select-trigger.ds-hover {
-    border-color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-soft);
-}
-
-.ds-page .tp-select-option.ds-hover {
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-primary);
-}
-
-/* The "open" sample shows its menu right under the trigger. */
-.ds-open-menu {
-    width: 100%;
-    margin-top: 6px;
-}
-
-
-/* Rows align on the middle; only the row with the open menu aligns on top. */
-.ds-grid tr:has(.ds-open-menu) > td {
-    vertical-align: top;
-}
-
-.ds-grid tr:has(.ds-open-menu) > th {
-    vertical-align: top;
-    padding-top: 20px;
-}
-
-/* Samples of page-level components, drawn in place. */
-.ds-loader-sample {
-    max-width: 360px;
-}
-
-.ds-table-sample {
-    max-width: 760px;
-}
-
-.ds-pagination-sample {
-    margin: 14px 0 0;
-}
-
-.ds-crumb-sample {
-    position: static;
-}
-
-.ds-grid .tp-message {
-    min-width: 200px;
-    white-space: normal;
-}
-
-/* Four chapters (Fundamentos, Básicos, Compuestos, Layout), each opening with
-   its title and a short index; a hairline between chapters. */
-.ds-chapter {
-    display: grid;
-    gap: var(--tp-space-4);
-    min-width: 0;
-}
-
-.ds-chapter ~ .ds-chapter {
-    margin-top: var(--tp-space-8);
-}
-
-.ds-chapter-head {
-    margin: 0 18px;
-    display: grid;
-    gap: 10px;
-}
-
-.ds-chapter ~ .ds-chapter .ds-chapter-head {
-    padding-top: var(--tp-space-6);
-    border-top: 1px solid var(--tp-color-border-soft);
-}
-
-.ds-chapter-head h2 {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    line-height: 1.1;
-    color: var(--tp-color-brand-900);
-}
-
-.ds-index {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 18px;
-    font-size: var(--tp-font-size-sm);
-}
-
-.ds-index a {
-    color: var(--tp-color-text-secondary);
-    text-decoration: none;
-}
-
-.ds-index a:hover {
-    color: var(--tp-color-link);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-
-/* A component inside a compound one (Chip de filtro under Panel de filtros). */
-.ds-comp--nested {
-    margin-top: var(--tp-space-4);
-}
-
-.ds-comp-title--sub {
-    font-size: var(--tp-font-size-md);
-}
-
-/* Compound samples: the real page CSS, pulled out of its fixed/floating
-   position so it sits in the page. */
-.ds-example--stage {
-    background: var(--tp-color-surface-soft);
-}
-
-.ds-page .ds-drawer-sample {
-    position: static;
-    transform: none;
-    transition: none;
-    height: auto;
-    width: min(460px, 100%);
-    z-index: auto;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    box-shadow: var(--tp-shadow-sm);
-    overflow: hidden;
-}
-
-.ds-drawer-sample .drawer-body {
-    overflow: visible;
-}
-
-.ds-drawer-sample .drawer-filter-catalogue {
-    padding-bottom: 14px;
-}
-
-.ds-drawer-sample .filter-values-label {
-    margin: 0 0 6px;
-}
-
-.ds-pagination-one {
-    margin: 0;
-}
-
-.ds-protein-sample {
-    display: grid;
-    gap: var(--tp-space-4);
-}
-
-.ds-agent-sample {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: var(--tp-space-6);
-    background: var(--tp-color-surface-soft);
-}
-
-.ds-agent-fabs {
-    display: grid;
-    gap: var(--tp-space-3);
-    justify-items: start;
-}
-
-.ds-page .ds-fab-sample {
-    position: static;
-    z-index: auto; /* the real one sits above the sticky top bar */
-    cursor: default;
-}
-
-.ds-agent-panel {
-    width: min(380px, 100%);
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-sm);
-    overflow: hidden;
-}
-
-.ds-agent-panel .tp-agent-drawer-messages {
-    overflow: visible;
-}
-
-/* Samples are pictures, not controls. */
-.ds-compound .ds-example * {
-    pointer-events: none;
-}
-
-/* Frozen hover for the real filter chip (Chip de filtro grid). */
-.ds-page .filter-chip.ds-hover:not(.filter-chip--active) {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-strong);
-    color: var(--tp-color-text-primary);
-}
-
-.ds-page .filter-chip--active.ds-hover:not(.filter-chip--pending) {
-    background: var(--tp-color-primary-hover);
-    border-color: var(--tp-color-primary-hover);
-}
-
-/* One-item pagination samples line up with the other grid cells. */
-.ds-pagination-one {
-    justify-content: flex-start;
-}
-
-/* Tooltip samples: the real one is fixed and hidden until hover. */
-.ds-tip-cell {
-    padding-top: 18px;
-    padding-bottom: 18px;
-}
-
-.ds-tip-anchor {
-    display: inline-grid;
-    justify-items: center;
-    gap: 10px;
-}
-
-.ds-tip-cell--below .ds-tip-anchor .tp-chip {
-    order: -1;
-}
-
-.ds-page .ds-tooltip-sample {
-    position: relative;
-    width: 240px;
-    max-width: 100%;
-    white-space: normal;
-    opacity: 1;
-    z-index: auto;
-    box-shadow: var(--tp-shadow-sm);
-}
-
-/* Filter panel next to its chip grid on wide screens. */
-.ds-split {
-    display: grid;
-    gap: var(--tp-space-5);
-    align-items: start;
-    min-width: 0;
-}
-
-@media (min-width: 1100px) {
-    .ds-split {
-        grid-template-columns: auto minmax(0, 1fr);
-    }
-}
-
-.ds-split .ds-comp--nested {
-    margin-top: 0;
-}
-
-/* Modal sample: drawn on the scrim, in place instead of fixed. */
-.ds-modal-stage {
-    display: flex;
-    justify-content: center;
-    padding: 32px 16px;
-    background: var(--tp-color-scrim);
-}
-
-.ds-modal-text {
-    margin: 0;
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
-    line-height: 1.5;
-}
-
-/* Page header sample: the real classes, with the spacing pages give them. */
-.ds-head-eyebrow { margin: 0 0 8px; }
-.ds-head-title { margin: 0; }
-.ds-head-lead { margin: 10px 0 0; }

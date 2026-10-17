@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-modal">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -27,7 +27,7 @@
 {% block body %}
 
     <div class="protein-page">
-        <section class="protein-hero" id="section-overview">
+        <section class="tp-page-hero protein-hero" id="section-overview">
             <div class="protein-hero-top tp-view-head">
                 <div class="protein-hero-content tp-view-head-copy">
                     <p class="tp-view-eyebrow protein-hero-eyebrow">
@@ -40,16 +40,16 @@
                         <span class="protein-accession-label">{% trans "Accession" %}:</span> {{ protein.accession }}
                     </p>
                     <div class="hero-chip-list tp-chip-group">
-                        <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm hero-chip-gene" title="{% trans 'Gene name or locus tag reported for this protein' %}: {{ protein.gene|default_if_none:'-' }}">
+                        <span class="hero-chip tp-chip hero-chip-gene" title="{% trans 'Gene name or locus tag reported for this protein' %}: {{ protein.gene|default_if_none:'-' }}">
                             <strong>{% trans "Gene" %}:</strong>
                             <span class="gene-value">{{ protein.gene|default:"-" }}</span>
                         </span>
-                        <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                        <span class="hero-chip tp-chip">
                             <strong>{% trans "3D evidence" %}:</strong>
                             <span>{{ structure_summary.label }}</span>
                         </span>
                         {% if metabolic_context %}
-                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="#section-metabolic-context" title="{% trans 'Jump to metabolic reactions and pathway context' %}">
+                        <a class="hero-chip tp-chip tp-chip--link" href="#section-metabolic-context" title="{% trans 'Jump to metabolic reactions and pathway context' %}">
                             <span class="tp-chip-db">{% trans "Metabolism" %}</span>
                             {% if metabolic_context.in_network %}
                             {% with reaction_count=metabolic_context.reactions|length %}
@@ -61,7 +61,7 @@
                         </a>
                         {% endif %}
                         {% for acc in uniprot_accessions %}
-                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="https://www.uniprot.org/uniprotkb/{{ acc }}" target="_blank" rel="noopener" title="{% trans 'View on UniProt' %}">
+                        <a class="hero-chip tp-chip tp-chip--link" href="https://www.uniprot.org/uniprotkb/{{ acc }}" target="_blank" rel="noopener" title="{% trans 'View on UniProt' %}">
                             <span class="tp-chip-db">UniProt</span>
                             <span class="tp-chip-acc">{{ acc }}</span>
                             <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
@@ -76,7 +76,7 @@
                     {% endif %}
                 </div>
                 <div class="tp-view-head-actions">
-                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon tp-view-export-link">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
                         {% trans "Download Excel summary" %}
                     </a>
@@ -189,16 +189,16 @@
         {% endif %}
 
         <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
-            {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}<a href="#section-target-profile" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Prioritization" %}</a>{% endif %}
-            {% if metabolic_context %}<a href="#section-metabolic-context" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Metabolism" %}</a>{% endif %}
-            <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
-            <a href="#section-annotations" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotations" %}</a>
-            <a href="#section-features" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Features" %}</a>
-            <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "3D structure" %}</a>
+            {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}<a href="#section-target-profile" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Prioritization" %}</a>{% endif %}
+            {% if metabolic_context %}<a href="#section-metabolic-context" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Metabolism" %}</a>{% endif %}
+            <a href="#section-sequence" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
+            <a href="#section-annotations" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotations" %}</a>
+            <a href="#section-features" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Features" %}</a>
+            <a href="#section-structure" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "3D structure" %}</a>
             {% if binders.total %}
-                <a href="#section-binders" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Ligands" %}</a>
+                <a href="#section-binders" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Ligands" %}</a>
             {% endif %}
-            {% if cross_references.sequence or cross_references.structure or cross_references.chemistry or cross_references.pathways %}<a href="#section-cross-references" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Cross-references" %}</a>{% endif %}
+            {% if cross_references.sequence or cross_references.structure or cross_references.chemistry or cross_references.pathways %}<a href="#section-cross-references" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Cross-references" %}</a>{% endif %}
         </nav>
 
         <div class="protein-main" role="region" aria-label="{% trans 'Protein evidence sections' %}">
@@ -299,7 +299,7 @@
                 <div class="target-evidence-block" id="binding-site-evidence">
                     <div class="target-evidence-head">
                         <h3>{% trans "Binding-site evidence" %}</h3>
-                        {% if selected_pocket_evidence.selected_source_kind %}<span class="tp-chip tp-chip--sm">{{ selected_pocket_evidence.selected_source_kind }}</span>{% endif %}
+                        {% if selected_pocket_evidence.selected_source_kind %}<span class="tp-chip">{{ selected_pocket_evidence.selected_source_kind }}</span>{% endif %}
                     </div>
                     <p class="target-evidence-note">{% trans "Two independent tools estimate pocket quality on the 3D structure: FPocket (druggability, 0–1) and P2Rank (binding-site probability, 0–1). Neither is experimental binding evidence. The 3D viewer may show a different structure, so its pockets can differ." %}</p>
                     <div class="target-evidence-grid">
@@ -320,7 +320,7 @@
                         {# direct way to see it instead of an unexplained mismatch. #}
                         <div class="target-evidence-viewer-actions">
                             {% if pocket_structure_slot %}
-                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm target-evidence-viewer-link"
+                            <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm target-evidence-viewer-link"
                                     data-pocket-slot="{{ pocket_structure_slot }}"
                                     data-pocket-title="{{ selected_pocket_evidence.fpocket.pocket }}"
                                     onclick="window.showEvidencePocket && window.showEvidencePocket(this.dataset.pocketSlot, this.dataset.pocketTitle)">
@@ -401,7 +401,7 @@
                     {% endif %}
                     {% if gates_metabolic_priority %}
                     <div class="target-evidence-card" title="{% trans "Curated pan-genome metabolic model: how strongly this gene's ortholog mapping and its reaction are supported across the modeled Klebsiella strains. The curated replacement for the automatic BioCyc/Pathway Tools metrics below." %}">
-                        <span class="target-evidence-label">{% trans "Metabolic priority" %} <span class="tp-chip tp-chip--sm tp-chip--meta">{% if gates_viewer %}{% trans "Gates pan-genome model" %}{% else %}{% trans "pan-genome model" %}{% endif %}</span></span>
+                        <span class="target-evidence-label">{% trans "Metabolic priority" %} <span class="tp-chip">{% if gates_viewer %}{% trans "Gates pan-genome model" %}{% else %}{% trans "pan-genome model" %}{% endif %}</span></span>
                         <span class="target-evidence-priority-badge target-evidence-priority-badge--{{ gates_metabolic_priority.tone }}">{{ gates_metabolic_priority.priority }}</span>
                         {% if gates_metabolic_priority.quadrant %}
                         <span class="target-evidence-subtext">{{ gates_metabolic_priority.quadrant }}</span>
@@ -470,7 +470,7 @@
                 <p class="tp-state-note tp-state-note--empty">
                     {% trans "This protein is not associated with the imported metabolic network for this genome." %}
                 </p>
-                <a href="{{ metabolic_context.network_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon">
+                <a href="{{ metabolic_context.network_url }}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon">
                     <span>{% trans "Browse the genome's metabolic network" %}</span>
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                 </a>
@@ -553,7 +553,7 @@
                     </div>
                     <button
                         id="copy-sequence-btn"
-                        class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon btn-copy-seq"
+                        class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon btn-copy-seq"
                         type="button"
                         data-default-label="{% trans "Copy sequence" %}"
                         data-copied-label="{% trans "Copied" %}">
@@ -576,8 +576,8 @@
                         <p class="section-subtitle">{% trans "Enzyme classification and Gene Ontology terms linked to this protein." %}</p>
                     </div>
                     <div class="section-tools">
-                        {% if ec_annotations %}<span class="tp-chip tp-chip--count tp-chip--sm">{{ ec_annotations|length }} EC</span>{% endif %}
-                        {% if go_annotations %}<span class="tp-chip tp-chip--count tp-chip--sm">{{ go_annotations|length }} GO</span>{% endif %}
+                        {% if ec_annotations %}<span class="tp-chip">{{ ec_annotations|length }} EC</span>{% endif %}
+                        {% if go_annotations %}<span class="tp-chip">{{ go_annotations|length }} GO</span>{% endif %}
                     </div>
                 </div>
                 {% regroup target_profile by category as localization_by_category %}
@@ -646,12 +646,12 @@
                     </div>
                     <div class="section-tools">
                         <div class="features-tools-inline">
-                            <span class="tp-chip tp-chip--count tp-chip--sm">{{ features|length }} {% trans "records" %}</span>
+                            <span class="tp-chip">{{ features|length }} {% trans "records" %}</span>
                             {% if features %}
                                 <button
                                     id="reset-feature-zoom-btn"
                                     type="button"
-                                    class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon features-reset-btn">
+                                    class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon features-reset-btn">
                                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
                                     <span>{% trans "Reset zoom" %}</span>
                                 </button>
@@ -709,10 +709,10 @@
                     <ul class="identical-sequence-list">
                         {% for sibling in identical_sequence_siblings %}
                         <li class="identical-sequence-item">
-                            <span class="tp-chip tp-chip--sm tp-chip--meta">{{ sibling.strain_label }}</span>
+                            <span class="tp-chip">{{ sibling.strain_label }}</span>
                             <span class="identical-sequence-locus">{{ sibling.locus_tag }}</span>
                             {% if sibling.has_structure %}
-                                <span class="tp-chip tp-chip--sm tp-chip--direct">{% trans "Has structure" %}</span>
+                                <span class="tp-chip tp-chip--success">{% trans "Has structure" %}</span>
                             {% endif %}
                             {% if sibling.bioentry_id %}
                                 <a class="identical-sequence-link" href="{% url 'tpwebapp:protein' protein_id=sibling.bioentry_id %}">{% trans "View protein" %} →</a>
@@ -758,13 +758,13 @@
                         {% endif %}
                         <a href="{% url "tpwebapp:structure_export" structure.id %}"
                            data-no-page-loader
-                           class="btn tp-btn tp-btn--neutral tp-btn--md tp-btn-with-icon structure-action-btn structure-download-btn"
+                           class="btn tp-btn tp-btn--secondary tp-btn-with-icon structure-action-btn structure-download-btn"
                            title="{% trans 'Download a visualization script for VMD (Visual Molecular Dynamics), free software to view the 3D structure with pocket overlays — vmd.ks.uiuc.edu' %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
                             <span>{% trans "Download VMD script" %}</span>
                         </a>
                         <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.id }}"
-                           class="btn tp-btn tp-btn--primary tp-btn--md tp-btn-with-icon structure-action-btn structure-fullscreen-link"
+                           class="btn tp-btn tp-btn--primary tp-btn-with-icon structure-action-btn structure-fullscreen-link"
                            title="{% trans 'Open the dedicated full-screen 3D viewer with pocket overlays' %}">
                             <span class="tp-btn-icon structure-icon" aria-hidden="true">{% include "components/icons/maximize.html" %}</span>
                             <span>{% trans "Full viewer" %}</span>
@@ -919,7 +919,7 @@
                             <p class="section-subtitle">{% trans "Ligands grouped by evidence source. PDB ligands keep the source crystal visible, and loaded crystals can be opened directly in the structure viewer." %}</p>
                         </div>
                         <div class="section-tools">
-                            <span class="tp-chip tp-chip--count tp-chip--sm">{{ binders.total }} {% trans "records" %}</span>
+                            <span class="tp-chip">{{ binders.total }} {% trans "records" %}</span>
                         </div>
                     </div>
 
@@ -974,12 +974,12 @@
                                         <small>{{ binders.summary.best.props.mw }} Da · LogP {{ binders.summary.best.props.logp }} · TPSA {{ binders.summary.best.props.tpsa }}</small>
                                         {% endif %}
                                         <span class="binder-card-actions">
-                                            <a href="{% url 'tpwebapp:binder_detail' binder_id=binders.summary.best.id %}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon binder-card-action">
+                                            <a href="{% url 'tpwebapp:binder_detail' binder_id=binders.summary.best.id %}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon binder-card-action">
                                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/eye.html" %}</span>
                                                 <span>{% trans "Open detail" %}</span>
                                             </a>
                                             {% if binders.summary.best.external_url %}
-                                            <a href="{{ binders.summary.best.external_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-card-action binder-card-action--external" target="_blank" rel="noopener noreferrer">
+                                            <a href="{{ binders.summary.best.external_url }}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon binder-card-action binder-card-action--external" target="_blank" rel="noopener noreferrer">
                                                 <span>{{ binders.summary.best.external_label }}</span>
                                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/external_link.html" %}</span>
                                             </a>
@@ -1001,12 +1001,12 @@
                                     <span class="binder-mini-name">{{ ligand.name }}</span>
                                     <small>{{ ligand.source_label }}{% if ligand.score_label %} · {{ ligand.score_label }}{% endif %}</small>
                                     <span class="binder-card-actions binder-card-actions--mini">
-                                        <a href="{% url 'tpwebapp:binder_detail' binder_id=ligand.id %}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon binder-card-action">
+                                        <a href="{% url 'tpwebapp:binder_detail' binder_id=ligand.id %}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon binder-card-action">
                                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/eye.html" %}</span>
                                             <span>{% trans "Detail" %}</span>
                                         </a>
                                         {% if ligand.external_url %}
-                                        <a href="{{ ligand.external_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-card-action binder-card-action--external" target="_blank" rel="noopener noreferrer">
+                                        <a href="{{ ligand.external_url }}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon binder-card-action binder-card-action--external" target="_blank" rel="noopener noreferrer">
                                             <span>{{ ligand.external_label }}</span>
                                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/external_link.html" %}</span>
                                         </a>
@@ -1106,7 +1106,7 @@
                     <h3 class="cross-reference-group-label">{% trans "Sequence" %}</h3>
                     <div class="cross-reference-chip-list">
                         {% for item in cross_references.sequence %}
-                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
+                        <a class="hero-chip tp-chip tp-chip--link" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
                             <span class="tp-chip-db">{{ item.source }}</span>
                             <span class="tp-chip-acc">{{ item.id }}</span>
                             <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
@@ -1120,7 +1120,7 @@
                     <h3 class="cross-reference-group-label">{% trans "Structure" %}</h3>
                     <div class="cross-reference-chip-list">
                         {% for item in cross_references.structure %}
-                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
+                        <a class="hero-chip tp-chip tp-chip--link" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
                             <span class="tp-chip-db">{{ item.source }}</span>
                             <span class="tp-chip-acc">{{ item.id }}</span>
                             <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
@@ -1134,7 +1134,7 @@
                     <h3 class="cross-reference-group-label">{% trans "Chemistry" %}</h3>
                     <div class="cross-reference-chip-list">
                         {% for item in cross_references.chemistry %}
-                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
+                        <a class="hero-chip tp-chip tp-chip--link" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
                             <span class="tp-chip-db">{{ item.source }}</span>
                             <span class="tp-chip-acc">{{ item.id }}</span>
                             <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
@@ -1148,7 +1148,7 @@
                     <h3 class="cross-reference-group-label">{% trans "Pathways" %}</h3>
                     <div class="cross-reference-chip-list">
                         {% for item in cross_references.pathways %}
-                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link{% if item.source == "KEGG" %} tp-chip--kegg{% elif item.source == "BioCyc" %} tp-chip--biocyc{% endif %}" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
+                        <a class="hero-chip tp-chip tp-chip--link" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
                             <span class="tp-chip-db">{{ item.source }}</span>
                             <span class="tp-chip-acc">{{ item.id }}</span>
                             <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
@@ -1530,7 +1530,7 @@
             let nglStageInstance = null;
 
             function applyStructureTheme() {
-                const backgroundColor = tpColor("--tp-color-structure-bg") || tpColor("--tp-color-surface-panel") || "#f6fbf9";
+                const backgroundColor = tpColor("--tp-color-structure-bg") || tpColor("--tp-color-surface-muted") || "#f6fbf9";
                 if (nglStageInstance && typeof nglStageInstance.setParameters === "function") {
                     nglStageInstance.setParameters({
                         backgroundColor: backgroundColor
@@ -1612,7 +1612,7 @@
                 }
 
                 var stage = new NGL("viewport", {
-                    backgroundColor: tpColor("--tp-color-structure-bg") || tpColor("--tp-color-surface-panel")
+                    backgroundColor: tpColor("--tp-color-structure-bg") || tpColor("--tp-color-surface-muted")
                 });
                 nglStageInstance = stage;
                 syncNglViewportSize(stage);

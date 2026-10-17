@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261016-contrast">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block body %}
@@ -42,7 +42,7 @@
                     <h2>{% trans "Current workflow status" %}</h2>
                 </div>
                 <div class="home-operations-statusbar">
-                    <span class="home-pipeline-chip tp-chip tp-chip--state tp-chip--sm {% if pipeline_status.available %}{{ pipeline_status.state_class }}{% endif %}" {% if not pipeline_status.available %}hidden{% endif %}>
+                    <span class="home-pipeline-chip tp-chip tp-chip--state {% if pipeline_status.available %}{{ pipeline_status.state_class }}{% endif %}" {% if not pipeline_status.available %}hidden{% endif %}>
                         {% if pipeline_status.available %}
                             {% if pipeline_status.running and pipeline_status.genome_accession %}
                                 {% trans "Pipeline in progress for" %} <code>{{ pipeline_status.genome_display_accession|default:pipeline_status.genome_accession }}</code>
@@ -58,7 +58,7 @@
                     </span>
                     <button
                         type="button"
-                        class="btn tp-btn tp-btn--neutral btn-sm home-pipeline-info-btn tp-focusable"
+                        class="btn tp-btn tp-btn--secondary tp-btn--sm home-pipeline-info-btn tp-focusable"
                         aria-label="{% trans 'Pipeline steps info' %}"
                         title="{% trans 'Pipeline steps info' %}"
                         id="pipeline-info-open"
@@ -69,7 +69,7 @@
                     </button>
                     <button
                         type="button"
-                        class="btn tp-btn tp-btn--neutral btn-sm home-pipeline-refresh tp-focusable"
+                        class="btn tp-btn tp-btn--secondary tp-btn--sm home-pipeline-refresh tp-focusable"
                         aria-label="{% trans 'Refresh pipeline status' %}"
                         title="{% trans 'Refresh pipeline status' %}"
                     >
@@ -122,7 +122,7 @@
                         <h3 id="pipeline-info-title">{% trans "Analysis roadmap" %} <span class="pipeline-info-count">{{ pipeline_status.stage_total }} {% trans "stages" %}</span></h3>
                         <p class="pipeline-info-subtitle">{% trans "A guided view of how each genome moves from raw sequence import to target evidence, annotation, structures, localization, and ligand support." %}</p>
                     </div>
-                    <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm pipeline-info-close" id="pipeline-info-close" aria-label="{% trans 'Close' %}">&times;</button>
+                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm pipeline-info-close" id="pipeline-info-close" aria-label="{% trans 'Close' %}">&times;</button>
                 </div>
                 <div class="pipeline-info-steps" id="pipeline-info-steps">
                 </div>
@@ -139,7 +139,7 @@
                     <p class="tp-ui-field-label">{% trans "Methodology" %}</p>
                     <h2>{% trans "Data sources" %}</h2>
                 </div>
-                <a href="{% url 'tpwebapp:data_sources' %}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon home-about-view-btn">
+                <a href="{% url 'tpwebapp:data_sources' %}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon home-about-view-btn">
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                     <span>{% trans "Full reference" %}</span>
                 </a>
@@ -158,10 +158,10 @@
                     </div>
                     <p>{% trans "Proteins are assessed for selectivity against the human proteome and gut microbiome, and for essentiality using the Database of Essential Genes. Subcellular localization is predicted by PSORTb to evaluate target accessibility." %}</p>
                     <div class="home-about-card-tools">
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">FastTarget</span>
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">DIAMOND BLASTP</span>
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">DEG</span>
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">PSORTb v3</span>
+                        <span class="tp-chip">FastTarget</span>
+                        <span class="tp-chip">DIAMOND BLASTP</span>
+                        <span class="tp-chip">DEG</span>
+                        <span class="tp-chip">PSORTb v3</span>
                     </div>
                 </div>
 
@@ -175,9 +175,9 @@
                     </div>
                     <p>{% trans "Structures are assigned by priority: experimental PDB entries first, then AlphaFold Database models, then ColabFold predictions for proteins without other coverage. Per-residue pLDDT scores indicate model confidence." %}</p>
                     <div class="home-about-card-tools">
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">Protein Data Bank</span>
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">AlphaFold DB</span>
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">ColabFold</span>
+                        <span class="tp-chip">Protein Data Bank</span>
+                        <span class="tp-chip">AlphaFold DB</span>
+                        <span class="tp-chip">ColabFold</span>
                     </div>
                 </div>
 
@@ -192,8 +192,8 @@
                     </div>
                     <p>{% trans "FPocket detects surface cavities using Voronoi spheres and reports a druggability score from 0 to 1. P2Rank applies a random forest trained on ~15,000 PDB structures to rank predicted binding site probability." %}</p>
                     <div class="home-about-card-tools">
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">FPocket v4</span>
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">P2Rank v2</span>
+                        <span class="tp-chip">FPocket v4</span>
+                        <span class="tp-chip">P2Rank v2</span>
                     </div>
                 </div>
 
@@ -207,9 +207,9 @@
                     </div>
                     <p>{% trans "InterProScan scans each protein against 20 databases including Pfam, HAMAP, and PANTHER to assign domains, GO terms, and EC numbers. UniProt provides additional curated GO and enzyme data for mapped accessions." %}</p>
                     <div class="home-about-card-tools">
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">InterProScan v5</span>
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">UniProt</span>
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">Gene Ontology</span>
+                        <span class="tp-chip">InterProScan v5</span>
+                        <span class="tp-chip">UniProt</span>
+                        <span class="tp-chip">Gene Ontology</span>
                     </div>
                 </div>
 
@@ -225,10 +225,10 @@
                     </div>
                     <p>{% trans "LigQ_2 is the internal ligand-evidence step. It retrieves co-crystallized ligands from PDB, measured bioactive compounds from ChEMBL, and proposed ZINC compounds by chemical similarity. Direct and homology-transferred evidence are distinguished." %}</p>
                     <div class="home-about-card-tools">
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">LigQ_2</span>
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">PDB</span>
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">ChEMBL</span>
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">ZINC</span>
+                        <span class="tp-chip">LigQ_2</span>
+                        <span class="tp-chip">PDB</span>
+                        <span class="tp-chip">ChEMBL</span>
+                        <span class="tp-chip">ZINC</span>
                     </div>
                 </div>
 
@@ -242,9 +242,9 @@
                     </div>
                     <p>{% trans "Physicochemical properties including MW, LogP, and TPSA are computed from SMILES using RDKit. Lipinski Rule of Five compliance and PAINS substructure filters are applied to flag compounds prone to assay interference." %}</p>
                     <div class="home-about-card-tools">
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">RDKit</span>
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">Lipinski Ro5</span>
-                        <span class="tp-chip tp-chip--meta tp-chip--sm">PAINS</span>
+                        <span class="tp-chip">RDKit</span>
+                        <span class="tp-chip">Lipinski Ro5</span>
+                        <span class="tp-chip">PAINS</span>
                     </div>
                 </div>
 
@@ -257,7 +257,7 @@
                     <p class="tp-ui-field-label">{% trans "About us" %}</p>
                     <h2>{% trans "Developed at FCEN-UBA" %}</h2>
                 </div>
-                <a href="{% url 'tpwebapp:about_us' %}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon home-about-view-btn">
+                <a href="{% url 'tpwebapp:about_us' %}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon home-about-view-btn">
                     <span>{% trans "Read more" %}</span>
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                 </a>
@@ -409,7 +409,7 @@
 
             function renderStatus(status) {
                 const stateClass = String(status.state_class || "").trim();
-                chip.className = `home-pipeline-chip tp-chip tp-chip--state tp-chip--sm${status.available && stateClass ? ` ${stateClass}` : ""}`;
+                chip.className = `home-pipeline-chip tp-chip tp-chip--state${status.available && stateClass ? ` ${stateClass}` : ""}`;
                 chip.hidden = !status.available;
                 chip.innerHTML = chipMarkup(status);
                 liveRegion.innerHTML = liveMarkup(status);

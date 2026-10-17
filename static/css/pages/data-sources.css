@@ -3,18 +3,14 @@
    ============================================================ */
 
 .ds-page {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    color: var(--tp-ink);
+    font-family: var(--tp-font-body);
+    color: var(--tp-color-text-primary);
     margin: 0;
     display: grid;
     /* minmax(0, 1fr): without it the implicit column grows to the sticky
        nav's full no-wrap width and the whole page overflows on phones. */
     grid-template-columns: minmax(0, 1fr);
     gap: var(--tp-space-4);
-    --ds-accent: var(--tp-color-brand-800);
-    --ds-accent-deep: var(--tp-color-brand-900);
-    --ds-accent-soft: var(--tp-color-brand-050);
-    --ds-accent-border: var(--tp-color-brand-200);
 }
 
 /* .ds-panel sections sit directly on the page background, no card
@@ -34,42 +30,9 @@
 .ds-page h2,
 .ds-page h3,
 .ds-page h4 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 700;
-    letter-spacing: 0.2px;
-}
-
-/* ── Hero ── */
-/* No longer boxed via .tp-page-hero -- sits directly on the page
-   background (see tpw-editorial-redesign), so it needs its own padding
-   now instead of inheriting that shared class's. */
-.ds-hero {
-    padding: 20px 18px;
-}
-
-.ds-eyebrow {
-    margin: 6px 0 10px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.ds-hero-title {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    font-weight: 700;
-    line-height: 1.1;
-    color: var(--ds-accent-deep);
-}
-
-.ds-hero-description {
-    margin: 10px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: 1rem;
-    line-height: 1.42;
-    max-width: 920px;
+    letter-spacing: 0;
 }
 
 /* Section nav: the shared .quick-nav (ui-system.css). Sections it jumps
@@ -83,23 +46,23 @@
 
 .ds-panel-title {
     margin: 2px 0 0;
-    font-size: 1.12rem;
+    font-size: var(--tp-font-size-lg);
     font-weight: 600;
-    color: var(--ds-accent-deep);
-    letter-spacing: -0.02em;
+    color: var(--tp-color-brand-900);
+    letter-spacing: var(--tp-tracking-tight);
 }
 
 .ds-panel-subtitle {
     margin: 4px 0 0;
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.76rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
 }
 
 .ds-body {
     margin: 16px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.94rem;
+    font-size: var(--tp-font-size-md);
     line-height: 1.65;
 }
 
@@ -111,11 +74,11 @@
 
 .ds-subsection h3 {
     margin: 0 0 8px;
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 700;
     color: var(--tp-color-text-primary);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tp-tracking-label);
 }
 
 /* ── Pipeline grid ── */
@@ -129,17 +92,17 @@
 .ds-pipeline-card {
     padding: 16px 17px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     display: flex;
     flex-direction: column;
     gap: 9px;
-    box-shadow: var(--tp-shadow-xs);
+    box-shadow: none;
     transition: box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .ds-pipeline-card:hover {
-    box-shadow: var(--tp-shadow-sm);
+    box-shadow: none;
     transform: translateY(-1px);
 }
 
@@ -150,14 +113,14 @@
 }
 
 .ds-pipeline-card-head strong {
-    font-size: 0.95rem;
+    font-size: var(--tp-font-size-md);
     font-weight: 700;
     color: var(--tp-color-text-primary);
 }
 
 .ds-pipeline-card p {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
     line-height: 1.58;
 }
@@ -168,21 +131,21 @@
 
 .ds-pipeline-card-role--doctor {
     color: var(--tp-color-text-primary) !important;
-    font-weight: 650;
+    font-weight: 600;
 }
 
 .ds-pipeline-card-role--candidate {
     color: var(--tp-color-text-primary) !important;
-    font-weight: 610;
+    font-weight: 600;
 }
 
 .ds-pipeline-card-role--engineering {
     color: var(--tp-color-text-primary) !important;
-    font-weight: 610;
+    font-weight: 600;
 }
 
 .ds-pipeline-card-faculty {
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
     margin-top: -4px !important;
 }
@@ -199,11 +162,11 @@
 .ds-pipeline-card-previous-degree > span:first-child {
     display: block;
     margin-bottom: 2px;
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.66rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-2xs);
     font-weight: 700;
     line-height: 1.2;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
 }
@@ -228,8 +191,8 @@
 .ds-pipeline-card-link {
     padding: 3px 10px;
     border: 1px solid var(--tp-color-border);
-    border-radius: 999px;
-    font-size: 0.72rem;
+    border-radius: var(--tp-radius-pill);
+    font-size: var(--tp-font-size-2xs);
     font-weight: 600;
     color: var(--tp-color-text-muted);
     text-decoration: none;
@@ -261,7 +224,7 @@
     gap: 10px;
     padding: 22px 14px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
     text-align: center;
 }
@@ -272,26 +235,26 @@
 .ds-partner-tile-mark {
     width: 56px;
     height: 56px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     object-fit: cover;
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border-soft);
 }
 
 .ds-partner-tile-name {
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--tp-color-text-secondary);
 }
 
 .ds-stage-tag {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.73rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-2xs);
     font-weight: 600;
-    color: var(--ds-accent);
-    background: var(--ds-accent-soft);
-    border: 1px solid var(--ds-accent-border);
-    border-radius: 5px;
+    color: var(--tp-color-brand-800);
+    background: var(--tp-color-brand-050);
+    border: 1px solid var(--tp-color-brand-200);
+    border-radius: var(--tp-radius-xs);
     padding: 2px 7px;
     white-space: nowrap;
     flex-shrink: 0;
@@ -302,7 +265,7 @@
     margin-top: 16px;
     display: grid;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     overflow: hidden;
 }
 
@@ -319,13 +282,13 @@
 .ds-field-row:nth-child(even) { background: var(--tp-color-surface-soft); }
 
 .ds-field-name {
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--tp-color-text-primary);
 }
 
 .ds-field-desc {
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
     line-height: 1.5;
 }
@@ -334,10 +297,10 @@
 .ds-callout {
     margin-top: 16px;
     padding: 13px 15px;
-    border-radius: 9px;
+    border-radius: var(--tp-radius-sm);
     border: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface-muted);
-    font-size: 0.875rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
     line-height: 1.62;
 }
@@ -348,7 +311,7 @@
     display: grid;
     gap: 1px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
     overflow: hidden;
 }
 
@@ -371,7 +334,7 @@
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     flex-shrink: 0;
     margin-top: 1px;
@@ -401,20 +364,20 @@
 }
 
 .ds-priority-body strong {
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--tp-color-text-primary);
 }
 
 .ds-priority-source {
-    font-size: 0.76rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
 }
 
 .ds-priority-body p {
     margin: 4px 0 0;
-    font-size: 0.875rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
     line-height: 1.58;
 }
@@ -431,8 +394,8 @@
     align-items: center;
     gap: 12px;
     padding: 6px 10px;
-    border-radius: 7px;
-    font-size: 0.84rem;
+    border-radius: var(--tp-radius-sm);
+    font-size: var(--tp-font-size-sm);
 }
 
 .ds-score-row--high   { background: var(--tp-color-success-bg); color: var(--tp-color-success-ink); }
@@ -441,8 +404,8 @@
 .ds-score-row--none   { background: var(--tp-color-surface-muted); color: var(--tp-color-text-secondary); }
 
 .ds-score-range {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.78rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     min-width: 64px;
     flex-shrink: 0;
@@ -459,7 +422,7 @@
 .ds-tool-block {
     padding: 16px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     display: grid;
     gap: 10px;
@@ -473,15 +436,15 @@
 }
 
 .ds-tool-name {
-    font-size: 1.05rem;
+    font-size: var(--tp-font-size-md);
     font-weight: 600;
-    color: var(--ds-accent-deep);
-    letter-spacing: -0.01em;
+    color: var(--tp-color-brand-900);
+    letter-spacing: var(--tp-tracking-tight);
 }
 
 .ds-tool-ver {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.73rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-2xs);
     color: var(--tp-color-text-muted);
 }
 
@@ -492,7 +455,7 @@
     gap: 1px;
     margin-top: 12px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     overflow: hidden;
 }
 
@@ -515,14 +478,14 @@
    narrow single-column mobile width (e.g. "TMHMM · Phobius") was being cut
    off mid-character instead of wrapping. */
 .ds-db-name {
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     color: var(--tp-color-text-primary);
     min-width: 110px;
 }
 
 .ds-db-desc {
-    font-size: 0.80rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
     line-height: 1.4;
 }
@@ -538,7 +501,7 @@
 .ds-profile-card {
     padding: 15px 16px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     display: grid;
     gap: 8px;
@@ -551,26 +514,26 @@
 }
 
 .ds-profile-label {
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--tp-color-text-primary);
 }
 
 .ds-profile-tool {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.72rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-2xs);
     color: var(--tp-color-text-muted);
 }
 
 .ds-profile-card > p {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
     line-height: 1.58;
 }
 
 .ds-desirable {
-    font-size: 0.82rem !important;
+    font-size: var(--tp-font-size-sm) !important;
     color: var(--tp-color-text-muted) !important;
     padding-top: 6px;
     border-top: 1px solid var(--tp-color-border-soft);
@@ -580,20 +543,20 @@
 .ds-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.875rem;
+    font-size: var(--tp-font-size-sm);
     margin-top: 16px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     overflow: hidden;
 }
 
 .ds-table th {
     background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-muted);
-    font-size: 0.73rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
+    letter-spacing: var(--tp-tracking-label);
     padding: 9px 12px;
     text-align: left;
     border-bottom: 1px solid var(--tp-color-border-soft);
@@ -616,7 +579,7 @@
     display: grid;
     gap: 1px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     overflow: hidden;
 }
 
@@ -634,14 +597,14 @@
 .ds-def-row:nth-child(even) { background: var(--tp-color-surface-soft); }
 
 .ds-def-term {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.82rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
-    color: var(--ds-accent);
+    color: var(--tp-color-brand-800);
 }
 
 .ds-def-body {
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
     line-height: 1.55;
 }
@@ -667,26 +630,26 @@
 }
 
 .ds-dl-tag {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.76rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
-    color: var(--ds-accent);
-    background: var(--ds-accent-soft);
-    border: 1px solid var(--ds-accent-border);
-    border-radius: 5px;
+    color: var(--tp-color-brand-800);
+    background: var(--tp-color-brand-050);
+    border: 1px solid var(--tp-color-brand-200);
+    border-radius: var(--tp-radius-xs);
     padding: 2px 8px;
     flex-shrink: 0;
 }
 
 .ds-dl-name {
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--tp-color-text-primary);
 }
 
 .ds-dl-row > p {
     margin: 0;
-    font-size: 0.875rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
     line-height: 1.62;
 }
@@ -703,7 +666,7 @@
     padding: 14px 0;
     border-bottom: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-secondary);
-    font-size: 0.93rem;
+    font-size: var(--tp-font-size-md);
     line-height: 1.65;
 }
 
@@ -722,7 +685,6 @@
     .ds-pipeline-grid { grid-template-columns: 1fr; }
     .ds-field-row { grid-template-columns: 1fr; gap: 3px; }
     .ds-def-row { grid-template-columns: 1fr; gap: 4px; }
-    .ds-hero-title { font-size: 1.8rem; }
 }
 
 /* ── Dark mode ── */

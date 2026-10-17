@@ -5,10 +5,9 @@
    ============================================================ */
 
 .activity-page {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    color: var(--tp-ink);
+    font-family: var(--tp-font-body);
+    color: var(--tp-color-text-primary);
     margin: 0;
-    --activity-accent-deep: var(--tp-color-brand-900);
 }
 
 .activity-page > * ~ * {
@@ -49,27 +48,16 @@
 
 .activity-page h1,
 .activity-page h2 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 700;
-    letter-spacing: 0.2px;
-}
-
-/* ── Hero ── */
-.activity-hero {
-    padding: 24px 18px 20px;
+    letter-spacing: 0;
 }
 
 /* Editorial "kicker" rule above the eyebrow -- the letterhead detail that
    reads as a prepared report rather than a live app screen. */
 .activity-eyebrow {
     position: relative;
-    margin: 14px 0 10px;
     padding-top: 12px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
 }
 
 .activity-eyebrow::before {
@@ -79,15 +67,7 @@
     left: 0;
     width: 28px;
     height: 2px;
-    background: var(--activity-accent-deep);
-}
-
-.activity-hero-title {
-    margin: 0;
-    font-size: var(--tp-heading-xl);
-    line-height: 1.04;
-    letter-spacing: -0.02em;
-    color: var(--tp-color-text-primary);
+    background: var(--tp-color-brand-900);
 }
 
 .activity-hero-meta {
@@ -99,21 +79,13 @@
     font-variant-numeric: tabular-nums;
 }
 
-.activity-hero-description {
-    margin: 10px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: 1rem;
-    line-height: 1.42;
-    max-width: 720px;
-}
-
 .activity-period-selector {
     display: inline-flex;
     align-items: center;
     gap: 2px;
     padding: 3px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface-soft);
 }
 
@@ -122,9 +94,9 @@
     align-items: center;
     justify-content: center;
     padding: 6px 14px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     color: var(--tp-color-text-secondary);
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     text-decoration: none;
     transition:
@@ -159,9 +131,9 @@
     gap: 6px;
     padding: 14px 16px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-xs);
+    box-shadow: none;
     transition:
         box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -169,7 +141,7 @@
 }
 
 .activity-kpi-card:hover {
-    box-shadow: var(--tp-shadow-sm);
+    box-shadow: none;
     border-color: var(--tp-color-border-strong);
 }
 
@@ -180,11 +152,11 @@
 }
 
 .activity-kpi-label {
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tp-tracking-label);
 }
 
 .activity-kpi-period {
@@ -194,8 +166,8 @@
 }
 
 .activity-kpi-value {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: 1.75rem;
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-heading-lg);
     font-weight: 700;
     line-height: 1.1;
     color: var(--tp-color-text-primary);
@@ -252,10 +224,10 @@
 
 .activity-panel-title {
     margin: 2px 0 0;
-    font-size: 1.12rem;
+    font-size: var(--tp-font-size-lg);
     font-weight: 600;
     color: var(--tp-color-text-primary);
-    letter-spacing: -0.02em;
+    letter-spacing: var(--tp-tracking-tight);
 }
 
 /* ── Accounts list ── */
@@ -274,7 +246,7 @@
     padding-left: 8px;
     padding-right: 8px;
     border-top: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
     flex-wrap: wrap;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
@@ -288,7 +260,7 @@
 }
 
 .activity-account-name {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
     color: var(--tp-color-text-primary);
     min-width: 100px;
@@ -298,12 +270,6 @@
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     margin-left: auto;
-}
-
-.activity-accounts-empty {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
-    margin: 14px 0 0;
 }
 
 /* ── Section summary + collapsible detail ── */
@@ -320,9 +286,9 @@
     gap: 6px;
     padding: 4px 0;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
@@ -333,7 +299,7 @@
 
 .activity-details-summary:hover,
 .activity-details-summary:focus-visible {
-    color: var(--activity-accent-deep);
+    color: var(--tp-color-brand-900);
 }
 
 .activity-details-chevron {
@@ -379,7 +345,7 @@
     padding: 10px 8px;
     margin: 0 -8px;
     border-top: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
@@ -395,11 +361,11 @@
     margin-top: 14px;
     padding: 0 0 8px;
     border-top: none;
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
 }
 
 .activity-locations .activity-location-row:first-child {
@@ -410,7 +376,7 @@
    "never authenticated" without shouting like a full danger/error state. */
 .activity-locations .activity-location-row--blocked {
     background: var(--tp-color-warning-bg);
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
     padding-left: 8px;
     padding-right: 8px;
     margin: 0 -8px;
@@ -462,16 +428,16 @@
     height: 16px;
     padding: 0 4px;
     flex-shrink: 0;
-    border-radius: 4px;
+    border-radius: var(--tp-radius-xs);
     background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-muted);
-    font-size: 0.62rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 700;
-    letter-spacing: 0.02em;
+    letter-spacing: 0;
 }
 
 .activity-location-ip {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
 }
@@ -548,17 +514,17 @@
     flex-direction: column;
     gap: 3px;
     padding: 10px 14px;
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border-soft);
-    box-shadow: var(--tp-shadow-xs);
+    box-shadow: none;
     transition:
         box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .activity-summary-chip:hover {
-    box-shadow: var(--tp-shadow-sm);
+    box-shadow: none;
     border-color: var(--tp-color-border-strong);
 }
 
@@ -566,7 +532,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-size: var(--tp-font-size-sm);
     font-weight: 700;
     color: var(--tp-color-text-primary);
@@ -635,7 +601,7 @@
     padding: 10px 8px;
     margin: 0 -8px;
     border-top: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
 }
 
 .activity-error-path-row:first-child {
@@ -643,7 +609,7 @@
 }
 
 .activity-error-path-name {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-primary);
     word-break: break-all;
@@ -658,7 +624,7 @@
 .activity-error-chip {
     display: inline-flex;
     align-items: center;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     padding: 2px 8px;
     font-size: var(--tp-font-size-xs);
     font-weight: 600;
@@ -735,7 +701,7 @@
     display: inline-block;
     width: 9px;
     height: 9px;
-    border-radius: 3px;
+    border-radius: var(--tp-radius-xs);
 }
 
 .activity-chart-legend-swatch--authenticated {
@@ -806,7 +772,7 @@
     justify-content: center;
     gap: 4px;
     padding: 14px 16px;
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
     border-left: 3px solid var(--tp-color-border-strong);
     background: var(--tp-color-surface-soft);
 }
@@ -827,14 +793,14 @@
 
 .activity-status-tile-label {
     margin: 0;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 700;
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-primary);
 }
 
 .activity-status-tile-sublabel {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-body);
     font-weight: 500;
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
@@ -842,8 +808,8 @@
 
 .activity-status-tile-value {
     margin: 0;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: 1.5rem;
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-heading-md);
     font-weight: 700;
     line-height: 1.1;
     color: var(--tp-color-text-primary);

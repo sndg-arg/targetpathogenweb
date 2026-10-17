@@ -9,36 +9,8 @@
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
-.uploaded-data-hero,
 .uploaded-data-section {
     padding: 28px 18px;
-}
-
-.uploaded-data-eyebrow {
-    margin: 0 0 8px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.uploaded-data-hero h1 {
-    margin: 0;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: var(--tp-heading-lg);
-    font-weight: 700;
-    line-height: 1.05;
-    letter-spacing: -0.01em;
-    color: var(--tp-color-brand-900);
-}
-
-.uploaded-data-subtitle {
-    margin: 10px 0 0;
-    max-width: 760px;
-    color: var(--tp-color-text-secondary);
-    font-size: 1.03rem;
-    line-height: 1.52;
 }
 
 .uploaded-data-actions {
@@ -88,7 +60,7 @@
 }
 
 .uploaded-data-name {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-weight: 600;
     overflow-wrap: anywhere;
 }

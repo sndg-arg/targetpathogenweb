@@ -3,14 +3,14 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-report.css' %}?v=20261012-report-editorial">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-report.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block body %}
     {# Fused editorial layout (tpw-editorial-redesign): sections sit on the page #}
     {# background, separated by hairlines -- no stacked cards. #}
     <div class="protein-report">
-        <section class="protein-report-hero">
+        <section class="tp-page-hero protein-report-hero">
             <div class="tp-view-head">
                 <div class="tp-view-head-copy">
                     <p class="tp-view-eyebrow protein-report-eyebrow">{% trans "Protein prioritization report" %}</p>
@@ -21,18 +21,18 @@
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
                         <span>{% trans "Print / Save as PDF" %}</span>
                     </button>
-                    <a href="{{ excel_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon">
+                    <a href="{{ excel_url }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
                         <span>{% trans "Excel (all rows)" %}</span>
                     </a>
                 </div>
             </div>
             <div class="tp-chip-group protein-report-chips">
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Generated" %}:</strong> {{ generated_at|date:"Y-m-d H:i" }}</span>
+                <span class="tp-chip"><strong>{% trans "Generated" %}:</strong> {{ generated_at|date:"Y-m-d H:i" }}</span>
                 {% if user.is_authenticated %}
-                    <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "By" %}:</strong> {{ user.get_username }}</span>
+                    <span class="tp-chip"><strong>{% trans "By" %}:</strong> {{ user.get_username }}</span>
                 {% endif %}
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{{ total_rows }}</strong> {% trans "proteins" %}</span>
+                <span class="tp-chip"><strong>{{ total_rows }}</strong> {% trans "proteins" %}</span>
             </div>
         </section>
 

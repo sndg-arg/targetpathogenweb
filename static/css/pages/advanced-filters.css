@@ -6,18 +6,6 @@
     padding-bottom: var(--tp-space-8);
 }
 
-.af-hero {
-    padding: 22px 18px 6px;
-}
-
-.af-hero-subtitle {
-    margin: 10px 0 0;
-    max-width: 760px;
-    color: var(--tp-color-text-secondary);
-    font-size: 1rem;
-    line-height: 1.5;
-}
-
 .af-form {
     display: grid;
     gap: var(--tp-space-5);
@@ -33,7 +21,7 @@
     display: grid;
     gap: var(--tp-space-3);
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
     padding: var(--tp-space-4);
 }
@@ -57,17 +45,17 @@
     background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-muted);
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     padding: 2px 10px;
-    font-size: 0.68rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tp-tracking-label);
     z-index: 1;
 }
 
 .af-group-hint {
     margin: 0;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
 }
 
@@ -81,7 +69,7 @@
 .af-group-mode {
     display: inline-flex;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-control);
+    border-radius: var(--tp-radius-sm);
     overflow: hidden;
 }
 
@@ -89,9 +77,9 @@
     border: none;
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
-    letter-spacing: 0.02em;
+    letter-spacing: 0;
     padding: 7px 14px;
     cursor: pointer;
     transition:
@@ -112,11 +100,11 @@
     border: none;
     background: none;
     color: var(--tp-color-text-muted);
-    font-size: 1.3rem;
+    font-size: var(--tp-font-size-xl);
     line-height: 1;
     cursor: pointer;
     padding: 2px 6px;
-    border-radius: var(--tp-ui-radius-control);
+    border-radius: var(--tp-radius-sm);
     transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
@@ -171,9 +159,9 @@
     border: 1px solid var(--tp-color-border);
     color: var(--tp-color-text-secondary);
     padding: 5px 13px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     font: inherit;
-    font-size: 0.83rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 500;
     cursor: pointer;
     box-shadow: none;
@@ -184,13 +172,13 @@
 }
 
 .af-option-chip:hover {
-    background: var(--tp-color-brand-050);
-    border-color: var(--tp-color-brand-300);
-    color: var(--tp-color-brand-900);
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-strong);
+    color: var(--tp-color-text-primary);
 }
 
 .af-option-chip:focus-visible {
-    outline: 2px solid var(--tp-color-border-accent);
+    outline: 2px solid var(--tp-focus-color);
     outline-offset: 2px;
 }
 
@@ -207,7 +195,7 @@
 }
 
 .af-option-chip-sep {
-    font-size: 0.76rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     font-style: italic;
     color: var(--tp-color-text-soft);
@@ -233,11 +221,11 @@
     border: none;
     background: none;
     color: var(--tp-color-text-muted);
-    font-size: 1.2rem;
+    font-size: var(--tp-font-size-lg);
     line-height: 1;
     cursor: pointer;
     padding: 2px 6px;
-    border-radius: var(--tp-ui-radius-control);
+    border-radius: var(--tp-radius-sm);
     transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
@@ -252,18 +240,18 @@
     border: 1px dashed var(--tp-color-border-soft);
     background: none;
     color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     padding: 6px 12px;
-    border-radius: var(--tp-ui-radius-control);
+    border-radius: var(--tp-radius-sm);
     cursor: pointer;
     transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .af-add-condition:hover {
-    border-color: var(--tp-color-brand-300);
-    color: var(--tp-color-brand-700);
+    border-color: var(--tp-color-border-strong);
+    color: var(--tp-color-text-primary);
 }
 
 .af-form-footer {
@@ -282,7 +270,7 @@
 .af-empty-hint {
     margin: 0 18px;
     color: var(--tp-color-text-muted);
-    font-size: 0.95rem;
+    font-size: var(--tp-font-size-md);
 }
 
 @media (max-width: 640px) {

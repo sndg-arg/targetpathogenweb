@@ -1,8 +1,8 @@
 /* ── Annotation explorer — EC tree · GO terms ── */
 
 .explorer-page {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    color: var(--tp-ink);
+    font-family: var(--tp-font-body);
+    color: var(--tp-color-text-primary);
     margin: 0;
     display: grid;
     gap: var(--tp-space-4);
@@ -12,46 +12,16 @@
 .explorer-page h2,
 .explorer-page h3,
 .explorer-page h4 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
-    letter-spacing: 0.2px;
+    letter-spacing: 0;
 }
 .explorer-page h1 { font-weight: 700; }
-
-/* ── Hero ── */
-
-/* No longer boxed via .tp-page-hero -- sits directly on the page
-   background (see tpw-editorial-redesign), so it needs its own padding
-   now instead of inheriting that shared class's. */
-.explorer-hero {
-    padding: 20px 18px;
-}
 
 .explorer-eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: 6px 0 10px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.explorer-hero h1 {
-    margin: 0;
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-heading-lg);
-    line-height: 1.1;
-}
-
-.explorer-subtitle {
-    margin: 10px 0 0;
-    color: var(--tp-color-text-secondary);
-    max-width: 980px;
-    font-size: 1rem;
-    line-height: 1.42;
 }
 
 /* ── Workbench ──
@@ -140,7 +110,7 @@
 
 .explorer-selection-accession {
     color: var(--tp-color-text-primary);
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
 }
 
@@ -223,18 +193,18 @@
 
 .explorer-term:hover,
 .explorer-term:focus-visible {
-    background: var(--tp-color-brand-050);
+    background: var(--tp-color-surface-soft);
     outline: none;
 }
 
 .explorer-term:focus-visible {
-    box-shadow: inset 0 0 0 2px var(--tp-color-primary);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .explorer-term-id {
     grid-area: id;
     color: var(--tp-color-text-primary);
-    font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     overflow-wrap: anywhere;
@@ -261,7 +231,7 @@
     height: 2px;
     margin-top: 6px;
     background: var(--tp-color-surface-muted);
-    border-radius: 2px;
+    border-radius: var(--tp-radius-xs);
     overflow: hidden;
 }
 
@@ -364,9 +334,6 @@
         min-height: 380px;
     }
 
-    .explorer-hero {
-        padding: 18px 16px 16px;
-    }
 }
 
 @media (max-width: 560px) {

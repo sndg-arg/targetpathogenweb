@@ -12,41 +12,25 @@
 ─────────────────────────────────────────────────────────────────── */
 
 :root {
-    --tp-ui-control-height: 40px;
-    --tp-ui-control-height-compact: 36px;
-    /* radius-panel/hero and gap-sm/md/lg alias the base radius/space
-       scale (masterpage.html) rather than repeating its values under a
-       second name -- radius-control and gap-xs have no equivalent step
-       in that scale, so they stay as their own values. */
-    --tp-ui-radius-control: 8px;
-    --tp-ui-radius-panel: var(--tp-radius-md);
-    --tp-ui-radius-hero: var(--tp-radius-lg);
-    --tp-ui-panel-padding: 12px;
-    --tp-ui-gap-xs: 6px;
-    --tp-ui-gap-sm: var(--tp-space-2);
-    --tp-ui-gap-md: var(--tp-space-3);
-    --tp-ui-gap-lg: var(--tp-space-4);
+    /* Fields, selects and default buttons share one height; compact = tp-btn--sm. */
+    --tp-ui-control-height: 38px;
+    --tp-ui-control-height-compact: 32px;
     --tp-ui-motion-fast: 140ms;
     --tp-ui-motion-base: 180ms;
     --tp-ui-ease-standard: cubic-bezier(0.2, 0.65, 0.3, 1);
-    --tp-ui-shadow-panel: var(--tp-shadow-sm);
     /* ── table tokens ── */
     --tp-table-cell-px: 0.64rem;
     --tp-table-cell-py: 0.72rem;
     --tp-table-cell-first-pl: 0.88rem;
-    --tp-table-thead-bg: var(--tp-color-surface-soft);
-    --tp-table-thead-font: 0.84rem;
-    --tp-table-thead-weight: 500;
-    --tp-table-thead-color: var(--tp-color-text-secondary);
     --tp-table-row-border: 1px solid var(--tp-color-border-soft);
     --tp-table-sticky-z: 2;
 }
 
 .tp-ui-panel {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-xs);
+    box-shadow: none;
     transition:
         border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
         box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
@@ -55,26 +39,26 @@
 
 .tp-ui-toolbar {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
-    padding: var(--tp-ui-panel-padding);
+    padding: var(--tp-space-3);
     transition: border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
 }
 
 @media (hover: hover) and (pointer: fine) {
     .tp-ui-panel:hover,
     .tp-ui-toolbar:hover {
-        border-color: var(--tp-color-brand-200);
+        border-color: var(--tp-color-border-strong);
     }
 
     .tp-ui-panel:hover {
-        box-shadow: var(--tp-shadow-sm);
+        box-shadow: none;
     }
 }
 
 .tp-ui-toolbar-form {
     display: grid;
-    gap: var(--tp-ui-gap-md);
+    gap: var(--tp-space-3);
     width: 100%;
     margin: 0;
 }
@@ -82,7 +66,7 @@
 .tp-ui-toolbar-row {
     display: flex;
     align-items: center;
-    gap: var(--tp-ui-gap-sm);
+    gap: var(--tp-space-2);
     flex-wrap: wrap;
     width: 100%;
 }
@@ -94,7 +78,7 @@
 .tp-ui-group {
     display: flex;
     align-items: center;
-    gap: var(--tp-ui-gap-sm);
+    gap: var(--tp-space-2);
     flex-wrap: wrap;
 }
 
@@ -102,37 +86,15 @@
     min-height: var(--tp-ui-control-height);
 }
 
-/* ── Canonical page hero ── */
+/* ── Page hero: the top section of every page. Unboxed, one padding;
+   holds the page header type below (eyebrow, title, lead). ── */
 .tp-page-hero {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-hero);
-    background: var(--tp-color-surface);
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: var(--tp-shadow-sm);
-    transition:
-        border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
-        box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+    padding: 22px 18px 18px;
 }
 
-.tp-page-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 64%, var(--tp-color-brand-600) 100%);
-}
-
-.tp-page-hero > * {
-    position: relative;
-    z-index: 1;
-}
-
-@media (hover: hover) and (pointer: fine) {
-    .tp-page-hero:hover {
-        border-color: var(--tp-color-brand-200);
-        box-shadow: var(--tp-shadow-md);
+@media (max-width: 767.98px) {
+    .tp-page-hero {
+        padding: 18px 16px 16px;
     }
 }
 
@@ -182,14 +144,14 @@
     justify-content: space-between;
     flex-wrap: wrap;
     row-gap: 6px;
-    gap: var(--tp-ui-gap-sm);
+    gap: var(--tp-space-2);
 }
 
 .tp-ui-count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     min-width: 34px;
     height: 34px;
     border: 1px solid var(--tp-color-border-strong);
@@ -211,7 +173,7 @@
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     line-height: 1.25;
 }
@@ -226,12 +188,12 @@
 }
 
 .tp-ui-actions {
-    margin-top: var(--tp-ui-gap-md);
-    padding-top: var(--tp-ui-gap-md);
+    margin-top: var(--tp-space-3);
+    padding-top: var(--tp-space-3);
     border-top: 1px solid var(--tp-color-border-soft);
     display: flex;
     flex-wrap: wrap;
-    gap: var(--tp-ui-gap-sm);
+    gap: var(--tp-space-2);
     justify-content: flex-end;
 }
 
@@ -248,33 +210,38 @@
     flex: 1 1 320px;
 }
 
-/* Page header type (see /design): one eyebrow, title and lead for every page.
-   Prefixed with .tp-main so it outranks the older per-page hero rules
-   (".genome-hero h1" and friends) without !important. Spacing stays with
-   each page's own hero layout. */
+/* Page header type (see /design): one eyebrow, title and lead for every
+   page, with their own spacing. Prefixed with .tp-main so no page rule
+   can restyle it. */
 .tp-main .tp-view-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 8px;
     color: var(--tp-color-text-muted);
     font-family: inherit;
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tp-tracking-label);
     line-height: 1.3;
     text-transform: uppercase;
 }
 
 .tp-main .tp-view-title {
     color: var(--tp-color-brand-900);
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-size: var(--tp-heading-lg);
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--tp-tracking-tight);
     line-height: 1.1;
+    margin: 0;
 }
 
 .tp-main .tp-view-lead {
+    margin: 10px 0 0;
     max-width: 72ch;
     color: var(--tp-color-text-secondary);
-    font-size: 1.03rem;
+    font-size: var(--tp-font-size-md);
     font-weight: 400;
     line-height: 1.5;
 }
@@ -287,57 +254,14 @@
     flex: 0 0 auto;
 }
 
+/* Export links in a page header are plain secondary buttons. */
 .tp-view-export-link {
     align-self: flex-start;
     white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    min-height: 34px;
-    padding: 0 14px 0 10px;
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-btn-radius);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    letter-spacing: 0;
-    transition:
-        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        background var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
-}
-
-.tp-view-export-link .tp-btn-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 15px;
-    height: 15px;
-    flex-shrink: 0;
-    background: none;
-    border-radius: 0;
-    box-shadow: none;
-}
-
-.tp-view-export-link .tp-btn-icon svg {
-    width: 100%;
-    height: 100%;
-}
-
-.tp-view-export-link:hover,
-.tp-view-export-link:focus-visible {
-    border-color: var(--tp-color-brand-600);
-    color: var(--tp-color-brand-800);
-    background: var(--tp-color-brand-050);
-}
-
-.tp-view-export-link:active {
-    background: var(--tp-color-surface-soft);
 }
 
 .tp-ui-feedback.is-ok {
-    color: var(--tp-state-finished-ink);
+    color: var(--tp-color-success-ink);
 }
 
 .tp-ui-feedback.is-error {
@@ -347,7 +271,7 @@
 .tp-ui-search-row {
     display: flex;
     align-items: center;
-    gap: var(--tp-ui-gap-sm);
+    gap: var(--tp-space-2);
     flex-wrap: wrap;
     width: 100%;
 }
@@ -356,11 +280,11 @@
     min-width: min(300px, 100%);
     flex: 1 1 auto;
     border: 1px solid var(--tp-color-border) !important;
-    border-radius: 10px !important;
+    border-radius: var(--tp-radius-sm) !important;
     background: var(--tp-color-surface) !important;
     color: var(--tp-color-text-primary) !important;
     font: inherit !important;
-    font-size: 0.92rem !important;
+    font-size: var(--tp-font-size-sm) !important;
     padding: 9px 14px !important;
     box-shadow: none !important;
     transition: border-color 140ms ease, box-shadow 140ms ease;
@@ -373,14 +297,14 @@
 .tp-ui-search-input:focus,
 .tp-ui-search-input:focus-visible {
     outline: none !important;
-    border-color: var(--tp-color-border-accent) !important;
-    box-shadow: 0 0 0 3px var(--tp-color-brand-100) !important;
+    border-color: var(--tp-focus-color) !important;
+    box-shadow: var(--tp-focus-outline) !important;
 }
 
 .tp-ui-search-actions {
     display: inline-flex;
     align-items: center;
-    gap: var(--tp-ui-gap-sm);
+    gap: var(--tp-space-2);
     flex-wrap: wrap;
 }
 
@@ -438,14 +362,6 @@
     font-weight: 600;
 }
 
-/* Centered "nothing here" messages (empty filter search, empty table) are
-   not notes: no bar. */
-.tp-state-note.filter-catalogue-empty,
-.tp-state-note.filter-search-no-results,
-.tp-state-note.protein-table-empty-note {
-    border-left: 0;
-}
-
 /* Shared "you don't have access to this page" state (components/access_locked.html),
    used by every permission-gated view (tpweb.views.mixins.PermissionLockedMixin,
    Human Targets, genome upload) instead of Django's bare 403 page or a page that
@@ -474,7 +390,7 @@
     justify-content: center;
     width: 52px;
     height: 52px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-warning-bg);
     color: var(--tp-color-warning-ink);
     margin-bottom: 6px;
@@ -492,9 +408,9 @@
 }
 
 .access-locked-eyebrow {
-    font-size: var(--tp-font-label);
-    font-weight: var(--tp-font-weight-semibold);
-    letter-spacing: 0.08em;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-warning-ink);
 }
@@ -522,7 +438,7 @@
 
 .access-locked-panel .access-locked-status {
     color: var(--tp-color-success-ink);
-    font-weight: var(--tp-font-weight-semibold);
+    font-weight: 600;
 }
 
 .access-locked-link {
@@ -578,8 +494,8 @@
     appearance: none;
     width: 100%;
     min-height: var(--tp-ui-control-height);
-    border: 1px solid var(--view-accent-border, var(--tp-color-border-strong));
-    border-radius: var(--tp-ui-radius-control);
+    border: 1px solid var(--tp-color-brand-300);
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-md);
@@ -601,7 +517,8 @@
 }
 
 /* Hover is neutral (one-accent rule, see /design). */
-.tp-select-trigger:hover {
+.tp-select-trigger:hover,
+.tp-select-trigger.is-hover {
     border-color: var(--tp-color-text-muted);
     background: var(--tp-color-surface-soft);
 }
@@ -656,9 +573,9 @@
     right: 0;
     z-index: 80;
     border: 1px solid var(--tp-color-border);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-lg);
+    box-shadow: var(--tp-shadow-sm);
     padding: 6px;
     display: grid;
     gap: 4px;
@@ -669,7 +586,7 @@
 .tp-select-group-label {
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.04em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
     padding: 4px 8px 2px;
@@ -680,7 +597,7 @@
     appearance: none;
     width: 100%;
     border: 1px solid transparent;
-    border-radius: 6px;
+    border-radius: var(--tp-radius-sm);
     background: transparent;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
@@ -695,6 +612,7 @@
 }
 
 .tp-select-option:hover,
+.tp-select-option.is-hover,
 .tp-select-option:focus-visible {
     outline: none;
     background: var(--tp-color-surface-soft);
@@ -779,84 +697,42 @@
     gap: 6px;
 }
 
+/* ── Chip: one shape, one size. Default is neutral. Modifiers:
+   --code (mono, identifiers), tones --success / --warning / --danger /
+   --muted, --link (neutral, clickable), --filter (removable applied
+   filter), --state + idle|running|finished|failed. Nothing else. ── */
 .tp-chip {
     display: inline-flex;
     align-items: center;
+    gap: 4px;
     border: 1px solid var(--tp-color-border);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
+    font-variant-numeric: tabular-nums;
     line-height: 1.2;
     padding: 3px 8px;
-}
-
-/* One chip size site-wide (see /design); --sm and --md are kept only so
-   existing markup renders the same. */
-.tp-chip--sm,
-.tp-chip--md {
-    font-size: var(--tp-font-size-xs);
-    line-height: 1.2;
-    padding: 3px 8px;
+    text-decoration: none;
 }
 
 .tp-chip code {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.92em;
-    margin-left: 5px;
+    font-family: var(--tp-font-mono);
+    font-size: 0.9em;
     padding: 0;
-    color: var(--tp-color-rose-700);
+    color: inherit;
     background: transparent;
-    font-weight: 700;
 }
 
-.tp-chip--meta {
-    border-color: var(--tp-color-border);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-secondary);
-}
-
-/* Evidence chips: direct hit vs. inferred via homolog */
-.tp-chip--direct {
-    background: var(--tp-color-success-bg);
-    color: var(--tp-color-success-ink);
-    border: 1px solid var(--tp-color-success-border);
-}
-
-.tp-chip--homolog {
-    background: transparent;
-    color: var(--tp-color-text-muted);
-    border: 1px solid var(--tp-color-border);
-}
-
-.tp-chip--warning {
-    border-color: var(--tp-color-warning-border);
-    background: var(--tp-color-warning-bg);
-    color: var(--tp-color-warning-ink);
-    cursor: help;
-}
-
-/* One chip shape everywhere (see /design): same size, border and neutral
-   colors. Variants only change the font (mono for identifiers) or, when it
-   carries meaning, the tone (direct = success, warning, homolog = muted). */
-.tp-chip--ec,
-.tp-chip--go {
-    border-color: var(--tp-color-border);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-secondary);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-weight: 500;
-    font-size: 0.72rem;
+.tp-chip--code {
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-2xs);
     line-height: 1.3; /* same height as the sans chips next to it */
-    text-decoration: none;
-    gap: 4px;
 }
 
-.tp-chip--go .tp-chip-name,
-.tp-chip--ec .tp-chip-name {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    font-weight: 500;
+.tp-chip--code .tp-chip-name {
+    font-family: var(--tp-font-body);
     color: var(--tp-color-text-muted);
     max-width: 160px;
     overflow: hidden;
@@ -864,49 +740,44 @@
     white-space: nowrap;
 }
 
-a.tp-chip--ec:hover,
-a.tp-chip--go:hover {
-    text-decoration: none;
-    filter: brightness(0.97);
+.tp-chip--success {
+    color: var(--tp-color-success-ink);
+    background: var(--tp-color-success-bg);
+    border-color: var(--tp-color-success-border);
 }
 
-.tp-chip--kegg,
-.tp-chip--biocyc,
-.tp-chip--count {
-    border-color: var(--tp-color-border);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-secondary);
+.tp-chip--warning {
+    color: var(--tp-color-warning-ink);
+    background: var(--tp-color-warning-bg);
+    border-color: var(--tp-color-warning-border);
 }
 
-.tp-chip--count {
-    font-variant-numeric: tabular-nums;
+.tp-chip--danger {
+    color: var(--tp-color-danger-ink);
+    background: var(--tp-color-danger-bg);
+    border-color: var(--tp-color-danger-border);
 }
 
-.tp-chip--score {
-    border-color: var(--tp-color-border);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-primary);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-weight: 600;
-    min-width: 52px;
-    justify-content: center;
+.tp-chip--muted {
+    color: var(--tp-color-text-muted);
+    background: transparent;
 }
 
-.tp-chip--filter {
-    border-color: var(--tp-color-border);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-secondary);
-    font-size: 0.86rem;
-    font-weight: 400;
-    padding: 4px 7px 4px 10px;
-    transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
+a.tp-chip:hover,
+a.tp-chip:focus-visible,
+.tp-chip--link:hover,
 .tp-chip--filter:hover,
 .tp-chip--filter:focus-visible {
     border-color: var(--tp-color-border-strong);
     background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-primary);
+    text-decoration: none;
+}
+
+.tp-chip--filter {
+    padding: 3px 6px 3px 10px;
+    transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .tp-state-chip,
@@ -914,29 +785,20 @@ a.tp-chip--go:hover {
     border: 1px solid var(--tp-color-border);
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
-    font-size: 0.82rem;
-    font-weight: 500;
 }
 
 .tp-state-chip.running,
 .tp-chip--state.running {
-    color: var(--tp-state-running-ink);
-    background: var(--tp-state-running-bg);
-    border-color: var(--tp-state-running-border);
-}
-
-.tp-state-chip.running-other,
-.tp-chip--state.running-other {
-    color: var(--tp-color-text-secondary);
-    background: var(--tp-color-selection);
-    border-color: var(--tp-color-border-strong);
+    color: var(--tp-color-info-ink);
+    background: var(--tp-color-info-bg);
+    border-color: var(--tp-color-info-border);
 }
 
 .tp-state-chip.finished,
 .tp-chip--state.finished {
-    color: var(--tp-state-finished-ink);
-    background: var(--tp-state-finished-bg);
-    border-color: var(--tp-state-finished-border);
+    color: var(--tp-color-success-ink);
+    background: var(--tp-color-success-bg);
+    border-color: var(--tp-color-success-border);
 }
 
 .tp-state-chip.failed,
@@ -946,13 +808,22 @@ a.tp-chip--go:hover {
     border-color: var(--tp-color-danger-border);
 }
 
+.tp-state-chip.idle,
+.tp-chip--state.idle,
+.tp-state-chip.running-other,
+.tp-chip--state.running-other {
+    color: var(--tp-color-idle-ink);
+    background: var(--tp-color-idle-bg);
+    border-color: var(--tp-color-idle-border);
+}
+
 .tp-table--premium thead th {
-    background: var(--tp-table-thead-bg);
+    background: var(--tp-color-surface-soft);
     border-bottom: var(--tp-table-row-border);
-    color: var(--tp-table-thead-color);
-    font-size: var(--tp-table-thead-font);
-    font-weight: var(--tp-table-thead-weight);
-    letter-spacing: 0.15px;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    letter-spacing: 0;
     position: sticky;
     top: 0;
     white-space: nowrap;
@@ -971,7 +842,7 @@ a.tp-chip--go:hover {
 }
 
 .tp-table--premium tbody tr:nth-of-type(odd) {
-    background: var(--tp-color-surface-panel);
+    background: var(--tp-color-surface-muted);
 }
 
 .tp-table--premium tbody tr:nth-of-type(even) {
@@ -983,7 +854,7 @@ a.tp-chip--go:hover {
 }
 
 .tp-table--premium tbody tr:hover {
-    background: var(--tp-color-brand-050);
+    background: var(--tp-color-surface-soft);
 }
 
 .tp-table--premium tbody td {
@@ -1007,7 +878,7 @@ a.tp-chip--go:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 9px;
+    border-radius: var(--tp-radius-sm);
     margin: 0;
     border: 1px solid var(--tp-color-border);
     color: var(--tp-color-text-secondary);
@@ -1022,9 +893,9 @@ a.tp-chip--go:hover {
 }
 
 .tp-pagination .page-link:hover {
-    background: var(--tp-color-brand-050);
-    border-color: var(--tp-color-brand-300);
-    color: var(--tp-color-nav-800);
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-text-muted);
+    color: var(--tp-color-text-primary);
 }
 
 .tp-pagination .page-link:focus-visible {
@@ -1053,15 +924,8 @@ a.tp-chip--go:hover {
     justify-content: center;
 }
 
-.tp-state-chip.idle,
-.tp-chip--state.idle {
-    color: var(--tp-state-idle-ink);
-    background: var(--tp-state-idle-bg);
-    border-color: var(--tp-state-idle-border);
-}
-
 .tp-table--sortable tbody tr:nth-of-type(odd) {
-    background: var(--tp-color-surface-panel);
+    background: var(--tp-color-surface-muted);
 }
 
 .tp-table--sortable tbody tr:nth-of-type(even) {
@@ -1073,7 +937,7 @@ a.tp-chip--go:hover {
 }
 
 .tp-table--sortable tbody tr:hover {
-    background: var(--tp-color-brand-050);
+    background: var(--tp-color-surface-soft);
 }
 
 .tp-table--plain thead th::after {
@@ -1091,14 +955,14 @@ a.tp-chip--go:hover {
 }
 
 .table-shell thead th {
-    background: var(--tp-table-thead-bg);
+    background: var(--tp-color-surface-soft);
     border-bottom-width: 1px;
     position: sticky;
     top: 0;
     z-index: var(--tp-table-sticky-z);
-    font-size: var(--tp-table-thead-font);
-    font-weight: var(--tp-table-thead-weight);
-    color: var(--tp-table-thead-color);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    color: var(--tp-color-text-secondary);
     white-space: nowrap;
 }
 
@@ -1132,12 +996,12 @@ a.tp-chip--go:hover {
 
 .tp-table-shell__scroll::-webkit-scrollbar-track {
     background: var(--tp-color-surface-muted);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
 }
 
 .tp-table-shell__scroll::-webkit-scrollbar-thumb {
     background: var(--tp-color-brand-400);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     border: 2px solid var(--tp-color-surface-muted);
 }
 
@@ -1221,12 +1085,12 @@ a.tp-chip--go:hover {
     gap: 7px;
     padding: 7px 11px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
     font-weight: 600;
-    letter-spacing: 0.03em;
+    letter-spacing: var(--tp-tracking-label);
     opacity: 0;
     transition: opacity var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
 }
@@ -1259,12 +1123,11 @@ a.tp-chip--go:hover {
         --tp-table-cell-px: 0.5rem;
         --tp-table-cell-py: 0.55rem;
         --tp-table-cell-first-pl: 0.7rem;
-        --tp-table-thead-font: 0.78rem;
-        border-radius: 10px;
+        border-radius: var(--tp-radius-sm);
     }
 
     .tp-table--premium {
-        font-size: 0.88rem;
+        font-size: var(--tp-font-size-sm);
     }
 
     /* Sticky first column as anchor while scrolling horizontally */
@@ -1274,12 +1137,12 @@ a.tp-chip--go:hover {
         left: 0;
         background: inherit;
         z-index: 1;
-        box-shadow: 4px 0 6px -4px rgba(10, 24, 33, 0.12);
+        box-shadow: inset -1px 0 0 var(--tp-color-border-soft);
     }
 
     .tp-table--premium thead th:first-child {
         z-index: calc(var(--tp-table-sticky-z) + 1);
-        background: var(--tp-color-surface-panel);
+        background: var(--tp-color-surface-muted);
     }
 
     .tp-pagination {
@@ -1292,7 +1155,7 @@ a.tp-chip--go:hover {
         min-width: 36px;
         min-height: 36px;
         padding: 0 0.55rem;
-        font-size: 0.86rem;
+        font-size: var(--tp-font-size-sm);
     }
 }
 
@@ -1303,12 +1166,12 @@ a.tp-chip--go:hover {
     min-height: 34px;
     padding: 0 12px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-btn-radius);
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
-    letter-spacing: 0.01em;
+    letter-spacing: 0;
     line-height: 1;
     text-decoration: none;
     cursor: pointer;
@@ -1319,10 +1182,10 @@ a.tp-chip--go:hover {
 }
 
 .tp-table-export-btn:hover {
-    color: var(--tp-color-brand-800);
+    color: var(--tp-color-text-primary);
     text-decoration: none;
-    border-color: var(--tp-color-brand-600);
-    background: var(--tp-color-brand-050);
+    border-color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface-soft);
 }
 
 .tp-table-export-btn:focus-visible {
@@ -1393,7 +1256,7 @@ a.tp-chip--go:hover {
 .tp-dt-wrapper .dataTables_info,
 .tp-dt-wrapper .dataTables_paginate {
     float: none !important;
-    font-size: 0.86rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-muted);
 }
 
@@ -1406,18 +1269,18 @@ a.tp-chip--go:hover {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.04em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
 .tp-dt-wrapper .dataTables_length select,
 .tp-dt-wrapper .dataTables_filter input {
     border: 1px solid var(--tp-color-border) !important;
-    border-radius: 10px !important;
+    border-radius: var(--tp-radius-sm) !important;
     background: var(--tp-color-surface) !important;
     color: var(--tp-color-text-primary) !important;
     font: inherit !important;
-    font-size: 0.92rem !important;
+    font-size: var(--tp-font-size-sm) !important;
     box-shadow: none !important;
     transition: border-color 140ms ease, box-shadow 140ms ease;
 }
@@ -1462,7 +1325,7 @@ a.tp-chip--go:hover {
     justify-content: flex-start;
     text-transform: none;
     letter-spacing: 0;
-    font-size: 0.86rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 400;
 }
 
@@ -1471,8 +1334,8 @@ a.tp-chip--go:hover {
 .tp-dt-wrapper .dataTables_length select:focus,
 .tp-dt-wrapper .dataTables_length select:focus-visible {
     outline: none;
-    border-color: var(--tp-color-border-accent);
-    box-shadow: 0 0 0 3px var(--tp-color-brand-100);
+    border-color: var(--tp-focus-color);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .tp-dt-wrapper .tp-dt-footer {
@@ -1504,7 +1367,7 @@ a.tp-chip--go:hover {
 .tp-dt-wrapper .dataTables_paginate .paginate_button.current {
     float: none !important;
     margin: 0 !important;
-    border-radius: var(--tp-ui-radius-control) !important;
+    border-radius: var(--tp-radius-sm) !important;
     border: 1px solid var(--tp-color-border) !important;
     color: var(--tp-color-text-secondary) !important;
     background: var(--tp-color-surface) !important;
@@ -1521,9 +1384,9 @@ a.tp-chip--go:hover {
 }
 
 .tp-dt-wrapper .dataTables_paginate .paginate_button:hover {
-    border-color: var(--tp-color-brand-300) !important;
-    color: var(--tp-color-brand-900) !important;
-    background: var(--tp-color-brand-050) !important;
+    border-color: var(--tp-color-text-muted) !important;
+    color: var(--tp-color-text-primary) !important;
+    background: var(--tp-color-surface-soft) !important;
 }
 
 .tp-dt-wrapper .dataTables_paginate .paginate_button:focus-visible {
@@ -1558,7 +1421,7 @@ a.tp-chip--go:hover {
 .tp-dt-wrapper.tp-dt-variant-compact .dataTables_paginate .paginate_button {
     min-width: 36px;
     min-height: 36px;
-    border-radius: 9px !important;
+    border-radius: var(--tp-radius-sm) !important;
     padding: 0 0.64rem !important;
 }
 
@@ -1595,7 +1458,7 @@ a.tp-chip--go:hover {
     right: 8px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 0.72rem;
+    font-size: var(--tp-font-size-2xs);
     line-height: 1;
     font-weight: 500;
 }
@@ -1618,32 +1481,32 @@ a.tp-chip--go:hover {
 .tp-page-eyebrow {
     margin: 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
 .tp-page-title {
     margin: 0;
-    color: var(--tp-color-nav-800);
-    font-size: clamp(1.8rem, 2.7vw, 2.5rem);
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-heading-xl);
     line-height: 1.08;
-    letter-spacing: 0.12px;
+    letter-spacing: 0;
 }
 
 .tp-section-title {
     margin: 0;
-    color: var(--tp-color-nav-800);
-    font-size: 1.26rem;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-xl);
     line-height: 1.15;
-    letter-spacing: 0.12px;
+    letter-spacing: 0;
 }
 
 .tp-section-subtitle {
     margin: 6px 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.95rem;
+    font-size: var(--tp-font-size-md);
     line-height: 1.4;
 }
 
@@ -1661,7 +1524,7 @@ a.tp-chip--go:hover {
     gap: 4px;
     padding: 3px 10px 3px 7px;
     border: 1px solid var(--tp-color-border);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     font-weight: 500;
@@ -1731,7 +1594,7 @@ a.tp-chip--go:hover {
     content: "/";
     display: inline-block;
     color: var(--tp-color-text-soft);
-    font-size: 0.85em;
+    font-size: 0.9em;
     font-weight: 400;
     opacity: 0.8;
     margin: 0 1px;
@@ -1767,7 +1630,7 @@ a.tp-chip--go:hover {
 .tp-breadcrumb-link,
 .tp-breadcrumb-current {
     line-height: 1.2;
-    letter-spacing: 0.01em;
+    letter-spacing: 0;
     white-space: nowrap;
     max-width: 220px;
     overflow: hidden;
@@ -1780,7 +1643,7 @@ a.tp-chip--go:hover {
     gap: 5px;
     margin: -3px -7px;
     padding: 3px 7px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     font-weight: 500;
@@ -1823,7 +1686,7 @@ a.tp-chip--go:hover {
     z-index: 1025;
     background: var(--tp-color-surface-soft);
     border-bottom: 1px solid var(--tp-color-border-soft);
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+    box-shadow: none;
 }
 
 @media (min-width: 992px) {
@@ -1833,7 +1696,7 @@ a.tp-chip--go:hover {
 }
 
 .tp-dark .tp-breadcrumb-bar {
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+    box-shadow: none;
 }
 
 .tp-breadcrumb-bar-inner {
@@ -1902,15 +1765,6 @@ a.tp-chip--go:hover {
    separate, larger visual pass) -- this just gives future work one shared
    vocabulary to converge on instead of a fourth invention. */
 :root {
-    --tp-tone-favorable: var(--tp-color-success-ink);
-    --tp-tone-favorable-bg: var(--tp-color-success-bg);
-    --tp-tone-favorable-border: var(--tp-color-success-border);
-    --tp-tone-risk: var(--tp-color-danger-ink);
-    --tp-tone-risk-bg: var(--tp-color-danger-bg);
-    --tp-tone-risk-border: var(--tp-color-danger-border);
-    --tp-tone-neutral: var(--tp-color-text-muted);
-    --tp-tone-neutral-bg: var(--tp-color-surface-muted);
-    --tp-tone-neutral-border: var(--tp-color-border-soft);
 }
 
 /* ── metric-value-icon ──────────────────────────────────────── */
@@ -1930,17 +1784,13 @@ a.tp-chip--go:hover {
     color: var(--tp-color-success-ink);
 }
 
-/* ── tp-card ─────────────────────────────────────────────── */
-/* The only .tp-card definition -- two near-duplicate copies used to live
-   inline in masterpage.html; padding/shadow here match what was actually
-   rendering (the last-loaded of the three always won the cascade), so
-   consolidating doesn't change how any existing .tp-card looks. */
+/* ── tp-card: only for repeated items in a grid (sections are never
+   boxed). Thin border, no shadow; hover darkens the border. ── */
 .tp-card {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
     padding: 16px;
-    box-shadow: var(--tp-shadow-sm);
     transition: border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
 }
 
@@ -1948,29 +1798,9 @@ a.tp-chip--go:hover {
     margin-top: 14px;
 }
 
-.tp-card--elevated {
-    border-color: transparent;
-    box-shadow: var(--tp-shadow-md);
-}
-
-.tp-card--flat {
-    box-shadow: none;
-    border-color: var(--tp-color-border-soft);
-}
-
-.tp-card--flush {
-    padding: 0;
-}
-
 @media (hover: hover) and (pointer: fine) {
     .tp-card:hover {
-        border-color: var(--tp-color-brand-200);
-    }
-    .tp-card--elevated:hover {
-        box-shadow: var(--tp-shadow-md);
-    }
-    .tp-card--flat:hover {
-        box-shadow: none;
+        border-color: var(--tp-color-border-strong);
     }
 }
 
@@ -1980,7 +1810,7 @@ a.tp-chip--go:hover {
     width: 100%;
     min-height: var(--tp-ui-control-height);
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-ui-radius-control);
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
@@ -1993,7 +1823,7 @@ a.tp-chip--go:hover {
 
 .tp-file-input::file-selector-button {
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-btn-radius-sm);
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
@@ -2009,13 +1839,13 @@ a.tp-chip--go:hover {
 }
 
 .tp-file-input:hover {
-    border-color: var(--view-accent-border, var(--tp-color-brand-300));
+    border-color: var(--tp-color-brand-300);
 }
 
 .tp-file-input::file-selector-button:hover {
-    border-color: var(--tp-color-brand-600);
-    background: var(--tp-color-brand-050);
-    color: var(--tp-color-brand-800);
+    border-color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-primary);
 }
 
 .tp-file-input:focus-visible {
@@ -2073,10 +1903,10 @@ a.tp-chip--go:hover {
     max-width: 340px;
     padding: 11px 12px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: 8px;
+    border-radius: var(--tp-radius-sm);
     background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-050));
     color: var(--tp-color-text-primary);
-    box-shadow: var(--tp-shadow-lg);
+    box-shadow: var(--tp-shadow-sm);
     font-size: var(--tp-font-size-xs);
     line-height: 1.35;
     pointer-events: none;
@@ -2089,19 +1919,19 @@ a.tp-chip--go:hover {
     margin-bottom: 8px;
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .metabolic-network-tooltip-badge {
     display: inline-flex;
     align-items: center;
     padding: 2px 6px;
-    border: 1px solid color-mix(in srgb, var(--tp-color-amber-500) 48%, transparent);
-    border-radius: 999px;
-    background: var(--tp-color-amber-050);
-    color: var(--tp-color-amber-700);
-    font-size: 0.68rem;
-    font-weight: 800;
+    border: 1px solid color-mix(in srgb, var(--tp-color-warning-ink) 48%, transparent);
+    border-radius: var(--tp-radius-pill);
+    background: var(--tp-color-warning-bg);
+    color: var(--tp-color-warning-ink);
+    font-size: var(--tp-font-size-2xs);
+    font-weight: 700;
     white-space: nowrap;
 }
 
@@ -2118,8 +1948,8 @@ a.tp-chip--go:hover {
 
 .metabolic-network-tooltip dt {
     color: var(--tp-color-text-muted);
-    font-size: 0.68rem;
-    font-weight: 800;
+    font-size: var(--tp-font-size-2xs);
+    font-weight: 700;
     text-transform: uppercase;
     /* Defensive: if a future label is still too wide for the column, wrap
        it instead of repeating this bug by overflowing into the value. */
@@ -2129,7 +1959,7 @@ a.tp-chip--go:hover {
 .metabolic-network-tooltip dd {
     margin: 0;
     color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     word-break: break-word;
 }
 
@@ -2138,7 +1968,7 @@ a.tp-chip--go:hover {
     padding-top: 8px;
     border-top: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
 }
 
 /* ── Section nav (quick-nav) ──────────────────────────────────────────
@@ -2203,10 +2033,10 @@ a.tp-chip--go:hover {
     min-height: 0 !important;
     padding: 0 !important;
     line-height: 1.1;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
-    font-size: 0.85rem !important;
-    letter-spacing: 0.01em;
+    font-size: var(--tp-font-size-sm) !important;
+    letter-spacing: 0;
     border-radius: 0 !important;
     border: none !important;
     background: transparent !important;
@@ -2226,7 +2056,7 @@ a.tp-chip--go:hover {
     right: 0;
     bottom: 0;
     height: 2px;
-    border-radius: 2px 2px 0 0;
+    border-radius: var(--tp-radius-xs) var(--tp-radius-xs) 0 0;
     background: currentColor;
     opacity: 0;
     transform: scaleX(0.4);
@@ -2236,6 +2066,7 @@ a.tp-chip--go:hover {
 }
 
 .quick-nav .quick-nav-link:hover,
+.quick-nav .quick-nav-link.is-hover,
 .quick-nav .quick-nav-link:focus-visible {
     color: var(--tp-color-text-primary) !important;
     background: transparent !important;
@@ -2243,6 +2074,7 @@ a.tp-chip--go:hover {
 }
 
 .quick-nav .quick-nav-link:hover::after,
+.quick-nav .quick-nav-link.is-hover::after,
 .quick-nav .quick-nav-link:focus-visible::after {
     opacity: 0.28;
     transform: scaleX(1);
@@ -2274,6 +2106,95 @@ a.tp-chip--go:hover {
     }
 }
 
+/* ── Segmented control (see /design): two to four mutually exclusive
+   options, radio inputs underneath (works without JS, keyboard native).
+   Selected = filled primary. ── */
+.tp-segmented {
+    display: inline-flex;
+    justify-self: start;
+    width: max-content;
+    padding: 3px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-color-surface);
+}
+
+.tp-segmented-option {
+    position: relative;
+    margin: 0;
+    cursor: pointer;
+}
+
+.tp-segmented-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tp-segmented-option span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 7px 16px;
+    border-radius: var(--tp-radius-xs);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    transition:
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-segmented-option small {
+    color: var(--tp-color-text-muted);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+}
+
+.tp-segmented-option:hover span,
+.tp-segmented-option.is-hover span {
+    color: var(--tp-color-text-primary);
+}
+
+/* Selected: filled, same as a primary button. */
+.tp-segmented-option input:checked + span {
+    background: var(--tp-color-primary);
+    color: var(--tp-color-on-accent);
+}
+
+.tp-segmented-option input:checked + span small {
+    color: inherit;
+    opacity: 0.75;
+}
+
+.tp-segmented-option input:focus-visible + span {
+    box-shadow: var(--tp-focus-outline);
+}
+
+@media (max-width: 559.98px) {
+    .tp-segmented {
+        display: flex;
+        width: auto;
+    }
+
+    .tp-segmented-option {
+        flex: 1 1 0;
+    }
+
+    .tp-segmented-option span {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tp-segmented-option span {
+        transition: none;
+    }
+}
+
 /* ── Modal (see /design): one backdrop, panel, header, body and footer for
    every dialog. Pages keep their own ids/classes for their JS and only add
    what their body needs (a ligand drawing, a residue list, a form). ── */
@@ -2299,7 +2220,7 @@ a.tp-chip--go:hover {
     flex-direction: column;
     overflow: hidden;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
     box-shadow: var(--tp-shadow-lg);
 }

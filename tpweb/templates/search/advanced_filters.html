@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/advanced-filters.css' %}?v=20261016-contrast">
+    <link rel="stylesheet" href="{% static 'css/pages/advanced-filters.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -23,7 +23,7 @@
 
 {% block body %}
 <div class="af-page">
-    <section class="af-hero tp-view-head">
+    <section class="tp-page-hero af-hero tp-view-head">
         <div class="tp-view-head-copy">
             <h1 class="tp-view-title">{% trans "Advanced filters" %}</h1>
             <p class="tp-view-lead af-hero-subtitle">
@@ -31,7 +31,7 @@
             </p>
         </div>
         <div class="tp-view-head-actions">
-            <a href="{{ protein_list_url }}" class="btn tp-btn tp-btn--neutral">{% trans "Back to proteins" %}</a>
+            <a href="{{ protein_list_url }}" class="btn tp-btn tp-btn--secondary">{% trans "Back to proteins" %}</a>
         </div>
     </section>
 
@@ -43,11 +43,11 @@
         <div id="af-groups" class="af-groups" style="--af-and-label: '{{ and_label }}';"></div>
 
         <div class="af-form-footer">
-            <button type="button" class="btn tp-btn tp-btn--neutral" id="af-add-group">
+            <button type="button" class="btn tp-btn tp-btn--secondary" id="af-add-group">
                 {% trans "+ Add filter group" %}
             </button>
             <div class="af-form-footer-actions">
-                <a href="{{ protein_list_url }}" class="btn tp-btn tp-btn--clear">{% trans "Cancel" %}</a>
+                <a href="{{ protein_list_url }}" class="btn tp-btn tp-btn--secondary">{% trans "Cancel" %}</a>
                 <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Apply advanced filters" %}</button>
             </div>
         </div>

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20261017-modal">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -19,7 +19,7 @@
 {% block body %}
 <div class="user-mgmt-page">
 
-    <section class="user-mgmt-hero">
+    <section class="tp-page-hero user-mgmt-hero">
         <div class="tp-view-head">
             <div class="tp-view-head-copy">
                 <p class="tp-view-eyebrow user-mgmt-eyebrow">{% trans "Owner only" %}</p>
@@ -35,7 +35,7 @@
                 <p class="tp-ui-field-label">{% trans "Deactivated" %}</p>
                 <h2 class="user-mgmt-section-title">{% trans "Revoked accounts" %}</h2>
             </div>
-            <span class="tp-chip tp-chip--count tp-chip--sm">{{ pending_users|length }}</span>
+            <span class="tp-chip">{{ pending_users|length }}</span>
         </div>
         {% if pending_users %}
         <div class="user-mgmt-list user-mgmt-list--pending" role="table" aria-label="{% trans 'Revoked accounts' %}">
@@ -58,7 +58,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="user_id" value="{{ pending_user.pk }}">
                         <input type="hidden" name="action" value="reject">
-                        <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--sm">{% trans "Delete" %}</button>
+                        <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Delete" %}</button>
                     </form>
                     <form method="post" action="{% url 'tpwebapp:user_management' %}">
                         {% csrf_token %}
@@ -81,7 +81,7 @@
                 <p class="tp-ui-field-label">{% trans "Roster" %}</p>
                 <h2 class="user-mgmt-section-title">{% trans "Approved users" %}</h2>
             </div>
-            <span class="tp-chip tp-chip--count tp-chip--sm">{{ approved_users|length }}</span>
+            <span class="tp-chip">{{ approved_users|length }}</span>
         </div>
         {% if approved_users %}
         <div class="user-mgmt-list user-mgmt-list--approved" role="table" aria-label="{% trans 'Approved users' %}">
@@ -106,19 +106,19 @@
                 </div>
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--role" role="cell" data-label="{% trans 'Role' %}">
                     {% if approved_user.pk == user.pk %}
-                        <span class="tp-chip tp-chip--sm">{% trans "Owner" %}</span>
+                        <span class="tp-chip">{% trans "Owner" %}</span>
                     {% elif approved_user.is_superuser %}
-                        <span class="tp-chip tp-chip--sm">{% trans "Admin" %}</span>
+                        <span class="tp-chip">{% trans "Admin" %}</span>
                     {% else %}
-                        <span class="tp-chip tp-chip--sm">{{ approved_user.get_role_display }}</span>
+                        <span class="tp-chip">{{ approved_user.get_role_display }}</span>
                     {% endif %}
                     {% if approved_user.wants_collaborator_access %}
-                        <span class="tp-chip tp-chip--sm user-mgmt-request-badge">{% trans "Requested collaborator access" %}</span>
+                        <span class="tp-chip user-mgmt-request-badge">{% trans "Requested collaborator access" %}</span>
                     {% endif %}
                 </div>
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="cell">
                     {% if approved_user.pk != user.pk %}
-                    <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm user-mgmt-edit-trigger"
+                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm user-mgmt-edit-trigger"
                             data-user-id="{{ approved_user.pk }}"
                             data-user-name="{{ approved_user.name|default:approved_user.get_username }}"
                             data-role="{% if approved_user.is_superuser %}{{ admin_role_value }}{% else %}{{ approved_user.role }}{% endif %}"
@@ -127,7 +127,7 @@
                     </button>
                     {% endif %}
                     {% if not approved_user.is_superuser %}
-                    <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm user-mgmt-revoke-trigger"
+                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm user-mgmt-revoke-trigger"
                             data-user-id="{{ approved_user.pk }}"
                             data-user-name="{{ approved_user.name|default:approved_user.get_username }}"
                             aria-haspopup="dialog" aria-controls="user-revoke-modal">

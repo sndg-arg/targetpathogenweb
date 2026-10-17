@@ -12,7 +12,7 @@
     width: 100%;
     max-width: 420px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
     padding: 36px 32px 32px;
     display: grid;
@@ -26,7 +26,7 @@
     position: absolute;
     inset: 0 0 auto 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 55%, var(--tp-color-brand-500) 100%);
+    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-success-ink) 55%, var(--tp-color-brand-500) 100%);
 }
 
 .auth-header {
@@ -37,16 +37,16 @@
 .auth-header h1 {
     margin: 0;
     font-size: var(--tp-heading-md);
-    font-weight: var(--tp-font-weight-bold);
+    font-weight: 700;
     line-height: 1.1;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--tp-tracking-tight);
     color: var(--tp-color-brand-900);
 }
 
 .auth-header p {
     margin: 8px 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
@@ -71,7 +71,7 @@
     line-height: 1.25;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tp-tracking-label);
 }
 
 .auth-field input {
@@ -79,22 +79,22 @@
     height: var(--tp-ui-control-height);
     padding: 0 12px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-ui-radius-control);
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
-    font-size: 1rem;
+    font-size: var(--tp-font-size-md);
     font-weight: 600;
     transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .auth-field input:hover {
-    border-color: var(--tp-color-brand-300);
+    border-color: var(--tp-color-border-strong);
 }
 
 .auth-field input:focus {
     outline: none;
     border-color: var(--tp-focus-color);
-    box-shadow: 0 0 0 1px var(--tp-focus-color);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .auth-field input::placeholder {
@@ -103,13 +103,13 @@
 }
 
 .auth-field .helptext {
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
     margin: 2px 0 0;
 }
 
 .auth-field .errorlist {
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     margin: 2px 0 0;
     color: var(--tp-color-danger-ink);
     list-style: none;
@@ -120,11 +120,11 @@
 
 .auth-errors {
     padding: 10px 14px;
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-danger-bg);
     border: 1px solid var(--tp-color-danger-border);
     color: var(--tp-color-danger-ink);
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
 }
 
 .auth-errors ul {
@@ -136,7 +136,7 @@
 .auth-approval-note {
     margin: 4px 0 14px;
     color: var(--tp-color-text-muted);
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
@@ -145,7 +145,7 @@
 .auth-submit button,
 .auth-actions .btn {
     height: 46px;
-    font-size: 0.95rem;
+    font-size: var(--tp-font-size-md);
 }
 
 .auth-submit button {
@@ -168,7 +168,7 @@
 .auth-footer {
     text-align: center;
     color: var(--tp-color-text-muted);
-    font-size: 0.84rem;
+    font-size: var(--tp-font-size-sm);
 }
 
 .auth-footer a {
@@ -186,7 +186,7 @@
 
 .auth-message {
     color: var(--tp-color-text-secondary);
-    font-size: 0.95rem;
+    font-size: var(--tp-font-size-md);
     line-height: 1.6;
     margin: 0;
     text-align: center;
@@ -199,19 +199,19 @@
 }
 
 .auth-card .form-group label {
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tp-tracking-label);
     margin-bottom: 5px;
 }
 
 .auth-card .form-group .form-control {
     height: 44px;
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface-soft);
-    font-size: 0.95rem;
+    font-size: var(--tp-font-size-md);
 }
 
 .auth-card .form-group .form-control:focus {
@@ -246,7 +246,7 @@
 
     .auth-card {
         padding: 28px 20px 24px;
-        border-radius: 14px;
+        border-radius: var(--tp-radius-md);
     }
 }
 

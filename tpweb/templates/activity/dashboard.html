@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20261016-contrast">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -19,7 +19,7 @@
 {% block body %}
 <div class="activity-page">
 
-    <section class="activity-hero">
+    <section class="tp-page-hero activity-hero">
         <div class="tp-view-head">
             <div class="tp-view-head-copy">
                 <p class="tp-view-eyebrow activity-eyebrow">{% trans "Staff only" %}</p>
@@ -109,7 +109,7 @@
             <div class="section-head tp-ui-panel-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "What they look at" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Top pages" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
+                    <h2 class="activity-panel-title">{% trans "Top pages" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
                 </div>
             </div>
             <div class="activity-chart-wrap activity-chart-wrap--tall">
@@ -121,7 +121,7 @@
             <div class="section-head tp-ui-panel-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "When they're active" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Requests by hour of day" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
+                    <h2 class="activity-panel-title">{% trans "Requests by hour of day" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
                 </div>
             </div>
             <div class="activity-chart-wrap activity-chart-wrap--tall">
@@ -144,7 +144,7 @@
             </summary>
             <div class="activity-details-body">
                 <div class="activity-accounts" data-accounts-list>
-                    <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                    <p class="tp-state-note tp-state-note--loading">{% trans "Loading..." %}</p>
                 </div>
             </div>
         </details>
@@ -154,7 +154,7 @@
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Where real, logged-in sessions connect from" %}</p>
-                <h2 class="activity-panel-title">{% trans "Logged-in sessions" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
+                <h2 class="activity-panel-title">{% trans "Logged-in sessions" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
             </div>
         </div>
         <div class="activity-summary-chips" data-locations-summary></div>
@@ -171,7 +171,7 @@
                     <span>{% trans "Requests" %}</span>
                 </div>
                 <div class="activity-locations" data-locations-list>
-                    <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                    <p class="tp-state-note tp-state-note--loading">{% trans "Loading..." %}</p>
                 </div>
             </div>
         </details>
@@ -181,7 +181,7 @@
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Submitted a username and password, and failed" %}</p>
-                <h2 class="activity-panel-title">{% trans "Login attempts" %} <span class="tp-chip tp-chip--sm tp-chip--meta">{% trans "not a bot signal by itself" %}</span></h2>
+                <h2 class="activity-panel-title">{% trans "Login attempts" %} <span class="tp-chip">{% trans "not a bot signal by itself" %}</span></h2>
             </div>
         </div>
         <div class="activity-summary-chips" data-login-attempts-summary></div>
@@ -199,7 +199,7 @@
                     <span>{% trans "Attempts" %}</span>
                 </div>
                 <div class="activity-locations" data-login-attempts-list>
-                    <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                    <p class="tp-state-note tp-state-note--loading">{% trans "Loading..." %}</p>
                 </div>
             </div>
         </details>
@@ -210,7 +210,7 @@
             <div class="section-head tp-ui-panel-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "Hit the login wall on a random path, never even tried to log in" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Scanning &amp; bot traffic" %} <span class="tp-chip tp-chip--sm tp-chip--warning">{% trans "likely automated" %}</span></h2>
+                    <h2 class="activity-panel-title">{% trans "Scanning &amp; bot traffic" %} <span class="tp-chip tp-chip--warning">{% trans "likely automated" %}</span></h2>
                 </div>
             </div>
             <p class="activity-chart-note">{% trans "AI-crawler and generic-bot IPs are blocked automatically the moment they touch a real page — no action needed here." %}</p>
@@ -248,7 +248,7 @@
                     <span>{% trans "Requests" %}</span>
                 </div>
                 <div class="activity-locations" data-blocked-list>
-                    <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                    <p class="tp-state-note tp-state-note--loading">{% trans "Loading..." %}</p>
                 </div>
             </div>
         </details>
@@ -258,9 +258,9 @@
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Denied outright, not just redirected" %}</p>
-                <h2 class="activity-panel-title">{% trans "Blocked IPs" %}{% if blocked_ips %} <span class="tp-chip tp-chip--sm tp-chip--warning">{{ blocked_ips|length }}</span>{% endif %}</h2>
+                <h2 class="activity-panel-title">{% trans "Blocked IPs" %}{% if blocked_ips %} <span class="tp-chip tp-chip--warning">{{ blocked_ips|length }}</span>{% endif %}</h2>
             </div>
-            <a href="{% url 'admin:tpweb_blockedip_changelist' %}" class="btn tp-btn tp-btn--outline tp-btn--sm">{% trans "Manage in admin" %}</a>
+            <a href="{% url 'admin:tpweb_blockedip_changelist' %}" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Manage in admin" %}</a>
         </div>
         {% if blocked_ips %}
         <details class="activity-details js-smooth-details">
@@ -288,7 +288,7 @@
             </div>
         </details>
         {% else %}
-        <p class="activity-accounts-empty">{% trans "No IPs are hard-blocked right now — traffic above only bounces off the login wall." %}</p>
+        <p class="tp-state-note tp-state-note--empty">{% trans "No IPs are hard-blocked right now — traffic above only bounces off the login wall." %}</p>
         {% endif %}
     </section>
 
@@ -304,7 +304,7 @@
                 <canvas id="activity-status-chart" role="img" aria-label="{% trans 'Response status code breakdown per day' %}"></canvas>
             </div>
             <div class="activity-status-tiles" data-status-tiles>
-                <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                <p class="tp-state-note tp-state-note--loading">{% trans "Loading..." %}</p>
             </div>
         </section>
 
@@ -312,7 +312,7 @@
             <div class="section-head tp-ui-panel-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "Over time" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Errors" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
+                    <h2 class="activity-panel-title">{% trans "Errors" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
                 </div>
             </div>
             <div class="activity-chart-wrap activity-chart-wrap--compact">
@@ -326,7 +326,7 @@
             <div class="section-head tp-ui-panel-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "What's actually failing" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Top erroring paths" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
+                    <h2 class="activity-panel-title">{% trans "Top erroring paths" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
                 </div>
             </div>
             <details class="activity-details js-smooth-details">
@@ -336,7 +336,7 @@
                 </summary>
                 <div class="activity-details-body">
                     <div class="activity-error-paths" data-error-paths-list>
-                        <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                        <p class="tp-state-note tp-state-note--loading">{% trans "Loading..." %}</p>
                     </div>
                 </div>
             </details>
@@ -356,7 +356,7 @@
                 </summary>
                 <div class="activity-details-body">
                     <div class="activity-error-paths" data-scanned-paths-list>
-                        <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                        <p class="tp-state-note tp-state-note--loading">{% trans "Loading..." %}</p>
                     </div>
                 </div>
             </details>
@@ -369,5 +369,5 @@
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
 <script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-context-pass"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260909-merge-status-tiles"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20261017-system"></script>
 {% endblock %}

@@ -18,30 +18,15 @@
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
-.protein-report-eyebrow {
-    margin: 6px 0 10px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: var(--tp-font-weight-medium);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.protein-report-hero h1 {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    line-height: 1.1;
-}
-
 .protein-report-chips {
     margin-top: var(--tp-space-3);
 }
 
 .protein-report-section h2 {
     margin: 0 0 var(--tp-space-3);
-    font-family: "Space Grotesk", system-ui, sans-serif;
+    font-family: var(--tp-font-head);
     font-size: var(--tp-font-size-lg);
-    font-weight: var(--tp-font-weight-semibold);
+    font-weight: 600;
 }
 
 .protein-report-note {
@@ -58,9 +43,9 @@
 }
 
 .protein-report-criteria dt {
-    font-size: var(--tp-font-label);
-    font-weight: var(--tp-font-weight-medium);
-    letter-spacing: 0.06em;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
 }
@@ -73,7 +58,7 @@
 .protein-report-table-wrap {
     overflow-x: auto;
     border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-ui-radius-panel);
+    border-radius: var(--tp-radius-md);
 }
 
 .protein-report-table {
@@ -103,7 +88,7 @@
 }
 
 .protein-report-table--sources td:first-child {
-    font-weight: var(--tp-font-weight-semibold);
+    font-weight: 600;
     white-space: nowrap;
 }
 
@@ -161,7 +146,7 @@
     }
 
     .protein-report-table {
-        font-size: 8pt;
+        font-size: var(--tp-font-size-2xs);
     }
 
     .protein-report-table th,

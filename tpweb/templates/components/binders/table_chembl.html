@@ -22,7 +22,7 @@
                     <td class="binder-tbl__name">
                         <a href="{% url 'tpwebapp:binder_detail' binder_id=binder.id %}" class="binder-tbl__name-main" onclick="event.stopPropagation()">{{ binder.name }}</a>
                         {% if binder.external_url %}
-                        <a href="{{ binder.external_url }}" class="tp-chip tp-chip--meta tp-chip--sm binder-tbl__source-link" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="{% trans 'Open compound in ChEMBL' %}">{{ binder.external_label }}</a>
+                        <a href="{{ binder.external_url }}" class="tp-chip binder-tbl__source-link" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="{% trans 'Open compound in ChEMBL' %}">{{ binder.external_label }}</a>
                         {% endif %}
                     </td>
                     {% if show_uniprot %}<td class="binder-tbl__uniprot">{{ binder.uniprot|default:"—" }}</td>{% endif %}

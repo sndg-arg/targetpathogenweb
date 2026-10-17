@@ -76,7 +76,7 @@
 .human-protein-card:hover,
 .human-protein-card:focus-visible {
     border-color: var(--tp-color-border);
-    box-shadow: var(--tp-shadow-sm);
+    box-shadow: none;
 }
 
 /* Bootstrap 4's default `a:hover { text-decoration: underline; }` (loaded
@@ -91,7 +91,7 @@
 }
 
 .human-protein-card h3 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
     font-size: var(--tp-font-size-lg);
     margin: var(--tp-space-2) 0 var(--tp-space-1);
@@ -105,7 +105,7 @@
 }
 
 .human-protein-card__acc {
-    font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
 }

@@ -28,7 +28,7 @@
     z-index: 1039;
     width: 60px;
     height: 60px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     /* Comet-tail fade, not a solid band -- a bright point at the head
        trailing off smoothly to nothing, the way a premium loading spinner
        draws its stroke, rather than a bright-in-the-middle highlight. */
@@ -69,7 +69,7 @@
     max-width: calc(100vw - 44px);
     padding: 0;
     border: none;
-    border-radius: 28px;
+    border-radius: var(--tp-radius-md);
     /* --tp-color-primary stays dark petrol in both themes, so white text reads. */
     background: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
@@ -103,8 +103,8 @@
 
 .tp-agent-fab-label {
     font-weight: 700;
-    font-size: 0.92rem;
-    letter-spacing: 0.01em;
+    font-size: var(--tp-font-size-sm);
+    letter-spacing: 0;
     opacity: 0;
     padding-right: 20px;
     transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -197,7 +197,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     color: var(--tp-color-text-muted);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
 }
 
@@ -227,7 +227,7 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     cursor: pointer;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -265,8 +265,8 @@
     overflow-y: auto;
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 14px;
-    box-shadow: var(--tp-shadow-md);
+    border-radius: var(--tp-radius-md);
+    box-shadow: var(--tp-shadow-sm);
     padding: var(--tp-space-2);
     z-index: 5;
     opacity: 0;
@@ -289,9 +289,9 @@
 .tp-agent-drawer-history-panel-title {
     margin: 4px 6px 6px;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
@@ -308,7 +308,7 @@
     width: 100%;
     border: 1px solid transparent;
     background: transparent;
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     padding: 4px;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -355,7 +355,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     color: var(--tp-color-text-primary);
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
 }
 
@@ -363,7 +363,7 @@
 .tp-agent-drawer-current-title-bar .tp-agent-drawer-rename-input {
     width: 100%;
     border: 1px solid var(--tp-color-brand-300);
-    border-radius: 6px;
+    border-radius: var(--tp-radius-sm);
     padding: 1px 5px;
     font: inherit;
     font-size: inherit;
@@ -374,7 +374,7 @@
 
 .tp-agent-drawer-rename-input:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px var(--tp-color-brand-100);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .tp-agent-drawer-history-item-meta {
@@ -382,7 +382,7 @@
     align-items: center;
     gap: 3px;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
 }
 
 .tp-agent-drawer-history-item-count {
@@ -400,7 +400,7 @@
 .tp-agent-drawer-history-empty {
     margin: 10px 8px;
     color: var(--tp-color-text-muted);
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     text-align: center;
 }
 
@@ -414,17 +414,17 @@
     flex: 1 1 auto;
     min-width: 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
 }
 
 .tp-agent-drawer-history-confirm-cancel,
 .tp-agent-drawer-history-confirm-delete {
     appearance: none;
     flex-shrink: 0;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     padding: 0.25rem 0.6rem;
     font: inherit;
-    font-size: 0.76rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     cursor: pointer;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -460,10 +460,10 @@
     border: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-muted);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     padding: 0.28rem 0.65rem;
     font: inherit;
-    font-size: 0.72rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 600;
     cursor: pointer;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -473,7 +473,7 @@
 
 .tp-agent-drawer-mode-toggle:hover,
 .tp-agent-drawer-mode-toggle:focus-visible {
-    border-color: var(--tp-color-brand-300);
+    border-color: var(--tp-color-text-muted);
     color: var(--tp-color-text-primary);
 }
 
@@ -496,17 +496,17 @@
     width: 30px;
     height: 30px;
     flex-shrink: 0;
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: color-mix(in srgb, var(--tp-color-surface) 90%, var(--tp-color-brand-500));
-    border: 1px solid var(--tp-color-border-accent);
-    box-shadow: var(--tp-shadow-sm);
+    border: 1px solid var(--tp-focus-color);
+    box-shadow: none;
     color: var(--tp-color-brand-700);
 }
 
 .tp-agent-drawer-title {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 700;
-    font-size: 0.98rem;
+    font-size: var(--tp-font-size-md);
     color: var(--tp-color-text-primary);
 }
 
@@ -520,7 +520,7 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     cursor: pointer;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -551,7 +551,7 @@
     padding: var(--tp-space-5) var(--tp-space-4);
     text-align: center;
     color: var(--tp-color-text-muted);
-    font-size: 0.86rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
@@ -561,10 +561,10 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
     background: color-mix(in srgb, var(--tp-color-surface) 90%, var(--tp-color-brand-500));
-    border: 1px solid var(--tp-color-border-accent);
-    box-shadow: var(--tp-shadow-sm);
+    border: 1px solid var(--tp-focus-color);
+    box-shadow: none;
 }
 
 .tp-agent-drawer-empty-icon img {
@@ -575,8 +575,8 @@
 .tp-agent-drawer-msg {
     max-width: 88%;
     padding: var(--tp-space-3) var(--tp-space-4);
-    border-radius: var(--tp-ui-radius-panel);
-    font-size: 0.88rem;
+    border-radius: var(--tp-radius-md);
+    font-size: var(--tp-font-size-sm);
     line-height: 1.45;
     word-break: break-word;
 }
@@ -605,7 +605,7 @@
 
 .tp-agent-drawer-msg a {
     color: var(--tp-color-brand-600);
-    font-weight: 650;
+    font-weight: 600;
     text-decoration: none;
 }
 
@@ -618,17 +618,17 @@
 .tp-agent-drawer-msg h4,
 .tp-agent-drawer-msg h5 {
     color: var(--tp-color-text-primary);
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 700;
     line-height: 1.3;
 }
 
 .tp-agent-drawer-msg code {
     font-family: var(--tp-font-mono);
-    font-size: 0.82em;
+    font-size: 0.9em;
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-xs);
+    border-radius: var(--tp-radius-xs);
     padding: 0.02rem 0.22rem;
 }
 
@@ -636,7 +636,7 @@
     margin: 0;
     padding: var(--tp-space-3);
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-xs);
+    border-radius: var(--tp-radius-xs);
     background: var(--tp-color-surface);
     overflow-x: auto;
 }
@@ -651,13 +651,13 @@
 .tp-agent-drawer-table-wrap {
     overflow-x: auto;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-xs);
+    border-radius: var(--tp-radius-xs);
 }
 
 .tp-agent-drawer-msg table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     white-space: nowrap;
 }
 
@@ -671,10 +671,10 @@
 .tp-agent-drawer-msg thead th {
     background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
-    font-size: 0.72rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
+    letter-spacing: 0;
 }
 
 .tp-agent-drawer-msg tbody tr:last-child td {
@@ -685,7 +685,7 @@
     align-self: flex-end;
     background: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
-    border-bottom-right-radius: 6px;
+    border-bottom-right-radius: var(--tp-radius-sm);
     white-space: pre-wrap;
 }
 
@@ -694,7 +694,7 @@
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-primary);
     border: 1px solid var(--tp-color-border-soft);
-    border-bottom-left-radius: 6px;
+    border-bottom-left-radius: var(--tp-radius-sm);
 }
 
 .tp-agent-drawer-msg--error {
@@ -712,10 +712,10 @@
     border: 1px solid currentColor;
     background: transparent;
     color: inherit;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     padding: 0.28rem 0.7rem;
     font: inherit;
-    font-size: 0.76rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 700;
     cursor: pointer;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -732,7 +732,7 @@
     align-self: flex-start;
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border-soft);
-    border-bottom-left-radius: 6px;
+    border-bottom-left-radius: var(--tp-radius-sm);
     padding-top: var(--tp-space-3);
     padding-bottom: var(--tp-space-3);
 }
@@ -746,7 +746,7 @@
 .tp-agent-drawer-typing span {
     width: 6px;
     height: 6px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-text-soft);
     animation: tp-agent-drawer-typing 1000ms ease-in-out infinite;
 }
@@ -781,10 +781,10 @@
     border: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     padding: 0.35rem 0.6rem;
     font: inherit;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     line-height: 1;
     cursor: pointer;
@@ -796,8 +796,8 @@
 
 .tp-agent-drawer-suggestion:hover,
 .tp-agent-drawer-suggestion:focus-visible {
-    background: color-mix(in srgb, var(--tp-color-brand-500) 10%, var(--tp-color-surface));
-    border-color: var(--tp-color-brand-500);
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-strong);
     color: var(--tp-color-text-primary);
     transform: translateY(-1px);
 }
@@ -815,9 +815,9 @@
     flex: 1 1 auto;
     resize: none;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 20px;
+    border-radius: var(--tp-radius-md);
     padding: 10px 16px;
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
     font-family: inherit;
     color: var(--tp-color-text-primary);
     background: var(--tp-color-surface-soft);
@@ -829,7 +829,7 @@
     outline: none;
     border-color: var(--tp-color-brand-300);
     background: var(--tp-color-surface);
-    box-shadow: 0 0 0 3px var(--tp-color-brand-100);
+    box-shadow: var(--tp-focus-outline);
 }
 
 /* Icon-only round send button -- the "Send" label stays in the DOM for
@@ -844,7 +844,7 @@
     height: 40px !important;
     min-height: 40px !important;
     padding: 0 !important;
-    border-radius: 999px !important;
+    border-radius: var(--tp-radius-pill) !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;

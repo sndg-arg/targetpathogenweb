@@ -10,8 +10,8 @@
     styling this page deliberately reuses verbatim (same markup, same tokens) --
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-modal">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261017-sans2">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -28,7 +28,7 @@
 
 {% block body %}
     <div class="human-protein-page protein-page">
-        <section class="protein-hero" id="section-overview">
+        <section class="tp-page-hero protein-hero" id="section-overview">
             <div class="protein-hero-top tp-view-head">
                 <div class="protein-hero-content tp-view-head-copy">
                     <p class="tp-view-eyebrow protein-hero-eyebrow">{% trans "Human curated protein" %}</p>
@@ -36,27 +36,27 @@
                     <h1 class="tp-view-title">{{ human_protein.protein_name|default:human_protein.uniprot_accession }}</h1>
                     <p class="protein-description">{{ human_protein.uniprot_accession }}</p>
                     <div class="hero-chip-list tp-chip-group">
-                        <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                        <span class="hero-chip tp-chip">
                             <strong>{% trans "Gene" %}:</strong>
                             <span>{{ human_protein.gene_symbol|default:"—" }}</span>
                         </span>
-                        <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                        <span class="hero-chip tp-chip">
                             <strong>{% trans "Organism" %}:</strong>
                             <span>{{ human_protein.organism_name|default:"Homo sapiens" }}</span>
                         </span>
                         {% if overview.is_reviewed %}
-                        <span class="hero-chip tp-chip tp-chip--sm hero-chip-reviewed" title="{% trans 'Manually reviewed, Swiss-Prot record' %}">
+                        <span class="hero-chip tp-chip tp-chip--success" title="{% trans 'Manually reviewed, Swiss-Prot record' %}">
                             {% trans "Reviewed" %}
                         </span>
                         {% endif %}
-                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="https://www.uniprot.org/uniprotkb/{{ human_protein.uniprot_accession }}" target="_blank" rel="noopener" title="{% trans 'View on UniProt' %}">
+                        <a class="hero-chip tp-chip tp-chip--link" href="https://www.uniprot.org/uniprotkb/{{ human_protein.uniprot_accession }}" target="_blank" rel="noopener" title="{% trans 'View on UniProt' %}">
                             <span class="tp-chip-db">UniProt</span>
                             <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
                         </a>
                     </div>
                 </div>
                 <div class="tp-view-head-actions">
-                    <a href="{{ human_protein_list_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon">
+                    <a href="{{ human_protein_list_url }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_left.html" %}</span>
                         {% trans "All human targets" %}
                     </a>
@@ -85,15 +85,15 @@
         </section>
 
         <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
-            <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
-            <a href="#section-function" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Function" %}</a>
-            {% if diseases.has_diseases %}<a href="#section-diseases" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Diseases" %}</a>{% endif %}
-            <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
-            {% if structure.has_structure %}<a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "3D structure" %}</a>{% endif %}
-            {% if binders.total %}<a href="#section-binders" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Ligands" %}</a>{% endif %}
-            {% if expression.has_expression %}<a href="#section-expression" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Expression" %}</a>{% endif %}
-            {% if pathways.has_pathways %}<a href="#section-pathways" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Pathways" %}</a>{% endif %}
-            <a href="#section-xrefs" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Cross-refs" %}</a>
+            <a href="#section-overview" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
+            <a href="#section-function" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Function" %}</a>
+            {% if diseases.has_diseases %}<a href="#section-diseases" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Diseases" %}</a>{% endif %}
+            <a href="#section-sequence" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
+            {% if structure.has_structure %}<a href="#section-structure" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "3D structure" %}</a>{% endif %}
+            {% if binders.total %}<a href="#section-binders" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Ligands" %}</a>{% endif %}
+            {% if expression.has_expression %}<a href="#section-expression" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Expression" %}</a>{% endif %}
+            {% if pathways.has_pathways %}<a href="#section-pathways" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Pathways" %}</a>{% endif %}
+            <a href="#section-xrefs" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Cross-refs" %}</a>
         </nav>
 
         <div class="protein-main" role="region" aria-label="{% trans 'Protein evidence sections' %}">
@@ -151,7 +151,7 @@
                             <h3>{% trans "Subcellular location" %}</h3>
                             <div class="tp-chip-group">
                                 {% for loc in overview.subcellular_locations %}
-                                <span class="tp-chip tp-chip--sm">{{ loc }}</span>
+                                <span class="tp-chip">{{ loc }}</span>
                                 {% endfor %}
                             </div>
                         </div>
@@ -161,7 +161,7 @@
                             <h3>{% trans "Keywords" %}</h3>
                             <div class="tp-chip-group">
                                 {% for kw in overview.keywords %}
-                                <span class="tp-chip tp-chip--sm tp-chip--meta">{{ kw }}</span>
+                                <span class="tp-chip">{{ kw }}</span>
                                 {% endfor %}
                             </div>
                         </div>
@@ -177,8 +177,8 @@
                         <p class="section-subtitle">{% trans "Molecular function, catalytic activity, and Gene Ontology annotations." %}</p>
                     </div>
                     <div class="section-tools">
-                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ ec_badges|length }} EC</span>
-                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ go_badges|length }} GO</span>
+                        <span class="tp-chip">{{ ec_badges|length }} EC</span>
+                        <span class="tp-chip">{{ go_badges|length }} GO</span>
                     </div>
                 </div>
                 {% if function.function_text %}
@@ -191,8 +191,8 @@
                 <div class="human-catalytic-list">
                     {% for cat in function.catalytic_activity %}
                     <div class="human-catalytic-card">
-                        {% if cat.ec %}<span class="tp-chip tp-chip--sm tp-chip--ec">EC {{ cat.ec }}</span>{% endif %}
-                        {% if cat.rhea %}<span class="tp-chip tp-chip--sm tp-chip--meta">{{ cat.rhea }}</span>{% endif %}
+                        {% if cat.ec %}<span class="tp-chip tp-chip--code">EC {{ cat.ec }}</span>{% endif %}
+                        {% if cat.rhea %}<span class="tp-chip">{{ cat.rhea }}</span>{% endif %}
                         {% if cat.reaction %}<p class="human-reaction-eq">{{ cat.reaction }}</p>{% endif %}
                     </div>
                     {% endfor %}
@@ -206,7 +206,7 @@
                         <h3>{{ card.label }}</h3>
                         <div class="tp-chip-group">
                             {% for term in card.terms %}
-                            <span class="tp-chip tp-chip--sm tp-chip--go" title="{{ term.id }}">{{ term.name|default:term.id }}</span>
+                            <span class="tp-chip tp-chip--code" title="{{ term.id }}">{{ term.name|default:term.id }}</span>
                             {% endfor %}
                         </div>
                     </div>
@@ -223,7 +223,7 @@
                         <p class="section-subtitle">{% trans "Disease associations annotated on this protein's UniProt record." %}</p>
                     </div>
                     <div class="section-tools">
-                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ diseases.diseases|length }}</span>
+                        <span class="tp-chip">{{ diseases.diseases|length }}</span>
                     </div>
                 </div>
                 <div class="human-disease-grid">
@@ -231,11 +231,11 @@
                     <div class="human-disease-card">
                         <div class="human-disease-card__head">
                             <h3>{{ disease.name|default:"—" }}</h3>
-                            {% if disease.acronym %}<span class="tp-chip tp-chip--sm tp-chip--meta">{{ disease.acronym }}</span>{% endif %}
+                            {% if disease.acronym %}<span class="tp-chip">{{ disease.acronym }}</span>{% endif %}
                         </div>
                         {% if disease.description %}<p>{{ disease.description }}</p>{% endif %}
                         {% if disease.mim %}
-                        <a class="tp-chip tp-chip--sm tp-chip--link" href="https://omim.org/entry/{{ disease.mim|cut:"MIM:" }}" target="_blank" rel="noopener" title="{% trans 'View on OMIM' %}">
+                        <a class="tp-chip tp-chip--link" href="https://omim.org/entry/{{ disease.mim|cut:"MIM:" }}" target="_blank" rel="noopener" title="{% trans 'View on OMIM' %}">
                             <span class="tp-chip-db">{{ disease.mim }}</span>
                             <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
                         </a>
@@ -253,7 +253,7 @@
                         <p class="section-subtitle">{% blocktrans with length=sequence.sequence_length %}{{ length }} amino acids{% endblocktrans %}</p>
                     </div>
                     <div class="section-tools">
-                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon" id="copy-human-sequence" data-default-label="{% trans "Copy sequence" %}" data-copied-label="{% trans "Copied" %}">
+                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" id="copy-human-sequence" data-default-label="{% trans "Copy sequence" %}" data-copied-label="{% trans "Copied" %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
                             <span data-copy-label>{% trans "Copy sequence" %}</span>
                         </button>
@@ -334,7 +334,7 @@
                         <p class="section-subtitle">{% trans "Ligands grouped by evidence source, via the same LigQ_2 pipeline used across Target." %}</p>
                     </div>
                     <div class="section-tools">
-                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ binders.total }} {% trans "records" %}</span>
+                        <span class="tp-chip">{{ binders.total }} {% trans "records" %}</span>
                     </div>
                 </div>
 
@@ -443,7 +443,7 @@
                         <p class="section-subtitle">{% trans "Tissue and cell-type expression, from Bgee." %}</p>
                     </div>
                     <div class="section-tools">
-                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ expression.total_count }} {% trans "records" %}</span>
+                        <span class="tp-chip">{{ expression.total_count }} {% trans "records" %}</span>
                     </div>
                 </div>
 
@@ -468,7 +468,7 @@
                 <div class="human-expression-panel" data-expression-panel="system" role="tabpanel">
                     {% for group in expression.system_groups %}
                     <div class="human-expression-system-card">
-                        <h3>{{ group.system }} <span class="tp-chip tp-chip--sm tp-chip--count">{{ group.rows|length }}</span></h3>
+                        <h3>{{ group.system }} <span class="tp-chip">{{ group.rows|length }}</span></h3>
                         <div class="human-expression-bars">
                             {% for row in group.rows|slice:":15" %}
                             <div class="human-expression-bar-row">
@@ -500,7 +500,7 @@
                                 <td>{{ expression.ranked_page.start_index|add:forloop.counter0 }}</td>
                                 <td>{{ row.tissue|default:"—" }}{% if row.cell_type %} <span class="human-expression-rank-table__celltype">· {{ row.cell_type }}</span>{% endif %}</td>
                                 <td>{{ row.score|floatformat:1 }}</td>
-                                <td>{% if row.quality %}<span class="tp-chip tp-chip--sm">{{ row.quality }}</span>{% endif %}</td>
+                                <td>{% if row.quality %}<span class="tp-chip">{{ row.quality }}</span>{% endif %}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -508,9 +508,9 @@
                     </div>
                     {% if expression.ranked_page.paginator.num_pages > 1 %}
                     <nav class="human-expression-pagination" aria-label="{% trans 'Expression rank pagination' %}">
-                        {% if expression.ranked_page.has_previous %}<a href="?expr_page={{ expression.ranked_page.previous_page_number }}#section-expression" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Previous" %}</a>{% endif %}
+                        {% if expression.ranked_page.has_previous %}<a href="?expr_page={{ expression.ranked_page.previous_page_number }}#section-expression" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Previous" %}</a>{% endif %}
                         <span>{% blocktrans with current=expression.ranked_page.number total=expression.ranked_page.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktrans %}</span>
-                        {% if expression.ranked_page.has_next %}<a href="?expr_page={{ expression.ranked_page.next_page_number }}#section-expression" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Next" %}</a>{% endif %}
+                        {% if expression.ranked_page.has_next %}<a href="?expr_page={{ expression.ranked_page.next_page_number }}#section-expression" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Next" %}</a>{% endif %}
                     </nav>
                     {% endif %}
                 </div>
@@ -525,7 +525,7 @@
                         <p class="section-subtitle">{% trans "KEGG pathways this protein participates in." %}</p>
                     </div>
                     <div class="section-tools">
-                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ pathways.pathways|length }}</span>
+                        <span class="tp-chip">{{ pathways.pathways|length }}</span>
                     </div>
                 </div>
 
@@ -557,7 +557,7 @@
                                 <dt>{% trans "Genes" %}</dt><dd>{{ pw.entry_count }}</dd>
                                 <dt>{% trans "Relations" %}</dt><dd>{{ pw.relation_count }}</dd>
                             </dl>
-                            <a class="tp-chip tp-chip--sm tp-chip--link" href="https://www.kegg.jp/pathway/{{ pw.kegg_id }}" target="_blank" rel="noopener">
+                            <a class="tp-chip tp-chip--link" href="https://www.kegg.jp/pathway/{{ pw.kegg_id }}" target="_blank" rel="noopener">
                                 <span class="tp-chip-db">KEGG</span>
                                 <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
                             </a>
@@ -611,6 +611,6 @@
 {% endblock %}
 
 {% block jsloaded %}
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20260909-expression"></script>
-    <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20260909-pathways"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261017-system"></script>
+    <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261017-system"></script>
 {% endblock %}

@@ -3,8 +3,8 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261017-fields">
-    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261017-fields">
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -20,7 +20,7 @@
 {% block body %}
     <div class="profile-page">
 
-        <section class="profile-hero">
+        <section class="tp-page-hero profile-hero">
             <div class="tp-view-head">
                 <div class="tp-view-head-copy">
                     <h1 class="tp-view-title">{% trans "My profile" %}</h1>
@@ -73,7 +73,7 @@
                     <p class="tp-ui-field-label">{% trans "Access" %}</p>
                     <h2 class="profile-section-title">{% trans "What you can do" %}</h2>
                 </div>
-                <span class="tp-chip tp-chip--sm">{{ role_display }}</span>
+                <span class="tp-chip">{{ role_display }}</span>
             </div>
             <div class="profile-capability-grid">
                 <div class="profile-capability-card{% if not can_upload_genome %} profile-capability-card--off{% endif %}">

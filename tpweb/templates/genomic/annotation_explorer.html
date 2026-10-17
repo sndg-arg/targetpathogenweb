@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/annotation-explorer.css' %}?v=20261016-general">
+    <link rel="stylesheet" href="{% static 'css/pages/annotation-explorer.css' %}?v=20261017-system">
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 {% endblock %}
 
@@ -32,12 +32,12 @@
     {{ explorer.chart|json_script:"annotation-chart-data" }}
 
     <div class="explorer-page">
-        <section class="explorer-hero">
+        <section class="tp-page-hero explorer-hero">
             <div class="tp-view-head">
                 <div class="tp-view-head-copy">
                 </div>
                 <div class="tp-view-head-actions">
-                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon tp-view-export-link">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
                         {% trans "Download Excel summary" %}
                     </a>

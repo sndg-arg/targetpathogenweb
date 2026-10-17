@@ -24,12 +24,13 @@
     }
 
     var EDGE_STYLES = {
-        "is-activation": { color: "#2e9e4f", style: "solid" },
-        "is-inhibition": { color: "#c94b4b", style: "dashed" },
-        "is-phosphorylation": { color: "#3b7dd8", style: "solid" },
-        "is-binding": { color: "#8a93a6", style: "dashed" },
-        "is-expression": { color: "#2e9e4f", style: "dashed" },
-        "": { color: "#b7bfcc", style: "solid" }
+        // Colors are design tokens (semantic tones), resolved at draw time.
+        "is-activation": { color: "--tp-color-success-ink", style: "solid" },
+        "is-inhibition": { color: "--tp-color-danger-ink", style: "dashed" },
+        "is-phosphorylation": { color: "--tp-color-info-ink", style: "solid" },
+        "is-binding": { color: "--tp-color-text-muted", style: "dashed" },
+        "is-expression": { color: "--tp-color-success-ink", style: "dashed" },
+        "": { color: "--tp-color-border-strong", style: "solid" }
     };
 
     function classForSubtypes(subtypes) {
@@ -84,9 +85,9 @@
             var value = (rootStyle.getPropertyValue(name) || "").trim();
             return value || fallback;
         }
-        var accent = token("--human-accent", "#6a5acd");
+        var accent = token("--tp-color-brand-800", "#1d4b5a");
         var nodeColor = token("--tp-color-border-strong", "#8a93a6");
-        var textColor = token("--tp-color-text", "#1b1f27");
+        var textColor = token("--tp-color-text-primary", "#132f3d");
         var surfaceColor = token("--tp-color-surface", "#ffffff");
 
         var styleRules = [
@@ -127,8 +128,8 @@
                     "curve-style": "bezier",
                     "target-arrow-shape": "triangle",
                     "arrow-scale": 0.8,
-                    "line-color": EDGE_STYLES[""].color,
-                    "target-arrow-color": EDGE_STYLES[""].color,
+                    "line-color": token(EDGE_STYLES[""].color),
+                    "target-arrow-color": token(EDGE_STYLES[""].color),
                 },
             },
         ];
@@ -137,8 +138,8 @@
             styleRules.push({
                 selector: "edge." + cls,
                 style: {
-                    "line-color": EDGE_STYLES[cls].color,
-                    "target-arrow-color": EDGE_STYLES[cls].color,
+                    "line-color": token(EDGE_STYLES[cls].color),
+                    "target-arrow-color": token(EDGE_STYLES[cls].color),
                     "line-style": EDGE_STYLES[cls].style,
                 },
             });

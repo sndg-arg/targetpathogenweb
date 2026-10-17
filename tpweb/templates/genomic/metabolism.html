@@ -3,8 +3,8 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261015-shared-quick-nav">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261015-button-variants">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261017-system">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -22,7 +22,7 @@
 
 {% block body %}
 <div class="genome-page metabolism-page">
-    <section class="genome-hero metabolism-hero">
+    <section class="tp-page-hero genome-hero metabolism-hero">
         <div class="genome-hero-top tp-view-head">
             <div class="genome-hero-content tp-view-head-copy">
                 <p class="tp-view-eyebrow genome-hero-eyebrow">{% trans "Genome-wide metabolic prioritization" %}</p>
@@ -30,8 +30,8 @@
                 <p class="tp-view-lead genome-description">{{ assembly.name }}{% if assembly.description %} — {{ assembly.description }}{% endif %}</p>
                 <div class="genome-hero-actions">
                     <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Explore proteins" %}</a>
-                    <a href="{% url 'tpwebapp:genome_metabolism_network' genome=assembly.slug %}" class="btn tp-btn tp-btn--outline">{% trans "View as network" %}</a>
-                    <a href="{{ assembly_url }}" class="btn tp-btn tp-btn--outline">{% trans "Genome overview" %}</a>
+                    <a href="{% url 'tpwebapp:genome_metabolism_network' genome=assembly.slug %}" class="btn tp-btn tp-btn--secondary">{% trans "View as network" %}</a>
+                    <a href="{{ assembly_url }}" class="btn tp-btn tp-btn--secondary">{% trans "Genome overview" %}</a>
                 </div>
             </div>
         </div>
@@ -132,7 +132,7 @@
                     </div>
 
                     <div class="metabolism-card-actions">
-                        <a href="{% url 'tpwebapp:genome_metabolism_pathway' genome=assembly.slug source=pathway.source external_id=pathway.external_id %}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon">
+                        <a href="{% url 'tpwebapp:genome_metabolism_pathway' genome=assembly.slug source=pathway.source external_id=pathway.external_id %}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon">
                             <span>{% trans "Open pathway map" %}</span>
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                         </a>
@@ -141,7 +141,7 @@
                             <input type="hidden" name="action" value="add_special_filter">
                             <input type="hidden" name="special_kind" value="pathway">
                             <input type="hidden" name="special_value" value="{{ pathway.source }}:{{ pathway.external_id }}">
-                            <button type="submit" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon" title="{% trans "Show only proteins with a reaction in this pathway on the protein list." %}">
+                            <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" title="{% trans "Show only proteins with a reaction in this pathway on the protein list." %}">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
                                 <span>{% trans "Filter protein list by this pathway" %}</span>
                             </button>

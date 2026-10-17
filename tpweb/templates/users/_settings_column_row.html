@@ -27,7 +27,7 @@
             <input type="hidden" name="action" value="delete_param">
             <input type="hidden" name="param_id" value="{{ row.obj.pk }}">
             <input type="hidden" name="genome_name" value="{{ row.genome_name }}">
-            <button type="submit" class="btn tp-btn tp-btn--outline tp-btn--sm">{% trans "Delete" %}</button>
+            <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Delete" %}</button>
         </form>
         {% endif %}
     </div>
