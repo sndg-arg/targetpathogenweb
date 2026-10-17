@@ -7,8 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261016-contrast">
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261016-contrast">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261016-contrast">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016u">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261016v">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -479,7 +478,7 @@
     <section class="ds-chapter tp-quick-nav-target" id="compuestos">
         <header class="ds-chapter-head">
             <h2>Componentes compuestos</h2>
-            <nav class="ds-index" aria-label="En Componentes compuestos"><a href="#k-filtros">Panel de filtros</a><a href="#k-tabla">Tabla de proteínas</a><a href="#k-numeros">Tarjetas de números</a><a href="#k-visor">Barra del visor 3D</a><a href="#k-asistente">Asistente</a></nav>
+            <nav class="ds-index" aria-label="En Componentes compuestos"><a href="#k-filtros">Panel de filtros</a><a href="#k-numeros">Tarjetas de números</a><a href="#k-asistente">Asistente</a></nav>
         </header>
 
     <div class="ds-section">
@@ -587,73 +586,6 @@
                 </div>
             </div>
         </div>
-        <div class="ds-comp ds-compound tp-quick-nav-target" id="k-tabla">
-            <h4 class="ds-comp-title">Tabla de proteínas <code>protein-table</code></h4>
-            <div class="ds-example">
-                <div class="table-wrap tp-table-shell ds-ptable-sample">
-                    <table class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium protein-table">
-                        <thead>
-                        <tr>
-                            <th>#</th>
-                            <th class="th-sortable"><span class="th-sort-link">Protein<span class="th-sort-icon" aria-hidden="true"></span></span></th>
-                            <th>Description</th>
-                            <th>Gene</th>
-                            <th>Structure</th>
-                            <th>EC</th>
-                            <th>GO</th>
-                            <th data-col="score" class="th-sortable th-sorted th-sorted--desc"><span class="th-sort-link">Score<span class="th-sort-icon" aria-hidden="true"></span></span></th>
-                            <th class="th-sortable"><span class="th-sort-link">Druggability<span class="th-sort-icon" aria-hidden="true"></span></span></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="protein-row">
-                                <td class="rank-col">1</td>
-                                <td class="acc-col"><a href="#" tabindex="-1">VK055_2067</a></td>
-                                <td class="desc-col">UDP-2,3-diacylglucosamine hydrolase</td>
-                                <td class="gene-col">lpxH</td>
-                                <td><span class="tp-chip tp-chip--meta tp-chip--sm">AlphaFold</span></td>
-                                <td data-col="ec"><div class="annotation-cell"><span class="tp-chip tp-chip--ec tp-chip--sm">3.6.1.54</span></div></td>
-                                <td data-col="go"><div class="annotation-cell"><span class="tp-chip tp-chip--go tp-chip--sm">GO:0009245</span><span class="annotation-more">+2</span></div></td>
-                                <td data-col="score"><span class="tp-chip tp-chip--score">0.94</span></td>
-                                <td><span class="tp-chip tp-chip--score tp-chip--drugg-high">0.82</span></td>
-                            </tr>
-                            <tr class="protein-row">
-                                <td class="rank-col">2</td>
-                                <td class="acc-col"><a href="#" tabindex="-1">VK055_0860</a></td>
-                                <td class="desc-col">4-hydroxythreonine-4-phosphate dehydrogenase</td>
-                                <td class="gene-col">pdxA</td>
-                                <td><span class="tp-chip tp-chip--meta tp-chip--sm">AlphaFold</span></td>
-                                <td data-col="ec"><div class="annotation-cell"><span class="tp-chip tp-chip--ec tp-chip--sm">1.1.1.262</span></div></td>
-                                <td data-col="go"><div class="annotation-cell"><span class="tp-chip tp-chip--go tp-chip--sm">GO:0008615</span></div></td>
-                                <td data-col="score"><span class="tp-chip tp-chip--score">0.91</span></td>
-                                <td><span class="tp-chip tp-chip--score tp-chip--drugg-mid">0.55</span></td>
-                            </tr>
-                            <tr class="protein-row">
-                                <td class="rank-col">3</td>
-                                <td class="acc-col"><a href="#" tabindex="-1">VK055_3185</a></td>
-                                <td class="desc-col">Hypothetical protein</td>
-                                <td class="gene-col"></td>
-                                <td><span class="tp-chip tp-chip--warning tp-chip--sm">No model</span></td>
-                                <td data-col="ec"><span class="annotation-empty">—</span></td>
-                                <td data-col="go"><span class="annotation-empty">—</span></td>
-                                <td data-col="score"><span class="tp-chip tp-chip--score">0.87</span></td>
-                                <td><span class="tp-drugg-none">No pocket</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="pagination-row ds-pagination-row">
-                    <span class="pagination-label">Page 1 of 204 · 5,572 matching proteins</span>
-                    <ul class="pagination tp-pagination">
-                        <li class="page-item disabled"><span class="page-link"><span class="tp-chevron tp-chevron--left" aria-hidden="true"></span></span></li>
-                        <li class="page-item active"><span class="page-link">1</span></li>
-                        <li class="page-item"><span class="page-link">2</span></li>
-                        <li class="page-item"><span class="page-link"><span class="tp-chevron tp-chevron--right" aria-hidden="true"></span></span></li>
-                    </ul>
-                </div>
-            </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Columna ordenable</strong> <code>th-sortable</code></span> <span class="ds-part"><strong>Chips de anotación</strong> <code>annotation-cell</code></span> <span class="ds-part"><strong>Puntaje</strong> <code>tp-chip--score</code></span></p>
-        </div>
         <div class="ds-comp ds-compound tp-quick-nav-target" id="k-numeros">
             <h4 class="ds-comp-title">Tarjetas de números <code>metric-pill · target-evidence-card</code></h4>
             <div class="ds-example">
@@ -695,30 +627,6 @@
                 </div>
             </div>
             <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Pastilla</strong> <code>metric-pill</code></span> <span class="ds-part"><strong>Tarjeta</strong> <code>target-evidence-card</code></span></p>
-        </div>
-        <div class="ds-comp ds-compound tp-quick-nav-target" id="k-visor">
-            <h4 class="ds-comp-title">Barra del visor 3D <code>sv-toolbar</code></h4>
-            <div class="ds-example ds-viewer-stage">
-                <nav class="sv-toolbar ds-toolbar-sample" aria-label="Ejemplo">
-                    <button type="button" class="sv-tb-btn" tabindex="-1"><svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5"/><path d="M11.5 2l2 1.5-1.5 2"/></svg><span class="sv-tb-label">Spin</span></button>
-                    <div class="sv-tb-sep" aria-hidden="true"></div>
-                    <div class="sv-mode-group" role="group" aria-label="View mode">
-                        <button type="button" class="sv-mode-btn is-active" aria-pressed="true" tabindex="-1">Cartoon</button>
-                        <button type="button" class="sv-mode-btn" aria-pressed="false" tabindex="-1">Surface</button>
-                    </div>
-                    <div class="sv-tb-sep" aria-hidden="true"></div>
-                    <div class="sv-mode-group" role="group" aria-label="Color scheme">
-                        <button type="button" class="sv-mode-btn" tabindex="-1">Uniform</button>
-                        <button type="button" class="sv-mode-btn" tabindex="-1">By chain</button>
-                        <button type="button" class="sv-mode-btn is-active" aria-pressed="true" tabindex="-1">By pLDDT</button>
-                    </div>
-                    <div class="sv-tb-sep" aria-hidden="true"></div>
-                    <button type="button" class="sv-tb-btn" tabindex="-1" aria-label="Zoom in"><svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M7 5v4M5 7h4"/></svg></button>
-                    <button type="button" class="sv-tb-btn" tabindex="-1" aria-label="Zoom out"><svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M5 7h4"/></svg></button>
-                    <button type="button" class="sv-tb-btn" tabindex="-1" aria-label="Reset view" disabled><svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8A5 5 0 1 1 8 3"/><path d="M12.5 2v3h-3"/></svg></button>
-                </nav>
-            </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Botón</strong> <code>sv-tb-btn</code></span> <span class="ds-part"><strong>Grupo de modos</strong> <code>sv-mode-group</code></span></p>
         </div>
         <div class="ds-comp ds-compound tp-quick-nav-target" id="k-asistente">
             <h4 class="ds-comp-title">Asistente <code>tp-agent-fab · tp-agent-drawer</code></h4>

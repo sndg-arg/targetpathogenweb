@@ -1082,15 +1082,6 @@
     margin: 0 0 6px;
 }
 
-.ds-ptable-sample {
-    max-width: 100%;
-    overflow-x: auto;
-}
-
-.ds-pagination-row {
-    margin-top: 14px;
-}
-
 .ds-pagination-one {
     margin: 0;
 }
@@ -1098,25 +1089,6 @@
 .ds-protein-sample {
     display: grid;
     gap: var(--tp-space-4);
-}
-
-/* The toolbar floats over the 3D canvas; the stage stands in for it. */
-.ds-viewer-stage {
-    --structure-accent: var(--tp-color-brand-800);
-    --structure-accent-ink: var(--tp-color-brand-900);
-    --structure-accent-soft: var(--tp-color-brand-100);
-    --structure-accent-border: var(--tp-color-brand-300);
-    display: flex;
-    justify-content: center;
-    padding: 56px 20px 24px;
-    background: var(--sv-viewer-canvas-bg);
-}
-
-.ds-page .ds-toolbar-sample {
-    position: static;
-    transform: none;
-    animation: none;
-    max-width: 100%;
 }
 
 .ds-agent-sample {
@@ -1153,8 +1125,8 @@
     overflow: visible;
 }
 
-/* Samples are pictures, not controls (wide ones still scroll). */
-.ds-compound .ds-example *:not(.ds-ptable-sample):not(.ds-toolbar-sample) {
+/* Samples are pictures, not controls. */
+.ds-compound .ds-example * {
     pointer-events: none;
 }
 
