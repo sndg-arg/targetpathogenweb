@@ -21,7 +21,7 @@
 .explorer-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 /* ── Workbench ──
@@ -32,8 +32,8 @@
 .explorer-workbench {
     display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-    gap: 40px;
-    margin: 0 18px;
+    gap: var(--tp-space-8);
+    margin: 0 var(--tp-space-5);
     padding-top: var(--tp-space-5);
     border-top: 1px solid var(--tp-color-border-soft);
 }
@@ -66,7 +66,7 @@
 }
 
 .explorer-head p {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
     max-width: 60ch;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
@@ -93,7 +93,7 @@
     justify-content: space-between;
     gap: var(--tp-space-3);
     margin-bottom: var(--tp-space-3);
-    padding: 6px 0 6px var(--tp-space-3);
+    padding: var(--tp-space-2) 0 var(--tp-space-2) var(--tp-space-3);
     border-left: 3px solid var(--tp-color-border);
     transition: border-color 160ms ease;
 }
@@ -181,7 +181,7 @@
     column-gap: var(--tp-space-3);
     row-gap: 2px;
     width: 100%;
-    padding: 10px var(--tp-space-2);
+    padding: var(--tp-space-3) var(--tp-space-2);
     border: 0;
     background: transparent;
     color: inherit;
@@ -229,7 +229,7 @@
 .explorer-term-bar {
     grid-area: bar;
     height: 2px;
-    margin-top: 6px;
+    margin-top: var(--tp-space-2);
     background: var(--tp-color-surface-muted);
     border-radius: var(--tp-radius-xs);
     overflow: hidden;
@@ -269,7 +269,7 @@
 /* ── Empty state ── */
 
 .explorer-empty {
-    margin: 0 18px;
+    margin: 0 var(--tp-space-5);
     padding-top: var(--tp-space-5);
     border-top: 1px solid var(--tp-color-border-soft);
     max-width: 720px;
@@ -282,7 +282,7 @@
 }
 
 .explorer-empty p {
-    margin: 8px 0 0;
+    margin: var(--tp-space-2) 0 0;
     color: var(--tp-color-text-secondary);
     line-height: 1.5;
 }
@@ -348,7 +348,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
-    gap: 4px 8px;
+    gap: var(--tp-space-1) var(--tp-space-2);
     margin: var(--tp-space-3) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);

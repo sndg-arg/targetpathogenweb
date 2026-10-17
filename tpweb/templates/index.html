@@ -3,16 +3,16 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261017-system2">
 {% endblock %}
 
 {% block body %}
     <div class="home-page">
-        <section class="home-hero">
+        <section class="tp-page-hero home-hero">
             <div class="home-hero-copy">
-                <p class="tp-ui-field-label">{% trans "Drug Target Discovery Platform" %}</p>
-                <h1>{% trans "A bioinformatics platform for prioritizing protein targets in pathogens." %}</h1>
-                <p class="home-lead">
+                <p class="tp-view-eyebrow">{% trans "Drug Target Discovery Platform" %}</p>
+                <h1 class="tp-view-title tp-view-title--display">{% trans "A bioinformatics platform for prioritizing protein targets in pathogens." %}</h1>
+                <p class="tp-view-lead home-lead">
                     {% trans "Target Pathogen integrates genomic annotation, structural evidence, functional annotation, and project-specific scoring to support the identification and prioritization of candidate protein targets." %}
                 </p>
                 <p class="home-hero-figures">{{ total_genomes }} {% trans "genomes" %} <span aria-hidden="true">·</span> {{ total_proteins_display }} {% trans "proteins" %}</p>

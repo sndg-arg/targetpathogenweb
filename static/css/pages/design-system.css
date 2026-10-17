@@ -29,7 +29,7 @@
 }
 
 .ds-chapter-head {
-    margin: 0 18px;
+    margin: 0 var(--tp-space-5);
     display: grid;
     gap: var(--tp-space-2);
 }
@@ -68,7 +68,7 @@
 }
 
 .ds-section {
-    margin: 0 18px;
+    margin: 0 var(--tp-space-5);
     padding-top: var(--tp-space-6);
     display: grid;
     gap: var(--tp-space-4);
@@ -176,13 +176,13 @@
     flex-direction: column;
     justify-content: flex-end;
     gap: 2px;
-    padding: 6px;
+    padding: var(--tp-space-2);
 }
 
 .ds-swatch span,
 .ds-swatch .ds-hex {
     align-self: flex-start;
-    padding: 1px 5px;
+    padding: 1px var(--tp-space-1);
     border-radius: var(--tp-radius-xs);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
@@ -307,7 +307,7 @@
     grid-template-columns: 170px minmax(0, 1fr);
     gap: var(--tp-space-4);
     align-items: baseline;
-    padding: 10px 0;
+    padding: var(--tp-space-3) 0;
     border-bottom: 1px solid var(--tp-color-border-soft);
 }
 
@@ -488,7 +488,7 @@
 
 .ds-grid th,
 .ds-grid td {
-    padding: 10px 14px 10px 0;
+    padding: var(--tp-space-3) var(--tp-space-4) var(--tp-space-3) 0;
     border-bottom: 1px solid var(--tp-color-border-soft);
     text-align: left;
     vertical-align: middle;
@@ -596,7 +596,7 @@
 .ds-tip-anchor {
     display: inline-grid;
     justify-items: center;
-    gap: 10px;
+    gap: var(--tp-space-3);
 }
 
 .ds-page .ds-tooltip-sample {
@@ -724,10 +724,6 @@
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: var(--tp-space-3);
     background: var(--tp-color-surface-soft);
-}
-
-.ds-card-grid .tp-card + .tp-card {
-    margin-top: 0;
 }
 
 @media (max-width: 860px) {

@@ -119,11 +119,12 @@ templates with more than one occurrence (a single `.tp-ui-panel` isn't a "stacke
 - **Done (all)**: `search/formulaform.html`, `about/about_us.html`, `user/upload_data.html`,
   `human/human_protein.html`, `genomic/binder.html`, `genomic/protein.html`,
   `about/data_sources.html`, `genomic/annotation_explorer.html` (single-hero page, missed by the
-  original ">1 tp-ui-panel" scan — re-audit with `grep -rln "tp-page-hero" tpweb/templates` to
-  catch that class of miss, not just the multi-panel one). Every `.tp-page-hero` usage site-wide is
-  gone as of this pass — confirm that stays true (`grep -rln tp-page-hero tpweb/templates` should
-  return nothing) before considering a new page "done."
-- Workbench/tool-style pages keep one card boxed on purpose: `formula-form.css`'s editor+variables
+  original ">1 tp-ui-panel" scan). Since 2026-10-17 `.tp-page-hero` means something else: the
+  shared, *unboxed* page header section (padding only) that every page uses; `.tp-ui-panel` and
+  `.tp-ui-toolbar` no longer exist at all.
+- (Superseded 2026-10-17: formula editor/variables/footer, the protein summary callout and the
+  interpretation guide were also fused -- bars and hairlines, no boxes. Only repeated grid items keep
+  a card: `.tp-card`, druglike blocks, ranking cards, KPI tiles.) Historical note -- workbench/tool-style pages kept one card boxed: `formula-form.css`'s editor+variables
   cards and footer, `customparam.css`'s form+guide, `annotation-explorer.css`'s single
   `.explorer-card`. `protein-detail.css`'s `.target-summary-panel` (tone-colored executive summary)
   and `.protein-interpretation-guide` (collapsible info box) are callout-style exceptions, not

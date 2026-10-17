@@ -11,7 +11,7 @@
 }
 
 .protein-report > section {
-    padding: 22px 18px;
+    padding: var(--tp-space-5) var(--tp-space-5);
 }
 
 .protein-report > section ~ section {
@@ -132,7 +132,7 @@
     }
 
     .protein-report > section {
-        padding: 10px 0;
+        padding: var(--tp-space-3) 0;
     }
 
     .protein-report-actions {
@@ -151,7 +151,7 @@
 
     .protein-report-table th,
     .protein-report-table td {
-        padding: 3px 5px !important;
+        padding: 3px var(--tp-space-1) !important;
     }
 
     .protein-report-table thead {

@@ -259,42 +259,6 @@
 
 /* Underline tabs, not filled pills -- a table-of-contents register, same
    visual grammar as .quick-nav, rather than an app's segmented control. */
-.human-structure-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-4);
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    margin-bottom: var(--tp-space-4);
-}
-
-.human-structure-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-1);
-    border: none;
-    border-bottom: 2px solid transparent;
-    background: transparent;
-    border-radius: 0;
-    padding: var(--tp-space-1) 0 calc(var(--tp-space-1) + 1px);
-    margin-bottom: -1px;
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-    color: var(--tp-color-text-muted);
-    cursor: pointer;
-}
-
-.human-structure-tab.is-active {
-    background: transparent;
-    color: var(--human-accent);
-    border-bottom-color: var(--human-accent);
-}
-
-.human-structure-tab__count {
-    font-size: var(--tp-font-size-xs);
-    opacity: 0.8;
-}
 
 .human-structure-body {
     display: grid;
@@ -428,37 +392,6 @@
     margin-bottom: var(--tp-space-4);
 }
 
-.human-expression-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-4);
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    margin-bottom: var(--tp-space-4);
-}
-
-.human-expression-tab {
-    display: inline-flex;
-    align-items: center;
-    border: none;
-    border-bottom: 2px solid transparent;
-    background: transparent;
-    border-radius: 0;
-    padding: var(--tp-space-1) 0 calc(var(--tp-space-1) + 1px);
-    margin-bottom: -1px;
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-    color: var(--tp-color-text-muted);
-    cursor: pointer;
-}
-
-.human-expression-tab.is-active {
-    background: transparent;
-    color: var(--human-accent);
-    border-bottom-color: var(--human-accent);
-}
-
 .human-expression-panel.is-hidden {
     display: none;
 }
@@ -548,39 +481,11 @@
 
 /* Pathways */
 
-.human-pathway-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-4);
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    margin-bottom: var(--tp-space-4);
-}
-
 .human-pathway-tab {
-    display: inline-flex;
-    align-items: center;
-    border: none;
-    border-bottom: 2px solid transparent;
-    background: transparent;
-    border-radius: 0;
-    padding: var(--tp-space-1) 0 calc(var(--tp-space-1) + 1px);
-    margin-bottom: -1px;
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-    color: var(--tp-color-text-muted);
-    cursor: pointer;
     max-width: 260px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.human-pathway-tab.is-active {
-    background: transparent;
-    color: var(--human-accent);
-    border-bottom-color: var(--human-accent);
 }
 
 .human-pathway-body {

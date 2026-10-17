@@ -5,9 +5,9 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-system">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-system">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261017-system2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -170,7 +170,7 @@
     <section class="ds-chapter tp-quick-nav-target" id="componentes">
         <header class="ds-chapter-head">
             <h2>Componentes</h2>
-            <nav class="ds-index" aria-label="En Componentes"><a href="#c-boton">Botón</a><a href="#c-chip">Chip</a><a href="#c-campo">Campo</a><a href="#c-select">Selector</a><a href="#c-seg">Opciones</a><a href="#c-aviso">Aviso</a><a href="#c-msg">Mensaje</a><a href="#c-tooltip">Tooltip</a><a href="#c-modal">Modal</a><a href="#c-nav">Navegación</a><a href="#c-table">Tabla</a><a href="#c-loader">Cargando</a></nav>
+            <nav class="ds-index" aria-label="En Componentes"><a href="#c-boton">Botón</a><a href="#c-chip">Chip</a><a href="#c-campo">Campo</a><a href="#c-select">Selector</a><a href="#c-seg">Opciones</a><a href="#c-tabs">Pestañas</a><a href="#c-aviso">Aviso</a><a href="#c-msg">Mensaje</a><a href="#c-tooltip">Tooltip</a><a href="#c-modal">Modal</a><a href="#c-nav">Navegación</a><a href="#c-table">Tabla</a><a href="#c-loader">Cargando</a></nav>
         </header>
 
         <div class="ds-section">
@@ -367,6 +367,18 @@
                 <p class="ds-parts"><span class="ds-parts-label">Menú de secciones</span><span class="ds-part">inactiva · hover · <strong>activa</strong> <code>is-active</code>, en páginas con 3 secciones o más</span></p>
             </div>
 
+            <div class="ds-comp" id="c-tabs">
+                <h3 class="ds-comp-title">Pestañas <code>tp-tabs · tp-tab</code></h3>
+                <div class="ds-example">
+                    <div class="tp-tabs" role="tablist" aria-label="Ejemplo">
+                        <button type="button" class="tp-tab is-active" tabindex="-1">PDB co-crystal <span class="tp-tab-count">12</span></button>
+                        <button type="button" class="tp-tab is-hover" tabindex="-1">ChEMBL bioactive <span class="tp-tab-count">48</span></button>
+                        <button type="button" class="tp-tab" tabindex="-1">ZINC <span class="tp-tab-count">50+</span></button>
+                    </div>
+                </div>
+                <p class="ds-intro">Cambian el contenido dentro de una sección. Para saltar entre secciones, <code>quick-nav</code>.</p>
+            </div>
+
             <div class="ds-comp" id="c-table">
                 <h3 class="ds-comp-title">Tabla <code>tp-table</code></h3>
                 <div class="ds-example">
@@ -494,10 +506,10 @@
                 <h3 class="ds-comp-title">Tarjetas de números <code>metric-pill · target-evidence-card</code></h3>
                 <div class="ds-example">
                     <div class="protein-page ds-protein-sample">
-                        <div class="protein-metrics">
+                        <div class="tp-metrics">
                             <div class="metric-pill"><span class="metric-label">Length</span><span class="metric-value">262</span></div>
-                            <span class="metric-pill metric-pill--drugg metric-pill--drugg-high metric-pill--link"><span class="metric-label">P2Rank probability</span><span class="metric-value">0.94 <span class="metric-pill-jump">See evidence</span></span></span>
-                            <div class="metric-pill metric-pill--priority"><span class="metric-label">Chokepoint</span><span class="metric-value"><span class="metric-value-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>Yes</span></div>
+                            <span class="metric-pill metric-pill--success metric-pill--link"><span class="metric-label">P2Rank probability</span><span class="metric-value">0.94 <span class="metric-pill-jump">See evidence</span></span></span>
+                            <div class="metric-pill metric-pill--success"><span class="metric-label">Chokepoint</span><span class="metric-value"><span class="metric-value-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>Yes</span></div>
                             <div class="metric-pill"><span class="metric-label">Direct ligand evidence</span><span class="metric-value">12</span><span class="metric-note">48 total records</span></div>
                         </div>
                         <div class="target-evidence-grid target-evidence-grid--compact">
@@ -590,7 +602,8 @@
                 <div><dt>Página</dt><dd><code>tp-page-hero</code> arriba, después las secciones sobre el fondo</dd></div>
                 <div><dt>Secciones</dt><dd>Separadas por espacio o una línea fina; nunca en caja</dd></div>
                 <div><dt>Menú</dt><dd><code>quick-nav</code> con 3 secciones o más</dd></div>
-                <div><dt>CSS</dt><dd>Una hoja por página + <code>ui-system.css</code>; la hoja de página ubica, no recolorea</dd></div>
+                <div><dt>CSS</dt><dd><code>ui-system.css</code> + la hoja de la familia (genoma, proteína, metabolismo, cuenta) o de la página; esas hojas ubican, no recolorean</dd></div>
+                <div><dt>Rótulos</dt><dd><code>tp-view-eyebrow</code> arriba de cualquier título, de página o de sección</dd></div>
             </dl>
         </div>
     </section>

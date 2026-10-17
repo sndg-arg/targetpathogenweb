@@ -57,7 +57,7 @@
    reads as a prepared report rather than a live app screen. */
 .activity-eyebrow {
     position: relative;
-    padding-top: 12px;
+    padding-top: var(--tp-space-3);
 }
 
 .activity-eyebrow::before {
@@ -71,7 +71,7 @@
 }
 
 .activity-hero-meta {
-    margin: 8px 2px 0 0;
+    margin: var(--tp-space-2) 2px 0 0;
     text-align: right;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
@@ -79,47 +79,9 @@
     font-variant-numeric: tabular-nums;
 }
 
-.activity-period-selector {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    padding: 3px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-surface-soft);
-}
-
-.activity-period-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px 14px;
-    border-radius: var(--tp-radius-pill);
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    text-decoration: none;
-    transition:
-        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.activity-period-btn:hover,
-.activity-period-btn:focus-visible {
-    color: var(--tp-color-text-primary);
-    background: var(--tp-color-surface);
-}
-
-.activity-period-btn.is-active,
-.activity-period-btn.is-active:hover,
-.activity-period-btn.is-active:focus-visible {
-    background: var(--tp-color-primary);
-    color: var(--tp-color-on-accent);
-}
-
 /* ── KPI row — small equal-weight tiles, keeps individual card framing ── */
 .activity-kpi-row {
-    padding: 0 18px;
+    padding: 0 var(--tp-space-5);
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: var(--tp-space-3);
@@ -128,8 +90,8 @@
 .activity-kpi-card {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 14px 16px;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-4) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
@@ -219,7 +181,7 @@
 
 /* ── Panels — fused onto the page background, no individual box ── */
 .activity-panel {
-    padding: 0 18px;
+    padding: 0 var(--tp-space-5);
 }
 
 .activity-panel-title {
@@ -232,7 +194,7 @@
 
 /* ── Accounts list ── */
 .activity-accounts {
-    margin-top: 14px;
+    margin-top: var(--tp-space-4);
     display: flex;
     flex-direction: column;
 }
@@ -240,11 +202,11 @@
 .activity-account-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 0;
-    margin: 0 -8px;
-    padding-left: 8px;
-    padding-right: 8px;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-3) 0;
+    margin: 0 calc(-1 * var(--tp-space-2));
+    padding-left: var(--tp-space-2);
+    padding-right: var(--tp-space-2);
     border-top: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
     flex-wrap: wrap;
@@ -274,7 +236,7 @@
 
 /* ── Section summary + collapsible detail ── */
 .activity-details {
-    margin-top: 10px;
+    margin-top: var(--tp-space-3);
 }
 
 .activity-details-summary {
@@ -283,8 +245,8 @@
     user-select: none;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 0;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-1) 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
     font-weight: 600;
@@ -317,8 +279,8 @@
 }
 
 .activity-details-body {
-    margin-top: 6px;
-    padding: 8px 14px;
+    margin-top: var(--tp-space-2);
+    padding: var(--tp-space-2) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
@@ -341,9 +303,9 @@
     display: grid;
     grid-template-columns: minmax(150px, 1.3fr) minmax(110px, 0.8fr) minmax(110px, 1fr) auto;
     align-items: center;
-    gap: 12px;
-    padding: 10px 8px;
-    margin: 0 -8px;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-3) var(--tp-space-2);
+    margin: 0 calc(-1 * var(--tp-space-2));
     border-top: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -358,8 +320,8 @@
 }
 
 .activity-location-row--head {
-    margin-top: 14px;
-    padding: 0 0 8px;
+    margin-top: var(--tp-space-4);
+    padding: 0 0 var(--tp-space-2);
     border-top: none;
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
@@ -377,9 +339,9 @@
 .activity-locations .activity-location-row--blocked {
     background: var(--tp-color-warning-bg);
     border-radius: var(--tp-radius-sm);
-    padding-left: 8px;
-    padding-right: 8px;
-    margin: 0 -8px;
+    padding-left: var(--tp-space-2);
+    padding-right: var(--tp-space-2);
+    margin: 0 calc(-1 * var(--tp-space-2));
 }
 
 .activity-locations .activity-location-row--blocked + .activity-location-row--blocked {
@@ -410,7 +372,7 @@
 .activity-location-place {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
     font-weight: 600;
     color: var(--tp-color-text-primary);
 }
@@ -426,7 +388,7 @@
     justify-content: center;
     min-width: 26px;
     height: 16px;
-    padding: 0 4px;
+    padding: 0 var(--tp-space-1);
     flex-shrink: 0;
     border-radius: var(--tp-radius-xs);
     background: var(--tp-color-surface-muted);
@@ -475,7 +437,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: var(--tp-space-1);
     min-width: 0;
 }
 
@@ -495,10 +457,10 @@
    top-10 rows the detail table shows, which is already the complete set
    for how few distinct authenticated/login-attempt IPs this site sees. ── */
 .activity-summary-chips {
-    margin-top: 14px;
+    margin-top: var(--tp-space-4);
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 .activity-summary-chips:empty {
@@ -513,7 +475,7 @@
     display: flex;
     flex-direction: column;
     gap: 3px;
-    padding: 10px 14px;
+    padding: var(--tp-space-3) var(--tp-space-4);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border-soft);
@@ -531,7 +493,7 @@
 .activity-summary-chip strong {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
     font-family: var(--tp-font-head);
     font-size: var(--tp-font-size-sm);
     font-weight: 700;
@@ -563,7 +525,7 @@
     .activity-location-row--blocklist {
         grid-template-columns: 1fr;
         gap: 2px;
-        padding: 12px 0;
+        padding: var(--tp-space-3) 0;
     }
 
     .activity-location-row--head {
@@ -588,7 +550,7 @@
 
 /* ── Top erroring paths ── */
 .activity-error-paths {
-    margin-top: 14px;
+    margin-top: var(--tp-space-4);
     display: flex;
     flex-direction: column;
 }
@@ -597,9 +559,9 @@
     display: grid;
     grid-template-columns: minmax(140px, 1.4fr) 2fr auto;
     align-items: center;
-    gap: 12px;
-    padding: 10px 8px;
-    margin: 0 -8px;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-3) var(--tp-space-2);
+    margin: 0 calc(-1 * var(--tp-space-2));
     border-top: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
 }
@@ -618,14 +580,14 @@
 .activity-error-path-codes {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .activity-error-chip {
     display: inline-flex;
     align-items: center;
     border-radius: var(--tp-radius-pill);
-    padding: 2px 8px;
+    padding: 2px var(--tp-space-2);
     font-size: var(--tp-font-size-xs);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -653,8 +615,8 @@
 @media (max-width: 640px) {
     .activity-error-path-row {
         grid-template-columns: 1fr;
-        gap: 6px;
-        padding: 12px 0;
+        gap: var(--tp-space-2);
+        padding: var(--tp-space-3) 0;
     }
 }
 
@@ -673,7 +635,7 @@
 }
 
 .activity-panel-pair > .activity-panel {
-    padding: 18px;
+    padding: var(--tp-space-5);
     background: var(--tp-color-surface);
 }
 
@@ -685,14 +647,14 @@
 
 .activity-chart-legend {
     display: flex;
-    gap: 14px;
+    gap: var(--tp-space-4);
     flex-shrink: 0;
 }
 
 .activity-chart-legend-item {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
 }
@@ -723,7 +685,7 @@
 }
 
 .activity-chart-wrap {
-    margin-top: 14px;
+    margin-top: var(--tp-space-4);
     position: relative;
     height: 220px;
 }
@@ -740,11 +702,11 @@
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     text-align: center;
-    padding: 40px 0;
+    padding: var(--tp-space-8) 0;
 }
 
 .activity-chart-note {
-    margin: 8px 0 0;
+    margin: var(--tp-space-2) 0 0;
     font-size: var(--tp-font-size-xs);
     font-style: italic;
     color: var(--tp-color-text-muted);
@@ -760,21 +722,19 @@
    its height to match that neighbor's chart) -- a single auto-fit row
    reads better here, matching the KPI row's own pattern. */
 .activity-status-tiles {
-    margin-top: 14px;
+    margin-top: var(--tp-space-4);
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 10px;
+    gap: var(--tp-space-3);
 }
 
 .activity-status-tile {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 4px;
-    padding: 14px 16px;
-    border-radius: var(--tp-radius-md);
+    gap: var(--tp-space-1);
+    padding: var(--tp-space-1) 0 var(--tp-space-1) var(--tp-space-4);
     border-left: 3px solid var(--tp-color-border-strong);
-    background: var(--tp-color-surface-soft);
 }
 
 /* Merged 2xx+3xx tile (see statusTileRows) -- success-tinted since a
@@ -824,7 +784,7 @@
 
 /* ── Footnote ── */
 .activity-footnote {
-    padding: 0 18px;
+    padding: 0 var(--tp-space-5);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
 }

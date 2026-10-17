@@ -23,7 +23,7 @@
    (not hero->quick-nav or quick-nav->first panel, which keep the
    tighter base gap). */
 .ds-panel ~ .ds-panel {
-    margin-top: 24px;
+    margin-top: var(--tp-space-6);
 }
 
 .ds-page h1,
@@ -42,7 +42,7 @@
 }
 
 /* ── Panel common ── */
-.ds-panel { padding: 20px 18px; }
+.ds-panel { padding: var(--tp-space-5) var(--tp-space-5); }
 
 .ds-panel-title {
     margin: 2px 0 0;
@@ -53,27 +53,27 @@
 }
 
 .ds-panel-subtitle {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
     font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
 }
 
 .ds-body {
-    margin: 16px 0 0;
+    margin: var(--tp-space-4) 0 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
     line-height: 1.65;
 }
 
 .ds-subsection {
-    margin-top: 24px;
-    padding-top: 20px;
+    margin-top: var(--tp-space-6);
+    padding-top: var(--tp-space-5);
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
 .ds-subsection h3 {
-    margin: 0 0 8px;
+    margin: 0 0 var(--tp-space-2);
     font-size: var(--tp-font-size-sm);
     font-weight: 700;
     color: var(--tp-color-text-primary);
@@ -85,18 +85,18 @@
 .ds-pipeline-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 20px;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-5);
 }
 
 .ds-pipeline-card {
-    padding: 16px 17px;
+    padding: var(--tp-space-4) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     display: flex;
     flex-direction: column;
-    gap: 9px;
+    gap: var(--tp-space-2);
     box-shadow: none;
     transition: box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
@@ -109,7 +109,7 @@
 .ds-pipeline-card-head {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--tp-space-3);
 }
 
 .ds-pipeline-card-head strong {
@@ -147,11 +147,11 @@
 .ds-pipeline-card-faculty {
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
-    margin-top: -4px !important;
+    margin-top: calc(-1 * var(--tp-space-1)) !important;
 }
 
 .ds-pipeline-card-previous-degree {
-    padding-top: 8px;
+    padding-top: var(--tp-space-2);
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
@@ -177,19 +177,19 @@
 .ds-pipeline-card-links {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: var(--tp-space-2);
     /* Pins to the bottom of the card regardless of how much text sits above
        it -- without this, a shorter bio (Ana, no "previous degree" block)
        left the pills floating right under the role line while taller cards
        in the same grid row pushed theirs down near the bottom edge, so the
        row read as unevenly aligned. */
     margin-top: auto;
-    padding-top: 8px;
+    padding-top: var(--tp-space-2);
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
 .ds-pipeline-card-link {
-    padding: 3px 10px;
+    padding: 3px var(--tp-space-3);
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-pill);
     font-size: var(--tp-font-size-2xs);
@@ -213,16 +213,16 @@
 .ds-partner-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 10px;
-    margin-top: 20px;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-5);
 }
 
 .ds-partner-tile {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    padding: 22px 14px;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-5) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
@@ -255,14 +255,14 @@
     background: var(--tp-color-brand-050);
     border: 1px solid var(--tp-color-brand-200);
     border-radius: var(--tp-radius-xs);
-    padding: 2px 7px;
+    padding: 2px var(--tp-space-2);
     white-space: nowrap;
     flex-shrink: 0;
 }
 
 /* ── Field list (protein data) ── */
 .ds-field-list {
-    margin-top: 16px;
+    margin-top: var(--tp-space-4);
     display: grid;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
@@ -272,8 +272,8 @@
 .ds-field-row {
     display: grid;
     grid-template-columns: 140px 1fr;
-    gap: 16px;
-    padding: 10px 14px;
+    gap: var(--tp-space-4);
+    padding: var(--tp-space-3) var(--tp-space-4);
     border-bottom: 1px solid var(--tp-color-border-soft);
     align-items: baseline;
 }
@@ -295,8 +295,8 @@
 
 /* ── Callout ── */
 .ds-callout {
-    margin-top: 16px;
-    padding: 13px 15px;
+    margin-top: var(--tp-space-4);
+    padding: var(--tp-space-3) var(--tp-space-4);
     border-radius: var(--tp-radius-sm);
     border: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface-muted);
@@ -307,7 +307,7 @@
 
 /* ── Priority stack ── */
 .ds-priority-stack {
-    margin-top: 16px;
+    margin-top: var(--tp-space-4);
     display: grid;
     gap: 1px;
     border: 1px solid var(--tp-color-border-soft);
@@ -317,9 +317,9 @@
 
 .ds-priority-row {
     display: flex;
-    gap: 16px;
+    gap: var(--tp-space-4);
     align-items: flex-start;
-    padding: 16px 18px;
+    padding: var(--tp-space-4) var(--tp-space-5);
     background: var(--tp-color-surface);
     border-bottom: 1px solid var(--tp-color-border-soft);
 }
@@ -376,7 +376,7 @@
 }
 
 .ds-priority-body p {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
     line-height: 1.58;
@@ -385,15 +385,15 @@
 /* ── Score table ── */
 .ds-score-table {
     display: grid;
-    gap: 4px;
-    margin-top: 12px;
+    gap: var(--tp-space-1);
+    margin-top: var(--tp-space-3);
 }
 
 .ds-score-row {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 6px 10px;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-2) var(--tp-space-3);
     border-radius: var(--tp-radius-sm);
     font-size: var(--tp-font-size-sm);
 }
@@ -415,24 +415,24 @@
 .ds-tool-cols {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-top: 16px;
+    gap: var(--tp-space-4);
+    margin-top: var(--tp-space-4);
 }
 
 .ds-tool-block {
-    padding: 16px;
+    padding: var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     display: grid;
-    gap: 10px;
+    gap: var(--tp-space-3);
     align-content: start;
 }
 
 .ds-tool-head {
     display: flex;
     align-items: baseline;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 .ds-tool-name {
@@ -453,7 +453,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1px;
-    margin-top: 12px;
+    margin-top: var(--tp-space-3);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
     overflow: hidden;
@@ -462,9 +462,9 @@
 .ds-db-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px 10px;
+    gap: var(--tp-space-1) var(--tp-space-3);
     align-items: baseline;
-    padding: 9px 12px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     background: var(--tp-color-surface);
     border-bottom: 1px solid var(--tp-color-border-soft);
 }
@@ -494,17 +494,17 @@
 .ds-profile-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 16px;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-4);
 }
 
 .ds-profile-card {
-    padding: 15px 16px;
+    padding: var(--tp-space-4) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     display: grid;
-    gap: 8px;
+    gap: var(--tp-space-2);
     align-content: start;
 }
 
@@ -535,7 +535,7 @@
 .ds-desirable {
     font-size: var(--tp-font-size-sm) !important;
     color: var(--tp-color-text-muted) !important;
-    padding-top: 6px;
+    padding-top: var(--tp-space-2);
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
@@ -544,7 +544,7 @@
     width: 100%;
     border-collapse: collapse;
     font-size: var(--tp-font-size-sm);
-    margin-top: 16px;
+    margin-top: var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
     overflow: hidden;
@@ -557,13 +557,13 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: var(--tp-tracking-label);
-    padding: 9px 12px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     text-align: left;
     border-bottom: 1px solid var(--tp-color-border-soft);
 }
 
 .ds-table td {
-    padding: 9px 12px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     color: var(--tp-color-text-secondary);
     border-bottom: 1px solid var(--tp-color-border-soft);
     line-height: 1.45;
@@ -575,7 +575,7 @@
 
 /* ── Definitions (pChEMBL, Tanimoto) ── */
 .ds-def-list {
-    margin-top: 14px;
+    margin-top: var(--tp-space-4);
     display: grid;
     gap: 1px;
     border: 1px solid var(--tp-color-border-soft);
@@ -586,8 +586,8 @@
 .ds-def-row {
     display: grid;
     grid-template-columns: 100px 1fr;
-    gap: 16px;
-    padding: 10px 14px;
+    gap: var(--tp-space-4);
+    padding: var(--tp-space-3) var(--tp-space-4);
     background: var(--tp-color-surface);
     border-bottom: 1px solid var(--tp-color-border-soft);
     align-items: baseline;
@@ -611,14 +611,14 @@
 
 /* ── Drug-likeness list ── */
 .ds-dl-list {
-    margin-top: 8px;
+    margin-top: var(--tp-space-2);
 }
 
 .ds-dl-row {
-    padding: 16px 0;
+    padding: var(--tp-space-4) 0;
     border-bottom: 1px solid var(--tp-color-border-soft);
     display: grid;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 .ds-dl-row:last-child { border-bottom: none; }
@@ -626,7 +626,7 @@
 .ds-dl-head {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--tp-space-3);
 }
 
 .ds-dl-tag {
@@ -637,7 +637,7 @@
     background: var(--tp-color-brand-050);
     border: 1px solid var(--tp-color-brand-200);
     border-radius: var(--tp-radius-xs);
-    padding: 2px 8px;
+    padding: 2px var(--tp-space-2);
     flex-shrink: 0;
 }
 
@@ -657,13 +657,13 @@
 /* ── Caveats ── */
 .ds-caveats {
     padding: 0;
-    margin: 16px 0 0;
+    margin: var(--tp-space-4) 0 0;
     list-style: none;
     display: grid;
 }
 
 .ds-caveats li {
-    padding: 14px 0;
+    padding: var(--tp-space-4) 0;
     border-bottom: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
@@ -684,7 +684,7 @@
 @media (max-width: 600px) {
     .ds-pipeline-grid { grid-template-columns: 1fr; }
     .ds-field-row { grid-template-columns: 1fr; gap: 3px; }
-    .ds-def-row { grid-template-columns: 1fr; gap: 4px; }
+    .ds-def-row { grid-template-columns: 1fr; gap: var(--tp-space-1); }
 }
 
 /* ── Dark mode ── */

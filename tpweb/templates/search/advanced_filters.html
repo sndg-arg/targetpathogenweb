@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/advanced-filters.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/advanced-filters.css' %}?v=20261017-system2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -61,15 +61,15 @@
 <template id="af-group-template">
     <div class="af-group" data-group data-mode="all">
         <div class="af-group-head">
-            <div class="af-group-mode" role="group" aria-label="{% trans 'Match' %}">
-                <button type="button" class="af-mode-btn af-mode-btn--active" data-mode-btn="all">{% trans "Match ALL" %}</button>
-                <button type="button" class="af-mode-btn" data-mode-btn="any">{% trans "Match ANY" %}</button>
+            <div class="tp-segmented af-group-mode" role="group" aria-label="{% trans 'Match' %}">
+                <button type="button" class="tp-segmented-option is-selected" data-mode-btn="all" aria-pressed="true"><span>{% trans "Match ALL" %}</span></button>
+                <button type="button" class="tp-segmented-option" data-mode-btn="any" aria-pressed="false"><span>{% trans "Match ANY" %}</span></button>
             </div>
-            <button type="button" class="af-group-remove tp-focusable" data-remove-group aria-label="{% trans 'Remove group' %}">&times;</button>
+            <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm af-group-remove" data-remove-group aria-label="{% trans 'Remove group' %}"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button>
         </div>
         <p class="af-group-hint" data-group-hint></p>
         <div class="af-conditions" data-conditions></div>
-        <button type="button" class="af-add-condition" data-add-condition>{% trans "+ Add condition" %}</button>
+        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm af-add-condition" data-add-condition>{% trans "+ Add condition" %}</button>
     </div>
 </template>
 
@@ -79,7 +79,7 @@
             <option value="">{% trans "Choose a criterion…" %}</option>
         </select>
         <div class="af-condition-value" data-value-area></div>
-        <button type="button" class="af-condition-remove tp-focusable" data-remove-condition aria-label="{% trans 'Remove condition' %}">&times;</button>
+        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm af-condition-remove" data-remove-condition aria-label="{% trans 'Remove condition' %}"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button>
     </div>
 </template>
 
@@ -116,5 +116,5 @@
         hintAny: "{% trans 'A protein only needs to match one condition below.' %}"
     };
 </script>
-<script src="{% static 'js/pages/advanced-filters.js' %}?v=20260902-group-clarity"></script>
+<script src="{% static 'js/pages/advanced-filters.js' %}?v=20261017-system2"></script>
 {% endblock %}

@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261017-system2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -73,7 +73,7 @@
                         <form method="post" action="{% url 'tpwebapp:request_access' %}" class="genomes-request-access">
                             {% csrf_token %}
                             <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                            <button type="submit" class="genomes-request-access-btn">{% trans "Request access" %}</button>
+                            <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm genomes-request-access-btn">{% trans "Request access" %}</button>
                         </form>
                     {% endif %}
                 </p>

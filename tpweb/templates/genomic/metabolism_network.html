@@ -3,9 +3,9 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261017-system">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261017-system2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -37,7 +37,7 @@
                 </div>
             </div>
         </div>
-        <div class="genome-metrics" aria-label="{% trans 'Metabolic summary' %}">
+        <div class="tp-metrics genome-metrics" aria-label="{% trans 'Metabolic summary' %}">
             <div class="metric-pill">
                 <span class="metric-label">{% trans "Pathways" %}</span>
                 <span class="metric-value">{{ summary.pathway_count }}</span>
@@ -50,7 +50,7 @@
                 <span class="metric-label">{% trans "Mapped proteins" %}</span>
                 <span class="metric-value">{{ summary.protein_count }}</span>
             </div>
-            <div class="metric-pill metric-pill--warm" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - harder for the pathogen to route around if inhibited." %}">
+            <div class="metric-pill metric-pill--warning" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - harder for the pathogen to route around if inhibited." %}">
                 <span class="metric-label">{% trans "Chokepoint reactions" %}</span>
                 <span class="metric-value">{{ summary.chokepoint_count }}</span>
             </div>
@@ -85,20 +85,20 @@
                     <span title="{% trans "These two pathways share at least one reaction." %}"><i class="metabolic-network-genome-line"></i>{% trans "Cross-pathway connection" %}</span>
                 </div>
                 <div class="metabolic-network-genome-actions" aria-label="{% trans "Network controls" %}">
-                    <button type="button" class="metabolic-map-btn" data-metabolic-network-genome-action="fit" title="{% trans "Fit network to view" %}" aria-label="{% trans "Fit network to view" %}">
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"/></svg>
+                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm metabolic-map-btn" data-metabolic-network-genome-action="fit" title="{% trans "Fit network to view" %}" aria-label="{% trans "Fit network to view" %}">
+                        <span class="tp-btn-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"/></svg></span>
                     </button>
-                    <button type="button" class="metabolic-map-btn" data-metabolic-network-genome-action="zoom-in" title="{% trans "Zoom in" %}" aria-label="{% trans "Zoom in" %}">
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M7 5v4M5 7h4"/></svg>
+                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm metabolic-map-btn" data-metabolic-network-genome-action="zoom-in" title="{% trans "Zoom in" %}" aria-label="{% trans "Zoom in" %}">
+                        <span class="tp-btn-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M7 5v4M5 7h4"/></svg></span>
                     </button>
-                    <button type="button" class="metabolic-map-btn" data-metabolic-network-genome-action="zoom-out" title="{% trans "Zoom out" %}" aria-label="{% trans "Zoom out" %}">
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M5 7h4"/></svg>
+                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm metabolic-map-btn" data-metabolic-network-genome-action="zoom-out" title="{% trans "Zoom out" %}" aria-label="{% trans "Zoom out" %}">
+                        <span class="tp-btn-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M5 7h4"/></svg></span>
                     </button>
                 </div>
             </div>
             <div class="metabolic-network-genome-breadcrumb" id="metabolic-network-genome-breadcrumb" hidden>
-                <button type="button" class="metabolic-network-genome-back-btn" id="metabolic-network-genome-back">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5L5 8l5 4.5"/></svg>
+                <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm metabolic-network-genome-back-btn" id="metabolic-network-genome-back">
+                    <span class="tp-btn-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5L5 8l5 4.5"/></svg></span>
                     {% trans "All pathways" %}
                 </button>
                 <span class="metabolic-network-genome-breadcrumb-sep" aria-hidden="true">/</span>

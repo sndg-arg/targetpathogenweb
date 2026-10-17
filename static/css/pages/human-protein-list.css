@@ -1,27 +1,12 @@
 .human-list-page {
     display: grid;
     gap: var(--tp-space-5);
-    padding: 0 18px; /* same 18px inset as every other page */
-    --human-accent: var(--tp-color-brand-800);
 }
 
-/* Header top space like every other page's hero. */
-.human-list-head {
-    padding-top: 20px;
-}
-
-.human-list-head .tp-view-eyebrow,
-.human-list-head .tp-view-title,
-.human-list-head .tp-view-lead {
-    margin: 0;
-}
-
-.human-list-head .tp-view-title {
-    margin-top: 8px;
-}
-
-.human-list-head .tp-view-lead {
-    margin-top: 10px;
+/* Everything under the page hero shares its 18px inset. */
+.human-list-page > :not(.tp-page-hero) {
+    margin-left: var(--tp-space-5);
+    margin-right: var(--tp-space-5);
 }
 
 .human-list-search {
@@ -37,10 +22,6 @@
 .human-list-count {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
-    margin: 0;
-}
-
-.human-dashboard-caveat {
     margin: 0;
 }
 
@@ -65,18 +46,10 @@
     gap: var(--tp-space-4);
 }
 
-/* Same card as the rest of the site (.tp-ui-panel: 12px corners, soft
-   shadow); hover darkens the border and lifts the shadow a step. */
+/* The site card (tp-card); this only makes the whole card a link. */
 .human-protein-card {
     display: block;
-    padding: var(--tp-space-4);
     color: inherit;
-}
-
-.human-protein-card:hover,
-.human-protein-card:focus-visible {
-    border-color: var(--tp-color-border);
-    box-shadow: none;
 }
 
 /* Bootstrap 4's default `a:hover { text-decoration: underline; }` (loaded

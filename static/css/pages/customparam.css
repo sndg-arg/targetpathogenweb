@@ -7,7 +7,7 @@
    (this page's grid gap is 16px; the extra 24px margin here matches that
    page's own .ds-panel ~ .ds-panel value for the same ~40px total feel). */
 .customparam-page > section ~ section {
-    margin-top: 24px;
+    margin-top: var(--tp-space-6);
 }
 
 .customparam-page h1,
@@ -21,7 +21,7 @@
 .customparam-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
     /* Same sans uppercase eyebrow as Genomes/Proteins -- this page used the
        monospace font here, one of the things that made it look unlike the
        rest of the site. */
@@ -29,11 +29,11 @@
 }
 
 .customparam-chip-group {
-    margin-top: 16px;
+    margin-top: var(--tp-space-4);
 }
 
 .customparam-chip-group .tp-chip {
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .customparam-chip-id {
@@ -46,10 +46,10 @@
 .customparam-layout {
     display: grid;
     grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.9fr);
-    gap: 18px;
+    gap: var(--tp-space-5);
     align-items: start;
     /* Text inset matching the unboxed hero above it. */
-    margin: 0 18px;
+    margin: 0 var(--tp-space-5);
 }
 
 /* ── Columns ── */
@@ -59,31 +59,31 @@
    bordered cards, which made this page look unlike the rest of the site.
    See tpw-editorial-redesign. */
 .customparam-card {
-    padding: 16px 0;
+    padding: var(--tp-space-4) 0;
 }
 
 /* Vertical hairline between the paired form/guide columns. */
 .customparam-card--guide {
     display: grid;
-    gap: 8px;
+    gap: var(--tp-space-2);
     border-left: 1px solid var(--tp-color-border-soft);
-    padding-left: 18px;
+    padding-left: var(--tp-space-5);
 }
 
 .customparam-card-head {
     align-items: flex-start;
-    margin-bottom: 14px;
+    margin-bottom: var(--tp-space-4);
 }
 
 .customparam-card h2 {
-    margin: 0 0 14px;
+    margin: 0 0 var(--tp-space-4);
     color: var(--tp-color-brand-900);
     font-size: var(--tp-font-size-lg);
     line-height: 1.15;
 }
 
 .customparam-card-note {
-    margin: 6px 0 0;
+    margin: var(--tp-space-2) 0 0;
     max-width: 720px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-md);
@@ -93,7 +93,7 @@
 /* ── State note (overwrite warning) ── */
 
 .customparam-state-note {
-    margin-bottom: 14px;
+    margin-bottom: var(--tp-space-4);
 }
 
 .customparam-problem-list {
@@ -109,12 +109,12 @@
 
 .customparam-form {
     display: grid;
-    gap: 16px;
+    gap: var(--tp-space-4);
 }
 
 .customparam-field {
     display: grid;
-    gap: 7px;
+    gap: var(--tp-space-2);
 }
 
 .customparam-field .tp-ui-control,
@@ -138,7 +138,7 @@
 .customparam-visibility-option {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--tp-space-3);
     margin: 0;
     font-size: var(--tp-font-size-md);
     font-weight: 400;
@@ -187,10 +187,10 @@
 
 .customparam-submit-row {
     display: flex;
-    gap: 14px;
+    gap: var(--tp-space-4);
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
+    padding: var(--tp-space-4) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
@@ -208,7 +208,7 @@
 }
 
 .customparam-submit-note {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     line-height: 1.45;
@@ -216,23 +216,23 @@
 
 .customparam-actions {
     display: flex;
-    margin-top: 4px;
+    margin-top: var(--tp-space-1);
 }
 
 /* ── Guide (aside) ── */
 
 .customparam-guide {
     display: grid;
-    gap: 14px;
-    margin-bottom: 4px;
+    gap: var(--tp-space-4);
+    margin-bottom: var(--tp-space-1);
 }
 
 .customparam-guide-item {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 12px;
+    gap: var(--tp-space-3);
     align-items: start;
-    padding: 12px 0;
+    padding: var(--tp-space-3) 0;
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
@@ -264,7 +264,7 @@
 }
 
 .customparam-guide-item p {
-    margin: 5px 0 0;
+    margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     line-height: 1.5;
@@ -273,14 +273,14 @@
 /* ── Code example ── */
 
 .customparam-example {
-    padding: 12px 14px;
+    padding: var(--tp-space-3) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
 }
 
 .customparam-example-label {
-    margin: 0 0 8px;
+    margin: 0 0 var(--tp-space-2);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;

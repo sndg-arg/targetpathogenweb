@@ -26,7 +26,8 @@ no raw rem font sizes, no raw shadows, no page-local color aliases (`--blast-ink
   viewer-only `--tp-color-structure-*`, `-sstruc-*`, `-plddt-*`. The old rose/sage/amber scales,
   surface-panel/alt, border-accent, page-start/end and `--tp-ink`-style aliases are gone — use tones.
   Data-viz palettes in JS read tones too (`success-ink`, `danger-ink`, `warning-ink`, `info-ink`).
-- **Spacing**: `--tp-space-1..8` = 4/8/12/16/20/24/32/40px.
+- **Spacing**: `--tp-space-1..8` = 4/8/12/16/20/24/32/40px for every padding/margin/gap (literal px only
+  for <=3px nudges and rare >44px layout). The page inset is `--tp-space-5` (20px).
 - **Type**: families `--tp-font-{head,body,mono}`; sizes `--tp-font-size-{2xs .7, xs .78, sm .88,
   md .98, lg 1.12, xl 1.28}rem` + `--tp-heading-{md,lg,xl}`; tracking `--tp-tracking-label` (uppercase
   labels) / `--tp-tracking-tight` (display headings); weights only 400/500/600/700 as numbers.
@@ -51,7 +52,8 @@ so check it (and update its copy) when you add or change a token or component.
 
 ## File layout
 
-One CSS file per page under `static/css/pages/<page>.css` (CLAUDE.md rule). Shared, cross-page
+One CSS file per page or page family under `static/css/pages/` (genome-overview.css = genome pages,
+protein-detail.css = protein pages incl. human, metabolism-overview.css = metabolism views, auth.css = account). Shared, cross-page
 component classes live in `static/css/components/ui-system.css` — e.g. `.tp-view-head`,
 `.tp-view-head-copy`, `.tp-view-head-actions`, generic `.tp-btn*`. **Check `ui-system.css` before
 assuming a class is undefined** — a `grep` across `static/css/` for the class name will tell you
@@ -88,6 +90,9 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
 - `.tp-state-note--{empty,loading,success,warning,error}` for every inline status message (left
   bar, left-aligned, never centered or boxed).
 - `.tp-card` only for repeated grid items (border, no shadow). Sections are never boxed.
+- `.tp-metrics` > `.metric-pill` (+ `--success|--warning|--danger|--link`) for every "number in a pill".
+- `.tp-tabs` > `.tp-tab` (+ `.tp-tab-count`) for every tab set inside a section.
+- `.tp-view-eyebrow` is the one uppercase rótulo above any title (page or section).
 - Dialogs: `.tp-modal` (backdrop, `.is-open` shows it) > `.tp-modal-panel[--sm|--lg]` >
   `.tp-modal-head` (`.tp-modal-title`, optional `.tp-modal-meta`, close =
   `btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close` with `icons/x.html`) + `.tp-modal-body` +

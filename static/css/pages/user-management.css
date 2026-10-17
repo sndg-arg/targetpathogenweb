@@ -18,15 +18,15 @@
 }
 
 .user-mgmt-section {
-    padding: 28px 18px;
+    padding: var(--tp-space-6) var(--tp-space-5);
 }
 
 .user-mgmt-section .section-head {
-    margin-bottom: 20px;
+    margin-bottom: var(--tp-space-5);
 }
 
 .user-mgmt-section-title {
-    margin: 8px 0 0;
+    margin: var(--tp-space-2) 0 0;
     font-size: var(--tp-font-size-lg);
 }
 
@@ -50,8 +50,8 @@
 .user-mgmt-list-row {
     display: grid;
     align-items: center;
-    column-gap: 16px;
-    padding: 14px 18px;
+    column-gap: var(--tp-space-4);
+    padding: var(--tp-space-4) var(--tp-space-5);
     background: var(--tp-color-surface);
 }
 
@@ -93,7 +93,7 @@
 .user-mgmt-list-cell--role {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .user-mgmt-request-badge {
@@ -130,7 +130,7 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 .user-mgmt-list-cell--actions form {
@@ -141,22 +141,22 @@
 /* Dialogs use the shared .tp-modal (ui-system.css); only the body layout here. */
 .user-mgmt-edit-body {
     display: grid;
-    gap: 4px;
+    gap: var(--tp-space-1);
 }
 
 .user-mgmt-edit-subtitle {
-    margin: 0 0 12px;
+    margin: 0 0 var(--tp-space-3);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
 .user-mgmt-profile-field {
-    margin-bottom: 4px;
+    margin-bottom: var(--tp-space-1);
 }
 
 .user-mgmt-profile-help {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
     line-height: 1.4;
@@ -181,8 +181,8 @@ body.user-mgmt-modal-open {
     .user-mgmt-list--pending .user-mgmt-list-row,
     .user-mgmt-list--approved .user-mgmt-list-row {
         grid-template-columns: 1fr;
-        row-gap: 6px;
-        padding: 14px 16px;
+        row-gap: var(--tp-space-2);
+        padding: var(--tp-space-4) var(--tp-space-4);
     }
 
     .user-mgmt-list-cell--meta[data-label]::before,
@@ -193,7 +193,7 @@ body.user-mgmt-modal-open {
 
     .user-mgmt-list-cell--role {
         display: flex;
-        gap: 4px;
+        gap: var(--tp-space-1);
     }
 
     .user-mgmt-list-cell--actions {

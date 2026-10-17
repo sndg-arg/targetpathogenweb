@@ -16,15 +16,15 @@
 .genome-upload-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .genome-upload-chip-group {
-    margin-top: 16px;
+    margin-top: var(--tp-space-4);
 }
 
 .genome-upload-chip-group .tp-chip {
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .genome-upload-card-note,
@@ -35,9 +35,9 @@
 .genome-upload-hero-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: var(--tp-space-3);
     align-items: center;
-    margin-top: 18px;
+    margin-top: var(--tp-space-5);
 }
 
 .genome-upload-test-form {
@@ -51,41 +51,17 @@
 .genome-upload-metrics {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-    margin-top: 20px;
-}
-
-.metric-pill {
-    display: grid;
-    gap: 6px;
-    padding: 13px 15px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-md);
-    background: var(--tp-color-surface);
-}
-
-.metric-label {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-}
-
-.metric-value {
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-font-size-lg);
-    font-weight: 600;
-    line-height: 1.05;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-5);
 }
 
 .genome-upload-layout {
     display: grid;
     grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.9fr);
-    gap: 18px;
+    gap: var(--tp-space-5);
     align-items: start;
     /* Text inset matching the unboxed hero above it. */
-    margin: 0 18px;
+    margin: 0 var(--tp-space-5);
 }
 
 /* Sits directly on the page background, like every other section on this
@@ -95,7 +71,7 @@
    including this previously-kept-boxed workbench pair. See
    tpw-editorial-redesign. */
 .genome-upload-card {
-    padding: 16px 0;
+    padding: var(--tp-space-4) 0;
 }
 
 /* Vertical hairline between the form and guide columns -- a paired
@@ -103,11 +79,11 @@
    seam is a left border instead of the usual border-top. */
 .genome-upload-card--guide {
     border-left: 1px solid var(--tp-color-border-soft);
-    padding-left: 18px;
+    padding-left: var(--tp-space-5);
 }
 
 .genome-upload-history {
-    padding: 16px 18px;
+    padding: var(--tp-space-4) var(--tp-space-5);
 }
 
 /* Extra breathing room between consecutive history-style sections
@@ -115,24 +91,24 @@
    grid gap -- each already opens with its own bold h2, so spacing only,
    no hairline, same call as assembly.html's genome-grid. */
 .genome-upload-history ~ .genome-upload-history {
-    margin-top: 20px;
+    margin-top: var(--tp-space-5);
 }
 
 .genome-upload-card-head {
     align-items: flex-start;
-    margin-bottom: 14px;
+    margin-bottom: var(--tp-space-4);
 }
 
 .genome-upload-card h2,
 .genome-upload-history h2 {
-    margin: 0 0 14px;
+    margin: 0 0 var(--tp-space-4);
     color: var(--tp-color-brand-900);
     font-size: var(--tp-font-size-xl);
     line-height: 1.15;
 }
 
 .genome-upload-card-note {
-    margin: 0 0 14px;
+    margin: 0 0 var(--tp-space-4);
     max-width: 720px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
@@ -141,12 +117,12 @@
 
 .genome-upload-form {
     display: grid;
-    gap: 14px;
+    gap: var(--tp-space-4);
 }
 
 .genome-upload-fieldset {
     display: grid;
-    gap: 16px;
+    gap: var(--tp-space-4);
     min-width: 0;
     margin: 0;
     padding: 0;
@@ -160,12 +136,7 @@
    same info coloring, no second box. Selector doubled for specificity over
    the shared .tp-state-note/.tp-state-note--loading rules (ui-system.css). */
 .genome-upload-form-state.tp-state-note {
-    margin-bottom: 14px;
-    border: 0;
-    border-left: 3px solid var(--tp-color-border-strong);
-    border-radius: 0;
-    background: none;
-    padding: 2px 0 2px 12px;
+    margin-bottom: var(--tp-space-4);
 }
 
 .genome-upload-form-state.tp-state-note--loading {
@@ -175,12 +146,12 @@
 .genome-upload-form-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(220px, 0.75fr);
-    gap: 14px;
+    gap: var(--tp-space-4);
 }
 
 .genome-upload-field {
     display: grid;
-    gap: 7px;
+    gap: var(--tp-space-2);
 }
 
 .genome-upload-field .tp-ui-control,
@@ -200,7 +171,7 @@
     display: flex;
     align-items: center;
     min-height: 46px;
-    padding: 4px 6px;
+    padding: var(--tp-space-1) var(--tp-space-2);
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
@@ -209,8 +180,8 @@
 }
 
 .genome-upload-field .tp-file-input::file-selector-button {
-    margin-right: 10px;
-    padding: 8px 14px;
+    margin-right: var(--tp-space-3);
+    padding: var(--tp-space-2) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
@@ -247,10 +218,10 @@
 
 .genome-upload-submit-row {
     display: flex;
-    gap: 14px;
+    gap: var(--tp-space-4);
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
+    padding: var(--tp-space-4) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
@@ -268,7 +239,7 @@
 }
 
 .genome-upload-submit-note {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     line-height: 1.45;
@@ -285,20 +256,20 @@
 
 .genome-upload-card--guide {
     display: grid;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 .genome-upload-guide {
     display: grid;
-    gap: 14px;
+    gap: var(--tp-space-4);
 }
 
 .genome-upload-guide-item {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 12px;
+    gap: var(--tp-space-3);
     align-items: start;
-    padding: 12px 0;
+    padding: var(--tp-space-3) 0;
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
@@ -329,7 +300,7 @@
 }
 
 .genome-upload-guide-item p {
-    margin: 5px 0 0;
+    margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     line-height: 1.5;
@@ -338,8 +309,8 @@
 /* Plain text, no chip/button in it -- left-accent-bar instead of a
    rounded/tinted box, same treatment as .genome-upload-form-state. */
 .genome-upload-guide-note {
-    margin-top: 6px;
-    padding: 2px 0 2px 12px;
+    margin-top: var(--tp-space-2);
+    padding: 2px 0 2px var(--tp-space-3);
     border-left: 3px solid var(--tp-color-info-border);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
@@ -350,7 +321,7 @@
 .genome-upload-history-clear-form {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--tp-space-2);
     flex-wrap: wrap;
 }
 
@@ -419,13 +390,13 @@
 
 .genome-upload-history .table thead th,
 .genome-upload-history .table tbody td {
-    padding: 0.78rem 0.68rem;
+    padding: var(--tp-space-3) var(--tp-space-3);
     vertical-align: middle;
 }
 
 .genome-upload-history .table thead th:first-child,
 .genome-upload-history .table tbody td:first-child {
-    padding-left: 0.9rem;
+    padding-left: var(--tp-space-4);
 }
 
 .genome-upload-history .table td {
@@ -547,19 +518,19 @@
         border-left: 0;
         padding-left: 0;
         border-top: 1px solid var(--tp-color-border-soft);
-        padding-top: 16px;
-        margin-top: 16px;
+        padding-top: var(--tp-space-4);
+        margin-top: var(--tp-space-4);
     }
 }
 
 @media (max-width: 768px) {
 
     .genome-upload-layout {
-        margin: 0 16px;
+        margin: 0 var(--tp-space-4);
     }
 
     .genome-upload-history {
-        padding: 14px;
+        padding: var(--tp-space-4);
     }
 
     .genome-upload-card-head {
@@ -593,7 +564,7 @@
 .genome-upload-details summary {
     cursor: pointer;
     display: inline-block;
-    margin: 0 16px;
+    margin: 0 var(--tp-space-4);
     color: var(--tp-color-brand-900);
     font-weight: 600;
     font-size: var(--tp-font-size-sm);
@@ -616,19 +587,19 @@
 
 .genome-upload-details[open] summary,
 .genome-upload-details.is-open-visual summary {
-    margin-bottom: 12px;
+    margin-bottom: var(--tp-space-3);
 }
 
 .genome-upload-staff-body {
-    padding: 16px;
+    padding: var(--tp-space-4);
     display: grid;
-    gap: 14px;
+    gap: var(--tp-space-4);
 }
 
 /* ── Import result / output ── */
 
 .genome-upload-import-result {
-    margin-top: 16px;
+    margin-top: var(--tp-space-4);
 }
 
 .genome-upload-import-result--hidden {
@@ -636,19 +607,19 @@
 }
 
 .genome-upload-import-grid {
-    margin-top: 12px;
+    margin-top: var(--tp-space-3);
 }
 
 .genome-upload-import-msg {
-    margin: 0 0 4px;
+    margin: 0 0 var(--tp-space-1);
 }
 
 .genome-upload-import-cols {
-    margin: 8px 0 0;
+    margin: var(--tp-space-2) 0 0;
 }
 
 .genome-upload-import-key {
-    margin: 12px 0 4px;
+    margin: var(--tp-space-3) 0 var(--tp-space-1);
     font-size: var(--tp-font-size-sm);
     font-weight: 500;
     color: var(--tp-color-text-muted);
@@ -660,7 +631,7 @@
     display: block;
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border-soft);
-    padding: 8px 12px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     border-radius: var(--tp-radius-sm);
     font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-sm);
@@ -675,7 +646,7 @@
     white-space: pre-wrap;
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border-soft);
-    padding: 10px 12px;
+    padding: var(--tp-space-3) var(--tp-space-3);
     border-radius: var(--tp-radius-sm);
     font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-sm);
@@ -685,7 +656,7 @@
 .genome-upload-checkbox-label {
     display: inline-flex;
     align-items: center;
-    gap: 0.55rem;
+    gap: var(--tp-space-2);
     font-weight: 500;
     cursor: pointer;
 }

@@ -11,7 +11,7 @@
 }
 
 .genomes-page > section ~ section {
-    margin-top: 20px;
+    margin-top: var(--tp-space-5);
 }
 
 .genomes-page h1,
@@ -28,8 +28,8 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 16px;
-    margin-top: 8px;
+    gap: var(--tp-space-4);
+    margin-top: var(--tp-space-2);
 }
 
 .genomes-hero-copy {
@@ -39,15 +39,15 @@
 .genomes-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .genomes-upload-btn {
     min-width: 188px;
     justify-content: center;
-    gap: 0.58rem !important;
-    padding-left: 1rem;
-    padding-right: 1.08rem;
+    gap: var(--tp-space-2) !important;
+    padding-left: var(--tp-space-4);
+    padding-right: var(--tp-space-4);
     flex: 0 0 auto;
 }
 
@@ -79,27 +79,11 @@
     display: inline;
 }
 
-.genomes-request-access-btn {
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--tp-color-link);
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.genomes-request-access-btn:hover,
-.genomes-request-access-btn:focus-visible {
-    color: var(--tp-color-link-hover);
-    text-decoration: underline;
-}
-
 .genomes-pipeline {
-    margin-top: 12px;
+    margin-top: var(--tp-space-3);
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--tp-space-2);
     align-items: flex-start;
     max-width: min(100%, 720px);
 }
@@ -107,8 +91,8 @@
 .genomes-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 12px;
+    gap: var(--tp-space-2);
+    margin-top: var(--tp-space-3);
 }
 
 .genomes-meta-chip {
@@ -116,7 +100,7 @@
 }
 
 .genomes-toolbar {
-    padding: 14px 18px;
+    padding: var(--tp-space-4) var(--tp-space-5);
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -139,8 +123,8 @@
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 12px;
-    padding: 16px 18px 12px;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-4) var(--tp-space-5) var(--tp-space-3);
 }
 
 .genome-list-head-copy {
@@ -233,14 +217,14 @@
     display: inline-flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .genomes-name-main {
     display: inline-flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 .genomes-name-main .genome-processing-badge {
@@ -296,7 +280,7 @@
 .genome-actions-inline {
     display: inline-flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--tp-space-2);
     justify-content: center;
 }
 
@@ -308,14 +292,14 @@
 .genome-processing-badge {
     display: inline-flex;
     align-items: center;
-    margin-left: 8px;
+    margin-left: var(--tp-space-2);
     border-radius: var(--tp-radius-pill);
     border: 1px solid var(--tp-color-success-border);
     background: var(--tp-color-success-bg);
     color: var(--tp-color-success-ink);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    padding: 2px 8px;
+    padding: 2px var(--tp-space-2);
     vertical-align: middle;
 }
 
@@ -325,7 +309,7 @@
     border-radius: var(--tp-radius-pill);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    padding: 2px 8px;
+    padding: 2px var(--tp-space-2);
     vertical-align: middle;
 }
 
@@ -342,7 +326,7 @@
 }
 
 .genome-status-note {
-    margin: 6px 0 0;
+    margin: var(--tp-space-2) 0 0;
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     line-height: 1.35;
@@ -369,14 +353,14 @@
 
 .genome-workspace-empty {
     display: grid;
-    gap: 14px;
+    gap: var(--tp-space-4);
     align-items: start;
-    padding: 20px 18px;
+    padding: var(--tp-space-5) var(--tp-space-5);
 }
 
 .genome-workspace-empty-copy {
     display: grid;
-    gap: 8px;
+    gap: var(--tp-space-2);
     max-width: 620px;
 }
 
@@ -384,7 +368,7 @@
     display: inline-flex;
     align-items: center;
     width: fit-content;
-    padding: 4px 10px;
+    padding: var(--tp-space-1) var(--tp-space-3);
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-pill);
     color: var(--tp-color-text-muted);
@@ -411,7 +395,7 @@
 .genome-workspace-empty-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 .genomes-hero,
@@ -441,15 +425,15 @@
     .genomes-hero-head {
         flex-direction: column;
         align-items: stretch;
-        gap: 12px;
+        gap: var(--tp-space-3);
     }
 
     .genome-workspace-empty {
-        padding: 18px;
+        padding: var(--tp-space-5);
     }
 
     .genome-list-head {
-        padding: 14px 16px 10px;
+        padding: var(--tp-space-4) var(--tp-space-4) var(--tp-space-3);
     }
 }
 
@@ -463,7 +447,7 @@
     .genome-list-head {
         flex-direction: column;
         align-items: stretch;
-        gap: 8px;
+        gap: var(--tp-space-2);
     }
 
     .genome-list-head .btn {

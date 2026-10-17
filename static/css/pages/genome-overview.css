@@ -17,7 +17,7 @@
    hero with nothing else in between. Assembly's quick-nav/genome-grid
    stay on their own gap-based spacing, untouched by this rule. */
 .genome-page > section ~ section {
-    margin-top: 24px;
+    margin-top: var(--tp-space-6);
 }
 
 .genome-page h1,
@@ -55,9 +55,9 @@
 .genome-hero-top {
     display: flex;
     justify-content: space-between;
-    gap: 18px;
+    gap: var(--tp-space-5);
     align-items: flex-start;
-    margin-top: 8px;
+    margin-top: var(--tp-space-2);
 }
 
 .genome-hero-content {
@@ -73,8 +73,8 @@
 .genome-curated-callout {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-top: 8px;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-2);
 }
 
 .genome-curated-callout-note {
@@ -84,20 +84,20 @@
 }
 
 .genome-hero .hero-chip-list {
-    margin-top: 12px;
+    margin-top: var(--tp-space-3);
 }
 
 .genome-hero .hero-chip {
     display: inline-flex;
     align-items: baseline;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .genome-pipeline-group {
-    margin-top: 12px;
+    margin-top: var(--tp-space-3);
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--tp-space-2);
     align-items: flex-start;
     max-width: min(100%, 720px);
 }
@@ -105,8 +105,8 @@
 .genome-hero-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 18px;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-5);
 }
 
 .genome-hero-actions .tp-btn--primary {
@@ -131,8 +131,8 @@
 }
 
 .genome-hero-actions--secondary {
-    gap: 8px;
-    margin-top: 10px;
+    gap: var(--tp-space-2);
+    margin-top: var(--tp-space-3);
 }
 
 /* Genome vs. Protein BLAST as one segmented group instead of two plain
@@ -144,7 +144,7 @@
     display: inline-flex;
     align-items: center;
     min-height: var(--tp-ui-control-height-compact);
-    padding: 0 3px 0 10px;
+    padding: 0 3px 0 var(--tp-space-3);
     gap: 2px;
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-radius-sm);
@@ -157,7 +157,7 @@
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
-    margin-right: 6px;
+    margin-right: var(--tp-space-2);
 }
 
 .genome-blast-group-option {
@@ -165,7 +165,7 @@
     align-items: center;
     justify-content: center;
     min-height: 24px;
-    padding: 0 10px;
+    padding: 0 var(--tp-space-3);
     border-radius: var(--tp-radius-xs);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
@@ -183,49 +183,6 @@
 }
 
 /* ── Metric pills ─────────────────────────────────────────────────── */
-
-.genome-metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px;
-    margin-top: 14px;
-}
-
-.genome-page .metric-pill {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-soft);
-    padding: 10px 12px;
-    min-height: 68px;
-    display: grid;
-    align-content: center;
-    gap: 2px;
-}
-
-.genome-page .metric-label {
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: var(--tp-tracking-label);
-    color: var(--tp-color-text-muted);
-}
-
-.genome-page .metric-value {
-    color: var(--tp-color-brand-900);
-    /* Matches .evidence-headline/.targets-score-number's "big number" role. */
-    font-size: var(--tp-heading-md);
-    line-height: 1.1;
-    font-weight: 600;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-}
-
-.metric-value-pct {
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    color: var(--tp-color-text-muted);
-}
 
 /* ── Grid + panels ────────────────────────────────────────────────── */
 
@@ -248,13 +205,13 @@
    itself is enough of a "new section" signal here, so this is generous
    whitespace instead of a repeated line. */
 .genome-grid > * ~ * {
-    margin-top: 40px;
+    margin-top: var(--tp-space-8);
 }
 
 .genome-card {
     /* Horizontal padding matches .genome-hero's 18px so card content
        lines up with the hero above it instead of sitting 2px narrower. */
-    padding: 16px 18px;
+    padding: var(--tp-space-4) var(--tp-space-5);
     /* Clearance for the sticky chrome when a nav link jumps here: top bar +
        breadcrumb bar (--tp-sticky-chrome-h), then the 45px .quick-nav docked
        below them, plus ~29px breathing room. Must stay just under
@@ -269,7 +226,7 @@
    sequential page sections -- they keep individual card treatment like a
    chip/tile pair, per tpw-editorial-redesign's exception rule. */
 .genome-card--ranking {
-    border: 1px solid var(--tp-color-border);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
     box-shadow: none;
@@ -286,12 +243,12 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 12px;
+    gap: var(--tp-space-3);
+    margin-bottom: var(--tp-space-3);
 }
 
 .genome-page .section-subtitle {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.45;
@@ -305,7 +262,7 @@
     max-width: 640px;
     display: grid;
     grid-template-columns: 1fr auto;
-    gap: 14px;
+    gap: var(--tp-space-4);
     align-items: end;
     overflow: visible;
 }
@@ -320,21 +277,21 @@
 .genome-targets-wrap {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 14px;
+    gap: var(--tp-space-4);
     /* See .genome-card's scroll-margin-top comment. */
     scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 74px);
     align-items: stretch;
     /* The two ranking tiles inside keep their own border -- left/right margin
        aligns that border with the 18px text inset used elsewhere on the page,
        instead of sitting flush at the page's raw edge. Deliberately no
-       margin-top/bottom set here: a "margin: 0 18px" shorthand used to zero
+       margin-top/bottom set here: a "margin: 0 var(--tp-space-5)" shorthand used to zero
        those out, which (same specificity, later in the cascade) silently
        defeated .genome-grid's own "40px gap between sections" rule below --
        harmless while this was the grid's first child with no preceding
        sibling to space from, but once moved lower on the page it collapsed
        flush against whatever section sits above it. */
-    margin-left: 18px;
-    margin-right: 18px;
+    margin-left: var(--tp-space-5);
+    margin-right: var(--tp-space-5);
 }
 
 @media (max-width: 980px) {
@@ -364,18 +321,8 @@
     font-size: var(--tp-font-size-md);
 }
 
-.targets-eyebrow {
-    display: block;
-    margin-bottom: 2px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-}
-
 .targets-methodology {
-    margin-top: 6px;
+    margin-top: var(--tp-space-2);
 }
 
 .targets-methodology summary {
@@ -401,7 +348,7 @@
 }
 
 .targets-methodology p {
-    margin: 6px 0 0;
+    margin: var(--tp-space-2) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.5;
@@ -412,8 +359,8 @@
 }
 
 .targets-methodology ul {
-    margin: 4px 0 0;
-    padding-left: 18px;
+    margin: var(--tp-space-1) 0 0;
+    padding-left: var(--tp-space-5);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.5;
@@ -430,7 +377,7 @@
     counter-reset: targets-counter;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--tp-space-3);
     /* Grows to fill the stretched card height (both ranking cards are equal-height
        grid siblings), so the footnote lands at the same relative position in both
        instead of floating right under a shorter list with dead space below it. */
@@ -457,7 +404,7 @@
 
 .targets-link {
     display: block;
-    padding: 14px 16px;
+    padding: var(--tp-space-4) var(--tp-space-4);
     color: inherit;
     text-decoration: none;
 }
@@ -480,7 +427,7 @@
 .targets-main {
     min-width: 0;
     display: grid;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 /* Row-top + description share one explicit height floor so this block renders
@@ -490,7 +437,7 @@
 .targets-heading {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--tp-space-2);
     min-height: 4.75rem;
 }
 
@@ -498,13 +445,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: var(--tp-space-4);
 }
 
 .targets-identity {
     display: flex;
     align-items: baseline;
-    gap: 10px;
+    gap: var(--tp-space-3);
     min-width: 0;
 }
 
@@ -528,7 +475,7 @@
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
     line-height: 1.4;
-    padding-left: 38px;
+    padding-left: var(--tp-space-8);
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -548,7 +495,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 5px;
+    gap: var(--tp-space-1);
     flex-shrink: 0;
 }
 
@@ -612,7 +559,7 @@
    above already carries the "how strong overall" signal, these are the why. ── */
 .targets-signals {
     margin: 2px 0 0;
-    padding-left: 38px;
+    padding-left: var(--tp-space-8);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
     line-height: 1.7;
@@ -639,7 +586,7 @@
    instead of being orphaned at the end of the previous line. */
 .targets-signal:not(:first-child)::before {
     content: "\00b7";
-    margin: 0 8px;
+    margin: 0 var(--tp-space-2);
     color: var(--tp-color-text-soft);
 }
 
@@ -666,13 +613,13 @@
 
 .targets-signal-more::before {
     content: "\00b7";
-    margin: 0 8px;
+    margin: 0 var(--tp-space-2);
     color: var(--tp-color-text-soft);
 }
 
 .targets-footnote {
-    margin: 18px 0 0;
-    padding-top: 12px;
+    margin: var(--tp-space-5) 0 0;
+    padding-top: var(--tp-space-3);
     border-top: 1px dashed var(--tp-color-border-soft);
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-muted);
@@ -693,7 +640,7 @@
     .targets-row-top {
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+        gap: var(--tp-space-2);
     }
 
     .targets-score {
@@ -711,45 +658,19 @@
 .evidence-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 14px;
+    gap: var(--tp-space-4);
 }
 
 .evidence-card {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
-    padding: 16px 18px;
+    padding: var(--tp-space-4) var(--tp-space-5);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--tp-space-3);
     position: relative;
     overflow: hidden;
-}
-
-.evidence-card::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--evidence-accent, var(--tp-color-brand-700));
-}
-
-.evidence-card--structure {
-    --evidence-accent: var(--tp-color-brand-700);
-}
-
-.evidence-card--annotation {
-    --evidence-accent: var(--tp-color-success-ink);
-}
-
-.evidence-card--binders {
-    --evidence-accent: var(--tp-color-brand-600);
-}
-
-.evidence-card--metabolism {
-    --evidence-accent: var(--tp-color-success-ink);
 }
 
 .evidence-label {
@@ -767,7 +688,7 @@
     line-height: 1.1;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--tp-space-1);
 }
 
 .evidence-headline-sub {
@@ -782,22 +703,22 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--tp-space-2);
     border-top: 1px dashed var(--tp-color-border-soft);
-    padding-top: 10px;
+    padding-top: var(--tp-space-3);
 }
 
 .evidence-breakdown li {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    gap: 8px;
+    gap: var(--tp-space-2);
     font-size: var(--tp-font-size-sm);
 }
 
 .evidence-breakdown-priority {
-    padding: 5px 8px;
-    margin-inline: -8px;
+    padding: var(--tp-space-1) var(--tp-space-2);
+    margin-inline: calc(-1 * var(--tp-space-2));
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-success-bg);
 }
@@ -832,8 +753,8 @@
    li has no paired value on the right, just the caption itself. */
 .evidence-breakdown-group-label {
     display: block;
-    margin-top: 4px;
-    padding-top: 8px;
+    margin-top: var(--tp-space-1);
+    padding-top: var(--tp-space-2);
     border-top: 1px dashed var(--tp-color-border-soft);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
@@ -853,16 +774,16 @@
 .evidence-composition {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px 24px;
-    padding-top: 14px;
-    margin-top: 14px;
+    gap: var(--tp-space-3) var(--tp-space-6);
+    padding-top: var(--tp-space-4);
+    margin-top: var(--tp-space-4);
     border-top: 1px dashed var(--tp-color-border-soft);
 }
 
 .evidence-composition-item {
     display: flex;
     align-items: baseline;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .evidence-composition-label {
@@ -900,8 +821,8 @@
 /* ── Evidence footnote ───────────────────────────────────────────── */
 
 .evidence-footnote {
-    margin: 14px 0 0;
-    padding-top: 12px;
+    margin: var(--tp-space-4) 0 0;
+    padding-top: var(--tp-space-3);
     border-top: 1px dashed var(--tp-color-border-soft);
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
@@ -918,9 +839,9 @@
     list-style: none;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--tp-space-2);
     min-height: 34px;
-    padding: 0 14px;
+    padding: 0 var(--tp-space-4);
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface);
@@ -939,13 +860,13 @@
 }
 
 .genome-raw-details[open] summary {
-    margin-bottom: 12px;
+    margin-bottom: var(--tp-space-3);
     border-color: var(--tp-color-brand-300);
     background: var(--tp-color-brand-050);
 }
 
 .genome-raw-table {
-    margin-top: 10px;
+    margin-top: var(--tp-space-3);
 }
 
 /* ── Dataset deletion danger card ────────────────────────────────── */
@@ -964,9 +885,9 @@
     list-style: none;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--tp-space-2);
     min-height: 34px;
-    padding: 0 14px;
+    padding: 0 var(--tp-space-4);
     border: 1px solid var(--tp-color-danger-border);
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-danger-bg);
@@ -981,12 +902,12 @@
 }
 
 .genome-delete-summary[open] summary {
-    margin-bottom: 12px;
+    margin-bottom: var(--tp-space-3);
 }
 
 .genome-delete-form {
     display: grid;
-    gap: 10px;
+    gap: var(--tp-space-3);
 }
 
 .genome-delete-copy {
@@ -999,7 +920,7 @@
 .genome-delete-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: var(--tp-space-3);
     flex-wrap: wrap;
 }
 

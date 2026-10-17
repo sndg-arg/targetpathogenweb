@@ -3,8 +3,8 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261017-system">
-    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261017-system2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -35,10 +35,10 @@
                     <dt>{% trans "First name" %}</dt>
                     <dd>
                         <span class="profile-field-value">{{ form.first_name.value|default:"—" }}</span>
-                        <button type="button" class="profile-field-edit-btn js-profile-edit-field"
+                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm profile-field-edit-btn js-profile-edit-field"
                                 data-field="first_name" data-field-label="{% trans 'First name' %}"
                                 aria-label="{% trans 'Edit first name' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">
-                            {% include "components/icons/pencil.html" %}
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span>
                         </button>
                     </dd>
                 </div>
@@ -46,10 +46,10 @@
                     <dt>{% trans "Last name" %}</dt>
                     <dd>
                         <span class="profile-field-value">{{ form.last_name.value|default:"—" }}</span>
-                        <button type="button" class="profile-field-edit-btn js-profile-edit-field"
+                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm profile-field-edit-btn js-profile-edit-field"
                                 data-field="last_name" data-field-label="{% trans 'Last name' %}"
                                 aria-label="{% trans 'Edit last name' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">
-                            {% include "components/icons/pencil.html" %}
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span>
                         </button>
                     </dd>
                 </div>
@@ -57,10 +57,10 @@
                     <dt>{% trans "Email" %}</dt>
                     <dd>
                         <span class="profile-field-value">{{ form.email.value|default:"—" }}</span>
-                        <button type="button" class="profile-field-edit-btn js-profile-edit-field"
+                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm profile-field-edit-btn js-profile-edit-field"
                                 data-field="email" data-field-label="{% trans 'Email' %}"
                                 aria-label="{% trans 'Edit email' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">
-                            {% include "components/icons/pencil.html" %}
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span>
                         </button>
                     </dd>
                 </div>

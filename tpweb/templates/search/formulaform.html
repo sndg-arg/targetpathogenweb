@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20261017-system2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -65,7 +65,7 @@
             <div class="formula-editor-col">
 
                 {# Name field #}
-                <div class="formula-card formula-card--name tp-ui-panel">
+                <div class="formula-card formula-card--name">
                     <div class="tp-ui-field">
                         <label class="tp-ui-field-label" for="{{ form.formula_name.id_for_label }}">
                             {% trans "Formula name" %}
@@ -85,7 +85,7 @@
                 </div>
 
                 {# Expression editor #}
-                <div class="formula-card formula-card--editor tp-ui-panel">
+                <div class="formula-card formula-card--editor">
                     <div class="formula-card-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Expression" %}</h2>
@@ -170,7 +170,7 @@
 
             {# ─── Right column: variable palette ─── #}
             <div class="formula-vars-col">
-                <div class="formula-card formula-card--vars tp-ui-panel">
+                <div class="formula-card formula-card--vars">
                     <div class="formula-card-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Variables" %}</h2>
@@ -225,7 +225,7 @@
         </section>
 
         {# ── Footer ── #}
-        <section class="formula-footer tp-ui-panel">
+        <section class="formula-footer">
             <div class="formula-footer-copy">
                 <p class="formula-footer-title">{% if editing %}{% trans "Save changes and apply" %}{% else %}{% trans "Save and apply" %}{% endif %}</p>
                 <p class="formula-footer-note">{% trans "Saves this formula and takes you to the protein list ranked by your score." %}</p>

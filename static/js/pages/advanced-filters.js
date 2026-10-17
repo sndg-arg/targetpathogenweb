@@ -143,7 +143,7 @@
         groupEl.dataset.mode = mode;
         groupEl.querySelectorAll("[data-mode-btn]").forEach(function (btn) {
             var isActive = btn.dataset.modeBtn === mode;
-            btn.classList.toggle("af-mode-btn--active", isActive);
+            btn.classList.toggle("is-selected", isActive);
             btn.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
         var hintEl = groupEl.querySelector("[data-group-hint]");

@@ -25,11 +25,11 @@
 .blast-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .blast-genome-note {
-    margin: 12px 0 0;
+    margin: var(--tp-space-3) 0 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
 }
@@ -43,21 +43,21 @@
 .blast-workbench {
     display: grid;
     grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
-    gap: 18px;
+    gap: var(--tp-space-5);
     align-items: start;
-    margin: 0 18px;
+    margin: 0 var(--tp-space-5);
 }
 
 .blast-card {
     display: grid;
-    gap: 16px;
+    gap: var(--tp-space-4);
     align-content: start;
-    padding: 16px 0;
+    padding: var(--tp-space-4) 0;
 }
 
 .blast-card--guide {
-    gap: 14px;
-    padding-left: 18px;
+    gap: var(--tp-space-4);
+    padding-left: var(--tp-space-5);
     border-left: 1px solid var(--tp-color-border-soft);
 }
 
@@ -69,7 +69,7 @@
 }
 
 .blast-card-note {
-    margin: 6px 0 0;
+    margin: var(--tp-space-2) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-md);
     line-height: 1.45;
@@ -79,12 +79,12 @@
 
 .blast-form-inner {
     display: grid;
-    gap: 16px;
+    gap: var(--tp-space-4);
 }
 
 .blast-form-inner .tp-ui-field {
     display: grid;
-    gap: 7px;
+    gap: var(--tp-space-2);
 }
 
 .blast-form-inner .form-control,
@@ -105,7 +105,7 @@
    own rounded container). */
 .blast-bound-note {
     margin: 0;
-    padding: 2px 0 2px 12px;
+    padding: 2px 0 2px var(--tp-space-3);
     border-left: 3px solid var(--tp-color-info-border);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
@@ -114,7 +114,7 @@
 
 .blast-error {
     margin: 0;
-    padding: 2px 0 2px 12px;
+    padding: 2px 0 2px var(--tp-space-3);
     border-left: 3px solid var(--tp-color-danger-border);
     color: var(--tp-color-danger-ink);
     font-size: var(--tp-font-size-sm);
@@ -131,37 +131,37 @@
 }
 
 .blast-type-field legend {
-    margin-bottom: 7px;
+    margin-bottom: var(--tp-space-2);
 }
 
 .blast-actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
+    gap: var(--tp-space-3);
 }
 
 /* ── Guide ── */
 
 .blast-tip-list {
     margin: 0;
-    padding-left: 18px;
+    padding-left: var(--tp-space-5);
     display: grid;
-    gap: 6px;
+    gap: var(--tp-space-2);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
 .blast-example {
-    padding: 12px 14px;
+    padding: var(--tp-space-3) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
 }
 
 .blast-example-label {
-    margin: 0 0 8px;
+    margin: 0 0 var(--tp-space-2);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
@@ -182,7 +182,7 @@
 /* ── Results ── */
 
 .blast-results {
-    margin: 0 18px;
+    margin: 0 var(--tp-space-5);
     padding-top: var(--tp-space-5);
     border-top: 1px solid var(--tp-color-border-soft);
 }
@@ -191,7 +191,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    gap: 12px;
+    gap: var(--tp-space-3);
     flex-wrap: wrap;
     margin-bottom: var(--tp-space-4);
 }
@@ -203,7 +203,7 @@
 }
 
 .blast-result-count {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
 }
@@ -238,10 +238,10 @@
 }
 
 .blast-result-pre {
-    margin: 8px 0 0;
+    margin: var(--tp-space-2) 0 0;
     max-height: 70vh;
     overflow: auto;
-    padding: 14px 16px;
+    padding: var(--tp-space-4) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
@@ -288,7 +288,7 @@
 
     .blast-card--guide {
         padding-left: 0;
-        padding-top: 18px;
+        padding-top: var(--tp-space-5);
         border-left: 0;
         border-top: 1px solid var(--tp-color-border-soft);
     }

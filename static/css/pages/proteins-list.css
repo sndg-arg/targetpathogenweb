@@ -17,7 +17,7 @@
    callout, so a line on top of that would be two boundary signals for
    the same seam. */
 .proteins-page > section:not(.filter-tray) ~ section:not(.filter-tray) {
-    margin-top: 20px;
+    margin-top: var(--tp-space-5);
 }
 
 .proteins-page h1,
@@ -36,7 +36,7 @@
 .hero-top {
     display: flex;
     justify-content: space-between;
-    gap: 14px;
+    gap: var(--tp-space-4);
     flex-wrap: wrap;
     align-items: flex-start;
 }
@@ -53,7 +53,7 @@
    muted like an eyebrow, genome id itself sized closer to a heading so it
    reads as unmistakable at a glance instead of a footnote under the h1. */
 .hero-context {
-    margin: 10px 0 0;
+    margin: var(--tp-space-3) 0 0;
     overflow-wrap: anywhere;
 }
 
@@ -76,14 +76,14 @@
 }
 
 .hero-context-note {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-md);
     line-height: 1.35;
 }
 
 .hero-chips {
-    margin-top: 12px;
+    margin-top: var(--tp-space-3);
 }
 
 .hero-chips .tp-chip {
@@ -91,24 +91,24 @@
 }
 
 .hero-pipeline-group {
-    margin-top: 14px;
+    margin-top: var(--tp-space-4);
     display: grid;
-    gap: 6px;
+    gap: var(--tp-space-2);
     justify-items: start;
 }
 
 .hero-analysis-context {
-    margin-top: 14px;
-    padding-top: 12px;
+    margin-top: var(--tp-space-4);
+    padding-top: var(--tp-space-3);
     border-top: 1px solid var(--tp-color-border-soft);
     display: grid;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .hero-analysis-summary {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--tp-space-2);
     cursor: pointer;
     list-style: none;
     color: var(--tp-color-text-muted);
@@ -150,7 +150,7 @@
     margin: 0;
     display: grid;
     grid-template-columns: minmax(160px, 210px) minmax(0, 1fr);
-    gap: 8px 14px;
+    gap: var(--tp-space-2) var(--tp-space-4);
     align-items: baseline;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
@@ -192,7 +192,7 @@
 
 .hero-analysis-preset {
     display: inline-block;
-    padding: 1px 7px;
+    padding: 1px var(--tp-space-2);
     border-radius: var(--tp-radius-xs);
     font-size: var(--tp-font-size-xs);
     font-weight: 600;
@@ -224,7 +224,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .protein-table td[data-col="ec"] .tp-chip {
-    margin: 2px 6px 2px 0;
+    margin: 2px var(--tp-space-2) 2px 0;
 }
 
 .protein-table td[data-col="go"] {
@@ -235,7 +235,7 @@ a.filter-pill .filter-pill-remove {
 .protein-table td[data-col="go"] .annotation-cell {
     display: grid;
     justify-items: center;
-    gap: 4px;
+    gap: var(--tp-space-1);
     width: min(100%, 220px);
     margin-inline: auto;
 }
@@ -252,7 +252,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .protein-metabolism-chip {
-    gap: 6px;
+    gap: var(--tp-space-2);
     white-space: nowrap;
     border-width: 1px;
 }
@@ -275,7 +275,7 @@ a.filter-pill .filter-pill-remove {
     justify-content: center;
     min-width: 20px;
     height: 18px;
-    padding: 0 5px;
+    padding: 0 var(--tp-space-1);
     border-radius: var(--tp-radius-pill);
     background: color-mix(in srgb, var(--tp-color-surface) 72%, transparent);
     font-size: var(--tp-font-size-2xs);
@@ -287,7 +287,7 @@ a.filter-pill .filter-pill-remove {
     display: inline-flex;
     align-items: center;
     min-height: 22px;
-    padding: 2px 8px;
+    padding: 2px var(--tp-space-2);
     border: 1px dashed var(--tp-color-border);
     border-radius: var(--tp-radius-pill);
     color: var(--tp-color-text-muted);
@@ -300,7 +300,7 @@ a.filter-pill .filter-pill-remove {
 .toolbar-card {
     position: relative;
     z-index: 20;
-    padding: 14px 18px;
+    padding: var(--tp-space-4) var(--tp-space-5);
     display: grid;
     gap: var(--tp-space-3);
 }
@@ -331,7 +331,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .toolbar-card .btn {
-    padding: 0.48rem 0.92rem;
+    padding: var(--tp-space-2) var(--tp-space-4);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -367,7 +367,7 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     flex-wrap: wrap;
     align-items: stretch;
-    gap: 28px;
+    gap: var(--tp-space-6);
     flex: 1 1 auto;
     min-width: 0;
 }
@@ -375,7 +375,7 @@ a.filter-pill .filter-pill-remove {
 .toolbar-workbench__group {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--tp-space-2);
     align-items: stretch;
 }
 
@@ -394,7 +394,7 @@ a.filter-pill .filter-pill-remove {
     justify-content: center;
     gap: 2px;
     min-width: 168px;
-    padding: 8px 14px;
+    padding: var(--tp-space-2) var(--tp-space-4);
     text-align: left;
     color: var(--tp-color-text-primary) !important;
     border: 1px solid var(--tp-color-border-strong) !important;
@@ -413,7 +413,7 @@ a.filter-pill .filter-pill-remove {
     display: grid !important;
     grid-template-columns: auto minmax(0, 1fr);
     grid-template-rows: auto auto;
-    column-gap: 8px;
+    column-gap: var(--tp-space-2);
     row-gap: 2px;
     justify-content: initial;
 }
@@ -504,7 +504,7 @@ a.filter-pill .filter-pill-remove {
     box-shadow: var(--tp-shadow-sm);
     max-height: 280px;
     overflow-y: auto;
-    padding: 5px;
+    padding: var(--tp-space-1);
 }
 
 .search-suggestion-item {
@@ -513,7 +513,7 @@ a.filter-pill .filter-pill-remove {
     background: transparent;
     border-radius: var(--tp-radius-sm);
     text-align: left;
-    padding: 7px 8px;
+    padding: var(--tp-space-2) var(--tp-space-2);
     cursor: pointer;
     color: var(--tp-color-brand-900);
     display: grid;
@@ -553,7 +553,7 @@ a.filter-pill .filter-pill-remove {
 .per-page-control {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
     min-height: 0;
     min-width: 0;
     padding: 0;
@@ -622,20 +622,20 @@ a.filter-pill .filter-pill-remove {
     inset: auto;
     left: 0;
     width: 100%;
-    margin-top: -44px;
+    margin-top: calc(-1 * var(--tp-space-8));
 }
 
 .protein-workspace {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: var(--tp-space-3);
     align-items: start;
 }
 
 .protein-table-panel {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
+    gap: var(--tp-space-3);
     width: 100%;
     max-width: none;
     margin: 0;
@@ -646,15 +646,15 @@ a.filter-pill .filter-pill-remove {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 72px 32px;
+    padding: 72px var(--tp-space-7);
     text-align: center;
-    gap: 10px;
+    gap: var(--tp-space-3);
 }
 
 .protein-empty-state__icon {
     color: var(--tp-color-text-soft);
     opacity: 0.35;
-    margin-bottom: 6px;
+    margin-bottom: var(--tp-space-2);
 }
 
 .protein-empty-state__title {
@@ -674,8 +674,8 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 8px;
-    margin-top: 6px;
+    gap: var(--tp-space-2);
+    margin-top: var(--tp-space-2);
 }
 
 .protein-empty-clear-form {
@@ -686,8 +686,8 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 10px 14px;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-3) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface);
@@ -705,7 +705,7 @@ a.filter-pill .filter-pill-remove {
 .protein-table-scroll-note__hint {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--tp-space-2);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--tp-color-text-secondary);
@@ -828,7 +828,7 @@ a.filter-pill .filter-pill-remove {
 
 .protein-table thead th:last-child,
 .protein-table tbody td:last-child {
-    padding-right: 32px;
+    padding-right: var(--tp-space-7);
 }
 
 .protein-table tbody tr {
@@ -982,7 +982,7 @@ a.filter-pill .filter-pill-remove {
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--tp-color-text-muted);
-    padding: 3px 12px;
+    padding: 3px var(--tp-space-3);
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border-soft);
@@ -993,7 +993,7 @@ a.filter-pill .filter-pill-remove {
     bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
-    padding: 8px 12px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-tooltip-bg);
     color: var(--tp-tooltip-color);
@@ -1053,7 +1053,7 @@ a.filter-pill .filter-pill-remove {
     bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
-    padding: 6px 10px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-tooltip-bg);
     color: var(--tp-tooltip-color);
@@ -1126,7 +1126,7 @@ a.filter-pill .filter-pill-remove {
 .metric-no-structure {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: var(--tp-space-1);
     position: relative;
     color: var(--tp-color-warning-ink);
     font-size: var(--tp-font-size-xs);
@@ -1152,7 +1152,7 @@ a.filter-pill .filter-pill-remove {
     bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
-    padding: 8px 12px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-tooltip-bg);
     color: var(--tp-tooltip-color);
@@ -1188,7 +1188,7 @@ a.filter-pill .filter-pill-remove {
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 4px;
+    gap: var(--tp-space-1);
     max-width: 220px;
 }
 
@@ -1199,7 +1199,7 @@ a.filter-pill .filter-pill-remove {
     font-size: var(--tp-font-size-2xs);
     font-weight: 500;
     color: var(--tp-color-text-muted);
-    padding: 2px 5px;
+    padding: 2px var(--tp-space-1);
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border-soft);
@@ -1209,7 +1209,7 @@ a.filter-pill .filter-pill-remove {
 /* Legacy (kept for backward compat) */
 .annotation-badge-stack {
     display: grid;
-    gap: 4px;
+    gap: var(--tp-space-1);
     margin: 2px 0;
 }
 
@@ -1283,7 +1283,7 @@ a.filter-pill .filter-pill-remove {
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--tp-space-1);
     color: inherit;
     text-decoration: none;
     font-weight: inherit;
@@ -1332,8 +1332,8 @@ a.filter-pill .filter-pill-remove {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
+    gap: var(--tp-space-2);
+    margin-top: var(--tp-space-3);
 }
 
 .pagination-label {
@@ -1343,7 +1343,7 @@ a.filter-pill .filter-pill-remove {
 
 .page-jump-input {
     width: 3.2em;
-    padding: 2px 4px;
+    padding: 2px var(--tp-space-1);
     margin: 0 2px;
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-radius-sm);
@@ -1415,12 +1415,12 @@ a.filter-pill .filter-pill-remove {
 }
 
 .drawer-head {
-    padding: 14px 20px 12px;
+    padding: var(--tp-space-4) var(--tp-space-5) var(--tp-space-3);
     border-bottom: 1px solid var(--tp-color-border-soft);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    gap: var(--tp-space-2);
     background: var(--tp-color-surface-soft);
 }
 
@@ -1492,7 +1492,7 @@ a.filter-pill .filter-pill-remove {
 
 /* Presets accordion — collapsible, always at top of footer */
 .filter-presets-footer {
-    padding: 10px 16px 12px;
+    padding: var(--tp-space-3) var(--tp-space-4) var(--tp-space-3);
     border-bottom: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface-soft);
 }
@@ -1504,7 +1504,7 @@ a.filter-pill .filter-pill-remove {
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
-    margin-bottom: 8px;
+    margin-bottom: var(--tp-space-2);
 }
 
 .filter-presets-footer .filter-preset-save-form {
@@ -1538,7 +1538,7 @@ a.filter-pill .filter-pill-remove {
     flex-direction: column;
     align-items: flex-start;
     gap: 2px;
-    padding: 8px 12px 8px 14px;
+    padding: var(--tp-space-2) var(--tp-space-3) var(--tp-space-2) var(--tp-space-4);
     background: transparent;
     border: none;
     border-radius: var(--tp-radius-sm) 0 0 var(--tp-radius-sm);
@@ -1578,7 +1578,7 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: var(--tp-space-1);
     color: var(--tp-color-text-muted);
     transition: background 140ms ease, color 140ms ease;
 }
@@ -1633,10 +1633,10 @@ a.filter-pill .filter-pill-remove {
 .tpd-list {
     list-style: none;
     margin: 0;
-    padding: 6px;
+    padding: var(--tp-space-2);
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--tp-space-1);
     max-height: 340px;
     overflow-y: auto;
 }
@@ -1697,7 +1697,7 @@ a.filter-pill .filter-pill-remove {
     flex-direction: column;
     align-items: stretch;
     gap: 3px;
-    padding: 8px 11px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     border: none;
     background: transparent;
     color: var(--tp-color-text-primary);
@@ -1730,7 +1730,7 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .tpd-name {
@@ -1759,13 +1759,13 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-brand-100);
     border: 1px solid var(--tp-color-brand-300);
     border-radius: var(--tp-radius-xs);
-    padding: 2px 6px;
+    padding: 2px var(--tp-space-2);
 }
 
 .tpd-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: var(--tp-space-1);
     margin-top: 3px;
 }
 
@@ -1776,7 +1776,7 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-brand-050);
     border: 1px solid var(--tp-color-brand-100);
     border-radius: var(--tp-radius-xs);
-    padding: 2px 6px;
+    padding: 2px var(--tp-space-2);
     white-space: nowrap;
     line-height: 1.4;
 }
@@ -1834,7 +1834,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .tpd-foot {
-    padding: 8px;
+    padding: var(--tp-space-2);
     border-top: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface-soft);
 }
@@ -1846,7 +1846,7 @@ a.filter-pill .filter-pill-remove {
 
 /* Clear / Apply actions row */
 .drawer-foot-actions {
-    padding: 10px 16px;
+    padding: var(--tp-space-3) var(--tp-space-4);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1865,12 +1865,12 @@ a.filter-pill .filter-pill-remove {
     align-items: center;
     justify-content: center;
     white-space: nowrap;
-    padding: 0.44rem 0.76rem;
+    padding: var(--tp-space-2) var(--tp-space-3);
 }
 
 .drawer-clear-btn {
     min-width: clamp(122px, 28vw, 160px);
-    gap: 0.38rem;
+    gap: var(--tp-space-2);
     justify-content: center;
 }
 
@@ -1883,15 +1883,15 @@ a.filter-pill .filter-pill-remove {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
-    padding: 11px;
+    padding: var(--tp-space-3);
 }
 
 .drawer-block-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: var(--tp-space-2);
+    margin-bottom: var(--tp-space-2);
 }
 
 .drawer-block h3 {
@@ -1900,7 +1900,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .drawer-core-note {
-    margin: 0 0 10px;
+    margin: 0 0 var(--tp-space-3);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.45;
@@ -1912,12 +1912,12 @@ a.filter-pill .filter-pill-remove {
 
 .drawer-filter-grid {
     display: grid;
-    gap: 10px;
+    gap: var(--tp-space-3);
 }
 
 .drawer-field {
     display: grid;
-    gap: 6px;
+    gap: var(--tp-space-2);
     margin: 0;
 }
 
@@ -1940,7 +1940,7 @@ a.filter-pill .filter-pill-remove {
 .drawer-inline-actions {
     display: flex;
     justify-content: flex-end;
-    margin-top: 10px;
+    margin-top: var(--tp-space-3);
 }
 
 .drawer-apply-btn {
@@ -1954,7 +1954,7 @@ a.filter-pill .filter-pill-remove {
 .active-filters {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--tp-space-2);
     min-height: 24px;
 }
 
@@ -1969,7 +1969,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-muted);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-pill);
-    padding: 2px 10px;
+    padding: 2px var(--tp-space-3);
     font-size: var(--tp-font-size-2xs);
     font-weight: 700;
     letter-spacing: var(--tp-tracking-label);
@@ -1978,7 +1978,7 @@ a.filter-pill .filter-pill-remove {
 .filter-pill {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: var(--tp-space-2);
 }
 
 .filter-pill-remove {
@@ -2024,7 +2024,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .protein-table-empty-note {
-    margin: 6px 0;
+    margin: var(--tp-space-2) 0;
 }
 
 /* === Scoring + Columns drawers (extend .filters-drawer base) === */
@@ -2038,10 +2038,10 @@ a.filter-pill .filter-pill-remove {
 }
 
 .scoring-drawer-body {
-    padding: 16px 18px 20px;
+    padding: var(--tp-space-4) var(--tp-space-5) var(--tp-space-5);
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: var(--tp-space-5);
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -2056,13 +2056,13 @@ a.filter-pill .filter-pill-remove {
 .scoring-formula-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--tp-space-3);
 }
 
 .scoring-formula-entry {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 6px;
+    gap: var(--tp-space-2);
     align-items: start;
 }
 
@@ -2092,7 +2092,7 @@ a.filter-pill .filter-pill-remove {
     min-height: 32px !important;
     padding: 0 !important;
     border-radius: var(--tp-radius-sm) !important;
-    margin-top: 8px;
+    margin-top: var(--tp-space-2);
 }
 
 .scoring-formula-edit-btn svg,
@@ -2124,12 +2124,12 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-md);
-    padding: 14px 16px;
+    padding: var(--tp-space-4) var(--tp-space-4);
     text-align: left;
     cursor: pointer;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    gap: 12px;
+    gap: var(--tp-space-3);
     align-items: start;
     transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
 }
@@ -2187,14 +2187,14 @@ a.filter-pill .filter-pill-remove {
 .scoring-formula-row__body {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--tp-space-2);
     min-width: 0;
 }
 
 .scoring-formula-row__title {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--tp-space-2);
     flex-wrap: wrap;
 }
 
@@ -2217,7 +2217,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-muted);
     background: var(--tp-color-surface-muted);
     border-radius: var(--tp-radius-pill);
-    padding: 2px 8px;
+    padding: 2px var(--tp-space-2);
 }
 
 .scoring-formula-row--current .scoring-formula-row__badge {
@@ -2228,7 +2228,7 @@ a.filter-pill .filter-pill-remove {
 /* The same formula in words, under the raw expression. */
 .scoring-formula-row__readable {
     display: block;
-    margin-top: 6px;
+    margin-top: var(--tp-space-2);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     line-height: 1.45;
@@ -2238,7 +2238,7 @@ a.filter-pill .filter-pill-remove {
 .scoring-formula-row__expression {
     display: block;
     margin: 0;
-    padding: 8px 10px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
@@ -2280,8 +2280,8 @@ a.filter-pill .filter-pill-remove {
 }
 
 .scoring-formula-help-term:not(:last-child) {
-    margin-bottom: 6px;
-    padding-bottom: 6px;
+    margin-bottom: var(--tp-space-2);
+    padding-bottom: var(--tp-space-2);
     border-bottom: 1px solid color-mix(in srgb, var(--tp-tooltip-color) 20%, transparent);
 }
 
@@ -2302,12 +2302,12 @@ a.filter-pill .filter-pill-remove {
 /* === Scoring drawer — My data section (custom score + custom files) === */
 
 .scoring-mydata {
-    margin-top: 4px;
-    padding-top: 18px;
+    margin-top: var(--tp-space-1);
+    padding-top: var(--tp-space-5);
     border-top: 1px solid var(--tp-color-border-soft);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--tp-space-3);
 }
 
 .scoring-mydata__title {
@@ -2322,14 +2322,14 @@ a.filter-pill .filter-pill-remove {
 .scoring-mydata__actions {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 .scoring-mydata__action {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 14px;
+    padding: var(--tp-space-3) var(--tp-space-4);
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
@@ -2368,8 +2368,8 @@ a.filter-pill .filter-pill-remove {
 .scoring-mydata__files {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 10px 14px;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-3) var(--tp-space-4);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border-soft);
@@ -2435,10 +2435,10 @@ a.filter-pill .filter-pill-remove {
 /* === Columns modal — fixed-note (always-shown chips) === */
 
 .columns-body {
-    padding: 16px 18px 20px;
+    padding: var(--tp-space-4) var(--tp-space-5) var(--tp-space-5);
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--tp-space-4);
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -2448,8 +2448,8 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px 12px;
-    padding: 10px 14px;
+    gap: var(--tp-space-2) var(--tp-space-3);
+    padding: var(--tp-space-3) var(--tp-space-4);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border-soft);
@@ -2467,7 +2467,7 @@ a.filter-pill .filter-pill-remove {
 .columns-fixed-note__chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .columns-fixed-chip {
@@ -2480,19 +2480,19 @@ a.filter-pill .filter-pill-remove {
 .columns-form {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: var(--tp-space-5);
 }
 
 .columns-section {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 .columns-section-head {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--tp-space-3);
     padding: 0 2px;
 }
 
@@ -2512,13 +2512,13 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-muted);
     background: var(--tp-color-surface-muted);
     border-radius: var(--tp-radius-pill);
-    padding: 2px 9px;
+    padding: 2px var(--tp-space-2);
     min-width: 22px;
     text-align: center;
 }
 
 .columns-section-hint {
-    margin: 0 2px 4px;
+    margin: 0 2px var(--tp-space-1);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
 }
@@ -2527,7 +2527,7 @@ a.filter-pill .filter-pill-remove {
 .columns-library-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 /* === Columns modal — single row (flat flex) === */
@@ -2535,8 +2535,8 @@ a.filter-pill .filter-pill-remove {
 .columns-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 9px 12px;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-2) var(--tp-space-3);
     border-radius: var(--tp-radius-sm);
     border: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface);
@@ -2688,7 +2688,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .columns-empty-state {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
 }
 
 .columns-row.is-dragging {
@@ -2705,8 +2705,8 @@ a.filter-pill .filter-pill-remove {
     justify-content: space-between;
     border-top: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface);
-    padding: 12px 18px;
-    gap: 10px;
+    padding: var(--tp-space-3) var(--tp-space-5);
+    gap: var(--tp-space-3);
     align-items: center;
 }
 
@@ -2725,7 +2725,7 @@ a.filter-pill .filter-pill-remove {
    .drawer-catalogue-toggle just below, which had the identical bug
    already, pre-existing. */
 .columns-restore-link.columns-restore-link {
-    padding: 6px 8px;
+    padding: var(--tp-space-2) var(--tp-space-2);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     border-radius: var(--tp-radius-sm) !important;
@@ -2798,7 +2798,7 @@ a.filter-pill .filter-pill-remove {
     .toolbar-workbench {
         width: 100%;
         min-width: 0;
-        gap: 16px;
+        gap: var(--tp-space-4);
     }
 
     .toolbar-workbench__group--primary,
@@ -2848,7 +2848,7 @@ a.filter-pill .filter-pill-remove {
 @media (max-width: 860px) {
     .hero-analysis-line {
         grid-template-columns: 1fr;
-        gap: 4px;
+        gap: var(--tp-space-1);
     }
 
     .protein-table td[data-col="go"] {
@@ -2878,22 +2878,19 @@ a.filter-pill .filter-pill-remove {
     /* Horizontal margin so this box's own border aligns with the 18px
        text inset used by the unboxed hero/toolbar around it -- without
        it, the border sits flush at the page's raw edge instead. */
-    margin: 14px 18px 18px;
-    padding: 12px 16px;
-    background: var(--tp-color-surface);
-    border: 1px solid var(--tp-color-border);
-    border-left: 3px solid var(--tp-color-brand-700);
-    border-radius: var(--tp-radius-md);
+    margin: var(--tp-space-4) var(--tp-space-5) var(--tp-space-5);
+    padding: var(--tp-space-1) 0 var(--tp-space-1) var(--tp-space-4);
+    border-left: 3px solid var(--tp-color-accent-line);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 12px 16px;
+    gap: var(--tp-space-3) var(--tp-space-4);
 }
 
 .filter-tray-head {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 .filter-tray-label {
@@ -2907,7 +2904,7 @@ a.filter-pill .filter-pill-remove {
 .filter-tray-pills {
     display: inline-flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--tp-space-2);
     align-items: center;
     flex: 1 1 auto;
     min-width: 0;
@@ -2916,7 +2913,7 @@ a.filter-pill .filter-pill-remove {
 .filter-tray-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--tp-space-2);
     margin: 0 0 0 auto;
 }
 
@@ -2926,7 +2923,7 @@ a.filter-pill .filter-pill-remove {
 
 .filter-tray-clear-btn,
 .filter-tray-share-btn {
-    padding: 5px 14px;
+    padding: var(--tp-space-1) var(--tp-space-4);
     border-radius: var(--tp-radius-sm) !important;
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
@@ -2938,17 +2935,15 @@ a.filter-pill .filter-pill-remove {
    ========================================================================== */
 
 .drawer-active-summary {
-    padding: 12px 20px 14px;
+    padding: var(--tp-space-3) var(--tp-space-5) var(--tp-space-4);
     border-bottom: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-brand-050);
-    border-left: 3px solid var(--tp-color-brand-600);
 }
 
 .drawer-active-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: var(--tp-space-2);
+    margin-bottom: var(--tp-space-3);
 }
 
 .drawer-active-label {
@@ -2965,9 +2960,9 @@ a.filter-pill .filter-pill-remove {
     border-color: var(--tp-color-brand-200);
     color: var(--tp-color-brand-900);
     border-radius: var(--tp-radius-sm);
-    padding: 5px 5px 5px 11px;
+    padding: var(--tp-space-1) var(--tp-space-1) var(--tp-space-1) var(--tp-space-3);
     font-size: var(--tp-font-size-sm);
-    gap: 8px;
+    gap: var(--tp-space-2);
     transition: border-color 120ms ease, background 120ms ease;
 }
 
@@ -3008,12 +3003,12 @@ a.filter-pill .filter-pill-remove {
     position: sticky;
     top: 0;
     z-index: 2;
-    padding: 10px 16px;
+    padding: var(--tp-space-3) var(--tp-space-4);
     background: var(--tp-color-surface-soft);
     border-bottom: 1px solid var(--tp-color-border-soft);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 .drawer-search-icon {
@@ -3028,7 +3023,7 @@ a.filter-pill .filter-pill-remove {
     min-width: 0;
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-sm);
-    padding: 8px 12px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font: inherit;
@@ -3079,7 +3074,7 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 18px 2px;
+    padding: var(--tp-space-2) var(--tp-space-5) 2px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-2xs);
     letter-spacing: 0;
@@ -3091,7 +3086,7 @@ a.filter-pill .filter-pill-remove {
 
 .drawer-advanced-link {
     display: block;
-    padding: 0 18px 10px;
+    padding: 0 var(--tp-space-5) var(--tp-space-3);
     color: var(--tp-color-link);
     font-size: var(--tp-font-size-xs);
     font-weight: 600;
@@ -3109,7 +3104,7 @@ a.filter-pill .filter-pill-remove {
 .drawer-catalogue-toggle.drawer-catalogue-toggle {
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
-    padding: 4px 6px;
+    padding: var(--tp-space-1) var(--tp-space-2);
     border-radius: var(--tp-radius-sm) !important;
     color: var(--tp-color-link) !important;
     border-color: transparent !important;
@@ -3128,10 +3123,10 @@ a.filter-pill .filter-pill-remove {
    ========================================================================== */
 
 .drawer-filter-catalogue {
-    padding: 8px 14px 32px;
+    padding: var(--tp-space-2) var(--tp-space-4) var(--tp-space-7);
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .filter-group {
@@ -3161,11 +3156,11 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 11px 16px;
+    padding: var(--tp-space-3) var(--tp-space-4);
     color: var(--tp-color-text-primary);
     font-weight: 400;
     font-size: var(--tp-font-size-sm);
-    gap: 12px;
+    gap: var(--tp-space-3);
     background: var(--tp-color-surface);
 }
 
@@ -3193,7 +3188,7 @@ a.filter-pill .filter-pill-remove {
 .filter-group-meta {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--tp-space-3);
     color: var(--tp-color-text-muted);
 }
 
@@ -3206,7 +3201,7 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-brand-100);
     border: 1px solid var(--tp-color-brand-200);
     border-radius: var(--tp-radius-pill);
-    padding: 2px 9px;
+    padding: 2px var(--tp-space-2);
     min-width: 22px;
     text-align: center;
 }
@@ -3226,10 +3221,10 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-group-body {
-    padding: 14px 16px 20px;
+    padding: var(--tp-space-4) var(--tp-space-4) var(--tp-space-5);
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: var(--tp-space-5);
     border-top: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface);
 }
@@ -3245,14 +3240,14 @@ a.filter-pill .filter-pill-remove {
 .filter-param-head {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: var(--tp-space-2);
+    margin-bottom: var(--tp-space-3);
 }
 
 /* "Select all" / "Clear" text action, right-aligned in a param head */
 .filter-param-bulk-toggle {
     margin-left: auto;
-    padding: 2px 6px;
+    padding: 2px var(--tp-space-2);
     border: 0;
     border-radius: var(--tp-radius-sm);
     background: none;
@@ -3305,7 +3300,7 @@ a.filter-pill .filter-pill-remove {
     right: auto;
     background: var(--tp-color-text-primary);
     color: var(--tp-color-surface);
-    padding: 8px 12px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     border-radius: var(--tp-radius-sm);
     font-size: var(--tp-font-size-xs);
     font-weight: 400;
@@ -3345,7 +3340,7 @@ a.filter-pill .filter-pill-remove {
 .filter-chip-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 7px;
+    gap: var(--tp-space-2);
 }
 
 .filter-chip-form {
@@ -3357,7 +3352,7 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border);
     color: var(--tp-color-text-secondary);
-    padding: 5px 13px;
+    padding: var(--tp-space-1) var(--tp-space-3);
     border-radius: var(--tp-radius-pill);
     font: inherit;
     font-size: var(--tp-font-size-sm);
@@ -3365,7 +3360,7 @@ a.filter-pill .filter-pill-remove {
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
     box-shadow: none;
     transition: background 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 180ms ease;
 }
@@ -3464,7 +3459,7 @@ a.filter-pill .filter-pill-remove {
 /* === Filter drawer — Function group + numeric range UI === */
 
 .filter-chip-group--active {
-    margin-top: 8px;
+    margin-top: var(--tp-space-2);
 }
 
 /* "Show N more" for a criterion with more chips than fit at a glance. */
@@ -3475,7 +3470,7 @@ a.filter-pill .filter-pill-remove {
 .filter-chip-more > summary {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
     margin-top: 2px;
     color: var(--tp-color-link);
     font-size: var(--tp-font-size-sm);
@@ -3499,15 +3494,15 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-chip-more > .filter-chip-group {
-    margin-top: 8px;
+    margin-top: var(--tp-space-2);
 }
 
 /* Typed/pasted values for a criterion with too many options for chips
    (e.g. an uploaded locus-tag column, one value per protein). */
 .filter-values-form {
     display: grid;
-    gap: 8px;
-    margin-top: 8px;
+    gap: var(--tp-space-2);
+    margin-top: var(--tp-space-2);
 }
 
 .filter-values-label {
@@ -3521,7 +3516,7 @@ a.filter-pill .filter-pill-remove {
 .filter-values-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px;
+    gap: var(--tp-space-2);
     align-items: end;
 }
 
@@ -3539,9 +3534,9 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
     min-height: 44px;
-    padding: 6px 8px;
+    padding: var(--tp-space-2) var(--tp-space-2);
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
@@ -3564,9 +3559,9 @@ a.filter-pill .filter-pill-remove {
 .filter-token-chip {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--tp-space-1);
     max-width: 100%;
-    padding: 3px 4px 3px 10px;
+    padding: 3px var(--tp-space-1) 3px var(--tp-space-3);
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface-soft);
@@ -3609,7 +3604,7 @@ a.filter-pill .filter-pill-remove {
 .filter-token-text {
     flex: 1 1 120px;
     min-width: 120px;
-    padding: 4px 2px;
+    padding: var(--tp-space-1) 2px;
     border: 0;
     background: transparent;
     color: var(--tp-color-text-primary);
@@ -3625,7 +3620,7 @@ a.filter-pill .filter-pill-remove {
 .filter-token-suggestions {
     max-height: 232px;
     margin: -2px 0 0;
-    padding: 4px;
+    padding: var(--tp-space-1);
     overflow-y: auto;
     overscroll-behavior: contain;
     list-style: none;
@@ -3655,7 +3650,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-token-suggestions li {
-    padding: 6px 10px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     border-radius: var(--tp-radius-sm);
     color: var(--tp-color-text-primary);
     font-family: var(--tp-font-mono);
@@ -3682,7 +3677,7 @@ a.filter-pill .filter-pill-remove {
     justify-self: start;
     max-width: 100%;
     margin-top: 2px;
-    padding: 7px 12px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     border: 1px solid var(--tp-color-warning-border);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-warning-bg);
@@ -3758,7 +3753,7 @@ a.filter-pill .filter-pill-remove {
 .filter-text-form {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
     flex-wrap: wrap;
 }
 
@@ -3767,7 +3762,7 @@ a.filter-pill .filter-pill-remove {
     min-width: 0;
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-sm);
-    padding: 7px 10px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font: inherit;
@@ -3792,7 +3787,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-text-add {
-    padding: 7px 16px;
+    padding: var(--tp-space-2) var(--tp-space-4);
     border-radius: var(--tp-radius-sm) !important;
     font-size: var(--tp-font-size-sm);
     min-height: 0 !important;
@@ -3801,8 +3796,8 @@ a.filter-pill .filter-pill-remove {
 
 .filter-numeric-form {
     display: grid;
-    gap: 8px;
-    padding: 10px;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-3);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface-soft);
@@ -3862,7 +3857,7 @@ a.filter-pill .filter-pill-remove {
 .filter-numeric-values {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px;
+    gap: var(--tp-space-2);
     align-items: end;
 }
 
@@ -3873,7 +3868,7 @@ a.filter-pill .filter-pill-remove {
 .filter-numeric-field {
     min-width: 0;
     display: grid;
-    gap: 4px;
+    gap: var(--tp-space-1);
     margin: 0;
 }
 
@@ -3899,7 +3894,7 @@ a.filter-pill .filter-pill-remove {
     min-width: 0;
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-sm);
-    padding: 7px 10px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font: inherit;
@@ -3926,7 +3921,7 @@ a.filter-pill .filter-pill-remove {
 .filter-numeric-apply {
     border-radius: var(--tp-radius-sm) !important;
     font-size: var(--tp-font-size-sm);
-    padding: 7px 16px;
+    padding: var(--tp-space-2) var(--tp-space-4);
     min-height: 0 !important;
     white-space: nowrap;
     align-self: end;
@@ -3958,7 +3953,7 @@ a.filter-pill .filter-pill-remove {
 .filter-input-message:not(:empty) {
     display: inline-flex;
     align-items: flex-start;
-    gap: 6px;
+    gap: var(--tp-space-2);
     max-width: 100%;
 }
 
@@ -3966,7 +3961,7 @@ a.filter-pill .filter-pill-remove {
     content: "";
     width: 7px;
     height: 7px;
-    margin-top: 4px;
+    margin-top: var(--tp-space-1);
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-brand-500);
     flex: 0 0 auto;
@@ -3982,7 +3977,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-text-form + .filter-input-message {
-    margin-top: 6px;
+    margin-top: var(--tp-space-2);
 }
 
 .filter-numeric-form.has-pending-filter,
@@ -4006,9 +4001,9 @@ a.filter-pill .filter-pill-remove {
 .filter-explorer-link {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    margin-top: 4px;
-    padding: 8px 0;
+    gap: var(--tp-space-2);
+    margin-top: var(--tp-space-1);
+    padding: var(--tp-space-2) 0;
     color: var(--tp-color-link);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
@@ -4043,8 +4038,8 @@ a.filter-pill .filter-pill-remove {
 }
 
 .drawer-advanced-hint {
-    margin: 4px 20px 12px;
-    padding: 14px 0 0;
+    margin: var(--tp-space-1) var(--tp-space-5) var(--tp-space-3);
+    padding: var(--tp-space-4) 0 0;
     border-top: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
@@ -4055,10 +4050,10 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-link);
     font-weight: 600;
     text-decoration: none;
-    margin-left: 4px;
+    margin-left: var(--tp-space-1);
     display: inline-flex;
     align-items: baseline;
-    gap: 4px;
+    gap: var(--tp-space-1);
 }
 
 .drawer-advanced-hint a::after {
@@ -4117,18 +4112,18 @@ a.filter-pill .filter-pill-remove {
     }
 
     .filter-presets-footer {
-        padding: 8px 12px 10px;
+        padding: var(--tp-space-2) var(--tp-space-3) var(--tp-space-3);
     }
 
     .drawer-foot-actions {
-        padding: 8px 12px;
-        gap: 6px;
+        padding: var(--tp-space-2) var(--tp-space-3);
+        gap: var(--tp-space-2);
     }
 
     .drawer-clear-btn {
         min-width: clamp(116px, 30vw, 138px);
         font-size: var(--tp-font-size-md);
-        padding: 0.42rem 0.62rem;
+        padding: var(--tp-space-2) var(--tp-space-3);
     }
 
     .scoring-drawer,
@@ -4150,7 +4145,7 @@ a.filter-pill .filter-pill-remove {
        this line's text starts on the same edge as "More columns available"
        right below it instead of hanging flush at the panel's raw edge. */
     margin: var(--tp-space-1) 0 0;
-    padding: 6px 15px;
+    padding: var(--tp-space-2) var(--tp-space-4);
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
     /* Stays under the top bar + breadcrumb (theme-and-chrome.js measures
@@ -4195,13 +4190,13 @@ a.filter-pill .filter-pill-remove {
     justify-content: center;
     min-width: 18px;
     height: 18px;
-    padding: 0 5px;
+    padding: 0 var(--tp-space-1);
     border-radius: var(--tp-radius-pill);
     background: color-mix(in srgb, white 22%, transparent);
     border: 1px solid color-mix(in srgb, white 18%, transparent);
     font-size: var(--tp-font-size-2xs);
     font-weight: 700;
-    margin-left: 7px;
+    margin-left: var(--tp-space-2);
     font-variant-numeric: tabular-nums;
     vertical-align: middle;
 }
@@ -4219,7 +4214,7 @@ a.filter-pill .filter-pill-remove {
    always-expanded list. */
 .filter-pending-summary {
     border-top: 1px solid var(--tp-color-border-soft);
-    padding: 0 16px;
+    padding: 0 var(--tp-space-4);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
     line-height: 1.2;
@@ -4234,8 +4229,8 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    padding: 8px 0;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-2) 0;
     cursor: pointer;
     user-select: none;
     color: var(--tp-color-text-muted);
@@ -4260,7 +4255,7 @@ a.filter-pill .filter-pill-remove {
 .filter-pending-summary__head-label {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .filter-pending-summary__count {
@@ -4269,7 +4264,7 @@ a.filter-pill .filter-pill-remove {
     justify-content: center;
     min-width: 15px;
     height: 15px;
-    padding: 0 4px;
+    padding: 0 var(--tp-space-1);
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
@@ -4307,7 +4302,7 @@ a.filter-pill .filter-pill-remove {
     min-width: 0;
     max-height: 128px;
     margin: 0;
-    padding: 0 0 8px;
+    padding: 0 0 var(--tp-space-2);
     overflow-y: auto;
     list-style: none;
     color: var(--tp-color-text-secondary);
@@ -4318,7 +4313,7 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
+    gap: var(--tp-space-2);
     min-width: 0;
 }
 
@@ -4356,8 +4351,8 @@ a.filter-pill .filter-pill-remove {
 /* --- Presets panel (bottom of drawer body) ------------------------------- */
 
 .filter-presets-panel {
-    margin: 6px 14px 20px;
-    padding: 12px;
+    margin: var(--tp-space-2) var(--tp-space-4) var(--tp-space-5);
+    padding: var(--tp-space-3);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
@@ -4367,7 +4362,7 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    margin-bottom: 10px;
+    margin-bottom: var(--tp-space-3);
 }
 
 .filter-presets-panel__title {
@@ -4387,12 +4382,12 @@ a.filter-pill .filter-pill-remove {
 .filter-preset-save-form {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: var(--tp-space-2);
+    margin-bottom: var(--tp-space-3);
 }
 
 .filter-preset-save-btn.btn {
-    padding: 7px 14px;
+    padding: var(--tp-space-2) var(--tp-space-4);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     min-height: 0;
@@ -4404,7 +4399,7 @@ a.filter-pill .filter-pill-remove {
     min-width: 0;
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-sm);
-    padding: 7px 10px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font: inherit;
@@ -4431,13 +4426,13 @@ a.filter-pill .filter-pill-remove {
 .filter-preset-list {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .filter-preset-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 6px;
+    gap: var(--tp-space-2);
     align-items: stretch;
 }
 
@@ -4451,8 +4446,8 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 5px;
-    padding: 9px 12px;
+    gap: var(--tp-space-1);
+    padding: var(--tp-space-2) var(--tp-space-3);
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
@@ -4477,7 +4472,7 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 .filter-preset-name {
@@ -4506,7 +4501,7 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-brand-100);
     border: 1px solid var(--tp-color-brand-300);
     border-radius: var(--tp-radius-xs);
-    padding: 2px 7px;
+    padding: 2px var(--tp-space-2);
 }
 
 .filter-preset-criteria {
@@ -4646,12 +4641,12 @@ body.is-resizing-column * {
     .filters-drawer--wide .drawer-filter-catalogue {
         display: block;
         column-count: 2;
-        column-gap: 14px;
+        column-gap: var(--tp-space-4);
     }
 
     .filters-drawer--wide .drawer-filter-catalogue > * {
         break-inside: avoid;
-        margin-bottom: 6px;
+        margin-bottom: var(--tp-space-2);
     }
 }
 

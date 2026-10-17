@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20261017-system2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -28,9 +28,9 @@
             </div>
             <div class="tp-view-head-actions">
                 <div>
-                    <div class="activity-period-selector" role="group" aria-label="{% trans 'Time period' %}">
+                    <div class="tp-segmented" role="group" aria-label="{% trans 'Time period' %}">
                         {% for choice in period_choices %}
-                        <a href="?days={{ choice.days }}" class="activity-period-btn{% if choice.days == window_days %} is-active{% endif %}">{{ choice.label }}</a>
+                        <a href="?days={{ choice.days }}" class="tp-segmented-option{% if choice.days == window_days %} is-selected{% endif %}"{% if choice.days == window_days %} aria-current="true"{% endif %}><span>{{ choice.label }}</span></a>
                         {% endfor %}
                     </div>
                     {% now "N j, Y H:i" as activity_report_generated_at %}

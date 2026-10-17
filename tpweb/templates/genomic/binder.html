@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261017-system2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -93,13 +93,13 @@
                     </div>
                 {% endif %}
                 {% if properties %}
-                    <div class="metric-pill">
+                    <div class="metric-pill metric-pill--{{ properties.permeability_ok|yesno:'success,warning' }}">
                         <span class="metric-label">{% trans "Permeability" %}</span>
-                        <span class="metric-value metric-value--text metric-value--{{ properties.permeability_ok|yesno:'ok,warn' }}">{{ properties.permeability_label }}</span>
+                        <span class="metric-value metric-value--text">{{ properties.permeability_label }}</span>
                     </div>
-                    <div class="metric-pill">
+                    <div class="metric-pill metric-pill--{{ properties.pains_hit|yesno:'warning,success' }}">
                         <span class="metric-label">PAINS</span>
-                        <span class="metric-value metric-value--text metric-value--{{ properties.pains_hit|yesno:'warn,ok' }}">{% if properties.pains_hit %}{% trans "Alert" %}{% else %}{% trans "Clean" %}{% endif %}</span>
+                        <span class="metric-value metric-value--text">{% if properties.pains_hit %}{% trans "Alert" %}{% else %}{% trans "Clean" %}{% endif %}</span>
                     </div>
                 {% endif %}
             </div>

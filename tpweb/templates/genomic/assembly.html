@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -105,7 +105,7 @@
                     </a>
                 </div>
             </div>
-            <div class="genome-metrics" aria-label="{% trans 'Genome summary' %}">
+            <div class="tp-metrics genome-metrics" aria-label="{% trans 'Genome summary' %}">
                 <div class="metric-pill">
                     <span class="metric-label" title="{% trans 'Total proteins loaded for this genome.' %}">{% trans "Proteins" %}</span>
                     <span class="metric-value">{{ workspace_metrics.total_proteins }}</span>
@@ -348,7 +348,7 @@
                                          the two lists start at different heights. Same technique as the
                                          invisible "How is this calculated?" spacer below, mirrored the other
                                          direction. -->
-                                    <span class="targets-eyebrow" style="visibility: hidden;" aria-hidden="true">{% trans "No ligand evidence yet" %}</span>
+                                    <span class="tp-view-eyebrow" style="visibility: hidden;" aria-hidden="true">{% trans "No ligand evidence yet" %}</span>
                                     <h2>{% trans "Quick triage ranking" %}</h2>
                                     <p class="section-subtitle">
                                         {% trans "A first-look ranking: proteins earn points for independent supporting evidence and lose points for red flags, out of 15. Open a protein to review its evidence before treating it as a candidate." %}
@@ -410,7 +410,7 @@
                         <div class="genome-card genome-card--ranking genome-card--ranking-secondary">
                             <div class="section-head tp-ui-panel-head">
                                 <div>
-                                    <span class="targets-eyebrow">{% trans "No ligand evidence yet" %}</span>
+                                    <span class="tp-view-eyebrow">{% trans "No ligand evidence yet" %}</span>
                                     <h2>{% trans "Worth a fresh look" %}</h2>
                                     <p class="section-subtitle">
                                         {% trans "Same composite score, restricted to proteins with zero ligand records - promising candidates nobody has drugged yet, instead of the ones already best-studied." %}

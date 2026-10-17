@@ -20,19 +20,19 @@
 }
 
 .profile-section {
-    padding: 20px 18px;
+    padding: var(--tp-space-5) var(--tp-space-5);
 }
 
 .profile-fields {
     margin: 0;
     display: grid;
-    gap: 14px;
+    gap: var(--tp-space-4);
 }
 
 .profile-field {
     display: grid;
     gap: 3px;
-    padding-bottom: 12px;
+    padding-bottom: var(--tp-space-3);
     border-bottom: 1px solid var(--tp-color-border-soft);
 }
 
@@ -54,13 +54,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: var(--tp-space-3);
     font-size: var(--tp-font-size-md);
     color: var(--tp-color-text-primary);
 }
 
 .profile-section-title {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
     font-size: var(--tp-font-size-lg);
 }
 
@@ -70,7 +70,7 @@
    section like the rest of the editorial layout, rather than a plain
    bullet-style list sitting inside it. */
 .profile-capability-grid {
-    margin: 16px 0 0;
+    margin: var(--tp-space-4) 0 0;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 1px;
@@ -83,8 +83,8 @@
 .profile-capability-card {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-4) var(--tp-space-4);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-md);
@@ -134,7 +134,7 @@
 }
 
 .profile-capability-note {
-    margin: 14px 0 0;
+    margin: var(--tp-space-4) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
 }
@@ -143,45 +143,17 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px 14px;
+    gap: var(--tp-space-2) var(--tp-space-4);
 }
 
 .profile-field-value {
     overflow-wrap: anywhere;
 }
 
-.profile-field-edit-btn {
-    flex: 0 0 auto;
-    width: 28px;
-    height: 28px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: 1px solid transparent;
-    border-radius: var(--tp-radius-pill);
-    background: transparent;
-    color: var(--tp-color-text-muted);
-    cursor: pointer;
-    transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
-}
-
-.profile-field-edit-btn svg {
-    width: 14px;
-    height: 14px;
-}
-
-.profile-field-edit-btn:hover,
-.profile-field-edit-btn:focus-visible {
-    background: var(--tp-color-surface-muted);
-    border-color: var(--tp-color-border-soft);
-    color: var(--tp-color-text-primary);
-}
-
 /* The edit dialog uses the shared .tp-modal (ui-system.css). */
 .profile-edit-body {
     display: grid;
-    gap: 16px;
+    gap: var(--tp-space-4);
 }
 
 body.profile-modal-open {
