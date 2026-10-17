@@ -12,7 +12,15 @@ class ScoreFormula(models.Model):
     name = CharField(max_length=255, blank=False)
     user = models.ForeignKey(User, related_name="formulas", on_delete=models.CASCADE, null=True)
     default = models.BooleanField(default=False)
+    # Visible to every logged-in user, Basic included. Only meaningful
+    # together with `user` set -- an owner-less (admin-seeded) formula's
+    # visibility already works differently, see protein_formula.py.
     public = models.BooleanField(default=False)
+    # Visible to Gates roles (consumer/collaborator) but not Basic --
+    # narrower than `public`. Set from the formula builder or the
+    # Settings page (tpweb/views/SettingsView.py); the owner decides their
+    # own formulas' visibility, see resolve_formulas_for_user().
+    shared_with_gates = models.BooleanField(default=False)
     expression = models.TextField(blank=True, default="")
 
     class Meta:

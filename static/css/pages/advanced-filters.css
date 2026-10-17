@@ -1,0 +1,195 @@
+/* ── Advanced filter builder — AND/OR group editor ── */
+
+.af-page {
+    display: grid;
+    gap: var(--tp-space-6);
+    padding-bottom: var(--tp-space-8);
+}
+
+.af-form {
+    display: grid;
+    gap: var(--tp-space-5);
+    margin: 0 var(--tp-space-5);
+}
+
+.af-groups {
+    display: grid;
+    gap: var(--tp-space-4);
+}
+
+.af-group {
+    display: grid;
+    gap: var(--tp-space-3);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface);
+    padding: var(--tp-space-4);
+}
+
+/* Groups always combine with AND against each other -- there's no way to
+   OR two whole groups, only the ALL/ANY toggle governs the conditions
+   *inside* one group. That distinction isn't visible anywhere in the UI
+   otherwise, so a small badge sits right on the seam between every group
+   after the first, spelling it out instead of leaving it implicit. */
+.af-group:not(:first-child) {
+    position: relative;
+    margin-top: var(--tp-space-2);
+}
+
+.af-group:not(:first-child)::before {
+    content: var(--af-and-label);
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-pill);
+    padding: 2px var(--tp-space-3);
+    font-size: var(--tp-font-size-2xs);
+    font-weight: 700;
+    letter-spacing: var(--tp-tracking-label);
+    z-index: 1;
+}
+
+.af-group-hint {
+    margin: 0;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+.af-group-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tp-space-3);
+}
+
+.af-conditions {
+    display: grid;
+    gap: var(--tp-space-2);
+}
+
+.af-condition {
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    flex-wrap: wrap;
+}
+
+.af-param-select {
+    flex: 1 1 240px;
+    min-width: 200px;
+}
+
+.af-condition-value {
+    flex: 1 1 260px;
+    min-width: 200px;
+    display: flex;
+}
+
+/* Toggle-pill checklist -- same visual language as the plain filter panel's
+   .filter-chip (proteins-list.css), so picking values here doesn't feel like
+   a different, less-finished widget. A literal "or" sits between every pair
+   of chips (af-option-chip-sep below), so "Core or Accessory" reads as one
+   phrase -- explicit that multiple values of one criterion always combine
+   as "any of these", never a literal AND (a protein can't hold two
+   different values of a single-valued field at once). */
+.af-categorical-checklist {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2);
+    width: 100%;
+    min-height: var(--tp-ui-control-height);
+}
+
+.af-option-chip {
+    appearance: none;
+    background: var(--tp-color-surface);
+    border: 1px solid var(--tp-color-border);
+    color: var(--tp-color-text-secondary);
+    padding: var(--tp-space-1) var(--tp-space-3);
+    border-radius: var(--tp-radius-pill);
+    font: inherit;
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: none;
+    transition:
+        background 120ms ease,
+        border-color 120ms ease,
+        color 120ms ease;
+}
+
+.af-option-chip:hover {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-strong);
+    color: var(--tp-color-text-primary);
+}
+
+.af-option-chip:focus-visible {
+    outline: 2px solid var(--tp-focus-color);
+    outline-offset: 2px;
+}
+
+.af-option-chip--active {
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
+    color: var(--tp-color-on-accent);
+}
+
+.af-option-chip--active:hover {
+    background: var(--tp-color-primary-hover);
+    border-color: var(--tp-color-primary-hover);
+    color: var(--tp-color-on-accent);
+}
+
+.af-option-chip-sep {
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    font-style: italic;
+    color: var(--tp-color-text-soft);
+}
+
+.af-numeric-value {
+    display: flex;
+    gap: var(--tp-space-2);
+    width: 100%;
+}
+
+.af-operation-select {
+    flex: 0 0 92px;
+}
+
+.af-numeric-input {
+    flex: 1 1 90px;
+    min-width: 70px;
+}
+
+.af-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tp-space-3);
+    flex-wrap: wrap;
+}
+
+.af-form-footer-actions {
+    display: flex;
+    gap: var(--tp-space-2);
+}
+
+.af-empty-hint {
+    margin: 0 var(--tp-space-5);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-md);
+}
+
+@media (max-width: 640px) {
+    .af-condition {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

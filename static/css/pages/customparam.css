@@ -1,76 +1,44 @@
 .customparam-page {
     display: grid;
     gap: var(--tp-space-4);
-    --cp-accent-ink: var(--tp-color-brand-900);
-    --cp-accent-soft: var(--tp-color-info-bg);
-    --cp-accent-soft-2: var(--tp-color-brand-050);
-    --cp-accent-border: var(--tp-color-brand-300);
-    --cp-border: var(--tp-color-border-soft);
 }
 
+/* No hairline -- spacing only, same treatment as about-us/data-sources.css
+   (this page's grid gap is 16px; the extra 24px margin here matches that
+   page's own .ds-panel ~ .ds-panel value for the same ~40px total feel). */
 .customparam-page > section ~ section {
-    border-top: 1px solid var(--tp-color-border-soft);
+    margin-top: var(--tp-space-6);
 }
 
 .customparam-page h1,
 .customparam-page h2,
 .customparam-page h3 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--tp-tracking-tight);
 }
 .customparam-page h1 { font-weight: 700; }
-
-/* ── Hero ── */
-
-/* No longer its own boxed card -- sits directly on the page background
-   (see tpw-editorial-redesign). Its own top accent bar is gone too: that
-   was a page-local duplicate of the site-wide masthead rule in
-   .tp-main::before, which now covers this. */
-.customparam-hero {
-    padding: 22px 18px 18px;
-}
-
 .customparam-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    margin: 0 0 8px;
-    color: var(--tp-color-text-muted);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.customparam-hero h1 {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    line-height: 1.05;
-    color: var(--cp-accent-ink);
-}
-
-.customparam-subtitle {
-    margin: 10px 0 0;
-    max-width: 900px;
-    color: var(--tp-color-text-secondary);
-    font-size: 1.03rem;
-    line-height: 1.52;
+    gap: var(--tp-space-2);
+    /* Same sans uppercase eyebrow as Genomes/Proteins -- this page used the
+       monospace font here, one of the things that made it look unlike the
+       rest of the site. */
+    font-size: var(--tp-font-size-xs);
 }
 
 .customparam-chip-group {
-    margin-top: 16px;
+    margin-top: var(--tp-space-4);
 }
 
 .customparam-chip-group .tp-chip {
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .customparam-chip-id {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-weight: 600;
-    color: var(--cp-accent-ink);
+    color: var(--tp-color-brand-900);
 }
 
 /* ── Layout ── */
@@ -78,72 +46,118 @@
 .customparam-layout {
     display: grid;
     grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.9fr);
-    gap: 18px;
+    gap: var(--tp-space-5);
     align-items: start;
-    /* The two cards inside keep their own border -- margin here aligns
-       that border with the 18px text inset the unboxed hero uses,
-       instead of sitting flush at the page's raw edge. */
-    margin: 0 18px;
+    /* Text inset matching the unboxed hero above it. */
+    margin: 0 var(--tp-space-5);
 }
 
-/* ── Cards ── */
+/* ── Columns ── */
 
+/* Form and guide sit directly on the page background, same as Upload
+   (genome-upload.css) and every other fused page -- they used to be two
+   bordered cards, which made this page look unlike the rest of the site.
+   See tpw-editorial-redesign. */
 .customparam-card {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface);
-    padding: 16px;
+    padding: var(--tp-space-4) 0;
 }
 
+/* Vertical hairline between the paired form/guide columns. */
 .customparam-card--guide {
-    background: var(--tp-color-surface);
     display: grid;
-    gap: 8px;
+    gap: var(--tp-space-2);
+    border-left: 1px solid var(--tp-color-border-soft);
+    padding-left: var(--tp-space-5);
 }
 
 .customparam-card-head {
     align-items: flex-start;
-    margin-bottom: 14px;
+    margin-bottom: var(--tp-space-4);
 }
 
 .customparam-card h2 {
-    margin: 0 0 14px;
-    color: var(--cp-accent-ink);
-    font-size: var(--tp-heading-sm);
+    margin: 0 0 var(--tp-space-4);
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-lg);
     line-height: 1.15;
 }
 
 .customparam-card-note {
-    margin: 6px 0 0;
+    margin: var(--tp-space-2) 0 0;
     max-width: 720px;
     color: var(--tp-color-text-muted);
-    font-size: 0.95rem;
+    font-size: var(--tp-font-size-md);
     line-height: 1.45;
 }
 
 /* ── State note (overwrite warning) ── */
 
 .customparam-state-note {
-    margin-bottom: 14px;
+    margin-bottom: var(--tp-space-4);
+}
+
+.customparam-problem-list {
+    margin: var(--tp-space-2) 0 0;
+    padding-left: var(--tp-space-5);
+}
+
+.customparam-problem-list li + li {
+    margin-top: var(--tp-space-1);
 }
 
 /* ── Form ── */
 
 .customparam-form {
     display: grid;
-    gap: 16px;
+    gap: var(--tp-space-4);
 }
 
 .customparam-field {
     display: grid;
-    gap: 7px;
+    gap: var(--tp-space-2);
 }
 
 .customparam-field .tp-ui-control,
 .customparam-field .form-control,
 .customparam-field input[type="file"] {
     min-height: 44px;
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
+}
+
+.customparam-visibility {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.customparam-visibility legend {
+    margin-bottom: 2px;
+}
+
+.customparam-visibility-option {
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-3);
+    margin: 0;
+    font-size: var(--tp-font-size-md);
+    font-weight: 400;
+    color: var(--tp-color-text-primary);
+    cursor: pointer;
+}
+
+.customparam-visibility-option input {
+    margin: 0;
+    accent-color: var(--tp-color-brand-600);
+}
+
+.customparam-field textarea.form-control {
+    min-height: 0;
+    resize: vertical;
+}
+
+.customparam-description[hidden] {
+    display: none;
 }
 
 .customparam-field-help {
@@ -151,6 +165,15 @@
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.4;
+}
+
+.customparam-field-help a {
+    color: var(--tp-color-link);
+    font-weight: 600;
+}
+
+.customparam-field-help a:hover {
+    color: var(--tp-color-link-hover);
 }
 
 .customparam-field-error {
@@ -164,12 +187,12 @@
 
 .customparam-submit-row {
     display: flex;
-    gap: 14px;
+    gap: var(--tp-space-4);
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
+    padding: var(--tp-space-4) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 18px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
 }
 
@@ -179,37 +202,37 @@
 
 .customparam-submit-title {
     margin: 0;
-    color: var(--cp-accent-ink);
-    font-size: 0.96rem;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-md);
     font-weight: 600;
 }
 
 .customparam-submit-note {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.45;
 }
 
 .customparam-actions {
     display: flex;
-    margin-top: 4px;
+    margin-top: var(--tp-space-1);
 }
 
 /* ── Guide (aside) ── */
 
 .customparam-guide {
     display: grid;
-    gap: 14px;
-    margin-bottom: 4px;
+    gap: var(--tp-space-4);
+    margin-bottom: var(--tp-space-1);
 }
 
 .customparam-guide-item {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 12px;
+    gap: var(--tp-space-3);
     align-items: start;
-    padding: 12px 0;
+    padding: var(--tp-space-3) 0;
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
@@ -224,52 +247,52 @@
     justify-content: center;
     width: 30px;
     height: 30px;
-    border-radius: 999px;
-    background: var(--cp-accent-soft);
-    border: 1px solid var(--cp-accent-border);
-    color: var(--cp-accent-ink);
+    border-radius: var(--tp-radius-pill);
+    background: var(--tp-color-info-bg);
+    border: 1px solid var(--tp-color-brand-300);
+    color: var(--tp-color-brand-900);
     font-weight: 600;
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     flex-shrink: 0;
 }
 
 .customparam-guide-item h3 {
     margin: 0;
-    color: var(--cp-accent-ink);
-    font-size: 0.98rem;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-md);
     line-height: 1.25;
 }
 
 .customparam-guide-item p {
-    margin: 5px 0 0;
+    margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.91rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
 /* ── Code example ── */
 
 .customparam-example {
-    padding: 12px 14px;
+    padding: var(--tp-space-3) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 14px;
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
 }
 
 .customparam-example-label {
-    margin: 0 0 8px;
+    margin: 0 0 var(--tp-space-2);
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    letter-spacing: 0.07em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
 .customparam-example-code {
     display: block;
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     color: var(--tp-color-text-secondary);
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.55;
     white-space: pre;
     overflow-x: auto;
@@ -303,16 +326,16 @@
     .customparam-layout {
         grid-template-columns: minmax(0, 1fr);
     }
+
+    /* Stacked: the seam between form and guide becomes horizontal. */
+    .customparam-card--guide {
+        border-left: 0;
+        border-top: 1px solid var(--tp-color-border-soft);
+        padding-left: 0;
+    }
 }
 
 @media (max-width: 768px) {
-    .customparam-hero {
-        padding: 18px 16px 16px;
-    }
-
-    .customparam-card {
-        padding: 14px;
-    }
 
     .customparam-submit-row {
         flex-direction: column;

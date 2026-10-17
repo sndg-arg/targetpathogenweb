@@ -24,7 +24,13 @@ _RESOURCE_FAILURE_PATTERNS = (
 )
 
 
-def classify_slurm_resource_message(text, *, running=False):
+def classify_slurm_resource_message(text, *, running=False, tool_label="InterProScan"):
+    """`tool_label` names whichever remote stage is actually asking (default
+    kept as "InterProScan" for that module's own call sites, which predate
+    this parameter) -- callers for other remote stages (ColabFold, etc.)
+    must pass their own label explicitly, or this reads wrong regardless of
+    which stage is actually running (see pipeline_status.py's caller, which
+    picks the label from the active stage number)."""
     raw = str(text or "").strip()
     if not raw:
         return None
@@ -34,10 +40,13 @@ def classify_slurm_resource_message(text, *, running=False):
 
     if any(reason in normalized for reason in _RESOURCE_WAIT_REASONS):
         if running:
-            return "InterProScan is waiting for resources on the remote cluster."
+            return f"{tool_label} is waiting for resources on the remote cluster."
         return "The remote cluster is currently full or resource-constrained."
 
     if any(pattern in lowered for pattern in _RESOURCE_FAILURE_PATTERNS):
-        return "The remote cluster could not accept the InterProScan job because resources are not currently available."
+        return (
+            f"The remote cluster could not accept the {tool_label} job because "
+            "resources are not currently available."
+        )
 
     return None

@@ -1,3 +1,4 @@
+from tpweb.models.CustomParamShare import CustomParamShare
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from tpweb.models.ScoreParamValue import ScoreParamValue
 
@@ -55,3 +56,13 @@ class ScoreParamValueAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ScoreParamValue, ScoreParamValueAdmin)
+
+
+class CustomParamShareAdmin(admin.ModelAdmin):
+    list_display = ["score_param", "genome_name", "visibility", "shared_at"]
+    list_filter = ["visibility"]
+    search_fields = ["score_param__name", "genome_name"]
+    raw_id_fields = ("score_param",)
+
+
+admin.site.register(CustomParamShare, CustomParamShareAdmin)

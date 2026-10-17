@@ -20,6 +20,10 @@ class ScoreParam(models.Model):
         related_name="owned_score_params",
         on_delete=models.CASCADE,
     )
+    # No longer read: sharing an uploaded column is per genome now
+    # (CustomParamShare, see tpweb.services.custom_param_sharing). Migration
+    # 0092 turned every True here into project-member shares.
+    shared_with_gates = models.BooleanField(default=False)
 
     class Meta:
         constraints = [
@@ -53,7 +57,6 @@ class ScoreParam(models.Model):
 
     @staticmethod
     def initialize():
-
         from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
 
         ScoreFormula.objects.filter(name__startswith="GARDP").delete()
@@ -385,7 +388,7 @@ class ScoreParam(models.Model):
             category="Localization",
             name="Localization",
             type="CATEGORICAL",
-            description="Celular localization of the protein",
+            description="Cellular localization of the protein",
             default_operation="=",
             default_value="Unknown",
             user=None,
@@ -419,7 +422,7 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(
             score_param=sp,
             name="Periplasmic",
-            defaults={"description": "Protein located in periplasmatic space"},
+            defaults={"description": "Protein located in the periplasmic space"},
         )
         ScoreParamOptions.objects.get_or_create(
             score_param=sp, name="Unknown", defaults={"description": "Protein location not known"}

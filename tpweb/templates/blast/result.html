@@ -4,36 +4,92 @@
 {% load custom_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20260710-select-fix1">
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261017-system2">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "BLAST" as crumb_blast %}
+        {% trans "Results" as crumb_results %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:form' as blast_url %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_blast crumb_2_url=blast_url crumb_3_label=crumb_results %}
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}
     <div class="blast-page">
 
         {# ── Hero ── #}
-        <section class="blast-hero">
-            {% trans "BLAST" as crumb_blast %}
-            {% trans "Results" as crumb_results %}
-            {% url 'tpwebapp:index' as index_url %}
-            {% url 'tpwebapp:form' as blast_url %}
-            {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_blast crumb_2_url=blast_url crumb_3_label=crumb_results %}
-
-            <span class="blast-eyebrow">{% trans "Sequence search · blastn" %}</span>
-            <h1>{% trans "BLAST Results" %}</h1>
-            <p class="blast-subtitle">{% trans "Raw alignment report for the submitted query." %}</p>
+        <section class="tp-page-hero blast-hero">
+            <span class="tp-view-eyebrow blast-eyebrow">{% trans "Sequence search · blastn" %}</span>
+            <h1 class="tp-view-title">{% trans "BLAST results" %}</h1>
+            <p class="tp-view-lead blast-subtitle">
+                {% if genome_label %}
+                    {% blocktrans with genome=genome_label %}Nucleotide matches for your query in {{ genome }} (e-value ≤ 1e-6).{% endblocktrans %}
+                {% else %}
+                    {% trans "Nucleotide matches for your query (e-value ≤ 1e-6)." %}
+                {% endif %}
+            </p>
         </section>
 
-        {# ── Result card ── #}
-        <div class="blast-card">
+        <section class="blast-results">
             <div class="blast-result-head">
-                <h2>{% trans "Alignment output" %}</h2>
-                <a class="btn tp-btn tp-btn--neutral tp-btn-with-icon" href="{% url 'tpwebapp:form' %}">
+                <div>
+                    <h2>{% trans "Hits" %}</h2>
+                    {% if hits %}<p class="blast-result-count">{% blocktrans count n=hits|length %}{{ n }} match, best first{% plural %}{{ n }} matches, best first{% endblocktrans %}</p>{% endif %}
+                </div>
+                <a class="btn tp-btn tp-btn--secondary tp-btn-with-icon" href="{{ new_search_url }}">
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
                     <span>{% trans "Run another search" %}</span>
                 </a>
             </div>
-            <pre class="blast-result-pre">{{ result }}</pre>
-        </div>
+            {% if not hits %}
+                <p class="blast-bound-note">{% trans "No hits found for this query (e-value ≤ 1e-6)." %}</p>
+            {% else %}
+                <div class="table-shell tp-table-shell">
+                    <table class="table table-striped table-hover mb-0 tp-table tp-table--plain">
+                        <thead>
+                            <tr>
+                                <th scope="col">{% trans "Gene" %}</th>
+                                <th scope="col" title="{% trans 'Percent identity between query and subject over the aligned region.' %}">{% trans "% identity" %}</th>
+                                <th scope="col" title="{% trans 'Length of the aligned region, in nucleotides.' %}">{% trans "Align. length" %}</th>
+                                <th scope="col" title="{% trans 'Positions of the alignment on your query.' %}">{% trans "Query range" %}</th>
+                                <th scope="col" title="{% trans 'Positions of the alignment on the genome sequence.' %}">{% trans "Subject range" %}</th>
+                                <th scope="col" title="{% trans 'Expect value — lower means a more significant match.' %}">{% trans "E-value" %}</th>
+                                <th scope="col" title="{% trans 'Bit score — higher means a stronger match.' %}">{% trans "Bit score" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hit in hits %}
+                            <tr>
+                                <td>
+                                    {% if hit.protein %}
+                                        <a class="blast-hit-link" href="{% url 'tpwebapp:protein' hit.protein.bioentry_id %}">{{ hit.protein.accession }}</a>
+                                        {% if hit.protein.description %}<span class="blast-hit-desc">{{ hit.protein.description }}</span>{% endif %}
+                                    {% else %}
+                                        {{ hit.subject_id }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ hit.identity }}%</td>
+                                <td>{{ hit.length }}</td>
+                                <td>{{ hit.qstart }}–{{ hit.qend }}</td>
+                                <td>{{ hit.sstart }}–{{ hit.send }}</td>
+                                <td>{{ hit.evalue }}</td>
+                                <td>{{ hit.bitscore }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+            <details class="blast-raw-output">
+                <summary>{% trans "Raw BLAST output (tabular)" %}</summary>
+                <pre class="blast-result-pre">{{ result }}</pre>
+            </details>
+        </section>
 
     </div>
 {% endblock %}

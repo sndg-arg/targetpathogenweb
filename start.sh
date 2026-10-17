@@ -9,7 +9,9 @@ python manage.py migrate
 # Start server — gunicorn for cluster, runserver for local dev
 if [ "$TPW_PROFILE" = "cluster" ]; then
     python manage.py collectstatic --noinput
-    gunicorn tpwebconfig.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
+    # gthread: with plain sync workers, 3 slow protein pages (10-40 s each) at
+    # once blocked every other request. Override via env if needed.
+    gunicorn tpwebconfig.wsgi:application --bind 0.0.0.0:8000 --workers "${GUNICORN_WORKERS:-3}" --worker-class gthread --threads "${GUNICORN_THREADS:-4}" --timeout 120
 else
     python manage.py runserver 0.0.0.0:8000
 fi

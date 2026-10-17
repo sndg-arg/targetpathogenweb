@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260710-select-fix1">
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261017-system2">
 {% endblock %}
 
 {% block body %}
@@ -20,7 +20,7 @@
                     <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
                 {% endif %}
                 <div class="auth-actions">
-                    <a href="{% url 'tpwebapp:index' %}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon">
+                    <a href="{% url 'tpwebapp:index' %}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
                         <span>{% trans "Cancel" %}</span>
                     </a>

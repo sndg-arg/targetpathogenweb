@@ -3,32 +3,41 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260808-scrollmargin-fix">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260809-drop-leftover-shadow">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260809-chokepoint-dt-width">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261017-system2">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% trans "Metabolism" as crumb_metabolism %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:genomes_list' as genomes_url %}
+        {% with crumb_genome="Genome: "|add:assembly.name %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_metabolism crumb_4_url=metabolism_url crumb_5_label="Network" %}
+        {% endwith %}
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}
 <div class="genome-page metabolism-page">
-    <section class="genome-hero metabolism-hero">
+    <section class="tp-page-hero genome-hero metabolism-hero">
         <div class="genome-hero-top tp-view-head">
             <div class="genome-hero-content tp-view-head-copy">
-                {% trans "Genomes" as crumb_genomes %}
-                {% trans "Metabolism" as crumb_metabolism %}
-                {% url 'tpwebapp:index' as index_url %}
-                {% url 'tpwebapp:genomes_list' as genomes_url %}
-                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=assembly.name crumb_3_url=assembly_url crumb_4_label=crumb_metabolism crumb_4_url=metabolism_url crumb_5_label="Network" %}
-                <p class="genome-hero-eyebrow">{% trans "Genome-wide metabolic prioritization" %}</p>
-                <h1>{% trans "Metabolic network" %}</h1>
-                <p class="genome-description">{% trans "Every pathway in one graph. Click a pathway to expand it in place and see its reactions." %}</p>
+                <p class="tp-view-eyebrow genome-hero-eyebrow">{% trans "Genome-wide metabolic prioritization" %}</p>
+                <h1 class="tp-view-title">{% trans "Metabolic network" %}</h1>
+                <p class="tp-view-lead genome-description">{% trans "Every pathway in one graph. Click a pathway to expand it in place and see its reactions." %}</p>
                 <div class="genome-hero-actions">
-                    <a href="{{ metabolism_url }}" class="btn tp-btn tp-btn--outline">{% trans "Pathway ranking" %}</a>
-                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--outline">{% trans "Protein ranking" %}</a>
-                    <a href="{{ assembly_url }}" class="btn tp-btn tp-btn--outline">{% trans "Genome overview" %}</a>
+                    <a href="{{ metabolism_url }}" class="btn tp-btn tp-btn--secondary">{% trans "Pathway ranking" %}</a>
+                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--secondary">{% trans "Explore proteins" %}</a>
+                    <a href="{{ assembly_url }}" class="btn tp-btn tp-btn--secondary">{% trans "Genome overview" %}</a>
                 </div>
             </div>
         </div>
-        <div class="genome-metrics" aria-label="{% trans 'Metabolic summary' %}">
+        <div class="tp-metrics genome-metrics" aria-label="{% trans 'Metabolic summary' %}">
             <div class="metric-pill">
                 <span class="metric-label">{% trans "Pathways" %}</span>
                 <span class="metric-value">{{ summary.pathway_count }}</span>
@@ -41,17 +50,19 @@
                 <span class="metric-label">{% trans "Mapped proteins" %}</span>
                 <span class="metric-value">{{ summary.protein_count }}</span>
             </div>
-            <div class="metric-pill metric-pill--warm" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - harder for the pathogen to route around if inhibited." %}">
+            <div class="metric-pill metric-pill--warning" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - harder for the pathogen to route around if inhibited." %}">
                 <span class="metric-label">{% trans "Chokepoint reactions" %}</span>
                 <span class="metric-value">{{ summary.chokepoint_count }}</span>
             </div>
         </div>
     </section>
 
+    {% if summary.reaction_count %}
     <p class="tp-state-note tp-state-note--empty metabolism-curation-note">
         {% trans "This metabolic network is curated, not automatically generated from the genome." %}
         <a href="{% url 'tpwebapp:data_sources' %}#metabolism-methodology">{% trans "Methodology and citation" %}</a>
     </p>
+    {% endif %}
 
     <section class="genome-card metabolism-panel">
         <div class="section-head tp-ui-panel-head">
@@ -74,20 +85,20 @@
                     <span title="{% trans "These two pathways share at least one reaction." %}"><i class="metabolic-network-genome-line"></i>{% trans "Cross-pathway connection" %}</span>
                 </div>
                 <div class="metabolic-network-genome-actions" aria-label="{% trans "Network controls" %}">
-                    <button type="button" class="metabolic-map-btn" data-metabolic-network-genome-action="fit" title="{% trans "Fit network to view" %}" aria-label="{% trans "Fit network to view" %}">
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"/></svg>
+                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm metabolic-map-btn" data-metabolic-network-genome-action="fit" title="{% trans "Fit network to view" %}" aria-label="{% trans "Fit network to view" %}">
+                        <span class="tp-btn-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"/></svg></span>
                     </button>
-                    <button type="button" class="metabolic-map-btn" data-metabolic-network-genome-action="zoom-in" title="{% trans "Zoom in" %}" aria-label="{% trans "Zoom in" %}">
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M7 5v4M5 7h4"/></svg>
+                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm metabolic-map-btn" data-metabolic-network-genome-action="zoom-in" title="{% trans "Zoom in" %}" aria-label="{% trans "Zoom in" %}">
+                        <span class="tp-btn-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M7 5v4M5 7h4"/></svg></span>
                     </button>
-                    <button type="button" class="metabolic-map-btn" data-metabolic-network-genome-action="zoom-out" title="{% trans "Zoom out" %}" aria-label="{% trans "Zoom out" %}">
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M5 7h4"/></svg>
+                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm metabolic-map-btn" data-metabolic-network-genome-action="zoom-out" title="{% trans "Zoom out" %}" aria-label="{% trans "Zoom out" %}">
+                        <span class="tp-btn-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M5 7h4"/></svg></span>
                     </button>
                 </div>
             </div>
             <div class="metabolic-network-genome-breadcrumb" id="metabolic-network-genome-breadcrumb" hidden>
-                <button type="button" class="metabolic-network-genome-back-btn" id="metabolic-network-genome-back">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5L5 8l5 4.5"/></svg>
+                <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm metabolic-network-genome-back-btn" id="metabolic-network-genome-back">
+                    <span class="tp-btn-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5L5 8l5 4.5"/></svg></span>
                     {% trans "All pathways" %}
                 </button>
                 <span class="metabolic-network-genome-breadcrumb-sep" aria-hidden="true">/</span>
@@ -117,13 +128,13 @@
                         <dd data-field="proteins">-</dd>
                         <dt title="{% trans "Reactions that are the sole producer or consumer of a metabolite - harder for the pathogen to route around if inhibited." %}">{% trans "Chokepoints" %}</dt>
                         <dd data-field="chokepoints">-</dd>
-                        <dt>{% trans "Best target score" %}</dt>
+                        <dt title="{% trans 'Highest score of any protein in this pathway: pocket druggability (0–1) + 0.15 if chokepoint + 0.1 × centrality, or your active scoring formula when one is selected.' %}">{% trans "Best target score" %}</dt>
                         <dd>
                             <span data-field="score">-</span>
                             <span class="metabolic-network-genome-score-bar"><span class="metabolic-network-genome-score-fill" data-field="score-bar"></span></span>
                         </dd>
                     </dl>
-                    <a href="#" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon" id="metabolic-network-genome-open-map" hidden>
+                    <a href="#" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" id="metabolic-network-genome-open-map" hidden>
                         <span>{% trans "Open full pathway map" %}</span>
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                     </a>
@@ -134,5 +145,5 @@
 </div>
 
 <script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20260809-hover-highlight"></script>
-<script src="{% static 'js/pages/metabolic-network-genome.js' %}?v=20260728-dynamiclabel1"></script>
+<script src="{% static 'js/pages/metabolic-network-genome.js' %}?v=20261017-system"></script>
 {% endblock %}

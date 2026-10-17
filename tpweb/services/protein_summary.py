@@ -93,7 +93,7 @@ _SCORE_META = [
         "localization",
         [],
         [],
-        "Predicted subcellular localization by PSORTb. Extracellular and outer-membrane proteins are preferred as drug targets.",
+        "Predicted subcellular localization by PSORTb. Whether a compartment favors a target depends on the project (e.g. drug access vs. intracellular function).",
     ),
     (
         "colabfold_plddt",
@@ -138,7 +138,7 @@ def p2rank_label(value):
 
     Same shape as druggability_label but P2Rank's own thresholds (high >= 0.5,
     medium 0.2-0.49 -- see the "Probability: high >= 0.5..." hint in
-    pocket_cards.html and p2rank_probability_color in StructureView.py),
+    pocket_cards.html and p2rank_probability_color in structure_summary.py),
     since P2Rank's probability scale isn't calibrated the same as FPocket's
     druggability score."""
     if value is None:
@@ -178,6 +178,8 @@ def build_target_profile(raw_scores, microbiome_context=None):
         else:
             tone = "neutral"
         display = val.replace("_", " ").replace("no hit", "No hit").replace("no_hit", "No hit")
+        if display in {"Y", "N"}:
+            display = "Yes" if display == "Y" else "No"
         display_kind = ""
         percentage = None
         if name == "gut_microbiome_offtarget" and microbiome_context:
@@ -196,6 +198,10 @@ def build_target_profile(raw_scores, microbiome_context=None):
                 continue
         items.append(
             {
+                # Score name, so the template can pick bars/scales by key
+                # instead of by the display label (renaming a label used to
+                # silently drop its bar).
+                "key": name,
                 "label": label,
                 "value": display,
                 "tone": tone,
@@ -368,8 +374,8 @@ _pocket_reference_cache = None
 def _pocket_reference_rows():
     """Cached module-level lookup for the FPocket druggability Property/ResidueSet rows
     used by _resolve_fpocket_structure_by_max_score -- same always-the-same-rows
-    rationale as StructureView._pdb_reference_rows, kept local to this module rather
-    than imported from a view (CLAUDE.md: views delegate to services, not the reverse)."""
+    rationale as structure_summary._pdb_reference_rows, kept local to this module
+    since it only needs 2 of that function's 6 rows."""
     global _pocket_reference_cache
     if _pocket_reference_cache is None:
         from tpweb.models.pdb import Property, ResidueSet
@@ -411,6 +417,8 @@ def _resolve_fpocket_structure_by_max_score(structures):
         "code": best_rs.pdb.code,
         "source": source_key,
         "label": structure_source_label(source_key),
+        "pocket": best_rs.name or "",
+        "pdb_id": best_rs.pdb.id,
     }
 
 
@@ -532,6 +540,36 @@ def build_conservation_profile(raw_scores):
         "is_core": roary and corecruncher,
         "roary_label": "core" if roary else "accessory",
         "corecruncher_label": "core" if corecruncher else "accessory",
+    }
+
+
+# Maps the Gates-project pan-genome model's priority label (tpweb/management/
+# commands/load_gates_metabolic_score.py) to one of the site's semantic tone
+# tokens, for the badge color on the protein page's evidence card.
+_GATES_PRIORITY_TONES = {
+    "Priority target": "success",
+    "Second priority targets": "warning",
+    "Non-priority target": "idle",
+}
+
+
+def build_gates_metabolic_priority(raw_scores):
+    """The Gates-project pan-genome metabolic priority score (S_gene,
+    reaction_support, n_reactions, quadrant, priority) -- a curated
+    replacement for the automatic BioCyc/Pathway Tools metrics in
+    build_metabolic_context, only loaded for KP13/ATCC43816 so far
+    (see load_gates_metabolic_score)."""
+    priority = _raw_score(raw_scores, "priority")
+    quadrant = _raw_score(raw_scores, "quadrant")
+    if not priority and not quadrant:
+        return None
+    return {
+        "priority": priority,
+        "quadrant": quadrant,
+        "tone": _GATES_PRIORITY_TONES.get(priority, "idle"),
+        "s_gene": _format_score_value(_raw_score(raw_scores, "S_gene")),
+        "reaction_support": _format_score_value(_raw_score(raw_scores, "reaction_support")),
+        "n_reactions": _raw_score(raw_scores, "n_reactions"),
     }
 
 
@@ -726,6 +764,38 @@ def _append_summary_item(
     )
 
 
+_EVIDENCE_KIND_ORDER = ("metabolic", "structural", "chemical", "selectivity", "conservation")
+
+
+def _summary_evidence_kind(item):
+    anchor = item.get("anchor") or ""
+    label = (item.get("label") or "").lower()
+    if anchor == "#section-metabolic-context":
+        return "metabolic"
+    if anchor == "#section-binders":
+        return "chemical"
+    if anchor == "#section-structure" or "pocket" in label:
+        return "structural"
+    if label.startswith("no similar"):
+        return "selectivity"
+    if label.startswith("core gene"):
+        return "conservation"
+    return None
+
+
+def _summary_evidence_kinds(strengths):
+    found = {_summary_evidence_kind(item) for item in strengths}
+    return [kind for kind in _EVIDENCE_KIND_ORDER if kind in found]
+
+
+def _join_evidence_kinds(kinds):
+    if not kinds:
+        return "supporting"
+    if len(kinds) == 1:
+        return kinds[0]
+    return ", ".join(kinds[:-1]) + " and " + kinds[-1]
+
+
 def build_target_executive_summary(
     raw_scores,
     structure_summary,
@@ -780,7 +850,7 @@ def build_target_executive_summary(
         _append_summary_item(
             missing,
             "No metabolic context",
-            "No SBML/network-derived reaction evidence is loaded for this protein.",
+            "No metabolic-model reactions are loaded for this protein.",
             "missing",
             "#section-metabolic-context",
         )
@@ -835,8 +905,12 @@ def build_target_executive_summary(
             )
             _append_summary_item(risks, "Human similarity", detail, "risk", "#section-binders")
 
-    if microbiome_context:
-        gut_offtarget = _raw_score(raw_scores, "gut_microbiome_offtarget").lower()
+    # Read straight from raw_scores, not gated on microbiome_context: that context
+    # only exists for curated imports (counts/totals), but the plain hit/no_hit
+    # call is loaded for every pipeline genome and a hit must still surface as a risk.
+    microbiome_context = microbiome_context or {}
+    gut_offtarget = _raw_score(raw_scores, "gut_microbiome_offtarget").lower()
+    if gut_offtarget:
         if gut_offtarget == "no_hit":
             _append_summary_item(
                 strengths,
@@ -1083,22 +1157,28 @@ def build_target_executive_summary(
         )
         signal_score += 1
 
+    # Name only the evidence kinds this protein actually has -- a fixed
+    # "converging metabolic, structural and chemical evidence" sentence used to
+    # appear even for proteins with no metabolic data at all.
+    evidence_kinds = _summary_evidence_kinds(strengths)
+    kinds_text = _join_evidence_kinds(evidence_kinds)
     if not strengths:
         verdict = "Evidence is still sparse for this target."
         tone = "sparse"
     elif signal_score >= 8:
-        verdict = (
-            "Strong target candidate with converging metabolic, structural and chemical evidence."
-        )
+        verdict = f"Well-supported target candidate: {kinds_text} evidence point the same way."
         tone = "strong"
     elif signal_score >= 5:
-        verdict = "Promising target candidate with multiple supporting evidence streams."
+        verdict = f"Promising target candidate with {kinds_text} evidence."
         tone = "promising"
     else:
         verdict = (
-            "Target candidate with partial support; inspect missing evidence before prioritizing."
+            f"Target candidate with partial support ({kinds_text} evidence); "
+            "inspect missing evidence before prioritizing."
         )
         tone = "partial"
+    if risks and strengths:
+        verdict += f" Review {len(risks)} flagged risk{'s' if len(risks) != 1 else ''} below."
 
     # Stable sort: higher-priority (more specific, e.g. direct ligand evidence,
     # experimental structure, pocket consensus) items surface first so they
@@ -1199,11 +1279,33 @@ def build_protein_executive_context(
         druggability = None
 
     selected_pocket_evidence = build_selected_pocket_evidence(raw_scores)
+    # Classic-pipeline genomes don't record which structure/pocket produced the
+    # FPocket score, so the evidence card showed "Structure – / Pocket –" while
+    # the header already named the structure. Reuse that same resolution, so
+    # the card says where the number comes from and flags when it isn't the
+    # structure shown in the viewer (annotate_selected_source_status below).
+    if (
+        selected_pocket_evidence
+        and druggability
+        and druggability[2] == "FPocket"
+        and isinstance(druggability[3], dict)
+        and not selected_pocket_evidence["fpocket"]["structure"]
+    ):
+        resolved = druggability[3]
+        selected_pocket_evidence["fpocket"]["structure"] = resolved.get("code") or ""
+        selected_pocket_evidence["fpocket"]["viewer_pdb_id"] = resolved.get("pdb_id")
+        if not selected_pocket_evidence["fpocket"]["pocket"] and resolved.get("pocket"):
+            selected_pocket_evidence["fpocket"]["pocket"] = _format_pocket_label(
+                f"Pocket {resolved['pocket']}"
+                if str(resolved["pocket"]).isdigit()
+                else resolved["pocket"]
+            )
     annotate_selected_source_status(selected_pocket_evidence, structures)
     conservation_profile = build_conservation_profile(raw_scores)
     microbiome_context = build_microbiome_context(raw_scores)
     target_profile = build_target_profile(raw_scores, microbiome_context=microbiome_context)
     metabolic_context = build_metabolic_context(protein, raw_scores)
+    gates_metabolic_priority = build_gates_metabolic_priority(raw_scores)
 
     if binders is None:
         binders = create_binders_dict(protein, search_query=search_query, structures=structures)
@@ -1230,6 +1332,7 @@ def build_protein_executive_context(
         "conservation_profile": conservation_profile,
         "microbiome_context": microbiome_context,
         "metabolic_context": metabolic_context,
+        "gates_metabolic_priority": gates_metabolic_priority,
         "structure_summary": structure_summary,
         "binders": binders,
         "target_summary": target_summary,

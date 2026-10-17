@@ -1,6 +1,8 @@
 import logging
 import time
 
+from django.conf import settings
+
 
 logger = logging.getLogger("tpweb.request")
 
@@ -12,11 +14,26 @@ NOINDEX_PATH_PREFIXES = (
     "/structure_raw/",
 )
 
+# Health checks (hit every 30s by Docker's healthcheck) and static assets
+# carry no activity signal -- skip persisting them so RequestLog stays
+# readable as an actual "who did what" trail rather than infra noise.
+SKIP_REQUEST_LOG_PREFIXES = (
+    "/health/live",
+    "/health/ready",
+    "/health/pipeline",
+)
+
 
 def _first_forwarded_ip(forwarded_for):
     if not forwarded_for:
         return ""
     return forwarded_for.split(",")[0].strip()
+
+
+def _should_skip_persisted_log(path):
+    if path.startswith(SKIP_REQUEST_LOG_PREFIXES):
+        return True
+    return path.startswith(settings.STATIC_URL)
 
 
 def _single_line(value, limit=240):
@@ -77,4 +94,26 @@ class RequestTimingMiddleware:
                 "referer": referer,
             },
         )
+
+        if not _should_skip_persisted_log(request.path):
+            self._persist_request_log(request, response, client_ip, user_agent)
+
         return response
+
+    def _persist_request_log(self, request, response, client_ip, user_agent):
+        from tpweb.models import RequestLog
+
+        try:
+            RequestLog.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                ip=client_ip or None,
+                method=request.method,
+                path=request.path[:500],
+                status_code=response.status_code,
+                user_agent=user_agent,
+            )
+        except Exception:
+            # Never let audit logging take the site down (DB blip, pending
+            # migration right after deploy, etc.) -- it's a side effect, not
+            # part of the actual response.
+            logger.exception("failed to persist RequestLog")

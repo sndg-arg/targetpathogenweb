@@ -3,14 +3,15 @@
 {% if structure_data.p2_pockets %}
     <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
         <h3 class="mini-section-title--p2rank">{% trans "Binding pockets" %} · P2Rank</h3>
-        <p class="table-hint">{% trans "Druggability (P2Rank): high ≥ 0.5 · medium 0.2–0.49 · low < 0.2" %}</p>
+        <p class="table-hint">{% trans "Binding-site probability (P2Rank): high ≥ 0.5 · medium 0.2–0.49 · low < 0.2" %}</p>
         <div class="pocket-cards">
             {% for p2 in structure_data.p2_pockets %}
                 <div class="pocket-card pocket-card--p2rank"
                      data-pocket-method="P2Rank"
-                     data-pocket-title="{% trans 'Pocket' %} {{ forloop.counter }}"
+                     data-pocket-title="{% trans 'Pocket' %} {{ p2.name }}"
                      data-pocket-id="P2Rank #{{ p2.name }}"
                      data-pocket-score="{{ p2.probability }}"
+                     data-pocket-score-label="{{ p2.score_label }}"
                      data-pocket-residues="{{ p2.residues|join:' ' }}"
                      data-pocket-properties="{{ p2.inspector_properties }}"
                      data-pocket-core-note="{{ p2.core_note }}"
@@ -18,10 +19,9 @@
                      data-pocket-zoom="p2_{{p2.name}}_sph">
                     <div class="pocket-card-head js-inspect-pocket" role="button" tabindex="0" title="{% trans 'Select this pocket: center the view, show its core layer if no layer is active, and open the detail panel.' %}">
                         <div class="pocket-card-label">
-                            <strong class="pocket-card-name">{% trans "Pocket" %} {{ forloop.counter }}</strong>
-                            <span class="pocket-card-id">P2Rank #{{ p2.name }}</span>
+                            <strong class="pocket-card-name" title="P2Rank #{{ p2.name }}">{% trans "Pocket" %} {{ p2.name }}</strong>
                         </div>
-                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span>
+                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob" title="{{ p2.score_label }}">{{ p2.probability }}{% if p2.score_band %} · {{ p2.score_band }}{% endif %}</span>
                     </div>
                     {% if p2.consensus_label %}
                     <div class="pocket-consensus"
@@ -41,10 +41,10 @@
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_lbl" data-layer-label="{% trans 'Residue labels' %}" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Residue labels" %}</button>
                     </div>
                     <div class="pocket-card-actions">
-                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">
+                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span><span>{% trans "Center view" %}</span>
                         </button>
-                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p2.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">
+                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p2.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span><span>{% trans "List residues" %}</span>
                         </button>
                     </div>
@@ -62,9 +62,10 @@
             {% for p in structure_data.pockets %}
                 <div class="pocket-card pocket-card--fpocket"
                      data-pocket-method="FPocket"
-                     data-pocket-title="{% trans 'Pocket' %} {{ forloop.counter }}"
+                     data-pocket-title="{% trans 'Pocket' %} {{ p.name }}"
                      data-pocket-id="FPocket #{{ p.name }}"
                      data-pocket-score="{{ p.druggability }}"
+                     data-pocket-score-label="{{ p.score_label }}"
                      data-pocket-residues="{{ p.residues|join:' ' }}"
                      data-pocket-properties="{{ p.inspector_properties }}"
                      data-pocket-core-note="{{ p.core_note }}"
@@ -72,15 +73,14 @@
                      data-pocket-zoom="{{p.name}}_sph">
                     <div class="pocket-card-head js-inspect-pocket" role="button" tabindex="0" title="{% trans 'Select this pocket: center the view, show its core layer if no layer is active, and open the detail panel.' %}">
                         <div class="pocket-card-label">
-                            <strong class="pocket-card-name">{% trans "Pocket" %} {{ forloop.counter }}</strong>
-                            <span class="pocket-card-id">FPocket #{{ p.name }}</span>
+                            <strong class="pocket-card-name" title="FPocket #{{ p.name }}">{% trans "Pocket" %} {{ p.name }}</strong>
                         </div>
                         <div class="pocket-card-badges">
-                            <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span>
+                            <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}" title="{{ p.score_label }}">{{ p.druggability }}{% if p.score_band %} · {{ p.score_band }}{% endif %}</span>
                             {% if p.size_outlier %}
-                                <span class="tp-chip tp-chip--warning tp-chip--sm" title="{{ p.size_outlier_note }}">{% trans "Unusual size" %}</span>
+                                <span class="tp-chip tp-chip--warning" title="{{ p.size_outlier_note }}">{% trans "Unusual size" %}</span>
                             {% else %}
-                                <span class="tp-chip tp-chip--warning tp-chip--sm pocket-card-badge-placeholder" aria-hidden="true">{% trans "Unusual size" %}</span>
+                                <span class="tp-chip tp-chip--warning pocket-card-badge-placeholder" aria-hidden="true">{% trans "Unusual size" %}</span>
                             {% endif %}
                         </div>
                     </div>
@@ -102,10 +102,10 @@
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_lbl" data-layer-label="{% trans 'Residue labels' %}" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Residue labels" %}</button>
                     </div>
                     <div class="pocket-card-actions">
-                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('{{p.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">
+                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('{{p.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span><span>{% trans "Center view" %}</span>
                         </button>
-                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">
+                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span><span>{% trans "List residues" %}</span>
                         </button>
                     </div>
@@ -130,10 +130,10 @@
                         </div>
                         <div class="residueset-row-actions">
                             <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{rs.name}}" aria-pressed="false" title="{% trans 'Show or hide this residue set in the 3D view.' %}">{% trans "Show" %}</button>
-                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('{{rs.name}}_zoom')" title="{% trans 'Center the 3D view on this residue set.' %}">
+                            <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('{{rs.name}}_zoom')" title="{% trans 'Center the 3D view on this residue set.' %}">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span><span>{% trans "Zoom" %}</span>
                             </button>
-                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ rs.residues|join:' ' }}" title="{% trans 'List residues in this set.' %}">
+                            <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ rs.residues|join:' ' }}" title="{% trans 'List residues in this set.' %}">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span><span>{% trans "Residues" %}</span>
                             </button>
                         </div>

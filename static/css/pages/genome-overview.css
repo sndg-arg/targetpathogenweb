@@ -1,32 +1,31 @@
 /* Genome overview — mirrors protein-detail / binder-detail design language. */
 
 .genome-page {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    color: var(--tp-ink);
+    font-family: var(--tp-font-body);
+    color: var(--tp-color-text-primary);
     margin: 0;
     display: grid;
     gap: var(--tp-space-4);
-    --genome-accent: var(--tp-color-brand-800);
-    --genome-accent-ink: var(--tp-color-brand-900);
-    --genome-accent-soft: var(--tp-color-brand-100);
-    --genome-accent-border: var(--tp-color-brand-300);
 }
 
-/* Only matches direct <section> siblings -- .quick-nav is a <nav> and
+/* No hairline -- spacing only, same treatment as about-us/data-sources.css
+   (this page's grid gap is 16px; the extra 24px margin here matches that
+   page's own .ds-panel ~ .ds-panel value for the same ~40px total feel).
+   Only matches direct <section> siblings -- .quick-nav is a <nav> and
    .genome-grid is a <div>, so this only kicks in on pages (like
    Metabolism) where a content section sits as a direct sibling of the
    hero with nothing else in between. Assembly's quick-nav/genome-grid
    stay on their own gap-based spacing, untouched by this rule. */
 .genome-page > section ~ section {
-    border-top: 1px solid var(--tp-color-border-soft);
+    margin-top: var(--tp-space-6);
 }
 
 .genome-page h1,
 .genome-page h2,
 .genome-page h3 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
-    letter-spacing: 0.2px;
+    letter-spacing: 0;
 }
 .genome-page h1 { font-weight: 700; }
 
@@ -53,21 +52,12 @@
 .genome-card:nth-of-type(3) { animation-delay: 140ms; }
 .genome-card:nth-of-type(4) { animation-delay: 170ms; }
 
-/* ── Hero ─────────────────────────────────────────────────────────── */
-
-/* No longer boxed via .tp-page-hero -- sits directly on the page
-   background (see tpw-editorial-redesign), so it needs its own padding
-   now instead of inheriting that shared class's. */
-.genome-hero {
-    padding: 20px 18px;
-}
-
 .genome-hero-top {
     display: flex;
     justify-content: space-between;
-    gap: 18px;
+    gap: var(--tp-space-5);
     align-items: flex-start;
-    margin-top: 8px;
+    margin-top: var(--tp-space-2);
 }
 
 .genome-hero-content {
@@ -76,28 +66,15 @@
     min-width: 0;
 }
 
-.genome-hero-eyebrow {
-    margin: 6px 0 10px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
 .genome-hero h1 {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    line-height: 1.1;
-    color: var(--genome-accent-ink);
     word-break: break-all;
 }
 
 .genome-curated-callout {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-top: 8px;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-2);
 }
 
 .genome-curated-callout-note {
@@ -106,47 +83,30 @@
     line-height: 1.35;
 }
 
-.genome-description {
-    margin: 10px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-md);
-    line-height: 1.42;
-    max-width: 920px;
-}
-
-
 .genome-hero .hero-chip-list {
-    margin-top: 12px;
+    margin-top: var(--tp-space-3);
 }
 
 .genome-hero .hero-chip {
     display: inline-flex;
     align-items: baseline;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .genome-pipeline-group {
-    margin-top: 12px;
+    margin-top: var(--tp-space-3);
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--tp-space-2);
     align-items: flex-start;
     max-width: min(100%, 720px);
-}
-
-.hero-pipeline-note {
-    margin: 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 500;
-    line-height: 1.35;
 }
 
 .genome-hero-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 18px;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-5);
 }
 
 .genome-hero-actions .tp-btn--primary {
@@ -154,131 +114,75 @@
     justify-content: center;
 }
 
+/* Arrow nudges forward on hover -- reinforces "this takes you somewhere". */
+.genome-hero-actions .tp-btn-icon {
+    transition: transform 160ms ease;
+}
+
+.genome-hero-actions .btn:hover .tp-btn-icon,
+.genome-hero-actions .btn:focus-visible .tp-btn-icon {
+    transform: translateX(3px);
+}
+
+.genome-hero-actions-hint {
+    margin: var(--tp-space-2) 0 0;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
 .genome-hero-actions--secondary {
-    gap: 8px;
-    margin-top: 10px;
+    gap: var(--tp-space-2);
+    margin-top: var(--tp-space-3);
+}
+
+/* Genome vs. Protein BLAST as one segmented group instead of two plain
+   buttons that only differed by "BLAST" vs. "Protein BLAST" text -- easy
+   to misread as unrelated actions rather than "same tool, two sequence
+   types". The "BLAST" label up front plus "Genome"/"Protein" segments
+   reads as one decision with two options. */
+.genome-blast-group {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tp-ui-control-height-compact);
+    padding: 0 3px 0 var(--tp-space-3);
+    gap: 2px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-color-surface);
+}
+
+.genome-blast-group-label {
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+    margin-right: var(--tp-space-2);
+}
+
+.genome-blast-group-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 0 var(--tp-space-3);
+    border-radius: var(--tp-radius-xs);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    color: var(--tp-color-text-secondary);
+    text-decoration: none;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.genome-blast-group-option:hover,
+.genome-blast-group-option:focus-visible {
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-primary);
+    outline: none;
 }
 
 /* ── Metric pills ─────────────────────────────────────────────────── */
-
-.genome-metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px;
-    margin-top: 14px;
-}
-
-.genome-page .metric-pill {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    background: var(--tp-color-surface-soft);
-    padding: 10px 12px;
-    min-height: 68px;
-    display: grid;
-    align-content: center;
-    gap: 2px;
-}
-
-.genome-page .metric-label {
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--tp-color-text-muted);
-}
-
-.genome-page .metric-value {
-    color: var(--genome-accent-ink);
-    /* Matches .evidence-headline/.targets-score-number's "big number" role. */
-    font-size: 1.45rem;
-    line-height: 1.1;
-    font-weight: 600;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-}
-
-.metric-value-pct {
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    color: var(--tp-color-text-muted);
-}
-
-/* ── Quick-nav ────────────────────────────────────────────────────── */
-
-.genome-page .quick-nav {
-    position: sticky;
-    top: -2px;
-    z-index: 25;
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 8px;
-    overflow-x: auto;
-    padding: 8px 10px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    background: var(--tp-color-surface-soft);
-    /* This box's own border needs to align with the 18px text inset used
-       by the unboxed hero/cards around it, or it visually pokes out past
-       everything else -- margin does that; internal padding is a
-       separate, smaller detail for the first pill's own breathing room. */
-    margin: 0 18px;
-}
-
-.genome-page .quick-nav::-webkit-scrollbar {
-    height: 6px;
-}
-
-.genome-page .quick-nav::-webkit-scrollbar-thumb {
-    background: var(--tp-color-border-strong);
-    border-radius: 999px;
-}
-
-.genome-page .quick-nav .quick-nav-link {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    justify-content: center;
-    text-align: center;
-    min-height: 34px;
-    padding: 0.28rem 0.9rem;
-    line-height: 1.1;
-    font-weight: 500;
-    border-radius: 999px;
-    border: 1px solid var(--tp-color-border) !important;
-    background: transparent !important;
-    color: var(--tp-color-text-secondary) !important;
-    white-space: nowrap;
-    text-decoration: none !important;
-    transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
-}
-
-/* Marks the one quick-nav tab that navigates to a different page instead
-   of scrolling to a section on this one (there's no in-page "Metabolism"
-   section to jump to) -- without it, this tab looked identical to the
-   real in-page anchors and clicking it felt like a bug. */
-.genome-page .quick-nav .quick-nav-link:hover,
-.genome-page .quick-nav .quick-nav-link:focus-visible {
-    color: var(--tp-color-text-primary) !important;
-    border-color: var(--tp-color-border-strong) !important;
-    background: var(--tp-color-surface) !important;
-}
-
-.genome-page .quick-nav .quick-nav-link.is-active,
-.genome-page .quick-nav .quick-nav-link[aria-current="true"] {
-    color: var(--tp-color-link-hover) !important;
-    border-color: var(--genome-accent-border) !important;
-    background: var(--tp-color-brand-100) !important;
-    text-decoration: none !important;
-}
-
-.tp-dark .genome-page .quick-nav .quick-nav-link.is-active,
-.tp-dark .genome-page .quick-nav .quick-nav-link[aria-current="true"] {
-    background: var(--tp-color-brand-200) !important;
-    border-color: var(--tp-color-brand-300) !important;
-    color: var(--tp-color-brand-900) !important;
-}
 
 /* ── Grid + panels ────────────────────────────────────────────────── */
 
@@ -301,22 +205,20 @@
    itself is enough of a "new section" signal here, so this is generous
    whitespace instead of a repeated line. */
 .genome-grid > * ~ * {
-    margin-top: 40px;
+    margin-top: var(--tp-space-8);
 }
 
 .genome-card {
     /* Horizontal padding matches .genome-hero's 18px so card content
        lines up with the hero above it instead of sitting 2px narrower. */
-    padding: 16px 18px;
-    /* Clearance for the sticky .quick-nav when a nav link jumps here: nav box
-       (8px padding + 34px min-height link + 8px padding + 2px border = 52px)
-       minus its -2px sticky offset, plus ~24px breathing room. Was 128px,
-       which both left a large empty gap above the section on jump AND made
-       the quick-nav's own scroll-spy threshold (scrollY + nav.offsetHeight +
-       24, see assembly.html's jsloaded) never match the landed position, so
-       the clicked link never got marked active either. Keep this in sync
-       with .quick-nav's own box model if that ever changes. */
-    scroll-margin-top: 74px;
+    padding: var(--tp-space-4) var(--tp-space-5);
+    /* Clearance for the sticky chrome when a nav link jumps here: top bar +
+       breadcrumb bar (--tp-sticky-chrome-h), then the 45px .quick-nav docked
+       below them, plus ~29px breathing room. Must stay just under
+       assembly.html's scroll-spy threshold (nav's bottom edge + 30) or the
+       clicked link never gets marked active. Keep this in sync with
+       .quick-nav's own box model if that ever changes. */
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 74px);
 }
 
 /* Exception: the two ranking tiles inside .genome-targets-wrap are a
@@ -324,29 +226,29 @@
    sequential page sections -- they keep individual card treatment like a
    chip/tile pair, per tpw-editorial-redesign's exception rule. */
 .genome-card--ranking {
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-ui-radius-panel);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-xs);
+    box-shadow: none;
 }
 
 .genome-card h2 {
     margin: 0;
-    font-size: var(--tp-heading-sm);
+    font-size: var(--tp-font-size-lg);
     font-weight: 600;
-    color: var(--genome-accent-ink);
+    color: var(--tp-color-brand-900);
 }
 
 .genome-page .section-head {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 12px;
+    gap: var(--tp-space-3);
+    margin-bottom: var(--tp-space-3);
 }
 
 .genome-page .section-subtitle {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.45;
@@ -360,7 +262,7 @@
     max-width: 640px;
     display: grid;
     grid-template-columns: 1fr auto;
-    gap: 14px;
+    gap: var(--tp-space-4);
     align-items: end;
     overflow: visible;
 }
@@ -375,20 +277,21 @@
 .genome-targets-wrap {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 14px;
+    gap: var(--tp-space-4);
     /* See .genome-card's scroll-margin-top comment. */
-    scroll-margin-top: 74px;
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 74px);
     align-items: stretch;
-    /* The two ranking tiles inside keep their own border -- margin aligns
-       that border with the 18px text inset used elsewhere on the page,
-       instead of sitting flush at the page's raw edge. */
-    margin: 0 18px;
-}
-
-@media (max-width: 991px) {
-    .genome-page .quick-nav {
-        top: 64px;
-    }
+    /* The two ranking tiles inside keep their own border -- left/right margin
+       aligns that border with the 18px text inset used elsewhere on the page,
+       instead of sitting flush at the page's raw edge. Deliberately no
+       margin-top/bottom set here: a "margin: 0 var(--tp-space-5)" shorthand used to zero
+       those out, which (same specificity, later in the cascade) silently
+       defeated .genome-grid's own "40px gap between sections" rule below --
+       harmless while this was the grid's first child with no preceding
+       sibling to space from, but once moved lower on the page it collapsed
+       flush against whatever section sits above it. */
+    margin-left: var(--tp-space-5);
+    margin-right: var(--tp-space-5);
 }
 
 @media (max-width: 980px) {
@@ -418,18 +321,8 @@
     font-size: var(--tp-font-size-md);
 }
 
-.targets-eyebrow {
-    display: block;
-    margin-bottom: 2px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
 .targets-methodology {
-    margin-top: 6px;
+    margin-top: var(--tp-space-2);
 }
 
 .targets-methodology summary {
@@ -450,15 +343,31 @@
 
 .targets-methodology summary:hover,
 .targets-methodology summary:focus-visible {
-    color: var(--genome-accent-ink);
-    text-decoration-color: var(--genome-accent-border);
+    color: var(--tp-color-brand-900);
+    text-decoration-color: var(--tp-color-brand-300);
 }
 
 .targets-methodology p {
-    margin: 6px 0 0;
+    margin: var(--tp-space-2) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.5;
+}
+
+.targets-methodology p strong {
+    color: var(--tp-color-text-secondary);
+}
+
+.targets-methodology ul {
+    margin: var(--tp-space-1) 0 0;
+    padding-left: var(--tp-space-5);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.targets-methodology li {
+    margin: 2px 0;
 }
 
 .targets-list {
@@ -468,7 +377,7 @@
     counter-reset: targets-counter;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--tp-space-3);
     /* Grows to fill the stretched card height (both ranking cards are equal-height
        grid siblings), so the footnote lands at the same relative position in both
        instead of floating right under a shorter list with dead space below it. */
@@ -477,9 +386,9 @@
 
 .targets-item {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-xs);
+    box-shadow: none;
     transition:
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -489,13 +398,13 @@
 .targets-item:hover,
 .targets-item:focus-within {
     border-color: var(--tp-color-border-strong);
-    box-shadow: var(--tp-shadow-sm);
+    box-shadow: none;
     transform: translateY(-1px);
 }
 
 .targets-link {
     display: block;
-    padding: 14px 16px;
+    padding: var(--tp-space-4) var(--tp-space-4);
     color: inherit;
     text-decoration: none;
 }
@@ -510,15 +419,15 @@
    a crisp ring on the link itself so keyboard users see exactly what's
    focused, instead of the outline:none-with-no-replacement it had before. */
 .targets-link:focus-visible {
-    outline: 2px solid var(--genome-accent-border);
+    outline: 2px solid var(--tp-focus-color);
     outline-offset: -2px;
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
 }
 
 .targets-main {
     min-width: 0;
     display: grid;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 /* Row-top + description share one explicit height floor so this block renders
@@ -528,7 +437,7 @@
 .targets-heading {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--tp-space-2);
     min-height: 4.75rem;
 }
 
@@ -536,18 +445,18 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: var(--tp-space-4);
 }
 
 .targets-identity {
     display: flex;
     align-items: baseline;
-    gap: 10px;
+    gap: var(--tp-space-3);
     min-width: 0;
 }
 
 .targets-rank {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-md);
     font-weight: 600;
     color: var(--tp-color-text-muted);
@@ -555,10 +464,10 @@
 }
 
 .targets-accession {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-lg);
     font-weight: 600;
-    color: var(--genome-accent-ink);
+    color: var(--tp-color-brand-900);
 }
 
 .targets-description {
@@ -566,7 +475,7 @@
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
     line-height: 1.4;
-    padding-left: 38px;
+    padding-left: var(--tp-space-8);
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -586,15 +495,15 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 5px;
+    gap: var(--tp-space-1);
     flex-shrink: 0;
 }
 
 .targets-score-number {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     /* Matches .evidence-headline's size -- same page, same "big highlighted
        number" role, so they should read as the same visual weight. */
-    font-size: 1.45rem;
+    font-size: var(--tp-heading-md);
     font-weight: 700;
     line-height: 1;
     font-variant-numeric: tabular-nums;
@@ -609,7 +518,7 @@
 .targets-score-bar {
     width: 72px;
     height: 3px;
-    border-radius: 2px;
+    border-radius: var(--tp-radius-xs);
     background: var(--tp-color-border-soft);
     overflow: hidden;
 }
@@ -617,15 +526,15 @@
 .targets-score-fill {
     display: block;
     height: 100%;
-    border-radius: 2px;
+    border-radius: var(--tp-radius-xs);
     background: currentColor;
 }
 
 .targets-score-tier {
-    font-size: 0.66rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
 }
 
@@ -650,7 +559,7 @@
    above already carries the "how strong overall" signal, these are the why. ── */
 .targets-signals {
     margin: 2px 0 0;
-    padding-left: 38px;
+    padding-left: var(--tp-space-8);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
     line-height: 1.7;
@@ -677,7 +586,7 @@
    instead of being orphaned at the end of the previous line. */
 .targets-signal:not(:first-child)::before {
     content: "\00b7";
-    margin: 0 8px;
+    margin: 0 var(--tp-space-2);
     color: var(--tp-color-text-soft);
 }
 
@@ -704,13 +613,13 @@
 
 .targets-signal-more::before {
     content: "\00b7";
-    margin: 0 8px;
+    margin: 0 var(--tp-space-2);
     color: var(--tp-color-text-soft);
 }
 
 .targets-footnote {
-    margin: 18px 0 0;
-    padding-top: 12px;
+    margin: var(--tp-space-5) 0 0;
+    padding-top: var(--tp-space-3);
     border-top: 1px dashed var(--tp-color-border-soft);
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-muted);
@@ -731,7 +640,7 @@
     .targets-row-top {
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+        gap: var(--tp-space-2);
     }
 
     .targets-score {
@@ -749,63 +658,37 @@
 .evidence-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 14px;
+    gap: var(--tp-space-4);
 }
 
 .evidence-card {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
-    padding: 16px 18px;
+    padding: var(--tp-space-4) var(--tp-space-5);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--tp-space-3);
     position: relative;
     overflow: hidden;
 }
 
-.evidence-card::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--evidence-accent, var(--tp-color-brand-700));
-}
-
-.evidence-card--structure {
-    --evidence-accent: var(--tp-color-brand-700);
-}
-
-.evidence-card--annotation {
-    --evidence-accent: var(--tp-color-sage-700);
-}
-
-.evidence-card--binders {
-    --evidence-accent: var(--tp-color-brand-600);
-}
-
-.evidence-card--metabolism {
-    --evidence-accent: var(--tp-color-success-ink);
-}
-
 .evidence-label {
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
 }
 
 .evidence-headline {
-    font-size: 1.45rem;
+    font-size: var(--tp-heading-md);
     font-weight: 600;
-    color: var(--genome-accent-ink);
+    color: var(--tp-color-brand-900);
     line-height: 1.1;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--tp-space-1);
 }
 
 .evidence-headline-sub {
@@ -820,32 +703,32 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--tp-space-2);
     border-top: 1px dashed var(--tp-color-border-soft);
-    padding-top: 10px;
+    padding-top: var(--tp-space-3);
 }
 
 .evidence-breakdown li {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    gap: 8px;
+    gap: var(--tp-space-2);
     font-size: var(--tp-font-size-sm);
 }
 
 .evidence-breakdown-priority {
-    padding: 5px 8px;
-    margin-inline: -8px;
-    border-radius: 8px;
-    background: var(--tp-color-sage-050);
+    padding: var(--tp-space-1) var(--tp-space-2);
+    margin-inline: calc(-1 * var(--tp-space-2));
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-color-success-bg);
 }
 
 .evidence-breakdown-priority .evidence-bd-label {
-    color: var(--tp-color-sage-900);
+    color: var(--tp-color-success-ink);
 }
 
 .evidence-breakdown-priority .evidence-bd-value {
-    color: var(--tp-color-sage-900);
+    color: var(--tp-color-success-ink);
     font-weight: 700;
     font-size: var(--tp-font-size-lg);
 }
@@ -856,10 +739,29 @@
 }
 
 .evidence-bd-value {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     color: var(--tp-color-text-muted);
     font-weight: 500;
     font-size: var(--tp-font-size-sm);
+}
+
+/* Splits the breakdown list into "downloaded, ready to use" vs. "just a
+   UniProt citation" -- without this, e.g. PDB xref proteins/entries read as
+   more numbers in the same "loaded" group they sit next to, when they can
+   disagree with the downloaded counts above them. display:block overrides
+   the shared .evidence-breakdown li's space-between row layout, since this
+   li has no paired value on the right, just the caption itself. */
+.evidence-breakdown-group-label {
+    display: block;
+    margin-top: var(--tp-space-1);
+    padding-top: var(--tp-space-2);
+    border-top: 1px dashed var(--tp-color-border-soft);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: var(--tp-tracking-label);
+    color: var(--tp-color-text-muted);
+    cursor: help;
 }
 
 .evidence-card-action {
@@ -872,31 +774,31 @@
 .evidence-composition {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px 24px;
-    padding-top: 14px;
-    margin-top: 14px;
+    gap: var(--tp-space-3) var(--tp-space-6);
+    padding-top: var(--tp-space-4);
+    margin-top: var(--tp-space-4);
     border-top: 1px dashed var(--tp-color-border-soft);
 }
 
 .evidence-composition-item {
     display: flex;
     align-items: baseline;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
 .evidence-composition-label {
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
 }
 
 .evidence-composition-value {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
-    color: var(--genome-accent-ink);
+    color: var(--tp-color-brand-900);
 }
 
 /* ── JBrowse iframe ──────────────────────────────────────────────── */
@@ -905,7 +807,7 @@
     width: 100%;
     height: 540px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: var(--tp-radius-sm);
     overflow: hidden;
     background: var(--tp-color-surface-soft);
 }
@@ -919,8 +821,8 @@
 /* ── Evidence footnote ───────────────────────────────────────────── */
 
 .evidence-footnote {
-    margin: 14px 0 0;
-    padding-top: 12px;
+    margin: var(--tp-space-4) 0 0;
+    padding-top: var(--tp-space-3);
     border-top: 1px dashed var(--tp-color-border-soft);
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
@@ -932,16 +834,16 @@
 
 .genome-raw-details summary {
     cursor: pointer;
-    color: var(--genome-accent-ink);
+    color: var(--tp-color-brand-900);
     font-weight: 500;
     list-style: none;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--tp-space-2);
     min-height: 34px;
-    padding: 0 14px;
+    padding: 0 var(--tp-space-4);
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface);
     transition: border-color 140ms ease, background 140ms ease;
 }
@@ -953,18 +855,18 @@
 .genome-raw-details summary:hover,
 .genome-raw-details summary:focus-visible {
     outline: none;
-    border-color: var(--genome-accent-border);
+    border-color: var(--tp-color-brand-300);
     background: var(--tp-color-surface-soft);
 }
 
 .genome-raw-details[open] summary {
-    margin-bottom: 12px;
-    border-color: var(--genome-accent-border);
+    margin-bottom: var(--tp-space-3);
+    border-color: var(--tp-color-brand-300);
     background: var(--tp-color-brand-050);
 }
 
 .genome-raw-table {
-    margin-top: 10px;
+    margin-top: var(--tp-space-3);
 }
 
 /* ── Dataset deletion danger card ────────────────────────────────── */
@@ -983,11 +885,11 @@
     list-style: none;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--tp-space-2);
     min-height: 34px;
-    padding: 0 14px;
+    padding: 0 var(--tp-space-4);
     border: 1px solid var(--tp-color-danger-border);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-danger-bg);
     color: var(--tp-color-danger-ink);
     font-size: var(--tp-font-size-sm);
@@ -1000,12 +902,12 @@
 }
 
 .genome-delete-summary[open] summary {
-    margin-bottom: 12px;
+    margin-bottom: var(--tp-space-3);
 }
 
 .genome-delete-form {
     display: grid;
-    gap: 10px;
+    gap: var(--tp-space-3);
 }
 
 .genome-delete-copy {
@@ -1018,14 +920,11 @@
 .genome-delete-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: var(--tp-space-3);
     flex-wrap: wrap;
 }
 
 @media (max-width: 640px) {
-    .genome-hero {
-        padding: 18px 16px 16px;
-    }
 
     .genome-hero-actions .btn,
     .genome-delete-actions .btn {
@@ -1034,8 +933,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .genome-hero-actions .tp-btn-icon {
+        transition: none;
+        transform: none !important;
+    }
+
     .genome-hero,
     .genome-page .quick-nav,
+    .genome-page .quick-nav .quick-nav-link,
+    .genome-page .quick-nav .quick-nav-link::after,
     .genome-card {
         animation: none !important;
         transition: none !important;

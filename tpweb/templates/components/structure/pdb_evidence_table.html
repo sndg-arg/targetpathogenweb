@@ -3,7 +3,7 @@
 <div class="pdb-evidence-subsection">
     <div class="pdb-evidence-head">
         <h3 class="pdb-evidence-title">{% trans "Structural evidence" %}</h3>
-        <span class="tp-chip tp-chip--count tp-chip--sm">{{ items|length }}{% if predicted_items %} + {{ predicted_items|length }}{% endif %}</span>
+        <span class="tp-chip">{{ items|length }}{% if predicted_items %} + {{ predicted_items|length }}{% endif %}</span>
     </div>
     <p class="pdb-evidence-note">{% trans "Experimental PDB entries plus predicted AlphaFold DB or ColabFold models. Click Switch to display a different loaded structure in the viewer." %}</p>
     <div class="table-shell tp-table-shell experimental-structure-shell">
@@ -21,7 +21,7 @@
             </thead>
             <tbody>
             {% for item in items %}
-                <tr{% if item.slot_key %} data-pdb-slot="{{ item.slot_key }}"{% endif %}{% if item.loaded and item.loaded_structure_id %} data-structure-url="{% url 'tpwebapp:structure_raw' item.loaded_structure_id %}?protein_id={{ protein.id }}" data-structure-format="{{ item.file_format|default:'pdb' }}" data-chain-selector="{{ item.chain_selector }}" data-main-selector="{{ item.chain_selector|default:'polymer' }}" data-chain-color="true"{% endif %}{% if item.viewer_key == 'primary' %} class="experimental-row--viewer-active"{% endif %}>
+                <tr{% if item.slot_key %} data-pdb-slot="{{ item.slot_key }}"{% endif %}{% if item.loaded and item.loaded_structure_id %} data-structure-url="{% url 'tpwebapp:structure_raw' item.loaded_structure_id %}?protein_id={{ protein.id }}" data-structure-id="{{ item.loaded_structure_id }}" data-structure-format="{{ item.file_format|default:'pdb' }}" data-chain-selector="{{ item.chain_selector }}" data-main-selector="{{ item.chain_selector|default:'polymer' }}" data-chain-color="true"{% endif %}{% if item.viewer_key == 'primary' %} class="experimental-row--viewer-active"{% endif %}>
                     <td>
                         <div class="experimental-entry-cell">
                             <span class="experimental-source">PDB</span>
@@ -73,6 +73,7 @@
             {% for item in predicted_items %}
                 <tr data-pdb-slot="{{ item.slot_key }}"
                     data-structure-url="{% url 'tpwebapp:structure_raw' item.loaded_structure_id %}?protein_id={{ protein.id }}"
+                    data-structure-id="{{ item.loaded_structure_id }}"
                     data-structure-format="{{ item.file_format|default:'pdb' }}"
                     data-chain-selector="{{ item.chain_selector }}"
                     data-main-selector="{{ item.chain_selector }}"

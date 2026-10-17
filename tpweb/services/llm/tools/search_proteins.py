@@ -9,7 +9,11 @@ from __future__ import annotations
 
 from ..agent import ToolEntry
 from ..base import ToolDefinition
-from tpweb.services.protein_list import apply_filter_changes, find_top_proteins
+from tpweb.services.protein_list import (
+    apply_filter_changes,
+    find_top_proteins,
+    grouped_selected_parameters,
+)
 from tpweb.services.llm.tools.apply_filters import APPLY_FILTERS
 
 SEARCH_PROTEINS = ToolDefinition(
@@ -48,9 +52,15 @@ def build_search_proteins_entry(assembly_name):
         search_text = input.get("search_text")
         limit = input.get("limit", 10)
 
-        results = find_top_proteins(assembly_name, selected_parameters, search_text, limit)
+        results, total = find_top_proteins(
+            assembly_name, selected_parameters, search_text, limit, with_total=True
+        )
         if not results:
             return "No proteins matched those criteria."
+        criteria = "; ".join(
+            f"{name}: {values}"
+            for name, values in grouped_selected_parameters(selected_parameters, humanize=True)
+        )
 
         lines = [
             f"- {row['accession']}: {row['description'] or 'no description'}"
@@ -61,6 +71,14 @@ def build_search_proteins_entry(assembly_name):
             )
             for row in results
         ]
-        return f"{len(results)} matching protein(s):\n" + "\n".join(lines)
+        # Say plainly how the list is ordered and that it may be a sample, so the
+        # model doesn't present an accession-ordered slice as "the best" proteins.
+        header = (
+            f"{total} protein(s) match"
+            + (f" [criteria applied: {criteria}]" if criteria else "")
+            + f". Showing {len(results)} in accession order (not ranked by any score)"
+            + (" -- this is only a sample of the matches." if total > len(results) else ":")
+        )
+        return header + "\n" + "\n".join(lines)
 
     return ToolEntry(definition=SEARCH_PROTEINS, run=run)

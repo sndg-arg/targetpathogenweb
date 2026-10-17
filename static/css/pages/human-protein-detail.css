@@ -21,12 +21,6 @@
     --human-accent: var(--tp-color-brand-800);
 }
 
-.hero-chip-reviewed {
-    background: var(--tp-color-success-bg);
-    color: var(--tp-color-success-ink);
-    border-color: var(--tp-color-success-border);
-}
-
 /* Overview */
 
 .human-overview-grid {
@@ -65,20 +59,21 @@
     margin-bottom: var(--tp-space-1);
 }
 
+/* De-boxed on purpose: a rule above reads as a sidebar in a printed page,
+   a bordered/filled card reads as an app widget -- see the redesign note
+   at the top of this file. */
 .human-identifiers-card,
 .human-pill-block {
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    padding: var(--tp-space-4);
+    border-top: 1px solid var(--tp-color-border-soft);
+    padding: var(--tp-space-4) 0 0;
     margin-bottom: var(--tp-space-4);
 }
 
 .human-identifiers-card h3,
 .human-pill-block h3 {
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
     margin-bottom: var(--tp-space-3);
 }
@@ -120,9 +115,8 @@
 }
 
 .human-catalytic-card {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    padding: var(--tp-space-3);
+    border-top: 1px solid var(--tp-color-border-soft);
+    padding: var(--tp-space-3) 0 0;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -131,7 +125,7 @@
 
 .human-reaction-eq {
     margin: 0;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     flex-basis: 100%;
 }
 
@@ -143,10 +137,8 @@
 }
 
 .human-go-card {
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    padding: var(--tp-space-3);
+    border-top: 1px solid var(--tp-color-border-soft);
+    padding: var(--tp-space-3) 0 0;
 }
 
 .human-go-card h3 {
@@ -155,15 +147,56 @@
     margin-bottom: var(--tp-space-2);
 }
 
+/* Diseases */
+
+.human-disease-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-4);
+}
+
+.human-disease-card {
+    border-top: 1px solid var(--tp-color-border-soft);
+    padding: var(--tp-space-3) 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--tp-space-2);
+}
+
+.human-disease-card__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--tp-space-2);
+}
+
+.human-disease-card__head h3 {
+    font-size: var(--tp-font-size-sm);
+    margin: 0;
+}
+
+.human-disease-card p {
+    margin: 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
 /* Sequence */
 
+/* Bootstrap's reboot sets a hardcoded `pre { color: #212529 }` that wins
+   over any inherited theme color (a direct element-selector rule beats
+   plain inheritance) -- the bacterial page's own .protein-sequence-fallback
+   has to override this the same way; without it, dark mode renders
+   near-black text on this block's near-black background. */
 .human-sequence-block {
-    font-family: "SFMono-Regular", Consolas, monospace;
+    color: var(--tp-color-text-secondary);
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-sm);
     line-height: 1.6;
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: var(--tp-radius-xs);
     padding: var(--tp-space-4);
     overflow-x: auto;
     white-space: pre-wrap;
@@ -178,7 +211,7 @@
     gap: 1px;
     background: var(--tp-color-border-soft);
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: var(--tp-radius-xs);
     overflow: hidden;
     margin-top: var(--tp-space-4);
 }
@@ -198,9 +231,9 @@
 }
 
 .human-feature-lane__label {
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
     padding-top: 2px;
 }
@@ -218,41 +251,14 @@
 }
 
 .human-feature-item__pos {
-    font-family: "SFMono-Regular", Consolas, monospace;
+    font-family: var(--tp-font-mono);
     color: var(--tp-color-text-muted);
 }
 
 /* Structure */
 
-.human-structure-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2);
-    margin-bottom: var(--tp-space-4);
-}
-
-.human-structure-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-1);
-    border: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface);
-    border-radius: 999px;
-    padding: var(--tp-space-1) var(--tp-space-3);
-    font-size: var(--tp-font-size-sm);
-    cursor: pointer;
-}
-
-.human-structure-tab.is-active {
-    background: var(--human-accent);
-    color: var(--tp-color-on-accent);
-    border-color: var(--human-accent);
-}
-
-.human-structure-tab__count {
-    font-size: var(--tp-font-size-xs);
-    opacity: 0.8;
-}
+/* Underline tabs, not filled pills -- a table-of-contents register, same
+   visual grammar as .quick-nav, rather than an app's segmented control. */
 
 .human-structure-body {
     display: grid;
@@ -278,7 +284,7 @@
     width: 100%;
     text-align: left;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: var(--tp-radius-xs);
     padding: var(--tp-space-2) var(--tp-space-3);
     margin-bottom: var(--tp-space-2);
     background: var(--tp-color-surface);
@@ -286,17 +292,21 @@
     font-size: var(--tp-font-size-sm);
 }
 
+/* A left accent bar on selection, not a background-fill swap -- same
+   "selected in a reference list" language protein-detail.css already uses
+   for its reaction list (box-shadow: inset 3px 0 0 ...). */
 .human-structure-entry.is-active {
-    border-color: var(--human-accent);
-    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-soft);
+    background: color-mix(in srgb, var(--human-accent) 6%, var(--tp-color-surface));
+    box-shadow: inset 3px 0 0 var(--human-accent);
 }
 
 .human-structure-viewer {
     position: relative;
     min-height: 420px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-structure-bg, var(--tp-color-surface-panel));
+    border-radius: var(--tp-radius-xs);
+    background: var(--tp-color-structure-bg, var(--tp-color-surface-muted));
     overflow: hidden;
 }
 
@@ -317,25 +327,31 @@
 
 /* Cross-references */
 
+/* Mosaic with real dividers, same 1px-gap-as-hairline technique as
+   .human-feature-lanes above -- a thin rule between every card, both ways,
+   reads as a reference catalog; the previous plain gap-only grid read as
+   every category "pegada" to the next with no real separation. */
 .human-xref-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--tp-space-3);
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1px;
+    background: var(--tp-color-border-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-xs);
+    overflow: hidden;
 }
 
 .human-xref-card {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    padding: var(--tp-space-3);
-    background: var(--tp-color-surface-soft);
+    background: var(--tp-color-surface);
+    padding: var(--tp-space-5);
 }
 
 .human-xref-card h3 {
-    font-size: var(--tp-font-label);
+    font-size: var(--tp-font-size-xs);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
-    margin-bottom: var(--tp-space-2);
+    margin-bottom: var(--tp-space-3);
 }
 
 .human-xref-list {
@@ -343,22 +359,215 @@
     margin: 0;
     padding: 0;
     display: grid;
-    gap: var(--tp-space-1);
+    gap: var(--tp-space-2);
 }
 
 .human-xref-list li {
     display: flex;
     justify-content: space-between;
-    gap: var(--tp-space-2);
+    align-items: baseline;
+    gap: var(--tp-space-3);
     font-size: var(--tp-font-size-sm);
 }
 
 .human-xref-db {
     color: var(--tp-color-text-muted);
+    flex-shrink: 0;
 }
 
 .human-xref-id {
-    font-family: "SFMono-Regular", Consolas, monospace;
+    font-family: var(--tp-font-mono);
+    text-align: right;
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-all;
+}
+
+/* Expression */
+
+.human-expression-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+    margin-bottom: var(--tp-space-4);
+}
+
+.human-expression-panel.is-hidden {
+    display: none;
+}
+
+.human-expression-system-card {
+    border-top: 1px solid var(--tp-color-border-soft);
+    padding: var(--tp-space-3) 0 0;
+    margin-bottom: var(--tp-space-3);
+}
+
+.human-expression-system-card h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-muted);
+    margin-bottom: var(--tp-space-2);
+}
+
+.human-expression-bars {
+    display: grid;
+    gap: var(--tp-space-1);
+}
+
+.human-expression-bar-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) minmax(80px, 2fr) 2.5em auto;
+    align-items: center;
+    gap: var(--tp-space-2);
+    font-size: var(--tp-font-size-sm);
+}
+
+.human-expression-bar-row__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.human-expression-bar-track {
+    background: var(--tp-color-surface-soft);
+    border-radius: var(--tp-radius-pill);
+    height: 8px;
+    overflow: hidden;
+}
+
+.human-expression-bar-fill {
+    display: block;
+    height: 100%;
+    background: var(--human-accent);
+    border-radius: var(--tp-radius-pill);
+}
+
+.human-expression-bar-row__score {
+    text-align: right;
+    color: var(--tp-color-text-muted);
+}
+
+.human-expression-bar-row__gold {
+    color: var(--human-accent);
+    font-size: var(--tp-font-size-xs);
+}
+
+.human-expression-rank-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--tp-font-size-sm);
+}
+
+.human-expression-rank-table th,
+.human-expression-rank-table td {
+    text-align: left;
+    padding: var(--tp-space-2);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.human-expression-rank-table__celltype {
+    color: var(--tp-color-text-muted);
+}
+
+.human-expression-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-4);
+}
+
+/* Pathways */
+
+.human-pathway-tab {
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.human-pathway-body {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+    gap: var(--tp-space-4);
+    align-items: start;
+}
+
+.human-pathway-graph-wrap {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-xs);
+    background: var(--tp-color-surface-soft);
+    padding: var(--tp-space-2);
+}
+
+#human-pathway-graph {
+    width: 100%;
+    height: clamp(320px, 40vw, 480px);
+}
+
+.human-pathway-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-2);
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+.human-pathway-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-1);
+}
+
+.human-pathway-legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--tp-color-border-strong);
+}
+
+.human-pathway-legend-dot--focal {
+    border-radius: var(--tp-radius-xs);
+    background: var(--human-accent);
+}
+
+.human-pathway-legend-line {
+    display: inline-block;
+    width: 18px;
+    height: 0;
+    border-top: 2px solid var(--tp-color-border-strong);
+}
+
+.human-pathway-legend-line--activation {
+    border-top-color: var(--tp-color-success-ink);
+}
+
+.human-pathway-legend-line--inhibition {
+    border-top-style: dashed;
+    border-top-color: var(--tp-color-danger-ink);
+}
+
+.human-pathway-legend-line--other {
+    border-top-color: var(--tp-color-border-strong);
+}
+
+.human-pathway-meta-panel.is-hidden {
+    display: none;
+}
+
+.human-pathway-meta-panel h3 {
+    font-size: var(--tp-font-size-sm);
+    margin-bottom: var(--tp-space-2);
+}
+
+@media (max-width: 900px) {
+    .human-pathway-body {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -366,4 +575,9 @@
     .human-structure-entry {
         transition: none;
     }
+}
+
+/* Expression ranking: scroll sideways on a phone instead of overflowing. */
+.human-expression-rank-shell {
+    overflow-x: auto;
 }

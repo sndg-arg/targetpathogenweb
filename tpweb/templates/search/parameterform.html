@@ -1,75 +1,76 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block body %}
-    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <script src="{% static 'js/vendor/htmx-1.9.2.min.js' %}"></script>
     <style>
         .param-wrap {
             max-width: 1020px;
             margin: 0 auto;
             display: grid;
-            gap: 14px;
+            gap: var(--tp-space-4);
         }
 
         .param-hero {
             border: 1px solid #d7e6ed;
-            border-radius: 18px;
+            border-radius: var(--tp-radius-md);
             background:
                 radial-gradient(760px 220px at 0% 0%, #dff4f4 0%, transparent 56%),
                 radial-gradient(740px 220px at 100% 0%, #eaf6e4 0%, transparent 55%),
                 #f9fcfe;
-            padding: 18px;
+            padding: var(--tp-space-5);
         }
 
         .param-hero h1 {
             margin: 0;
-            font-size: clamp(1.75rem, 2.3vw, 2.2rem);
+            font-size: var(--tp-heading-lg);
         }
 
         .param-hero p {
-            margin: 8px 0 0;
-            color: var(--tp-muted);
+            margin: var(--tp-space-2) 0 0;
+            color: var(--tp-color-text-muted);
         }
 
         .param-grid {
             display: grid;
             grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.85fr);
-            gap: 12px;
+            gap: var(--tp-space-3);
         }
 
         .param-card {
             border: 1px solid #dbe7ee;
-            border-radius: 14px;
+            border-radius: var(--tp-radius-md);
             background: #ffffff;
-            box-shadow: 0 8px 20px rgba(19, 43, 62, 0.07);
-            padding: 16px;
+            box-shadow: none;
+            padding: var(--tp-space-4);
         }
 
         .param-card h2 {
-            margin: 0 0 8px;
-            font-size: 1.2rem;
+            margin: 0 0 var(--tp-space-2);
+            font-size: var(--tp-font-size-lg);
         }
 
         .param-help-list {
             margin: 0;
-            padding-left: 18px;
+            padding-left: var(--tp-space-5);
             color: #4e6979;
             display: grid;
-            gap: 6px;
-            font-size: 0.9rem;
+            gap: var(--tp-space-2);
+            font-size: var(--tp-font-size-sm);
         }
 
         .param-actions {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: var(--tp-space-2);
             align-items: center;
         }
 
         .param-filter-list {
             border: 1px solid #dce8ef;
-            border-radius: 12px;
+            border-radius: var(--tp-radius-md);
             overflow: hidden;
         }
 
@@ -94,8 +95,8 @@
     </style>
 
     <div class="param-wrap">
-        <section class="param-hero">
-            <h1>{% trans "Protein Filters" %}</h1>
+        <section class="tp-page-hero param-hero">
+            <h1 class="tp-view-title">{% trans "Protein Filters" %}</h1>
             <p>{% trans "Select scoring options to focus the ranking on proteins that meet your criteria." %}</p>
         </section>
 
@@ -120,7 +121,7 @@
                     <form id="finish-process-form" method="POST">
                         {% csrf_token %}
                         <input type="hidden" name="finish_process" value="true">
-                        <button type="submit" class="btn tp-btn tp-btn--success tp-btn-with-icon">
+                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>
                             <span>{% trans "Apply filters" %}</span>
                         </button>
@@ -129,7 +130,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="reset_process" value="true">
                         {% trans "Clear filters" as clear_filters_label %}
-                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
+                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--danger tp-btn-with-icon" %}
                     </form>
                 </div>
             </section>

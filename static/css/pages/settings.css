@@ -1,0 +1,255 @@
+/* ── Settings — who can see each scoring formula and uploaded column, plus
+   (admin only) everyone's items and the restricted-genomes list. Plain rows
+   with the name on the left and the control on the right, instead of the
+   old header-bar tables. ── */
+
+.settings-page {
+    color: var(--tp-color-text-primary);
+    margin: 0;
+}
+
+.settings-page > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-page h1,
+.settings-page h2,
+.settings-page h3 {
+    font-family: var(--tp-font-head);
+    letter-spacing: var(--tp-tracking-tight);
+}
+
+.settings-section {
+    padding: var(--tp-space-6) var(--tp-space-5);
+}
+
+.settings-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2) var(--tp-space-6);
+    margin: var(--tp-space-4) 0 0;
+    font-size: var(--tp-font-size-sm);
+}
+
+.settings-legend div {
+    display: flex;
+    gap: var(--tp-space-2);
+}
+
+.settings-legend dt {
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+.settings-legend dd {
+    margin: 0;
+    color: var(--tp-color-text-muted);
+}
+
+.settings-section-title {
+    display: flex;
+    align-items: baseline;
+    gap: var(--tp-space-3);
+    margin: 0;
+    font-size: var(--tp-font-size-xl);
+    font-weight: 600;
+}
+
+.settings-section-description {
+    margin: var(--tp-space-2) 0 0;
+    max-width: 760px;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.settings-section-description a,
+.settings-note a {
+    color: var(--tp-color-link);
+}
+
+.settings-subtitle {
+    display: flex;
+    align-items: baseline;
+    gap: var(--tp-space-2);
+    margin: var(--tp-space-6) 0 0;
+    font-size: var(--tp-font-size-md);
+    font-weight: 600;
+}
+
+.settings-count {
+    color: var(--tp-color-text-muted);
+    font-family: var(--tp-font-body);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+/* ── Rows ── */
+
+.settings-rows {
+    max-width: 880px;
+    margin: var(--tp-space-3) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tp-space-4);
+    padding: var(--tp-space-3) 0;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-row:last-child {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-row-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.settings-item-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.settings-item-expression {
+    display: block;
+    margin-top: var(--tp-space-1);
+    color: var(--tp-color-text-secondary);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.settings-item-meta {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.settings-item-meta strong {
+    color: var(--tp-color-text-secondary);
+    font-weight: 600;
+}
+
+.settings-row-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    flex-shrink: 0;
+}
+
+.settings-row-controls form {
+    margin: 0;
+}
+
+/* The select is swapped for the site's custom dropdown (custom-select.js),
+   which fills its container -- so the width lives on the form. */
+.settings-visibility-form {
+    width: 300px;
+    max-width: 100%;
+}
+
+.settings-visibility-form select {
+    width: 100%;
+    font-size: var(--tp-font-size-sm);
+}
+
+.settings-visibility-label {
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.settings-empty {
+    margin: var(--tp-space-3) 0 0;
+    max-width: 760px;
+}
+
+.settings-note {
+    margin: var(--tp-space-3) 0 0;
+    max-width: 760px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+/* ── Admin: one collapsible block per user ── */
+
+.settings-users {
+    max-width: 880px;
+    margin-top: var(--tp-space-3);
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-user {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-user summary {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--tp-space-1) var(--tp-space-3);
+    padding: var(--tp-space-3) 0;
+    cursor: pointer;
+    list-style: none;
+}
+
+.settings-user summary::-webkit-details-marker {
+    display: none;
+}
+
+.settings-user summary::before {
+    content: "▸";
+    color: var(--tp-color-text-muted);
+    font-size: 0.9em;
+    transition: transform 0.15s ease;
+}
+
+.settings-user[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.settings-user-name {
+    font-weight: 600;
+}
+
+.settings-user .settings-rows {
+    margin: 0 0 var(--tp-space-3) var(--tp-space-5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .settings-user summary::before {
+        transition: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .settings-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--tp-space-2);
+    }
+
+    .settings-row-controls {
+        flex-shrink: 1;
+        min-width: 0;
+    }
+
+    .settings-visibility-form {
+        flex: 1;
+        width: auto;
+        min-width: 0;
+    }
+}

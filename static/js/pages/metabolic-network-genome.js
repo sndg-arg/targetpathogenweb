@@ -25,8 +25,8 @@
     function readPalette() {
         return {
             plain: readToken("--tp-color-text-soft"),
-            chokepoint: readToken("--tp-color-amber-500"),
-            chokepointSoft: readToken("--tp-color-amber-050"),
+            chokepoint: readToken("--tp-color-warning-ink"),
+            chokepointSoft: readToken("--tp-color-warning-bg"),
             edge: readToken("--tp-color-text-primary"),
             ring: readToken("--tp-color-surface"),
             surfaceSoft: readToken("--tp-color-surface-soft"),

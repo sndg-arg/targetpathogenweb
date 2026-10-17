@@ -12,11 +12,6 @@ from tpweb.models.pdb import PDB
 import gzip
 
 
-def mkdir(dirpath):
-    if not os.path.exists(dirpath):
-        os.makedirs(dirpath)
-
-
 class Command(BaseCommand):
     help = "Imports a PDB"
 

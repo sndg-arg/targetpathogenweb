@@ -9,8 +9,8 @@
         return {
             focal: readToken("--tp-color-brand-700"),
             focalSoft: readToken("--tp-color-brand-050"),
-            chokepoint: readToken("--tp-color-amber-500"),
-            chokepointSoft: readToken("--tp-color-amber-050"),
+            chokepoint: readToken("--tp-color-warning-ink"),
+            chokepointSoft: readToken("--tp-color-warning-bg"),
             plain: readToken("--tp-color-text-soft"),
             edge: readToken("--tp-color-text-primary"),
             ring: readToken("--tp-color-surface"),
@@ -18,9 +18,9 @@
             text: readToken("--tp-color-text-primary"),
             textFaint: readToken("--tp-color-text-soft"),
             groups: [
-                { fill: readToken("--tp-color-sage-050"), line: readToken("--tp-color-sage-500"), ink: readToken("--tp-color-sage-700") },
-                { fill: readToken("--tp-color-rose-050"), line: readToken("--tp-color-rose-500"), ink: readToken("--tp-color-rose-700") },
-                { fill: readToken("--tp-color-amber-050"), line: readToken("--tp-color-amber-500"), ink: readToken("--tp-color-amber-700") },
+                { fill: readToken("--tp-color-success-bg"), line: readToken("--tp-color-success-ink"), ink: readToken("--tp-color-success-ink") },
+                { fill: readToken("--tp-color-danger-bg"), line: readToken("--tp-color-danger-ink"), ink: readToken("--tp-color-danger-ink") },
+                { fill: readToken("--tp-color-warning-bg"), line: readToken("--tp-color-warning-ink"), ink: readToken("--tp-color-warning-ink") },
                 { fill: readToken("--tp-color-brand-050"), line: readToken("--tp-color-brand-300"), ink: readToken("--tp-color-brand-700") }
             ]
         };

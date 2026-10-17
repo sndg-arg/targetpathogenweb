@@ -6,7 +6,7 @@ from tpweb.services.structure_sources import summarize_structure_sources
 def _display_table_value(value, column_name=""):
     if value is None:
         return "-"
-    if isinstance(value, (int, float)):
+    if isinstance(value, int | float):
         return value
     text = str(value).strip()
     if not text or text.lower() in {"none", "nan", "null"}:
@@ -99,8 +99,12 @@ def build_protein_table_row(
     metabolic_reaction_count = int(getattr(protein, "metabolic_reaction_count", 0) or 0)
     metabolic_chokepoint_count = int(getattr(protein, "metabolic_chokepoint_count", 0) or 0)
     if metabolic_reaction_count:
-        metabolism_text = f"{metabolic_reaction_count} reactions" + (
-            f", {metabolic_chokepoint_count} chokepoints" if metabolic_chokepoint_count else ""
+        reaction_word = "reaction" if metabolic_reaction_count == 1 else "reactions"
+        chokepoint_word = "chokepoint" if metabolic_chokepoint_count == 1 else "chokepoints"
+        metabolism_text = f"{metabolic_reaction_count} {reaction_word}" + (
+            f", {metabolic_chokepoint_count} {chokepoint_word}"
+            if metabolic_chokepoint_count
+            else ""
         )
     else:
         metabolism_text = "No metabolic model"

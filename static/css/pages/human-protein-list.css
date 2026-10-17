@@ -1,7 +1,12 @@
 .human-list-page {
     display: grid;
     gap: var(--tp-space-5);
-    --human-accent: var(--tp-color-brand-800);
+}
+
+/* Everything under the page hero shares its 18px inset. */
+.human-list-page > :not(.tp-page-hero) {
+    margin-left: var(--tp-space-5);
+    margin-right: var(--tp-space-5);
 }
 
 .human-list-search {
@@ -10,18 +15,28 @@
     max-width: 640px;
 }
 
-.human-list-search input[type="search"] {
+.human-list-search .form-control {
     flex: 1;
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-radius-md);
-    padding: var(--tp-space-2) var(--tp-space-3);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
 }
 
 .human-list-count {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
+    margin: 0;
+}
+
+.human-list-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-2);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.human-list-pagination .pagination {
     margin: 0;
 }
 
@@ -31,9 +46,9 @@
     gap: var(--tp-space-4);
 }
 
+/* The site card (tp-card); this only makes the whole card a link. */
 .human-protein-card {
     display: block;
-    padding: var(--tp-space-4);
     color: inherit;
 }
 
@@ -49,7 +64,8 @@
 }
 
 .human-protein-card h3 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
+    font-weight: 600;
     font-size: var(--tp-font-size-lg);
     margin: var(--tp-space-2) 0 var(--tp-space-1);
 }
@@ -62,9 +78,9 @@
 }
 
 .human-protein-card__acc {
-    font-family: "SFMono-Regular", Consolas, monospace;
+    font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-sm);
-    color: var(--human-accent);
+    color: var(--tp-color-text-secondary);
 }
 
 .human-protein-card__gene {

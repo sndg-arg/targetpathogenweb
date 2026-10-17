@@ -3,30 +3,39 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260808-scrollmargin-fix">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260809-drop-leftover-shadow">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261017-system2">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:genomes_list' as genomes_url %}
+        {% with crumb_genome="Genome: "|add:assembly.name %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label="Metabolism" %}
+        {% endwith %}
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}
 <div class="genome-page metabolism-page">
-    <section class="genome-hero metabolism-hero">
+    <section class="tp-page-hero genome-hero metabolism-hero">
         <div class="genome-hero-top tp-view-head">
             <div class="genome-hero-content tp-view-head-copy">
-                {% trans "Genomes" as crumb_genomes %}
-                {% url 'tpwebapp:index' as index_url %}
-                {% url 'tpwebapp:genomes_list' as genomes_url %}
-                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=assembly.name crumb_3_url=assembly_url crumb_4_label="Metabolism" %}
-                <p class="genome-hero-eyebrow">{% trans "Genome-wide metabolic prioritization" %}</p>
-                <h1>{% trans "Metabolic pathways" %}</h1>
-                <p class="genome-description">{{ assembly.name }}{% if assembly.description %} — {{ assembly.description }}{% endif %}</p>
+                <p class="tp-view-eyebrow genome-hero-eyebrow">{% trans "Genome-wide metabolic prioritization" %}</p>
+                <h1 class="tp-view-title">{% trans "Metabolic pathways" %}</h1>
+                <p class="tp-view-lead genome-description">{{ assembly.name }}{% if assembly.description %} — {{ assembly.description }}{% endif %}</p>
                 <div class="genome-hero-actions">
-                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Protein ranking" %}</a>
-                    <a href="{% url 'tpwebapp:genome_metabolism_network' genome=assembly.slug %}" class="btn tp-btn tp-btn--outline">{% trans "View as network" %}</a>
-                    <a href="{{ assembly_url }}" class="btn tp-btn tp-btn--outline">{% trans "Genome overview" %}</a>
+                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Explore proteins" %}</a>
+                    <a href="{% url 'tpwebapp:genome_metabolism_network' genome=assembly.slug %}" class="btn tp-btn tp-btn--secondary">{% trans "View as network" %}</a>
+                    <a href="{{ assembly_url }}" class="btn tp-btn tp-btn--secondary">{% trans "Genome overview" %}</a>
                 </div>
             </div>
         </div>
-        <div class="genome-metrics" aria-label="{% trans 'Metabolic summary' %}">
+        <div class="tp-metrics genome-metrics" aria-label="{% trans 'Metabolic summary' %}">
             <div class="metric-pill">
                 <span class="metric-label">{% trans "Pathways" %}</span>
                 <span class="metric-value">{{ summary.pathway_count }}</span>
@@ -39,18 +48,24 @@
                 <span class="metric-label">{% trans "Mapped proteins" %}</span>
                 <span class="metric-value">{{ summary.protein_count }}</span>
             </div>
-            <div class="metric-pill metric-pill--warm" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - harder for the pathogen to route around if inhibited." %}">
+            <div class="metric-pill metric-pill--warning" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - harder for the pathogen to route around if inhibited." %}">
                 <span class="metric-label">{% trans "Chokepoint reactions" %}</span>
                 <span class="metric-value">{{ summary.chokepoint_count }}</span>
             </div>
         </div>
     </section>
 
+    {# Only meaningful when this genome actually has an imported model; the #}
+    {# Klebsiella citation only applies to Klebsiella genomes. #}
+    {% if summary.reaction_count %}
     <p class="tp-state-note tp-state-note--empty metabolism-curation-note">
         {% trans "This metabolic network is curated, not automatically generated from the genome." %}
+        {% if "Klebsiella" in assembly.description %}
         {% blocktrans %}Methodology: Ramos, P.I.P. et al. "An integrative, multi-omics approach towards the prioritization of <em>Klebsiella pneumoniae</em> drug targets." <em>Scientific Reports</em> 8, 10755 (2018).{% endblocktrans %}
         <a href="https://doi.org/10.1038/s41598-018-28916-7" target="_blank" rel="noopener noreferrer">doi.org/10.1038/s41598-018-28916-7</a>
+        {% endif %}
     </p>
+    {% endif %}
 
     <section class="genome-card metabolism-panel">
         <div class="section-head tp-ui-panel-head">
@@ -106,8 +121,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="metabolism-score-block">
-                            <span class="metabolism-score-label">{% trans "Best target signal" %}</span>
+                        <div class="metabolism-score-block" title="{% if summary.active_formula_name %}{% trans 'Highest score of any protein in this pathway under your active scoring formula; mean is the average across its proteins.' %}{% else %}{% trans 'Highest protein score in this pathway: pocket druggability (0–1) + 0.15 if chokepoint + 0.1 × centrality, so up to about 1.25. Mean is the average across its proteins.' %}{% endif %}">
+                            <span class="metabolism-score-label">{% trans "Best target score" %}</span>
                             <span class="metabolism-score-n">{{ pathway.best_target_score }}</span>
                             <span class="metabolism-score-sub">{% trans "mean" %} {{ pathway.mean_target_score }}</span>
                             <div class="metabolism-score-track">
@@ -117,7 +132,7 @@
                     </div>
 
                     <div class="metabolism-card-actions">
-                        <a href="{% url 'tpwebapp:genome_metabolism_pathway' genome=assembly.slug source=pathway.source external_id=pathway.external_id %}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon">
+                        <a href="{% url 'tpwebapp:genome_metabolism_pathway' genome=assembly.slug source=pathway.source external_id=pathway.external_id %}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon">
                             <span>{% trans "Open pathway map" %}</span>
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                         </a>
@@ -126,7 +141,7 @@
                             <input type="hidden" name="action" value="add_special_filter">
                             <input type="hidden" name="special_kind" value="pathway">
                             <input type="hidden" name="special_value" value="{{ pathway.source }}:{{ pathway.external_id }}">
-                            <button type="submit" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon" title="{% trans "Show only proteins with a reaction in this pathway on the protein list." %}">
+                            <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" title="{% trans "Show only proteins with a reaction in this pathway on the protein list." %}">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
                                 <span>{% trans "Filter protein list by this pathway" %}</span>
                             </button>
@@ -138,9 +153,9 @@
                         <a href="{% url 'tpwebapp:protein' protein_id=target.protein_id %}"
                            class="metabolism-target-chip{% if forloop.first %} metabolism-target-chip--top{% endif %}">
                             <span class="metabolism-target-id">{{ target.accession }}</span>
-                            <span class="metabolism-target-meta" title="{% trans "drug = druggability score (P2Rank when available, otherwise FPocket). cent = betweenness centrality in the reaction network (higher = more of a metabolic chokepoint)." %}">
-                                {% trans "drug" %} {{ target.druggability|floatformat:2 }}
-                                &middot; {% trans "cent" %} {{ target.centrality|floatformat:3 }}
+                            <span class="metabolism-target-meta" title="{% trans "Pocket = best druggability score, 0–1 (P2Rank when available, otherwise FPocket). Centrality = betweenness centrality in the reaction network (higher = more central)." %}">
+                                {% trans "Pocket" %} {% if target.druggability %}{{ target.druggability|floatformat:2 }}{% else %}—{% endif %}
+                                &middot; {% trans "Centrality" %} {{ target.centrality|floatformat:3 }}
                             </span>
                             {% if target.is_chokepoint %}<span class="metabolism-chokepoint-dot" title="{% trans "Chokepoint" %}"></span>{% endif %}
                         </a>

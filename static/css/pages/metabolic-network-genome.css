@@ -4,9 +4,9 @@
  * relies on is defined fresh below, even where the name matches the ego-network's). */
 
 .metabolic-network-genome-caption {
-    margin: 8px 0 14px;
+    margin: var(--tp-space-2) 0 var(--tp-space-4);
     color: var(--tp-color-text-muted);
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.5;
 }
 
@@ -17,7 +17,7 @@
     min-width: 0;
     overflow: hidden;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface-soft);
 }
 
@@ -25,9 +25,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--tp-space-3);
     min-height: 44px;
-    padding: 9px 14px;
+    padding: var(--tp-space-2) var(--tp-space-4);
     border-bottom: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface);
 }
@@ -36,16 +36,16 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px 14px;
+    gap: var(--tp-space-2) var(--tp-space-4);
     color: var(--tp-color-text-secondary);
-    font-size: 0.74rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
 }
 
 .metabolic-network-genome-legend span {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
     white-space: nowrap;
 }
 
@@ -53,29 +53,29 @@
     display: inline-block;
     width: 10px;
     height: 10px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface-soft);
     border: 1.5px solid var(--tp-color-text-soft);
 }
 
 .metabolic-network-genome-dot--density-1 {
-    background: color-mix(in srgb, var(--tp-color-amber-500) 10%, var(--tp-color-surface-soft));
+    background: color-mix(in srgb, var(--tp-color-warning-ink) 10%, var(--tp-color-surface-soft));
     border-color: var(--tp-color-text-soft);
 }
 
 .metabolic-network-genome-dot--density-2 {
-    background: color-mix(in srgb, var(--tp-color-amber-500) 28%, var(--tp-color-surface-soft));
+    background: color-mix(in srgb, var(--tp-color-warning-ink) 28%, var(--tp-color-surface-soft));
     border-color: var(--tp-color-text-soft);
 }
 
 .metabolic-network-genome-dot--density-3 {
-    background: color-mix(in srgb, var(--tp-color-amber-500) 52%, var(--tp-color-surface-soft));
-    border-color: var(--tp-color-amber-500);
+    background: color-mix(in srgb, var(--tp-color-warning-ink) 52%, var(--tp-color-surface-soft));
+    border-color: var(--tp-color-warning-ink);
 }
 
 .metabolic-network-genome-dot--density-4 {
-    background: color-mix(in srgb, var(--tp-color-amber-500) 82%, var(--tp-color-surface-soft));
-    border-color: var(--tp-color-amber-500);
+    background: color-mix(in srgb, var(--tp-color-warning-ink) 82%, var(--tp-color-surface-soft));
+    border-color: var(--tp-color-warning-ink);
 }
 
 .metabolic-network-genome-line {
@@ -88,39 +88,18 @@
 .metabolic-network-genome-actions {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tp-space-2);
     flex: 0 0 auto;
 }
 
 .metabolic-network-genome-breadcrumb {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-2) var(--tp-space-4);
     border-bottom: 1px solid var(--tp-color-border-soft);
     background: color-mix(in srgb, var(--tp-color-brand-500) 5%, var(--tp-color-surface));
-    font-size: 0.78rem;
-}
-
-.metabolic-network-genome-back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 10px 4px 6px;
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: 999px;
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
-    font-size: 0.74rem;
-    font-weight: 700;
-    transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
-}
-
-.metabolic-network-genome-back-btn:hover {
-    border-color: var(--tp-color-brand-300);
-    color: var(--tp-color-text-primary);
-    background: var(--tp-color-surface-soft);
-    transform: translateX(-1px);
+    font-size: var(--tp-font-size-xs);
 }
 
 .metabolic-network-genome-breadcrumb-sep {
@@ -197,16 +176,16 @@
     left: 50%;
     display: inline-flex;
     align-items: center;
-    gap: 9px;
-    padding: 9px 16px;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-2) var(--tp-space-4);
     transform: translate(-50%, -50%);
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: color-mix(in srgb, var(--tp-color-surface) 92%, transparent);
     color: var(--tp-color-text-muted);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
-    box-shadow: var(--tp-shadow-md);
+    box-shadow: var(--tp-shadow-sm);
     opacity: 1;
     transition: opacity 200ms ease;
     pointer-events: none;
@@ -223,7 +202,7 @@
     height: 13px;
     border: 2px solid var(--tp-color-border-strong);
     border-top-color: var(--tp-color-brand-500);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     animation: metabolic-network-genome-spin 800ms linear infinite;
 }
 
@@ -244,12 +223,12 @@
     bottom: 16px;
     transform: translateX(-50%);
     margin: 0;
-    padding: 7px 14px;
+    padding: var(--tp-space-2) var(--tp-space-4);
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: color-mix(in srgb, var(--tp-color-surface) 94%, transparent);
     color: var(--tp-color-text-muted);
-    font-size: 0.74rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     box-shadow: var(--tp-shadow-sm);
     opacity: 0;
@@ -269,10 +248,10 @@
 
 .metabolic-network-genome-score-bar {
     display: block;
-    margin-top: 5px;
+    margin-top: var(--tp-space-1);
     width: 100%;
     height: 3px;
-    border-radius: 999px;
+    border-radius: var(--tp-radius-pill);
     background: var(--tp-color-border-soft);
     overflow: hidden;
 }
@@ -291,61 +270,37 @@
     position: relative;
     z-index: 1;
     margin: 0;
-    padding: 8px 14px 10px;
+    padding: var(--tp-space-2) var(--tp-space-4) var(--tp-space-3);
     border-top: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-muted);
     background: var(--tp-color-surface);
-    font-size: 0.75rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.35;
 }
 
-.metabolic-map-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 32px;
-    height: 28px;
-    padding: 0 10px;
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: 6px;
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
-    font-size: 0.76rem;
-    font-weight: 700;
-    line-height: 1;
-    transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
-}
-
-.metabolic-map-btn:hover {
-    border-color: var(--tp-color-brand-300);
-    color: var(--tp-color-text-primary);
-    background: var(--tp-color-surface-soft);
-    transform: translateY(-1px);
-}
-
 .metabolic-network-genome-inspector {
-    padding: 14px 16px;
+    padding: var(--tp-space-4) var(--tp-space-4);
     background: var(--tp-color-surface);
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--tp-space-1);
 }
 
 .metabolic-sidebar-title {
     display: block;
-    margin-bottom: 9px;
+    margin-bottom: var(--tp-space-2);
     color: var(--tp-color-text-secondary);
-    font-size: 0.68rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
 
 .metabolic-network-genome-inspector strong {
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: var(--tp-space-3);
     color: var(--tp-color-text-primary);
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.25;
     word-break: break-word;
 }
@@ -353,13 +308,13 @@
 .metabolic-network-genome-inspector dl {
     display: grid;
     grid-template-columns: 86px minmax(0, 1fr);
-    gap: 7px 14px;
-    margin: 0 0 12px;
+    gap: var(--tp-space-2) var(--tp-space-4);
+    margin: 0 0 var(--tp-space-3);
 }
 
 .metabolic-network-genome-inspector dt {
     color: var(--tp-color-text-muted);
-    font-size: 0.7rem;
+    font-size: var(--tp-font-size-2xs);
     font-weight: 700;
     text-transform: uppercase;
 }
@@ -367,84 +322,13 @@
 .metabolic-network-genome-inspector dd {
     margin: 0;
     color: var(--tp-color-text-primary);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.35;
     word-break: break-word;
 }
 
-.metabolic-network-tooltip {
-    position: absolute;
-    z-index: 20;
-    max-width: 340px;
-    padding: 11px 12px;
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-050));
-    color: var(--tp-color-text-primary);
-    box-shadow: var(--tp-shadow-lg);
-    font-size: 0.78rem;
-    line-height: 1.35;
-    pointer-events: none;
-}
-
-.metabolic-network-tooltip-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-    color: var(--tp-color-text-primary);
-    font-size: 0.86rem;
-    font-weight: 800;
-}
-
-.metabolic-network-tooltip-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 6px;
-    border: 1px solid color-mix(in srgb, var(--tp-color-amber-500) 48%, transparent);
-    border-radius: 999px;
-    background: var(--tp-color-amber-050);
-    color: var(--tp-color-amber-700);
-    font-size: 0.68rem;
-    font-weight: 800;
-    white-space: nowrap;
-}
-
-.metabolic-network-tooltip dl {
-    display: grid;
-    /* 62px was narrower than "CHOKEPOINTS" itself (bold, uppercase, no space
-       to wrap at) at this font-size -- it overflowed straight into the
-       value column with no gap instead of wrapping, reading as one jammed
-       word ("CHOKEPOINTS4"). 84px comfortably fits every current label. */
-    grid-template-columns: 84px minmax(0, 1fr);
-    gap: 4px 8px;
-    margin: 0;
-}
-
-.metabolic-network-tooltip dt {
-    color: var(--tp-color-text-muted);
-    font-size: 0.68rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    /* Defensive: if a future label is still too wide for the column, wrap
-       it instead of repeating this bug by overflowing into the value. */
-    overflow-wrap: break-word;
-}
-
-.metabolic-network-tooltip dd {
-    margin: 0;
-    color: var(--tp-color-text-primary);
-    font-size: 0.76rem;
-    word-break: break-word;
-}
-
-.metabolic-network-tooltip-hint {
-    margin-top: 9px;
-    padding-top: 8px;
-    border-top: 1px solid var(--tp-color-border-soft);
-    color: var(--tp-color-text-muted);
-    font-size: 0.72rem;
-}
+/* .metabolic-network-tooltip* now lives in components/ui-system.css
+   (shared with the protein detail page's metabolic-context tooltip). */
 
 @media (max-width: 860px) {
     .metabolic-network-genome-body {

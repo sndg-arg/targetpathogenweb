@@ -3,44 +3,58 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20260804-fusion2">
+    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20261017-system2">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% trans "Proteins" as crumb_proteins %}
+        {% trans "Add my own data" as crumb_add_data %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:genomes_list' as genomes_url %}
+        {% url 'tpwebapp:assembly' genome as assembly_url %}
+        {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
+        {% with genome_label=assembly_label|default:assembly_name %}
+        {% with crumb_genome="Genome: "|add:genome_label %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_add_data %}
+        {% endwith %}
+        {% endwith %}
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}
     <div class="customparam-page">
-        <section class="customparam-hero">
-            {% trans "Genomes" as crumb_genomes %}
-            {% trans "Proteins" as crumb_proteins %}
-            {% trans "Add my own data" as crumb_add_data %}
-            {% url 'tpwebapp:index' as index_url %}
-            {% url 'tpwebapp:genomes_list' as genomes_url %}
-            {% url 'tpwebapp:assembly' genome as assembly_url %}
-            {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
-            {% with genome_label=assembly_label|default:assembly_name %}
-            {% with crumb_genome="Genome: "|add:genome_label %}
-            {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_add_data %}
-            {% endwith %}
-            {% endwith %}
-
-            <span class="customparam-eyebrow">{% trans "Protein data · Per-genome import" %}</span>
-            <h1>{% trans "Add my own data" %}</h1>
-            <p class="customparam-subtitle">{% trans "Import a tab-separated file with per-protein values — experimental, computational, or literature-derived — and use it as an additional signal in scoring and filtering." %}</p>
+        <section class="tp-page-hero customparam-hero">
+            <span class="tp-view-eyebrow customparam-eyebrow">{% trans "Protein data · Per-genome import" %}</span>
+            <h1 class="tp-view-title">{% trans "Add my own data" %}</h1>
+            <p class="tp-view-lead customparam-subtitle">{% trans "Import a tab-separated file with per-protein values — experimental, computational, or literature-derived — and use it as an additional signal in scoring and filtering." %}</p>
 
             <div class="customparam-chip-group tp-chip-group">
-                <span class="tp-chip tp-chip--meta tp-chip--sm">
+                <span class="tp-chip">
                     <strong>{% trans "Genome" %}:</strong>
                     <span class="customparam-chip-id">{{ assembly_label|default:assembly_name }}</span>
                 </span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Format" %}:</strong> TSV</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Columns" %}:</strong> {% trans "protein accession, value" %}</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Value type" %}:</strong> {% trans "numeric or categorical" %}</span>
+                <span class="tp-chip"><strong>{% trans "Format" %}:</strong> TSV / CSV</span>
+                <span class="tp-chip"><strong>{% trans "Columns" %}:</strong> {% trans "gene, then one column per value" %}</span>
+                <span class="tp-chip"><strong>{% trans "Value type" %}:</strong> {% trans "numeric or categorical" %}</span>
             </div>
         </section>
 
         <section class="customparam-layout">
-            <article class="customparam-card customparam-card--form tp-ui-panel">
+            <article class="customparam-card customparam-card--form">
                 <h2>{% trans "Upload evidence file" %}</h2>
 
+                {% if import_problems %}
+                    <div class="customparam-state-note tp-state-note tp-state-note--error" role="alert">
+                        <strong>{% trans "The file was not loaded." %}</strong>
+                        <ul class="customparam-problem-list">
+                            {% for problem in import_problems %}<li>{{ problem }}</li>{% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
                 {% if file_exists %}
                     <div class="customparam-state-note tp-state-note tp-state-note--error">
                         {% blocktrans %}A file with this name already exists. Upload again to replace it with the new version.{% endblocktrans %}
@@ -54,9 +68,29 @@
                     <div class="tp-ui-field customparam-field">
                         <label class="tp-ui-field-label" for="{{ form.tsv.id_for_label }}">{% trans "TSV file" %}</label>
                         {{ form.tsv }}
-                        <p class="customparam-field-help">{% trans "Tab-separated · protein accession in first column · one row per protein" %}</p>
+                        <p class="customparam-field-help">{% trans "TSV (tab) or CSV (comma) · first column named gene with the protein accession · one row per protein" %}</p>
                         {% if form.tsv.errors %}
                             <p class="customparam-field-error">{{ form.tsv.errors|striptags }}</p>
+                        {% endif %}
+                    </div>
+
+                    <fieldset class="tp-ui-field customparam-field customparam-visibility">
+                        <legend class="tp-ui-field-label">{% trans "Who can see these columns" %}</legend>
+                        {% for choice in form.visibility %}
+                            <label class="customparam-visibility-option">
+                                {{ choice.tag }}
+                                <span>{{ choice.choice_label }}</span>
+                            </label>
+                        {% endfor %}
+                        <p class="customparam-field-help">{% trans "Shared columns show up for others as an extra option under Columns, Filters and Make my own score on this genome — never added to their table on their own. You can change this or delete the column later in" %} <a href="{% url 'tpwebapp:settings' %}">{% trans "Settings → My uploaded data" %}</a>. {% trans "See everything uploaded for this genome in" %} <a href="{% url 'tpwebapp:uploaded_data' genome=genome %}">{% trans "Uploaded data" %}</a>.</p>
+                    </fieldset>
+
+                    <div class="tp-ui-field customparam-field customparam-description" data-customparam-description>
+                        <label class="tp-ui-field-label" for="{{ form.description.id_for_label }}">{% trans "Description" %}</label>
+                        {{ form.description }}
+                        <p class="customparam-field-help">{% trans "Required when sharing: what the values measure, where they come from, and whether higher is better." %}</p>
+                        {% if form.description.errors %}
+                            <p class="customparam-field-error">{{ form.description.errors|striptags }}</p>
                         {% endif %}
                     </div>
 
@@ -69,46 +103,47 @@
                         {% else %}
                             <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
-                                {% trans "Upload and index" %}
+                                {% trans "Upload file" %}
                             </button>
                         {% endif %}
                     </div>
                 </form>
             </article>
 
-            <aside class="customparam-card customparam-card--guide tp-ui-panel">
+            <aside class="customparam-card customparam-card--guide">
                 <h2>{% trans "File format" %}</h2>
 
                 <div class="customparam-guide">
                     <div class="customparam-guide-item">
                         <span class="customparam-guide-step">1</span>
                         <div>
-                            <h3>{% trans "First column: protein accession" %}</h3>
-                            <p>{% trans "Use the same accession shown in the protein ranking table for this genome." %}</p>
+                            <h3>{% trans "First column: gene" %}</h3>
+                            <p>{% trans "Header must be exactly gene. Values are the same protein accession shown in the protein table for this genome." %}</p>
                         </div>
                     </div>
                     <div class="customparam-guide-item">
                         <span class="customparam-guide-step">2</span>
                         <div>
-                            <h3>{% trans "Second column: value" %}</h3>
-                            <p>{% trans "Numeric (e.g. 0.83) or categorical (e.g. essential). One value per protein." %}</p>
+                            <h3>{% trans "Next columns: one parameter each" %}</h3>
+                            <p>{% trans "The header becomes the parameter name. A column is numeric only if every value is a number (e.g. 0.83); any text value makes the whole column categorical (e.g. essential / non_essential). Don't mix numbers and text in one column." %}</p>
                         </div>
                     </div>
                     <div class="customparam-guide-item">
                         <span class="customparam-guide-step">3</span>
                         <div>
                             <h3>{% trans "Use it for scoring" %}</h3>
-                            <p>{% trans "After upload, go to Make my own score to include this parameter in a custom ranking formula." %}</p>
+                            <p>{% trans "After upload, it appears under Filters (Custom) and in" %} <a href="{% url 'tpwebapp:formula_form' genome=genome %}">{% trans "Make my own score" %}</a>.</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="customparam-example">
-                    <p class="customparam-example-label">{% trans "Example" %}</p>
-                    <code class="customparam-example-code">protein_accession&#9;custom_score
-A0A0000001&#9;0.83
-A0A0000002&#9;0.41
-A0A0000003&#9;essential</code>
+                    <p class="customparam-example-label">{% trans "Example (tab-separated .tsv, or comma-separated .csv)" %}</p>
+                    <code class="customparam-example-code">gene&#9;my_score&#9;my_essentiality
+{{ example_accessions.0 }}&#9;0.83&#9;essential
+{{ example_accessions.1 }}&#9;0.41&#9;non_essential
+{{ example_accessions.2 }}&#9;0.12&#9;essential</code>
+                    <p class="customparam-example-label">{% trans "my_score is loaded as numeric, my_essentiality as categorical." %}</p>
                 </div>
             </aside>
         </section>
@@ -120,5 +155,23 @@ A0A0000003&#9;essential</code>
             form.overwrite.value = "true";
             form.submit();
         }
+
+        (function () {
+            var form = document.getElementById("add-custom-param-form");
+            var description = form && form.querySelector("[data-customparam-description]");
+            if (!description) return;
+            var hasError = !!description.querySelector(".customparam-field-error");
+            function sync() {
+                var checked = form.querySelector('input[name="visibility"]:checked');
+                description.hidden = !hasError && (!checked || checked.value === "private");
+            }
+            form.querySelectorAll('input[name="visibility"]').forEach(function (input) {
+                input.addEventListener("change", function () {
+                    hasError = false;
+                    sync();
+                });
+            });
+            sync();
+        })();
     </script>
 {% endblock %}

@@ -9,7 +9,8 @@ from bioseq.io.BioIO import BioIO
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
-from .StructureView import pdb_structure
+from tpweb.services.structure_summary import pdb_structure
+from tpweb.services.identical_sequences import identical_siblings_for_bioentry
 from tpweb.services.protein_annotations import (
     annotation_dbnames,
     annotation_name as _annotation_name,
@@ -435,6 +436,46 @@ def serialize_prot(protein: Bioentry):
     return protein2, features, annotations, graphic_features
 
 
+BINDERS_LAZY_THRESHOLD = 30
+
+
+class ProteinBindersPanelsView(View):
+    """Just the ligand-evidence tab panels of a protein page, fetched by the
+    page when the user reaches that section. Same access rules as
+    ProteinView."""
+
+    template_name = "genomic/_binders_panels.html"
+
+    def get(self, request, protein_id, *args, **kwargs):
+        protein = (
+            Bioentry.objects.filter(bioentry_id=protein_id)
+            .select_related("biodatabase")
+            .prefetch_related(
+                Prefetch(
+                    "experimental_structure_xrefs",
+                    queryset=ExperimentalStructureXref.objects.order_by("resolution"),
+                ),
+            )
+            .first()
+        )
+        if protein is None or not protein.biodatabase.name.endswith(Biodatabase.PROT_POSTFIX):
+            raise Http404("Protein not found")
+        assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
+        if not user_can_access_genome_name(request.user, assembly_name):
+            raise Http404("Protein not found")
+        structures = _sort_structures_by_preference(protein.structures.select_related("pdb"))
+        binders = create_binders_dict(
+            protein,
+            search_query=request.GET.get("binder_search", "").strip(),
+            structures=structures,
+        )
+        return render(
+            request,
+            self.template_name,
+            {"binders": binders, "protein": {"id": protein.bioentry_id}},
+        )
+
+
 class ProteinView(View):
     template_name = "genomic/protein.html"
 
@@ -476,7 +517,7 @@ class ProteinView(View):
         # summarize_structure_sources, create_binders_dict) reads
         # `s.pdb.residues` -- that used to only back the chain-name derivation
         # inside pdb_structure(), which now derives chains via a `.values_list`
-        # query instead of a full residue fetch (see StructureView.py). Dropping
+        # query instead of a full residue fetch (see structure_summary.py). Dropping
         # this prefetch removes an expensive full-residue-table pull per linked
         # structure, on every protein page load.
         structures = protein.structures.all()
@@ -506,6 +547,7 @@ class ProteinView(View):
         pipeline_status = annotate_pipeline_status_for_genome(
             get_pipeline_status(), proteinDTO["assembly_name"]
         )
+        identical_sequence_siblings = identical_siblings_for_bioentry(protein)
 
         # structures/structure_summary/binders were already fetched above with
         # this request's search query and sort order -- passing them in lets
@@ -525,6 +567,7 @@ class ProteinView(View):
         conservation_profile = executive_context["conservation_profile"]
         microbiome_context = executive_context["microbiome_context"]
         metabolic_context = executive_context["metabolic_context"]
+        gates_metabolic_priority = executive_context["gates_metabolic_priority"]
         target_summary = executive_context["target_summary"]
         score_breakdown = executive_context["score_breakdown"]
 
@@ -678,8 +721,12 @@ class ProteinView(View):
             "go_annotations": go_all,
             "graphic_features": graphic_features,
             "binders": binders,
+            # Above this many ligand records the tables load separately
+            # (ProteinBindersPanelsView) instead of with the page.
+            "binders_lazy_threshold": BINDERS_LAZY_THRESHOLD,
             "structure_summary": structure_summary,
             "experimental_structures": experimental_structures,
+            "identical_sequence_siblings": identical_sequence_siblings,
             "target_profile": target_profile,
             "target_summary": target_summary,
             "score_breakdown": score_breakdown,
@@ -687,6 +734,7 @@ class ProteinView(View):
             "conservation_profile": conservation_profile,
             "microbiome_context": microbiome_context,
             "metabolic_context": metabolic_context,
+            "gates_metabolic_priority": gates_metabolic_priority,
             "experimental_xrefs": experimental_xrefs,
             "ec_badges": ec_badges,
             "go_badges": go_badges,
@@ -780,6 +828,38 @@ class ProteinView(View):
                     entry["slot_key"] = "ex-" + entry["pdb_id"].lower()
                 else:
                     entry["slot_key"] = ""
+
+            # The best FPocket pocket can sit on a loaded structure that is
+            # neither of the two the viewer offers (primary/alt). Give that one
+            # its own pocket panel and NGL overlays too, so "Show this pocket"
+            # can switch the embedded viewer to it instead of sending the user
+            # to the full viewer.
+            best_pocket_pdb_id = ((selected_pocket_evidence or {}).get("fpocket") or {}).get(
+                "viewer_pdb_id"
+            )
+            if best_pocket_pdb_id and not (selected_pocket_evidence or {}).get(
+                "selected_source_visible"
+            ):
+                best_link = next(
+                    (link for link in structures if link.pdb_id == best_pocket_pdb_id), None
+                )
+                best_entry = next(
+                    (
+                        entry
+                        for entry in experimental_structures
+                        if entry.get("loaded_structure_id") == best_pocket_pdb_id
+                        and entry.get("slot_key")
+                    ),
+                    None,
+                )
+                if best_link is not None and best_entry is not None:
+                    dto["pocket_structure_slot"] = best_entry["slot_key"]
+                    if best_entry["slot_key"] not in ("primary", "alt"):
+                        dto["pocket_structure"] = pdb_structure(
+                            best_link.pdb,
+                            [],
+                            target_chain=(best_link.chain or "").strip() or None,
+                        )
 
             predicted_structures = _build_predicted_structures(
                 predicted, protein_length, primary_link=primary_link, alt_link=alt_link

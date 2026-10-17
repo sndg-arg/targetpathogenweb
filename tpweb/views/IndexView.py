@@ -85,6 +85,7 @@ class IndexView(View):
             "has_project_notes": has_project_notes,
             "total_genomes": genome_metrics["total_genomes"],
             "total_proteins": genome_metrics["total_proteins"],
+            "total_proteins_display": f"{genome_metrics['total_proteins'] or 0:,}",
             "featured_genomes": featured_genomes,
             "pipeline_status": pipeline_status,
             "show_pipeline_panel": should_show_home_pipeline_panel(pipeline_status),

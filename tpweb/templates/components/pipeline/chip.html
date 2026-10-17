@@ -8,6 +8,9 @@
                 {% if pipeline_status.stage_current %}
                     · {% trans "Stage" %} {{ pipeline_status.stage_current }}/{{ pipeline_status.stage_total }}
                 {% endif %}
+                {% if pipeline_status.activity_label or pipeline_status.stage_label %}
+                    · {{ pipeline_status.activity_label|default:pipeline_status.stage_label }}
+                {% endif %}
             {% elif pipeline_status.running %}
                 {% trans "Pipeline in progress" %}
             {% else %}
@@ -20,6 +23,9 @@
                 {% trans "Pipeline in progress for" %} <code>{{ pipeline_status.genome_display_accession|default:pipeline_status.genome_accession }}</code>
                 {% if pipeline_status.stage_current %}
                     · {% trans "Stage" %} {{ pipeline_status.stage_current }}/{{ pipeline_status.stage_total }}
+                {% endif %}
+                {% if pipeline_status.activity_label or pipeline_status.stage_label %}
+                    · {{ pipeline_status.activity_label|default:pipeline_status.stage_label }}
                 {% endif %}
             </span>
         {% elif pipeline_status.running_for_other_genome %}

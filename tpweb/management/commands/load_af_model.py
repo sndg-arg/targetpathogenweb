@@ -19,11 +19,6 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Atom
 
 
-def mkdir(dirpath):
-    if not os.path.exists(dirpath):
-        os.makedirs(dirpath)
-
-
 def store_structure_file(pdb_file, destination):
     os.makedirs(os.path.dirname(destination), exist_ok=True)
     if pdb_file.endswith(".gz"):
@@ -74,7 +69,17 @@ class Command(BaseCommand):
             self.stderr.write(f"deleting... {code} ")
             pdb_model_qs.delete()
         if pdb_model_qs.exists():
-            self.stderr.write(f"structure {code} already exists")
+            # The PDB row surviving (e.g. from an earlier ingest) doesn't guarantee
+            # *this* bioentry is still linked to it -- re-link if that got lost
+            # instead of silently leaving the protein without its structure.
+            pdb_model = pdb_model_qs.first()
+            if not BioentryStructure.objects.filter(bioentry=be, pdb=pdb_model).exists():
+                BioentryStructure(bioentry=be, pdb=pdb_model).save()
+                self.stderr.write(
+                    f"structure {code} already exists; re-linked missing bioentry link"
+                )
+            else:
+                self.stderr.write(f"structure {code} already exists")
             sys.exit(1)
         else:
             if forced_experiment:
@@ -95,9 +100,6 @@ class Command(BaseCommand):
             except Exception as ex:
                 traceback.print_exc()
                 raise CommandError(ex) from ex
-
-            # if not os.path.exists(seqstore.structure_dir(genome, be.accession)):
-            #    os.makedirs(seqstore.structure_dir(genome, be.accession))
 
             store_structure_file(
                 options["pdb_file"],
@@ -199,7 +201,6 @@ class Command(BaseCommand):
             )
 
     def load_pdb_file(self, pdb_model, pdb_path):
-
         is_cif = pdb_path.lower().endswith((".cif", ".cif.gz"))
         parser = MMCIFParser(QUIET=True) if is_cif else PDBParser(PERMISSIVE=True, QUIET=True)
         if pdb_path.endswith(".gz"):

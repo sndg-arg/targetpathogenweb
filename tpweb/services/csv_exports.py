@@ -13,21 +13,29 @@ _XLSX_HEADER_FG = "0B4A61"  # --tp-color-brand-900
 _XLSX_ALT_ROW = "F4FAF7"  # --tp-color-surface-soft
 
 
-def build_view_export_url(request, strip_params=()):
-    """URL for the "Export view" link/button: the current query string plus
-    export=view_csv. An identical @staticmethod was copy-pasted across
-    ProteinView, AssemblyView, AnnotationExplorerView and GenomesView; all
-    four now import this instead. `strip_params` covers ProteinListView's
-    one behavioral difference (it also drops `page`, since a stale page
-    number in the export link would silently limit "Export view" to whatever
-    page happened to be open)."""
+def build_export_url(request, export_value="csv", strip_params=()):
+    """URL for an export link/button: the current query string plus
+    export=<export_value>. An identical @staticmethod (export=csv) was
+    copy-pasted across ProteinListView, GenomesView and
+    AnnotationExplorerView; all three now import this instead.
+    `strip_params` covers ProteinListView's one behavioral difference (it
+    also drops `page`, since a stale page number in the export link would
+    silently limit the export to whatever page happened to be open)."""
     params = request.GET.copy()
     for name in strip_params:
         if name in params:
             params.pop(name)
-    params["export"] = "view_csv"
+    params["export"] = export_value
     encoded = params.urlencode()
-    return f"?{encoded}" if encoded else "?export=view_csv"
+    return f"?{encoded}" if encoded else f"?export={export_value}"
+
+
+def build_view_export_url(request, strip_params=()):
+    """URL for the "Export view" link/button: the current query string plus
+    export=view_csv. An identical @staticmethod was copy-pasted across
+    ProteinView, AssemblyView, AnnotationExplorerView and GenomesView; all
+    four now import this instead."""
+    return build_export_url(request, export_value="view_csv", strip_params=strip_params)
 
 
 def _normalize_filename(value, fallback="export"):
