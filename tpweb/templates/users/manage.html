@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260918-ellipsis-email">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20261017-modal">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -145,11 +145,11 @@
 
 </div>
 
-<div class="user-mgmt-edit-modal-backdrop" id="user-permissions-modal" aria-hidden="true">
-    <div class="user-mgmt-edit-panel" role="dialog" aria-modal="true" aria-labelledby="user-permissions-modal-title">
-        <div class="user-mgmt-edit-head">
-            <h3 id="user-permissions-modal-title">{% trans "Edit permissions" %}</h3>
-            <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm user-mgmt-edit-close"
+<div class="tp-modal user-mgmt-edit-modal-backdrop" id="user-permissions-modal" aria-hidden="true">
+    <div class="tp-modal-panel tp-modal-panel--sm user-mgmt-edit-panel" role="dialog" aria-modal="true" aria-labelledby="user-permissions-modal-title">
+        <div class="tp-modal-head">
+            <h3 class="tp-modal-title" id="user-permissions-modal-title">{% trans "Edit permissions" %}</h3>
+            <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close user-mgmt-edit-close"
                     id="user-permissions-modal-close" aria-label="{% trans 'Close' %}">
                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
             </button>
@@ -158,7 +158,7 @@
             {% csrf_token %}
             <input type="hidden" name="action" value="update_permissions">
             <input type="hidden" name="user_id" id="user-permissions-modal-user-id" value="">
-            <div class="user-mgmt-edit-body">
+            <div class="tp-modal-body user-mgmt-edit-body">
                 <p class="user-mgmt-edit-subtitle">
                     {% blocktrans %}What <strong id="user-permissions-modal-name"></strong> can do on the platform.{% endblocktrans %}
                 </p>
@@ -173,24 +173,24 @@
                     <p class="user-mgmt-profile-help">{% trans "Choosing a role sets everything that role can do on the platform. Admin gives full access, same as the site owner." %}</p>
                 </div>
             </div>
-            <div class="user-mgmt-edit-actions">
-                <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm" id="user-permissions-modal-cancel">{% trans "Cancel" %}</button>
+            <div class="tp-modal-actions">
+                <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm" id="user-permissions-modal-cancel">{% trans "Cancel" %}</button>
                 <button type="submit" class="btn tp-btn tp-btn--primary tp-btn--sm">{% trans "Save" %}</button>
             </div>
         </form>
     </div>
 </div>
 
-<div class="user-mgmt-edit-modal-backdrop" id="user-revoke-modal" aria-hidden="true">
-    <div class="user-mgmt-edit-panel" role="dialog" aria-modal="true" aria-labelledby="user-revoke-modal-title">
-        <div class="user-mgmt-edit-head">
-            <h3 id="user-revoke-modal-title">{% trans "Revoke access?" %}</h3>
-            <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm user-mgmt-edit-close"
+<div class="tp-modal user-mgmt-edit-modal-backdrop" id="user-revoke-modal" aria-hidden="true">
+    <div class="tp-modal-panel tp-modal-panel--sm user-mgmt-edit-panel" role="dialog" aria-modal="true" aria-labelledby="user-revoke-modal-title">
+        <div class="tp-modal-head">
+            <h3 class="tp-modal-title" id="user-revoke-modal-title">{% trans "Revoke access?" %}</h3>
+            <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close user-mgmt-edit-close"
                     id="user-revoke-modal-close" aria-label="{% trans 'Close' %}">
                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
             </button>
         </div>
-        <div class="user-mgmt-edit-body">
+        <div class="tp-modal-body user-mgmt-edit-body">
             <p class="user-mgmt-edit-subtitle">
                 {% blocktrans %}<strong id="user-revoke-modal-name"></strong> will be deactivated immediately and lose every individually-granted permission. A later re-approval starts clean with just the baseline again.{% endblocktrans %}
             </p>
@@ -199,8 +199,8 @@
             {% csrf_token %}
             <input type="hidden" name="action" value="revoke">
             <input type="hidden" name="user_id" id="user-revoke-modal-user-id" value="">
-            <div class="user-mgmt-edit-actions">
-                <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm" id="user-revoke-modal-cancel">{% trans "Cancel" %}</button>
+            <div class="tp-modal-actions">
+                <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm" id="user-revoke-modal-cancel">{% trans "Cancel" %}</button>
                 <button type="submit" class="btn tp-btn tp-btn--danger tp-btn--sm">{% trans "Revoke access" %}</button>
             </div>
         </form>

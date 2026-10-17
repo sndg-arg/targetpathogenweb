@@ -1190,3 +1190,18 @@
 .ds-split .ds-comp--nested {
     margin-top: 0;
 }
+
+/* Modal sample: drawn on the scrim, in place instead of fixed. */
+.ds-modal-stage {
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px;
+    background: var(--tp-color-scrim);
+}
+
+.ds-modal-text {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}

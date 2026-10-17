@@ -2324,54 +2324,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     vertical-align: middle;
 }
 
-.binder-mol-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 1060;
-    display: none;
-    place-items: center;
-    padding: var(--tp-space-6);
-    background: color-mix(in srgb, var(--tp-color-text-primary) 58%, transparent);
-    backdrop-filter: blur(3px);
-}
-
-.binder-mol-modal.is-open {
-    display: grid;
-}
-
-.binder-mol-modal__panel {
-    width: min(720px, 96vw);
-    max-height: min(780px, 92vh);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
-    background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-lg);
-    overflow: hidden;
-}
-
-.binder-mol-modal__head {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--tp-space-4);
-    align-items: flex-start;
-    padding: var(--tp-space-3) var(--tp-space-4);
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface-soft);
-}
-
-.binder-mol-modal__head h3 {
-    margin: 0;
-    color: var(--protein-accent-ink);
-    font-size: var(--tp-font-size-md);
-}
-
-.binder-mol-modal__head p {
-    margin: 4px 0 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 650;
-}
-
+/* Ligand drawing inside the shared .tp-modal (ui-system.css). */
 .binder-mol-modal__body {
     display: grid;
     place-items: center;
@@ -2995,73 +2948,16 @@ body.binder-mol-modal-open {
 
 /* ── Residue modal ── */
 
-.residue-modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: var(--tp-color-scrim);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 14px;
-    z-index: 1200;
-}
-
-.residue-modal-backdrop.is-open {
-    display: flex;
-}
-
-.residue-modal-panel {
-    width: min(640px, 100%);
-    border-radius: 14px;
-    border: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-lg);
-    padding: 12px;
-}
-
-.residue-modal-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 8px;
-}
-
-.residue-modal-head h3 {
-    margin: 0;
-    font-size: var(--tp-font-size-md);
-    color: var(--protein-accent-ink);
-}
-
-.residue-modal-close {
-    min-width: 44px;
-    line-height: 1;
-    font-size: 1.2rem;
-}
-
+/* Residue list inside the shared .tp-modal (ui-system.css). */
 .residue-modal-body {
     margin: 0;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    background: var(--tp-color-surface-panel);
+    max-height: 320px;
     color: var(--tp-color-text-secondary);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
-    padding: 10px;
-    max-height: 240px;
-    overflow: auto;
+    line-height: 1.6;
     white-space: pre-wrap;
     word-break: break-word;
-}
-
-.residue-modal-actions {
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid var(--tp-color-border-soft);
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
 }
 
 #copy-residue-list {

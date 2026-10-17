@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261016-contrast">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-modal">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -1162,17 +1162,17 @@
         </div>
         </div>
 
-        <div class="residue-modal-backdrop" id="residue-modal" aria-hidden="true">
-            <div class="residue-modal-panel" role="dialog" aria-modal="true" aria-labelledby="residue-modal-title">
-                <div class="residue-modal-head">
-                    <h3 id="residue-modal-title">{% trans "Residue positions" %}</h3>
-                    <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm residue-modal-close" id="close-residue-modal" aria-label="{% trans "Close" %}">&times;</button>
+        <div class="tp-modal residue-modal-backdrop" id="residue-modal" aria-hidden="true">
+            <div class="tp-modal-panel residue-modal-panel" role="dialog" aria-modal="true" aria-labelledby="residue-modal-title">
+                <div class="tp-modal-head">
+                    <h3 class="tp-modal-title" id="residue-modal-title">{% trans "Residue positions" %}</h3>
+                    <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close residue-modal-close" id="close-residue-modal" aria-label="{% trans "Close" %}"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button>
                 </div>
-                <pre class="residue-modal-body" id="residue-modal-content"></pre>
-                <div class="residue-modal-actions">
+                <pre class="tp-modal-body residue-modal-body" id="residue-modal-content"></pre>
+                <div class="tp-modal-actions">
                     <button type="button"
                             id="copy-residue-list"
-                            class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon"
+                            class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon"
                             data-default-label="{% trans "Copy positions" %}"
                             data-copied-label="{% trans "Copied" %}">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
@@ -1182,16 +1182,16 @@
             </div>
         </div>
 
-        <div class="binder-mol-modal" id="binder-mol-modal" aria-hidden="true">
-            <div class="binder-mol-modal__panel" role="dialog" aria-modal="true" aria-labelledby="binder-mol-modal-title">
-                <div class="binder-mol-modal__head">
+        <div class="tp-modal binder-mol-modal" id="binder-mol-modal" aria-hidden="true">
+            <div class="tp-modal-panel tp-modal-panel--lg binder-mol-modal__panel" role="dialog" aria-modal="true" aria-labelledby="binder-mol-modal-title">
+                <div class="tp-modal-head">
                     <div>
-                        <h3 id="binder-mol-modal-title">{% trans "Ligand structure" %}</h3>
-                        <p id="binder-mol-modal-meta"></p>
+                        <h3 class="tp-modal-title" id="binder-mol-modal-title">{% trans "Ligand structure" %}</h3>
+                        <p class="tp-modal-meta" id="binder-mol-modal-meta"></p>
                     </div>
-                    <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm binder-mol-modal__close" id="binder-mol-modal-close" aria-label="{% trans 'Close' %}">&times;</button>
+                    <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close binder-mol-modal__close" id="binder-mol-modal-close" aria-label="{% trans 'Close' %}"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button>
                 </div>
-                <div class="binder-mol-modal__body" id="binder-mol-modal-body"></div>
+                <div class="tp-modal-body binder-mol-modal__body" id="binder-mol-modal-body"></div>
             </div>
         </div>
     </div>

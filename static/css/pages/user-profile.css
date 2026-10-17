@@ -185,86 +185,10 @@
     color: var(--tp-color-brand-700);
 }
 
-/* ── Edit modal — this is a floating overlay, not a page section, so it
-   keeps its own rounded panel/shadow like every other modal in the app. ── */
-
-.profile-edit-modal-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 9000;
-    background: var(--tp-color-scrim);
-    align-items: center;
-    justify-content: center;
-}
-
-.profile-edit-modal-backdrop.is-open {
-    display: flex;
-}
-
-.profile-edit-panel {
-    background: var(--tp-color-surface);
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: 14px;
-    box-shadow: var(--tp-shadow-lg);
-    width: min(420px, calc(100vw - 32px));
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.profile-edit-head {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--tp-color-border);
-}
-
-.profile-edit-head h3 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--tp-color-text-primary);
-    flex: 1;
-}
-
-.profile-edit-close {
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    flex: 0 0 auto;
-    border-color: transparent !important;
-    background: transparent !important;
-    color: var(--tp-color-text-muted) !important;
-}
-
-.profile-edit-close .tp-btn-icon {
-    width: 0.95em;
-    height: 0.95em;
-}
-
-.profile-edit-close:hover,
-.profile-edit-close:focus-visible {
-    background: var(--tp-color-surface-muted) !important;
-    color: var(--tp-color-text-primary) !important;
-}
-
+/* The edit dialog uses the shared .tp-modal (ui-system.css). */
 .profile-edit-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
     display: grid;
     gap: 16px;
-}
-
-.profile-edit-actions {
-    padding: 10px 16px;
-    border-top: 1px solid var(--tp-color-border);
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
 }
 
 body.profile-modal-open {

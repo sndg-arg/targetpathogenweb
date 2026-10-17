@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261016-general">
-    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261015-request-access">
+    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261017-modal">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -124,18 +124,18 @@
     {% elif form.email.errors or form.non_field_errors %}<script>window.TPW_PROFILE_ERROR_FIELD = "email";</script>
     {% endif %}
 
-    <div class="profile-edit-modal-backdrop" id="profile-edit-modal" aria-hidden="true">
-        <div class="profile-edit-panel" role="dialog" aria-modal="true" aria-labelledby="profile-edit-modal-title">
-            <div class="profile-edit-head">
-                <h3 id="profile-edit-modal-title">{% trans "Edit profile" %}</h3>
-                <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm profile-edit-close"
+    <div class="tp-modal profile-edit-modal-backdrop" id="profile-edit-modal" aria-hidden="true">
+        <div class="tp-modal-panel tp-modal-panel--sm profile-edit-panel" role="dialog" aria-modal="true" aria-labelledby="profile-edit-modal-title">
+            <div class="tp-modal-head">
+                <h3 class="tp-modal-title" id="profile-edit-modal-title">{% trans "Edit profile" %}</h3>
+                <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close profile-edit-close"
                         id="profile-edit-close" aria-label="{% trans 'Close' %}">
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
                 </button>
             </div>
             <form class="auth-form profile-edit-form" id="profile-edit-form" method="post" action="{% url 'tpwebapp:profile' %}">
                 {% csrf_token %}
-                <div class="profile-edit-body">
+                <div class="tp-modal-body profile-edit-body">
                     {% if form.non_field_errors %}
                         <div class="auth-errors">{{ form.non_field_errors }}</div>
                     {% endif %}
@@ -167,8 +167,8 @@
                         {% endif %}
                     </div>
                 </div>
-                <div class="profile-edit-actions">
-                    <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm" id="profile-edit-cancel">{% trans "Cancel" %}</button>
+                <div class="tp-modal-actions">
+                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm" id="profile-edit-cancel">{% trans "Cancel" %}</button>
                     <button type="submit" class="btn tp-btn tp-btn--primary tp-btn--sm" id="profile-edit-save" disabled>{% trans "Save changes" %}</button>
                 </div>
             </form>

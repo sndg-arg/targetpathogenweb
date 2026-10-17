@@ -90,6 +90,11 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
   and never add a fourth color/variant. Same idea for every other component (chips, notes,
   cards): reuse the existing variant, don't invent a page-local look.
 - `.tp-state-note--{empty,error}` for "nothing here yet" / error inline messages.
+- Dialogs: `.tp-modal` (backdrop, `.is-open` shows it) > `.tp-modal-panel[--sm|--lg]` >
+  `.tp-modal-head` (`.tp-modal-title`, optional `.tp-modal-meta`, close =
+  `btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close` with `icons/x.html`) + `.tp-modal-body` +
+  `.tp-modal-actions` (Cancel = secondary, then the main action). Keep the page's own id/class
+  next to these for its JS; page CSS only styles what's inside the body.
 
 ## Cache-busters
 

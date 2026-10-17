@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261016-contrast">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261017-modal">
 {% endblock %}
 
 {% block body %}
@@ -291,18 +291,18 @@
 </div>
 
 {# Residue positions modal #}
-<div class="residue-modal-backdrop" id="residue-modal" aria-hidden="true">
-    <div class="structure-residue-modal-panel" role="dialog" aria-modal="true" aria-labelledby="residue-modal-title">
-        <div class="residue-modal-head">
-            <h3 id="residue-modal-title">{% trans "Residue positions" %}</h3>
-            <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm residue-modal-close"
+<div class="tp-modal residue-modal-backdrop" id="residue-modal" aria-hidden="true">
+    <div class="tp-modal-panel structure-residue-modal-panel" role="dialog" aria-modal="true" aria-labelledby="residue-modal-title">
+        <div class="tp-modal-head">
+            <h3 class="tp-modal-title" id="residue-modal-title">{% trans "Residue positions" %}</h3>
+            <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close residue-modal-close"
                     id="close-residue-modal" aria-label="{% trans 'Close' %}">
                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
             </button>
         </div>
-        <pre class="residue-modal-body" id="residue-modal-content"></pre>
-        <div class="residue-modal-actions">
-            <button type="button" id="copy-residue-list" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon"
+        <pre class="tp-modal-body residue-modal-body" id="residue-modal-content"></pre>
+        <div class="tp-modal-actions">
+            <button type="button" id="copy-residue-list" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon"
                     data-default-label="{% trans 'Copy positions' %}"
                     data-copied-label="{% trans 'Copied' %}">
                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
@@ -313,16 +313,16 @@
 </div>
 
 {# Viewer settings modal -- what's currently visible + color customization #}
-<div class="residue-modal-backdrop" id="viewer-settings-modal" aria-hidden="true">
-    <div class="viewer-settings-panel" role="dialog" aria-modal="true" aria-labelledby="viewer-settings-title">
-        <div class="residue-modal-head">
-            <h3 id="viewer-settings-title">{% trans "View settings" %}</h3>
-            <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm residue-modal-close"
+<div class="tp-modal residue-modal-backdrop" id="viewer-settings-modal" aria-hidden="true">
+    <div class="tp-modal-panel viewer-settings-panel" role="dialog" aria-modal="true" aria-labelledby="viewer-settings-title">
+        <div class="tp-modal-head">
+            <h3 class="tp-modal-title" id="viewer-settings-title">{% trans "View settings" %}</h3>
+            <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close residue-modal-close"
                     id="close-viewer-settings-modal" aria-label="{% trans 'Close' %}">
                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
             </button>
         </div>
-        <div class="viewer-settings-body">
+        <div class="tp-modal-body viewer-settings-body">
             <section class="viewer-settings-section">
                 <h4 class="viewer-settings-section-title">{% trans "Currently visible" %}</h4>
                 <ul class="viewer-settings-visible-list" id="viewer-settings-visible-list"></ul>

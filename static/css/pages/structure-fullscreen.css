@@ -1030,100 +1030,28 @@ body:has(.sv-root) { overflow: hidden; }
 .structure-toggle:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--tp-color-border-accent); }
 
 /* ── 14. Residue modal ── */
-.residue-modal-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 9000;
-    background: var(--tp-color-scrim);
-    align-items: center;
-    justify-content: center;
-}
-.residue-modal-backdrop.is-open { display: flex; }
-.structure-residue-modal-panel {
-    background: var(--tp-color-surface);
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: 14px;
-    box-shadow: var(--tp-shadow-lg);
-    width: min(480px, calc(100vw - 32px));
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-.residue-modal-head {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--tp-color-border);
-}
-.residue-modal-head h3 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--tp-color-text-primary);
-    flex: 1;
-}
-/* Icon-only ghost circle instead of a bordered "x" pill -- lighter touch
-   for a dismiss action that isn't competing with the modal's real actions. */
-.residue-modal-close {
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    flex: 0 0 auto;
-    border-color: transparent !important;
-    background: transparent !important;
-    color: var(--tp-color-text-muted) !important;
-}
-
-.residue-modal-close .tp-btn-icon { width: 0.95em; height: 0.95em; }
-
-.residue-modal-close:hover,
-.residue-modal-close:focus-visible {
-    background: var(--tp-color-surface-muted) !important;
-    color: var(--tp-color-text-primary) !important;
-}
+/* Residue list inside the shared .tp-modal (ui-system.css). */
 .residue-modal-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 14px 16px;
     margin: 0;
-    font-size: 0.85rem;
-    line-height: 1.7;
+    max-height: 320px;
     color: var(--tp-color-text-secondary);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.6;
     white-space: pre-wrap;
-    word-break: break-all;
+    word-break: break-word;
 }
-.residue-modal-actions {
-    padding: 10px 16px;
-    border-top: 1px solid var(--tp-color-border);
-    display: flex;
-    justify-content: flex-end;
-}
+
 body.residue-modal-open { overflow: hidden; }
 
 /* ── 14b. Viewer settings modal ── */
-/* Backdrop/open/scroll-lock reuse .residue-modal-backdrop/.is-open above --
-   only the panel itself and its contents are new, since this modal needs
-   two sections (a live summary list + color rows) instead of one <pre>. */
+/* Viewer settings: the shared .tp-modal (ui-system.css), a bit wider. */
 .viewer-settings-panel {
-    background: var(--tp-color-surface);
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: 14px;
-    box-shadow: var(--tp-shadow-lg);
-    width: min(560px, calc(100vw - 32px));
-    max-height: 84vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    width: min(560px, 100%);
 }
 body.viewer-settings-open { overflow: hidden; }
 
 .viewer-settings-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 20px;
