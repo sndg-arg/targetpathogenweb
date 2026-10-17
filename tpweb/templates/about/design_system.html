@@ -28,7 +28,7 @@
     <section class="ds-hero">
         <p class="ds-eyebrow">Referencia interna · solo con link</p>
         <h1>Sistema visual de Target Pathogen</h1>
-        <p class="ds-lead">Tokens y componentes de la app, dibujados con el CSS real. Tema oscuro: botón sol/luna.</p>
+        <p class="ds-lead">Tokens y componentes, dibujados con el CSS real.</p>
     </section>
 
     <nav class="quick-nav" data-quick-nav aria-label="Secciones">
@@ -239,7 +239,7 @@
                 <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Neutro</strong><code>--meta</code></th><th scope="col"><strong>Número</strong><code>--count</code></th><th scope="col"><strong>Identificador</strong><code>--ec · --go</code></th><th scope="col"><strong>Favorable</strong><code>--direct</code></th><th scope="col"><strong>Atención</strong><code>--warning</code></th><th scope="col"><strong>Indirecto</strong><code>--homolog</code></th></tr></thead>
                 <tbody>
                     <tr><th scope="row">Ejemplo</th><td><span class="tp-chip tp-chip--meta">Curated analysis</span></td><td><span class="tp-chip tp-chip--count">857</span></td><td><span class="tp-chip tp-chip--ec">2.7.13.3</span></td><td><span class="tp-chip tp-chip--direct">Has structure</span></td><td><span class="tp-chip tp-chip--warning">Low confidence</span></td><td><span class="tp-chip tp-chip--homolog">Via homolog</span></td></tr>
-                    <tr><th scope="row">Cuándo</th><td class="ds-use">Contexto</td><td class="ds-use">Cantidad</td><td class="ds-use">Códigos (mono)</td><td class="ds-use">Dato a favor</td><td class="ds-use">Dato dudoso</td><td class="ds-use">Evidencia por homología (sin relleno)</td></tr>
+                    <tr><th scope="row">Cuándo</th><td class="ds-use">Contexto</td><td class="ds-use">Cantidad</td><td class="ds-use">Códigos (mono)</td><td class="ds-use">Dato a favor</td><td class="ds-use">Dato dudoso</td><td class="ds-use">Por homología</td></tr>
                 </tbody>
             </table>
             </div>
@@ -266,10 +266,8 @@
                 <div class="tp-ui-field ds-ex-field">
                     <label class="tp-ui-field-label" for="ds-ex-text">Locus tag</label>
                     <input id="ds-ex-text" type="text" class="form-control tp-ui-control" placeholder="KPN_00002" tabindex="-1">
-                    <span class="ds-ex-help">One per line.</span>
                 </div>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Rótulo</strong> <code>tp-ui-field-label</code></span> <span class="ds-part"><strong>Campo</strong> <code>tp-ui-control</code></span> <span class="ds-part"><strong>Ayuda (opcional)</strong></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
@@ -298,7 +296,6 @@
                     </select>
                 </div>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Disparador</strong> <code>tp-select-trigger</code></span> <span class="ds-part"><strong>Menú</strong> <code>tp-select-menu</code></span> <span class="ds-part"><strong>Opción</strong> <code>tp-select-option</code></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
@@ -337,7 +334,6 @@
             <div class="ds-example">
                 <div class="ds-seg"><label><input type="radio" name="ds-seg" checked tabindex="-1"><span>Nucleotide <small>blastn</small></span></label><label><input type="radio" name="ds-seg" tabindex="-1"><span>Protein <small>blastp</small></span></label></div>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Elegida</strong> lleno petróleo</span> <span class="ds-part"><strong>No elegida</strong> texto gris</span></p>
         </div>
     </section>
 
@@ -354,7 +350,6 @@
                     <p class="tp-state-note tp-state-note--warning">“KPN_99999” is not a value in this genome, not added.</p>
                 </div>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Barra de color</strong></span> <span class="ds-part"><strong>Texto</strong></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid ds-grid--t">
                 <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Vacío</strong><code>--empty</code></th><th scope="col"><strong>Cargando</strong><code>--loading</code></th><th scope="col"><strong>Listo</strong><code>--success</code></th><th scope="col"><strong>Atención</strong><code>--warning</code></th><th scope="col"><strong>Error</strong><code>--error</code></th></tr></thead>
@@ -367,7 +362,6 @@
         </div>
         <div class="ds-comp" id="c-msg">
             <h4 class="ds-comp-title">Mensaje <code>tp-message</code></h4>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Texto</strong></span> <span class="ds-part"><strong>Cerrar</strong> <code>tp-message-close</code></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid ds-grid--t">
                 <thead><tr><th scope="col" class="ds-g-variant"></th><th scope="col"><strong>Listo</strong><code>--success</code></th><th scope="col"><strong>Info</strong><code>--info</code></th><th scope="col"><strong>Atención</strong><code>--warning</code></th><th scope="col"><strong>Error</strong><code>--error</code></th></tr></thead>
@@ -391,7 +385,6 @@
                     </div>
                 </div>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Diana animada</strong> <code>tp-page-loader-target</code></span> <span class="ds-part"><strong>Título</strong></span> <span class="ds-part"><strong>Qué está abriendo</strong> <code>tp-page-loader-copy</code></span></p>
         </div>
     </section>
 
@@ -410,7 +403,6 @@
                     </ol>
                 </nav>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Volver</strong> <code>tp-breadcrumb-back</code></span> <span class="ds-part"><strong>Niveles</strong> <code>tp-breadcrumb-link</code></span> <span class="ds-part"><strong>Página actual</strong> <code>tp-breadcrumb-current</code></span></p>
         </div>
         <div class="ds-comp" id="c-menu">
             <h4 class="ds-comp-title">Menú de secciones <code>quick-nav</code></h4>
@@ -422,7 +414,6 @@
                     <span class="quick-nav-link">Details</span>
                 </nav>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Barra</strong> <code>quick-nav</code></span> <span class="ds-part"><strong>Pestaña</strong> <code>quick-nav-link</code></span> <span class="ds-part"><strong>Línea activa</strong> <code>--tp-color-accent-line</code></span></p>
             <div class="ds-table-wrap">
             <table class="ds-grid">
                 <thead>
@@ -480,7 +471,6 @@
                     </table>
                 </div>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Encabezado</strong> <code>thead</code></span> <span class="ds-part"><strong>Fila</strong> <code>tbody tr</code></span> <span class="ds-part"><strong>Link a la ficha</strong></span></p>
         </div>
     </section>
 
@@ -562,7 +552,7 @@
                     </div>
                 </aside>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Aplicados</strong> <code>filter-pill</code></span> <span class="ds-part"><strong>Buscar</strong> <code>drawer-search</code></span> <span class="ds-part"><strong>Grupo</strong> <code>filter-group</code></span> <span class="ds-part"><strong>Criterio</strong> <code>filter-param</code></span> <span class="ds-part"><strong>Chip de filtro</strong> <code>filter-chip</code></span> <span class="ds-part"><strong>Valores con sugerencias</strong> <code>filter-token-field</code></span> <span class="ds-part"><strong>Pie</strong> <code>drawer-foot</code></span></p>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Aplicados</strong> <code>filter-pill</code></span> <span class="ds-part"><strong>Grupo</strong> <code>filter-group</code></span> <span class="ds-part"><strong>Chip de filtro</strong> <code>filter-chip</code></span> <span class="ds-part"><strong>Valores</strong> <code>filter-token-field</code></span></p>
             <div class="ds-comp ds-comp--nested" id="c-filtro">
                 <h5 class="ds-comp-title ds-comp-title--sub">Chip de filtro <code>filter-chip</code></h5>
                 <div class="ds-table-wrap">
@@ -662,7 +652,7 @@
                     </ul>
                 </div>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Columna ordenable</strong> <code>th-sortable</code></span> <span class="ds-part"><strong>Orden activo</strong> <code>th-sorted</code></span> <span class="ds-part"><strong>Link a la ficha</strong></span> <span class="ds-part"><strong>Chips de anotación</strong> <code>annotation-cell</code></span> <span class="ds-part"><strong>Puntaje</strong> <code>tp-chip--score</code></span> <span class="ds-part"><strong>Sin dato</strong> <code>annotation-empty</code></span> <span class="ds-part"><strong>Paginación</strong> <code>tp-pagination</code></span></p>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Columna ordenable</strong> <code>th-sortable</code></span> <span class="ds-part"><strong>Chips de anotación</strong> <code>annotation-cell</code></span> <span class="ds-part"><strong>Puntaje</strong> <code>tp-chip--score</code></span></p>
         </div>
         <div class="ds-comp ds-compound tp-quick-nav-target" id="k-numeros">
             <h4 class="ds-comp-title">Tarjetas de números <code>metric-pill · target-evidence-card</code></h4>
@@ -704,7 +694,7 @@
                     </div>
                 </div>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Pastilla</strong> <code>metric-pill</code></span> <span class="ds-part"><strong>Pastilla con link</strong> <code>metric-pill--link</code></span> <span class="ds-part"><strong>Prioridad</strong> <code>metric-pill--priority</code></span> <span class="ds-part"><strong>Tarjeta</strong> <code>target-evidence-card</code></span> <span class="ds-part"><strong>Secundaria</strong> <code>--secondary</code></span> <span class="ds-part"><strong>Filas</strong> <code>target-evidence-meta-row</code></span></p>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Pastilla</strong> <code>metric-pill</code></span> <span class="ds-part"><strong>Tarjeta</strong> <code>target-evidence-card</code></span></p>
         </div>
         <div class="ds-comp ds-compound tp-quick-nav-target" id="k-visor">
             <h4 class="ds-comp-title">Barra del visor 3D <code>sv-toolbar</code></h4>
@@ -728,7 +718,7 @@
                     <button type="button" class="sv-tb-btn" tabindex="-1" aria-label="Reset view" disabled><svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8A5 5 0 1 1 8 3"/><path d="M12.5 2v3h-3"/></svg></button>
                 </nav>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Botón con ícono</strong> <code>sv-tb-btn</code></span> <span class="ds-part"><strong>Separador</strong> <code>sv-tb-sep</code></span> <span class="ds-part"><strong>Grupo de modos</strong> <code>sv-mode-group</code></span> <span class="ds-part"><strong>Modo activo</strong> <code>sv-mode-btn is-active</code></span></p>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Botón</strong> <code>sv-tb-btn</code></span> <span class="ds-part"><strong>Grupo de modos</strong> <code>sv-mode-group</code></span></p>
         </div>
         <div class="ds-comp ds-compound tp-quick-nav-target" id="k-asistente">
             <h4 class="ds-comp-title">Asistente <code>tp-agent-fab · tp-agent-drawer</code></h4>
@@ -759,7 +749,7 @@
                     </div>
                 </div>
             </div>
-            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Botón flotante</strong> <code>tp-agent-fab</code></span> <span class="ds-part"><strong>Al pasar el mouse</strong> <code>muestra el nombre</code></span> <span class="ds-part"><strong>Mensaje tuyo</strong> <code>--user</code></span> <span class="ds-part"><strong>Respuesta</strong> <code>--assistant</code></span> <span class="ds-part"><strong>Sugerencia</strong> <code>tp-agent-drawer-suggestion</code></span> <span class="ds-part"><strong>Escribir</strong> <code>tp-agent-drawer-form</code></span></p>
+            <p class="ds-parts"><span class="ds-parts-label">Partes</span><span class="ds-part"><strong>Botón flotante</strong> <code>tp-agent-fab</code></span> <span class="ds-part"><strong>Mensaje</strong> <code>tp-agent-drawer-msg</code></span> <span class="ds-part"><strong>Sugerencia</strong> <code>tp-agent-drawer-suggestion</code></span></p>
         </div>
     </div>
 
