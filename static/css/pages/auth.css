@@ -62,9 +62,13 @@
     gap: 6px;
 }
 
+/* Same label and text field as every other form (.tp-ui-field-label and
+   .form-control in masterpage.html / ui-system.css, see /design). */
 .auth-field label {
-    font-size: 0.8rem;
+    margin: 0;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
+    line-height: 1.25;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -72,24 +76,30 @@
 
 .auth-field input {
     width: 100%;
-    height: 44px;
-    padding: 0 14px;
-    border: 1px solid var(--tp-color-border);
-    border-radius: 10px;
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-primary);
-    font-size: 0.95rem;
+    height: var(--tp-ui-control-height);
+    padding: 0 12px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-ui-radius-control);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-secondary);
+    font-size: 1rem;
+    font-weight: 600;
     transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.auth-field input:hover {
+    border-color: var(--tp-color-brand-300);
 }
 
 .auth-field input:focus {
     outline: none;
-    border-color: var(--tp-color-brand-600);
-    box-shadow: var(--tp-focus-outline);
+    border-color: var(--tp-focus-color);
+    box-shadow: 0 0 0 1px var(--tp-focus-color);
 }
 
 .auth-field input::placeholder {
     color: var(--tp-color-text-muted);
+    opacity: 1;
 }
 
 .auth-field .helptext {
@@ -238,4 +248,9 @@
         padding: 28px 20px 24px;
         border-radius: 14px;
     }
+}
+
+/* Dark: typed text as bright as the standard field's. */
+.tp-dark .auth-field input {
+    color: var(--tp-color-text-primary);
 }

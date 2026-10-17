@@ -30,13 +30,8 @@
     max-width: 640px;
 }
 
-.human-list-search input[type="search"] {
+.human-list-search .form-control {
     flex: 1;
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-radius-md);
-    padding: var(--tp-space-2) var(--tp-space-3);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
 }
 
 .human-list-count {
@@ -52,11 +47,16 @@
 .human-list-pagination {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
     gap: var(--tp-space-3);
     margin-top: var(--tp-space-2);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
+}
+
+.human-list-pagination .pagination {
+    margin: 0;
 }
 
 .human-protein-grid {
@@ -65,30 +65,18 @@
     gap: var(--tp-space-4);
 }
 
-/* Overrides .tp-ui-panel's rounded/shadowed box (shared app-wide default)
-   with a sharper, flatter card and a left accent bar on hover instead of a
-   lifted shadow -- the "selected in a reference list" language, not a
-   dashboard tile. Equal selector specificity to .tp-ui-panel, so this wins
-   purely by loading after it (see human_protein_list.html's head block). */
+/* Same card as the rest of the site (.tp-ui-panel: 12px corners, soft
+   shadow); hover darkens the border and lifts the shadow a step. */
 .human-protein-card {
     display: block;
     padding: var(--tp-space-4);
     color: inherit;
-    border-radius: 4px;
-    box-shadow: none;
-    border-left: 3px solid transparent;
-    transition:
-        border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
-        background-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
 }
 
 .human-protein-card:hover,
 .human-protein-card:focus-visible {
-    border-color: var(--tp-color-border-soft);
-    border-left-color: var(--human-accent);
-    background: var(--tp-color-surface-soft);
-    box-shadow: none;
-    transform: none;
+    border-color: var(--tp-color-border);
+    box-shadow: var(--tp-shadow-sm);
 }
 
 /* Bootstrap 4's default `a:hover { text-decoration: underline; }` (loaded
@@ -117,9 +105,9 @@
 }
 
 .human-protein-card__acc {
-    font-family: "SFMono-Regular", Consolas, monospace;
+    font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
     font-size: var(--tp-font-size-sm);
-    color: var(--human-accent);
+    color: var(--tp-color-text-secondary);
 }
 
 .human-protein-card__gene {

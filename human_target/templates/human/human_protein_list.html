@@ -11,7 +11,7 @@
     detail page's own head block.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-modal">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-list.css' %}?v=20261017-sans">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-list.css' %}?v=20261017-cards">
 {% endblock %}
 
 {% block body %}
@@ -51,12 +51,12 @@
         {% endif %}
 
         <form method="GET" class="human-list-search" role="search">
-            <input type="search" name="q" value="{{ query }}" placeholder="{% trans 'Search by accession, gene, or name…' %}" aria-label="{% trans 'Search human proteins' %}">
+            <input type="search" class="form-control tp-ui-control" name="q" value="{{ query }}" placeholder="{% trans 'Search by accession, gene, or name…' %}" aria-label="{% trans 'Search human proteins' %}">
             <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
                 <span>{% trans "Search" %}</span>
             </button>
-            {% if query %}<a href="{% url 'human_target:human_protein_list' %}" class="btn tp-btn tp-btn--neutral">{% trans "Clear" %}</a>{% endif %}
+            {% if query %}<a href="{% url 'human_target:human_protein_list' %}" class="btn tp-btn tp-btn--ghost">{% trans "Clear" %}</a>{% endif %}
         </form>
 
         <p class="human-list-count">{% blocktrans count count=total_count %}{{ count }} protein{% plural %}{{ count }} proteins{% endblocktrans %}</p>
@@ -81,13 +81,24 @@
 
         {% if proteins.paginator.num_pages > 1 %}
         <nav class="human-list-pagination" aria-label="{% trans 'Protein list pagination' %}">
-            {% if proteins.has_previous %}
-            <a href="?{% if query %}q={{ query }}&{% endif %}page={{ proteins.previous_page_number }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Previous" %}</a>
-            {% endif %}
             <span>{% blocktrans with current=proteins.number total=proteins.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktrans %}</span>
-            {% if proteins.has_next %}
-            <a href="?{% if query %}q={{ query }}&{% endif %}page={{ proteins.next_page_number }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Next" %}</a>
-            {% endif %}
+            <ul class="pagination tp-pagination">
+                <li class="page-item{% if not proteins.has_previous %} disabled{% endif %}">
+                    {% if proteins.has_previous %}
+                    <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page={{ proteins.previous_page_number }}" aria-label="{% trans 'Previous' %}"><span class="tp-chevron tp-chevron--left" aria-hidden="true"></span></a>
+                    {% else %}
+                    <span class="page-link" aria-hidden="true"><span class="tp-chevron tp-chevron--left"></span></span>
+                    {% endif %}
+                </li>
+                <li class="page-item active" aria-current="page"><span class="page-link">{{ proteins.number }}</span></li>
+                <li class="page-item{% if not proteins.has_next %} disabled{% endif %}">
+                    {% if proteins.has_next %}
+                    <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page={{ proteins.next_page_number }}" aria-label="{% trans 'Next' %}"><span class="tp-chevron tp-chevron--right" aria-hidden="true"></span></a>
+                    {% else %}
+                    <span class="page-link" aria-hidden="true"><span class="tp-chevron tp-chevron--right"></span></span>
+                    {% endif %}
+                </li>
+            </ul>
         </nav>
         {% endif %}
     </div>
