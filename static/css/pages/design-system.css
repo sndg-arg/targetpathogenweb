@@ -33,7 +33,6 @@
 .ds-chapter-head {
     display: grid;
     gap: var(--tp-space-2);
-    max-width: 68ch;
 }
 
 .ds-chapter-head h2 {
