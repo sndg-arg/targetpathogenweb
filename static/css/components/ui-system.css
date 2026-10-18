@@ -2288,7 +2288,8 @@ a.metric-pill:focus-visible .metric-pill-jump {
 
 /* Pending-add state (was inactive, JS added --active + --pending): dashed
    outline = "waiting for Apply filters". */
-.filter-chip--active {
+.filter-chip--active,
+.filter-chip[aria-pressed="true"] {
     background: var(--tp-color-surface);
     border: 1px dashed var(--tp-color-brand-700);
     color: var(--tp-color-brand-800);
@@ -2296,7 +2297,8 @@ a.metric-pill:focus-visible .metric-pill-jump {
 }
 
 /* Server-applied, no pending change: solid brand fill — unambiguously "ON" */
-.filter-chip--active:not(.filter-chip--pending) {
+.filter-chip--active:not(.filter-chip--pending),
+.filter-chip[aria-pressed="true"] {
     border-style: solid;
     background: var(--tp-color-primary);
     border-color: var(--tp-color-primary);

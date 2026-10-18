@@ -987,29 +987,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     gap: var(--tp-space-2);
 }
 
-.sv-pocket-inspector-clear,
-.sv-pocket-inspector-toggle {
-    appearance: none;
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
-    cursor: pointer;
-    font: inherit;
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
-    line-height: 1;
-    padding: var(--tp-space-1) var(--tp-space-2);
-    transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
-}
-
-.sv-pocket-inspector-toggle[aria-pressed="true"] {
-    background: var(--tp-color-primary);
-    border-color: var(--tp-color-primary);
-    color: var(--tp-color-on-accent);
-    box-shadow: none;
-}
-
 .sv-pocket-inspector-title {
     display: block;
     color: var(--tp-color-brand-900);
@@ -1229,42 +1206,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
    Zoom/Residues action buttons below them (which keep their normal
    .tp-btn--clear border at all times) so the two rows read as distinct
    priorities instead of competing for the same attention. */
-.pocket-repr-btn {
-    appearance: none;
-    -webkit-appearance: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--tp-space-1) var(--tp-space-2);
-    border: 1px solid transparent;
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    transition:
-        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-    text-align: center;
-    line-height: 1.2;
-}
-.pocket-repr-btn:hover {
-    background: var(--tp-color-surface-muted);
-    border-color: var(--tp-color-border-strong);
-    color: var(--tp-color-text-primary);
-}
-.pocket-repr-btn[aria-pressed="true"] {
-    background: var(--tp-color-primary);
-    border-color: var(--tp-color-primary);
-    color: var(--tp-color-on-accent);
-    outline: 2px solid var(--tp-focus-color);
-    outline-offset: 1px;
-    box-shadow: none;
-}
 
 .pocket-card-actions {
     display: flex;
@@ -1313,14 +1254,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .residueset-row-actions .btn { font-size: var(--tp-font-size-xs); padding: var(--tp-space-1) var(--tp-space-2); }
 
 .tp-dark .pocket-card { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
-.tp-dark .pocket-repr-btn { background: var(--tp-color-surface-soft); border-color: transparent; color: var(--tp-color-text-secondary); }
-.tp-dark .pocket-repr-btn[aria-pressed="true"],
-.tp-dark .sv-pocket-inspector-toggle[aria-pressed="true"] {
-    background: var(--tp-color-primary);
-    border-color: var(--tp-color-primary);
-    color: var(--tp-color-on-accent);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--tp-color-brand-800) 45%, transparent);
-}
 
 .table-hint {
     margin: 0;
