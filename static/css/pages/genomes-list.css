@@ -46,16 +46,7 @@
     min-width: 188px;
     justify-content: center;
     gap: var(--tp-space-2) !important;
-    padding-left: var(--tp-space-4);
-    padding-right: var(--tp-space-4);
     flex: 0 0 auto;
-}
-
-.genomes-upload-btn .tp-btn-icon {
-    width: 0.92rem;
-    height: 0.92rem;
-    flex-basis: 0.92rem;
-    opacity: 0.92;
 }
 
 .genomes-feedback {

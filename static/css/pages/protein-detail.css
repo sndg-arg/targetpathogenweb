@@ -625,7 +625,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .features-reset-btn {
     white-space: nowrap;
-    font-weight: 500;
 }
 
 .features-reset-btn.is-inline {
@@ -638,11 +637,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     align-items: center;
     margin-left: var(--tp-space-3);
     vertical-align: middle;
-}
-
-.features-zoom-reset-slot .features-reset-btn {
-    min-height: 34px !important;
-    padding: var(--tp-space-1) var(--tp-space-3) !important;
 }
 
 /* ── No-structure note ── */
@@ -1999,12 +1993,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     margin-bottom: 0;
 }
 
-.binder-card-action {
-    font-size: var(--tp-font-size-xs);
-    min-height: 24px;
-    padding-inline: var(--tp-space-2);
-}
-
 .binder-card-action--external .tp-btn-icon {
     width: 0.88rem;
     height: 0.88rem;
@@ -3026,27 +3014,13 @@ body.residue-modal-open {
 .experimental-switch-btn {
     display: inline-flex;
     align-items: center;
-    height: 26px;
     margin-left: var(--tp-space-2);
-    padding: 0 var(--tp-space-3);
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
     font-family: inherit;
     letter-spacing: 0;
     cursor: pointer;
     transition: border-color 0.12s, background 0.12s, color 0.12s;
     appearance: none;
     vertical-align: middle;
-}
-
-.experimental-switch-btn:hover {
-    border-color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-primary);
 }
 
 .experimental-switch-btn:focus-visible {
@@ -3071,11 +3045,6 @@ body.residue-modal-open {
 
 .tp-dark .experimental-coverage-track {
     background: var(--tp-color-surface-muted);
-}
-
-.tp-dark .experimental-switch-btn {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-strong);
 }
 
 /* Legacy class — kept for JS compat */
@@ -3293,9 +3262,6 @@ body.residue-modal-open {
 }
 
 .binder-crystal-viewer {
-    font-size: var(--tp-font-size-xs) !important;
-    padding: 3px var(--tp-space-3) !important;
-    min-height: 26px !important;
     white-space: nowrap;
 }
 

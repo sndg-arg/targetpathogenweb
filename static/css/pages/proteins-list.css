@@ -366,13 +366,7 @@ a.filter-pill .filter-pill-remove {
     justify-content: center;
     gap: 2px;
     min-width: 168px;
-    padding: var(--tp-space-2) var(--tp-space-4);
     text-align: left;
-    color: var(--tp-color-text-primary) !important;
-    border: 1px solid var(--tp-color-border-strong) !important;
-    background: var(--tp-color-surface) !important;
-    border-radius: var(--tp-radius-sm);
-    box-shadow: none !important;
     transition:
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -406,10 +400,6 @@ a.filter-pill .filter-pill-remove {
 
 .toolbar-controls-left .toolbar-action-btn:hover,
 .toolbar-controls-left .toolbar-action-btn:focus-visible {
-    color: var(--tp-color-text-primary) !important;
-    border-color: var(--tp-color-text-muted) !important;
-    background: var(--tp-color-surface-soft) !important;
-    box-shadow: none !important;
     outline: none;
 }
 
@@ -424,10 +414,6 @@ a.filter-pill .filter-pill-remove {
 #open-filters-btn.has-pending-filters .toolbar-action-btn__meta {
     color: var(--tp-color-brand-700);
     font-weight: 600;
-}
-
-.toolbar-controls-left .toolbar-action-btn:focus-visible {
-    box-shadow: var(--tp-focus-outline) !important;
 }
 
 .toolbar-action-btn__title {
@@ -1361,34 +1347,8 @@ a.filter-pill .filter-pill-remove {
 .drawer-close-btn.drawer-close-btn {
     width: 30px !important;
     min-width: 30px !important;
-    height: 30px !important;
-    min-height: 30px !important;
-    padding: 0 !important;
-    border-radius: var(--tp-radius-sm);
     display: inline-grid;
     place-items: center;
-    border-color: var(--tp-color-border) !important;
-    background: transparent !important;
-    color: var(--tp-color-text-muted) !important;
-    box-shadow: none !important;
-}
-
-.drawer-close-btn.drawer-close-btn:hover,
-.drawer-close-btn.drawer-close-btn:focus-visible {
-    border-color: var(--tp-color-border-strong) !important;
-    background: var(--tp-color-surface-muted) !important;
-    color: var(--tp-color-text-secondary) !important;
-}
-
-.drawer-close-glyph {
-    display: block;
-    font-size: var(--tp-font-size-lg);
-    line-height: 1;
-    font-weight: 600;
-    letter-spacing: var(--tp-tracking-tight);
-    transform: none;
-    color: currentColor;
-    text-shadow: 0 0 0 currentColor;
 }
 
 .drawer-body {
@@ -1716,39 +1676,21 @@ a.filter-pill .filter-pill-remove {
 .tpd-row .tpd-rename-btn.tpd-rename-btn,
 .tpd-row .tpd-delete-btn.tpd-delete-btn {
     width: 36px;
-    height: 100%;
-    min-height: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    border-radius: 0 !important;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--tp-color-text-muted) !important;
-    background: transparent !important;
     transition: background 120ms ease, color 120ms ease;
 }
 
 .tpd-row .tpd-delete-btn.tpd-delete-btn:hover,
 .tpd-row .tpd-delete-btn.tpd-delete-btn:focus-visible {
-    background: var(--tp-color-danger-bg) !important;
-    color: var(--tp-color-danger-ink) !important;
     outline: none;
 }
 
 .tpd-row .tpd-rename-btn.tpd-rename-btn:hover,
 .tpd-row .tpd-rename-btn.tpd-rename-btn:focus-visible {
-    background: var(--tp-color-surface-soft) !important;
-    color: var(--tp-color-text-primary) !important;
     outline: none;
-}
-
-.tpd-rename-btn svg,
-.tpd-delete-btn svg {
-    width: 15px;
-    height: 15px;
-    pointer-events: none;
 }
 
 .tpd-foot {
@@ -2001,34 +1943,7 @@ a.filter-pill .filter-pill-remove {
     align-items: center;
     justify-content: center;
     width: 32px;
-    height: 32px;
-    min-height: 32px !important;
-    padding: 0 !important;
-    border-radius: var(--tp-radius-sm) !important;
     margin-top: var(--tp-space-2);
-}
-
-.scoring-formula-edit-btn svg,
-.scoring-formula-delete-btn svg {
-    width: 18px;
-    height: 18px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.8;
-    overflow: visible;
-}
-
-.scoring-formula-delete-btn:hover,
-.scoring-formula-delete-btn:focus-visible {
-    background: var(--tp-color-danger-bg) !important;
-    border-color: var(--tp-color-danger-border) !important;
-    color: var(--tp-color-danger-ink) !important;
-}
-
-.scoring-formula-edit-btn:hover,
-.scoring-formula-edit-btn:focus-visible {
-    background: var(--tp-color-surface-soft) !important;
-    color: var(--tp-color-text-primary) !important;
 }
 
 .scoring-formula-row {
@@ -2599,30 +2514,8 @@ a.filter-pill .filter-pill-remove {
     margin: 0;
 }
 
-/* Matches .drawer-catalogue-toggle's established compact-clear-button
-   variant (link-colored text, brand-tinted hover fill) instead of the
-   default muted-gray/surface-hover look, which read as washed out next to
-   that sibling pattern used elsewhere in this same drawer.
-   Selector repeats the class -- .btn.tp-btn--clear (0,2,0) / :hover (0,3,0)
-   otherwise beats a single-class border-color override here, so the
-   intended borderless look was silently losing to the default clear-button
-   border in both light and dark mode. Same fix applied to
-   .drawer-catalogue-toggle just below, which had the identical bug
-   already, pre-existing. */
-.columns-restore-link.columns-restore-link {
-    padding: var(--tp-space-2) var(--tp-space-2);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    border-radius: var(--tp-radius-sm) !important;
-    color: var(--tp-color-link) !important;
-    border-color: transparent !important;
-}
-
 .columns-restore-link.columns-restore-link:hover,
 .columns-restore-link.columns-restore-link:focus-visible {
-    color: var(--tp-color-link-hover) !important;
-    background: var(--tp-color-surface-soft) !important;
-    border-color: transparent !important;
     outline: none;
 }
 
@@ -2808,10 +2701,6 @@ a.filter-pill .filter-pill-remove {
 
 .filter-tray-clear-btn,
 .filter-tray-share-btn {
-    padding: var(--tp-space-1) var(--tp-space-4);
-    border-radius: var(--tp-radius-sm) !important;
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
     letter-spacing: 0;
 }
 
@@ -2983,23 +2872,8 @@ a.filter-pill .filter-pill-remove {
     text-decoration: underline;
 }
 
-/* Selector repeats the class -- see the matching comment on
-   .columns-restore-link for why (same pre-existing bug, this is the
-   original instance it was modeled after). */
-.drawer-catalogue-toggle.drawer-catalogue-toggle {
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    padding: var(--tp-space-1) var(--tp-space-2);
-    border-radius: var(--tp-radius-sm) !important;
-    color: var(--tp-color-link) !important;
-    border-color: transparent !important;
-}
-
 .drawer-catalogue-toggle.drawer-catalogue-toggle:hover,
 .drawer-catalogue-toggle.drawer-catalogue-toggle:focus-visible {
-    color: var(--tp-color-link-hover) !important;
-    background: var(--tp-color-surface-soft) !important;
-    border-color: transparent !important;
     outline: none;
 }
 
@@ -3503,10 +3377,6 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-text-add {
-    padding: var(--tp-space-2) var(--tp-space-4);
-    border-radius: var(--tp-radius-sm) !important;
-    font-size: var(--tp-font-size-sm);
-    min-height: 0 !important;
     flex: 0 0 auto;
 }
 
@@ -3635,25 +3505,12 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-numeric-apply {
-    border-radius: var(--tp-radius-sm) !important;
-    font-size: var(--tp-font-size-sm);
-    padding: var(--tp-space-2) var(--tp-space-4);
-    min-height: 0 !important;
     white-space: nowrap;
     align-self: end;
 }
 
 .filter-numeric-apply:disabled {
-    border-color: var(--tp-color-border) !important;
-    background: var(--tp-color-surface-muted) !important;
-    color: var(--tp-color-text-muted) !important;
     cursor: not-allowed;
-}
-
-.filter-numeric-apply:disabled:hover,
-.filter-numeric-apply:disabled:focus-visible {
-    border-color: var(--tp-color-border) !important;
-    background: var(--tp-color-surface-muted) !important;
 }
 
 .filter-input-message,
@@ -3793,7 +3650,6 @@ a.filter-pill .filter-pill-remove {
 
 .drawer-done-btn {
     min-width: 110px;
-    font-weight: 600;
     letter-spacing: 0;
 }
 
@@ -4062,11 +3918,6 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-preset-save-btn.btn {
-    padding: var(--tp-space-2) var(--tp-space-4);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    min-height: 0;
-    height: auto;
     align-self: stretch;
 }
 
@@ -4283,29 +4134,8 @@ body.is-resizing-column * {
     margin-left: auto;
     width: 30px !important;
     min-width: 30px !important;
-    height: 30px !important;
-    min-height: 30px !important;
-    padding: 0 !important;
-    border-radius: var(--tp-radius-sm);
     display: inline-grid;
     place-items: center;
-    border-color: var(--tp-color-border) !important;
-    background: transparent !important;
-    color: var(--tp-color-text-muted) !important;
-    box-shadow: none !important;
-}
-
-.drawer-expand-btn.drawer-expand-btn:hover,
-.drawer-expand-btn.drawer-expand-btn:focus-visible,
-.drawer-expand-btn.drawer-expand-btn[aria-pressed="true"] {
-    border-color: var(--tp-color-border-strong) !important;
-    background: var(--tp-color-surface-muted) !important;
-    color: var(--tp-color-text-secondary) !important;
-}
-
-.drawer-expand-btn svg {
-    width: 15px;
-    height: 15px;
 }
 
 @media (min-width: 900px) {

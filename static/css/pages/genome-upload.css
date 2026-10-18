@@ -327,26 +327,12 @@
 .genome-upload-refresh-btn.genome-upload-refresh-btn {
     min-width: 32px;
     width: 32px;
-    height: 32px;
-    padding: 0 !important;
     justify-content: center;
-    border: 0 !important;
-    border-radius: var(--tp-radius-pill) !important;
-    background: transparent !important;
-    box-shadow: none !important;
     transform: none !important;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.genome-upload-refresh-btn.genome-upload-refresh-btn:hover,
-.genome-upload-refresh-btn.genome-upload-refresh-btn:focus-visible {
-    background: var(--tp-color-surface-soft) !important;
-    box-shadow: none !important;
-}
-
 .genome-upload-refresh-btn.genome-upload-refresh-btn:active {
-    background: var(--tp-color-surface-soft) !important;
-    box-shadow: none !important;
     transform: none !important;
 }
 

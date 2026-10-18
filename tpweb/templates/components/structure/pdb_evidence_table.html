@@ -58,7 +58,7 @@
                                   data-loaded-label="{% trans 'Loaded' %}">
                                 {% if item.viewer_key == 'primary' %}{% trans "Viewing" %}{% else %}{% trans "Loaded" %}{% endif %}
                             </span>
-                            <button type="button" class="experimental-switch-btn tp-btn-with-icon" onclick="switchStructureSource('{{ item.slot_key }}')">
+                            <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon experimental-switch-btn" onclick="switchStructureSource('{{ item.slot_key }}')">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
                                 <span>{% trans "Switch" %}</span>
                             </button>
@@ -107,7 +107,7 @@
                               data-loaded-label="{% trans 'Loaded' %}">
                             {% if item.viewer_key == 'primary' %}{% trans "Viewing" %}{% else %}{% trans "Loaded" %}{% endif %}
                         </span>
-                        <button type="button" class="experimental-switch-btn tp-btn-with-icon" onclick="switchStructureSource('{{ item.slot_key }}')">
+                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon experimental-switch-btn" onclick="switchStructureSource('{{ item.slot_key }}')">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
                             <span>{% trans "Switch" %}</span>
                         </button>

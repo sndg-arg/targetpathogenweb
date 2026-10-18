@@ -2607,15 +2607,7 @@ a.metric-pill:focus-visible .metric-pill-jump {
 .btn.tp-btn.tp-modal-close {
     flex: 0 0 auto;
     width: 32px;
-    height: 32px;
-    min-height: 32px;
-    padding: 0;
     justify-content: center;
-}
-
-.tp-modal-close .tp-btn-icon {
-    width: 0.95em;
-    height: 0.95em;
 }
 
 .tp-modal-body {

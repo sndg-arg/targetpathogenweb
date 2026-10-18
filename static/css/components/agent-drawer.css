@@ -841,16 +841,7 @@
 .tp-agent-drawer-send {
     flex-shrink: 0;
     width: 40px !important;
-    height: 40px !important;
-    min-height: 40px !important;
-    padding: 0 !important;
-    border-radius: var(--tp-radius-pill) !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-}
-
-.tp-agent-drawer-send svg {
-    width: 16px;
-    height: 16px;
 }

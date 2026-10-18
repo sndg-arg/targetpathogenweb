@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-tables">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-buttons">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -221,7 +221,7 @@
                                                             data-prompt="{% trans 'New name for this preset:' %}"
                                                             title="{% trans 'Rename preset' %}"
                                                             aria-label="{% trans 'Rename preset' %}">
-                                                        {% include "components/icons/pencil.html" %}
+                                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span>
                                                     </button>
                                                 </form>
                                                 {% endif %}
@@ -232,11 +232,11 @@
                                                     <input type="hidden" name="return_query" value="{{ query_string }}">
                                                     {% if user.is_authenticated %}
                                                     <button type="submit" class="btn tp-btn tp-btn--secondary tpd-delete-btn" title="{% trans 'Delete preset' %}" aria-label="{% trans 'Delete preset' %}">
-                                                        {% include "components/icons/trash.html" %}
+                                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
                                                     </button>
                                                     {% else %}
                                                     <button type="submit" class="btn tp-btn tp-btn--secondary tpd-delete-btn" title="{% trans 'Sign in to delete this preset.' %}" aria-label="{% trans 'Delete preset' %}" disabled>
-                                                        {% include "components/icons/trash.html" %}
+                                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
                                                     </button>
                                                     {% endif %}
                                                 </form>
@@ -640,10 +640,10 @@
                     data-label-collapse="{% trans 'Back to the side panel' %}"
                     title="{% trans 'Expand to a wider panel' %}"
                     aria-label="{% trans 'Expand to a wider panel' %}">
-                {% include "components/icons/maximize.html" %}
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/maximize.html" %}</span>
             </button>
             <button class="btn tp-btn tp-btn--ghost drawer-close-btn" type="button" id="close-filters-btn" aria-label="{% trans 'Close' %}">
-                <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
             </button>
         </div>
         <div class="drawer-body">
@@ -1069,7 +1069,7 @@
         <div class="drawer-head">
             <h2>{% trans "Columns" %}</h2>
             <button class="btn tp-btn tp-btn--ghost drawer-close-btn" type="button" id="close-columns-btn" aria-label="{% trans 'Close' %}">
-                <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
             </button>
         </div>
         <div class="drawer-body columns-body">
@@ -1203,7 +1203,7 @@
             <div class="drawer-head">
                 <h2>{% trans "Scoring" %}</h2>
                 <button class="btn tp-btn tp-btn--ghost drawer-close-btn" type="button" id="close-formula-btn" aria-label="{% trans 'Close' %}">
-                    <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
                 </button>
             </div>
             <div class="drawer-body scoring-drawer-body">
@@ -1274,7 +1274,7 @@
                                            class="btn tp-btn tp-btn--secondary scoring-formula-edit-btn"
                                            title="{% trans 'Edit formula' %}"
                                            aria-label="{% trans 'Edit formula' %}">
-                                            {% include "components/icons/pencil.html" %}
+                                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span>
                                         </a>
                                     {% endif %}
                                     <form method="POST"
@@ -1283,12 +1283,12 @@
                                           onsubmit="return confirm('{% trans "Delete this formula?" %}')">
                                         {% csrf_token %}
                                         {% if user.is_authenticated %}
-                                        <button type="submit" class="btn tp-btn tp-btn--danger scoring-formula-delete-btn" title="{% trans 'Delete formula' %}">
-                                            {% include "components/icons/trash.html" %}
+                                        <button type="submit" class="btn tp-btn tp-btn--danger tp-btn--sm scoring-formula-delete-btn" title="{% trans 'Delete formula' %}" aria-label="{% trans 'Delete formula' %}">
+                                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
                                         </button>
                                         {% else %}
-                                        <button type="submit" class="btn tp-btn tp-btn--danger scoring-formula-delete-btn" title="{% trans 'Sign in to delete this formula.' %}" disabled>
-                                            {% include "components/icons/trash.html" %}
+                                        <button type="submit" class="btn tp-btn tp-btn--danger tp-btn--sm scoring-formula-delete-btn" title="{% trans 'Sign in to delete this formula.' %}" aria-label="{% trans 'Delete formula' %}" disabled>
+                                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
                                         </button>
                                         {% endif %}
                                     </form>
