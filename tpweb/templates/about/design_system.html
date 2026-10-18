@@ -134,27 +134,23 @@
             <h3>Buttons</h3>
             <div class="ds-matrix-wrap">
             <table class="ds-matrix">
-                <thead><tr><th></th><th>Default</th><th>Hover</th><th>Focus</th><th>Disabled</th></tr></thead>
+                <thead><tr><th></th><th>Default</th><th>Hover</th><th>Disabled</th></tr></thead>
                 <tbody>
                     <tr><th>Primary</th>
                         <td><button type="button" class="btn tp-btn tp-btn--primary" tabindex="-1">Run BLAST</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--primary is-hover" tabindex="-1">Run BLAST</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--primary is-focus" tabindex="-1">Run BLAST</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--primary" disabled>Run BLAST</button></td></tr>
                     <tr><th>Secondary</th>
                         <td><button type="button" class="btn tp-btn tp-btn--secondary" tabindex="-1">Export CSV</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--secondary is-hover" tabindex="-1">Export CSV</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--secondary is-focus" tabindex="-1">Export CSV</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--secondary" disabled>Export CSV</button></td></tr>
                     <tr><th>Danger</th>
                         <td><button type="button" class="btn tp-btn tp-btn--danger" tabindex="-1">Delete</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--danger is-hover" tabindex="-1">Delete</button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--danger is-focus" tabindex="-1">Delete</button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--danger" disabled>Delete</button></td></tr>
                     <tr><th>Icon</th>
                         <td><button type="button" class="btn tp-btn tp-btn--ghost" tabindex="-1" aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--ghost is-hover" tabindex="-1" aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button></td>
-                        <td><button type="button" class="btn tp-btn tp-btn--ghost is-focus" tabindex="-1" aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button></td>
                         <td><button type="button" class="btn tp-btn tp-btn--ghost" disabled aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button></td></tr>
                 </tbody>
             </table>
@@ -242,11 +238,11 @@
             <h3>Fields</h3>
             <div class="ds-matrix-wrap">
             <table class="ds-matrix">
-                <thead><tr><th>Default</th><th>Focus</th><th>Disabled</th></tr></thead>
+                <thead><tr><th>Empty</th><th>Filled</th><th>Disabled</th></tr></thead>
                 <tbody>
                     <tr>
                         <td><input type="text" class="form-control tp-ui-control ds-control" placeholder="KPN_00002" aria-label="Example"></td>
-                        <td><input type="text" class="form-control tp-ui-control ds-control is-focus" placeholder="KPN_00002" tabindex="-1" aria-label="Example"></td>
+                        <td><input type="text" class="form-control tp-ui-control ds-control" value="KPN_04417" aria-label="Example"></td>
                         <td><input type="text" class="form-control tp-ui-control ds-control" placeholder="KPN_00002" disabled aria-label="Example"></td></tr>
                 </tbody>
             </table>
