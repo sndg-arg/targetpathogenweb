@@ -40,9 +40,10 @@ no raw rem font sizes, no raw shadows, no page-local color aliases (`--blast-ink
 
 ## Palette: deep petrol, one accent (since 2026-10-16)
 
-The live reference is the unlisted page **`/design`** (`tpweb/templates/about/design_system.html`,
-`static/css/pages/design-system.css`) -- it renders every token and component from the real CSS,
-so check it (and update its copy) when you add or change a token or component.
+**`/design`** (`tpweb/templates/about/design_system.html`, `static/css/pages/design-system.css`) is a
+public showcase shared at stands: real components in a gallery, plain Spanish copy, **no code, class
+names or token names**. When you add a component, add a tile there with a one-line human description.
+This skill is the developer reference.
 - The brand scale is low-chroma petrol (brand-800 `#1d4b5a` = primary). Never reintroduce bright
   cyan (`#39a6be`-style) values or `rgba(57,166,190,...)` glows.
 - **One-accent rule**: brand color only for (1) the one primary action per view, (2) links,
