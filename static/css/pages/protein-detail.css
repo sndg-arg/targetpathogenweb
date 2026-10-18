@@ -3345,6 +3345,11 @@ body.residue-modal-open {
     gap: var(--tp-space-3);
 }
 
+/* Chips inside a card keep their own width. */
+.target-evidence-card > .tp-chip {
+    align-self: flex-start;
+}
+
 .target-evidence-grid--compact {
     margin-top: var(--tp-space-3);
 }
