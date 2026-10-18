@@ -253,3 +253,36 @@ class ProteinListPresetGuardTests(TestCase):
         response = self.client.post(self.url, {"action": "update_columns"})
         self.assertEqual(response.status_code, 302)
         self.assertNotIn(reverse("account_login"), response.url)
+
+
+class DesignPageAccessTests(TestCase):
+    """/design is for Gates collaborators, admins and the owner only."""
+
+    def setUp(self):
+        self.url = reverse("tpwebapp:design_system")
+        self.User = get_user_model()
+
+    def test_anonymous_sees_the_locked_page(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_basic_and_consumer_are_locked_out(self):
+        for role in [self.User.Role.BASIC, self.User.Role.GATES_CONSUMER]:
+            with self.subTest(role=role):
+                user = self.User.objects.create_user(
+                    username=f"design-{role}", password="x", role=role
+                )
+                self.client.force_login(user)
+                self.assertEqual(self.client.get(self.url).status_code, 403)
+
+    def test_collaborator_and_superuser_can_open_it(self):
+        collaborator = self.User.objects.create_user(
+            username="design-collab", password="x", role=self.User.Role.GATES_COLLABORATOR
+        )
+        admin = self.User.objects.create_user(
+            username="design-admin", password="x", is_superuser=True
+        )
+        for user in [collaborator, admin]:
+            with self.subTest(user=user.username):
+                self.client.force_login(user)
+                self.assertEqual(self.client.get(self.url).status_code, 200)

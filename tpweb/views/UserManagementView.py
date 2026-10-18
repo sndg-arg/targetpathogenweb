@@ -107,10 +107,12 @@ class UserManagementView(PermissionLockedMixin, View):
     def _context(self):
         base_qs = User.objects.exclude(username=PUBLIC_WORKSPACE_USERNAME)
         approved_users = list(base_qs.filter(is_active=True).order_by("-date_joined"))
-        # Grouped by role: admins, then collaborators, consumers, and Basic
-        # last. Within a group, anyone waiting on a collaborator-access
-        # request comes first (self-serve signups make this list grow fast).
+        # The owner (whoever is managing, the row labeled "Owner") first, then
+        # grouped by role: admins, collaborators, consumers, and Basic last.
+        # Within a group, anyone waiting on a collaborator-access request
+        # comes first (self-serve signups make this list grow fast).
         # list.sort() is stable, so -date_joined is kept inside each group.
+        owner_pk = self.request.user.pk
         role_rank = {
             User.Role.GATES_COLLABORATOR: 1,
             User.Role.GATES_CONSUMER: 2,
@@ -118,7 +120,7 @@ class UserManagementView(PermissionLockedMixin, View):
         }
         approved_users.sort(
             key=lambda u: (
-                0 if u.is_superuser else role_rank.get(u.role, 3),
+                -1 if u.pk == owner_pk else 0 if u.is_superuser else role_rank.get(u.role, 3),
                 not u.wants_collaborator_access,
             )
         )

@@ -536,6 +536,21 @@ class UserManagementViewTests(TestCase):
         ]
         self.assertEqual(positions, sorted(positions))
 
+    def test_owner_is_listed_first_even_before_newer_admins(self):
+        owner = User.objects.create_user(
+            username="mgmt-owner14", password="x", is_staff=True, is_superuser=True
+        )
+        # Newer superuser: -date_joined alone would list it above the owner.
+        User.objects.create_user(
+            username="mgmt-zz-admin", password="x", is_active=True, is_superuser=True
+        )
+        self.client.force_login(owner)
+
+        body = self.client.get(reverse("tpwebapp:user_management")).content.decode()
+
+        # The "Owner" chip sits in the owner's own row.
+        self.assertLess(body.index(">Owner<"), body.index("mgmt-zz-admin"))
+
     def test_superuser_row_has_no_edit_permissions_button(self):
         owner = User.objects.create_user(
             username="mgmt-owner10", password="x", is_staff=True, is_superuser=True
