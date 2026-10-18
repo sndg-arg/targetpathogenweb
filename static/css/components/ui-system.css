@@ -887,7 +887,8 @@ button.tp-chip:hover,
     transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.tp-pagination .page-link:hover {
+.tp-pagination .page-link:hover,
+.tp-pagination .page-link.is-hover {
     background: var(--tp-color-surface-soft);
     border-color: var(--tp-color-text-muted);
     color: var(--tp-color-text-primary);

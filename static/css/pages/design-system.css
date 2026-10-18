@@ -185,6 +185,120 @@
     font-size: var(--tp-font-size-sm);
 }
 
+/* ── Components: name, then every variant side by side ── */
+.ds-index {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-1) var(--tp-space-4);
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-index a {
+    color: var(--tp-color-text-secondary);
+}
+
+.ds-index a:hover {
+    color: var(--tp-color-link-hover);
+}
+
+.ds-comp {
+    display: grid;
+    gap: var(--tp-space-3);
+    min-width: 0;
+}
+
+.ds-comp + .ds-comp {
+    margin-top: var(--tp-space-5);
+    padding-top: var(--tp-space-6);
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-comp h3 {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-xl);
+    font-weight: 600;
+}
+
+.ds-matrix-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.ds-matrix {
+    border-collapse: collapse;
+}
+
+.ds-matrix th,
+.ds-matrix td {
+    padding: var(--tp-space-3) var(--tp-space-5) var(--tp-space-3) 0;
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.ds-matrix thead th {
+    padding-bottom: var(--tp-space-2);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+.ds-matrix tbody th {
+    min-width: 120px;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+}
+
+.ds-matrix--top td,
+.ds-matrix--top tbody th {
+    vertical-align: top;
+}
+
+.ds-matrix .tp-message,
+.ds-matrix .tp-state-note {
+    white-space: normal;
+}
+
+/* Samples inside the grid are pictures: the frozen ones must not react. */
+.ds-matrix .is-hover,
+.ds-matrix .is-focus,
+.ds-matrix .tp-select,
+.ds-matrix .tp-select-menu {
+    pointer-events: none;
+}
+
+.ds-control {
+    width: 220px;
+}
+
+.ds-matrix .tp-select {
+    position: relative;
+}
+
+.ds-menu {
+    position: static;
+    width: 220px;
+    margin-top: var(--tp-space-1);
+}
+
+.ds-metric {
+    min-width: 150px;
+}
+
+.ds-scrim-cell {
+    padding: var(--tp-space-5) !important;
+    background: var(--tp-color-scrim);
+}
+
+.ds-scrim-cell + .ds-scrim-cell {
+    border-left: var(--tp-space-3) solid var(--tp-color-surface);
+}
+
 /* ── Gallery of pieces ── */
 .ds-gallery {
     display: grid;
@@ -302,6 +416,7 @@
 /* The tooltip drawn open, above its chip. */
 .ds-tip {
     display: inline-grid;
+    white-space: normal;
     justify-items: center;
     gap: var(--tp-space-3);
 }

@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-showcase">
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-showcase">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261017-plain">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261017-variants">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -115,210 +115,306 @@
         </div>
     </section>
 
-    {# ───────────────────────────── Piezas ───────────────────────────── #}
+    {# ───────────────────────────── Componentes ───────────────────────────── #}
+    {# Each component: its name, then every variant side by side. Hover and #}
+    {# focus are drawn frozen with is-hover / is-focus (the real rules match). #}
     <section class="ds-chapter tp-quick-nav-target" id="piezas">
         <header class="ds-chapter-head">
             <h2>Componentes</h2>
+            <nav class="ds-index" aria-label="Componentes"><a href="#c-botones">Botones</a><a href="#c-etiquetas">Etiquetas</a><a href="#c-filtros">Filtros</a><a href="#c-campos">Campos</a><a href="#c-selector">Selector</a><a href="#c-opciones">Opciones</a><a href="#c-pestanas">Pestañas</a><a href="#c-avisos">Avisos</a><a href="#c-mensajes">Mensajes</a><a href="#c-numeros">Números</a><a href="#c-navegacion">Navegación</a><a href="#c-tooltips">Tooltips</a><a href="#c-ventanas">Ventanas</a><a href="#c-tablas">Tablas</a></nav>
         </header>
 
-        <div class="ds-gallery">
-            <article class="ds-tile ds-tile--wide">
-                <div class="ds-stage">
-                    <div class="ds-row">
-                        <button type="button" class="btn tp-btn tp-btn--primary tp-btn-with-icon"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/play.html" %}</span><span>Run BLAST</span></button>
-                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span><span>Export CSV</span></button>
-                        <button type="button" class="btn tp-btn tp-btn--danger tp-btn-with-icon"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span><span>Delete</span></button>
-                        <button type="button" class="btn tp-btn tp-btn--ghost" aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button>
-                        <button type="button" class="btn tp-btn tp-btn--secondary" disabled>Disabled</button>
-                    </div>
-                </div>
-                <h3>Botones</h3>
-                <p>Principal, secundario, peligro, ícono, deshabilitado</p>
-            </article>
+        <div class="ds-comp" id="c-botones">
+            <h3>Botones</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Normal</th><th>Hover</th><th>Foco</th><th>Deshabilitado</th></tr></thead>
+                <tbody>
+                    <tr><th>Principal</th>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary" tabindex="-1">Run BLAST</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary is-hover" tabindex="-1">Run BLAST</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary is-focus" tabindex="-1">Run BLAST</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--primary" disabled>Run BLAST</button></td></tr>
+                    <tr><th>Secundario</th>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary" tabindex="-1">Export CSV</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary is-hover" tabindex="-1">Export CSV</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary is-focus" tabindex="-1">Export CSV</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary" disabled>Export CSV</button></td></tr>
+                    <tr><th>Peligro</th>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger" tabindex="-1">Delete</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger is-hover" tabindex="-1">Delete</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger is-focus" tabindex="-1">Delete</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--danger" disabled>Delete</button></td></tr>
+                    <tr><th>Ícono</th>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost" tabindex="-1" aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost is-hover" tabindex="-1" aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost is-focus" tabindex="-1" aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--ghost" disabled aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button></td></tr>
+                </tbody>
+            </table>
+            </div>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Normal</th><th>Chico</th><th>Con ícono</th><th>Solo ícono</th></tr></thead>
+                <tbody>
+                    <tr><th>Tamaño</th>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary">Export CSV</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm">Export CSV</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span><span>Export CSV</span></button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--secondary" aria-label="Download"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span></button></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
 
-            <article class="ds-tile">
-                <div class="ds-stage">
-                    <div class="ds-row">
-                        <span class="tp-chip">857 proteins</span>
-                        <span class="tp-chip tp-chip--code">2.7.13.3</span>
-                        <span class="tp-chip tp-chip--success">Has structure</span>
-                        <span class="tp-chip tp-chip--warning">Low confidence</span>
-                        <span class="tp-chip tp-chip--muted">Via homolog</span>
-                    </div>
-                </div>
-                <h3>Etiquetas</h3>
-                <p>Neutra, código, a favor, atención, homología</p>
-            </article>
+        <div class="ds-comp" id="c-etiquetas">
+            <h3>Etiquetas</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Neutra</th><th>Código</th><th>Link</th><th>A favor</th><th>Atención</th><th>Riesgo</th><th>Homología</th></tr></thead>
+                <tbody>
+                    <tr><th>Tipo</th>
+                        <td><span class="tp-chip">857 proteins</span></td>
+                        <td><span class="tp-chip tp-chip--code">2.7.13.3</span></td>
+                        <td><a class="tp-chip tp-chip--link" href="#c-etiquetas">UniProt</a></td>
+                        <td><span class="tp-chip tp-chip--success">Has structure</span></td>
+                        <td><span class="tp-chip tp-chip--warning">Low confidence</span></td>
+                        <td><span class="tp-chip tp-chip--danger">PAINS alert</span></td>
+                        <td><span class="tp-chip tp-chip--muted">Via homolog</span></td></tr>
+                </tbody>
+            </table>
+            </div>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Sin datos</th><th>En curso</th><th>Terminado</th><th>Falló</th></tr></thead>
+                <tbody>
+                    <tr><th>Estado</th>
+                        <td><span class="tp-chip tp-chip--state idle">Not run</span></td>
+                        <td><span class="tp-chip tp-chip--state running">Stage 10 · InterProScan</span></td>
+                        <td><span class="tp-chip tp-chip--state finished">Finished</span></td>
+                        <td><span class="tp-chip tp-chip--state failed">Failed</span></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
 
-            <article class="ds-tile">
-                <div class="ds-stage">
-                    <div class="filter-chip-group" data-ds-filters>
-                        <button type="button" class="filter-chip filter-chip--favorable filter-chip--active"><span class="filter-chip-label">No hit</span></button>
-                        <button type="button" class="filter-chip filter-chip--risk"><span class="filter-chip-label">Hit</span></button>
-                        <button type="button" class="filter-chip"><span class="filter-chip-label">Core</span></button>
-                        <button type="button" class="filter-chip"><span class="filter-chip-label">Accessory</span></button>
-                    </div>
-                </div>
-                <h3>Filtros</h3>
-                <p>Activo y disponible</p>
-            </article>
+        <div class="ds-comp" id="c-filtros">
+            <h3>Filtros</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Disponible</th><th>Hover</th><th>Aplicado</th><th>Pendiente</th></tr></thead>
+                <tbody>
+                    <tr><th>Neutro</th>
+                        <td><span class="filter-chip"><span class="filter-chip-label">Core</span></span></td>
+                        <td><span class="filter-chip is-hover"><span class="filter-chip-label">Core</span></span></td>
+                        <td><span class="filter-chip filter-chip--active"><span class="filter-chip-label">Core</span><span class="filter-chip-glyph" aria-hidden="true">&times;</span></span></td>
+                        <td><span class="filter-chip filter-chip--active filter-chip--pending"><span class="filter-chip-label">Core</span></span></td></tr>
+                    <tr><th>Riesgo</th>
+                        <td><span class="filter-chip filter-chip--risk"><span class="filter-chip-label">Hit</span></span></td>
+                        <td><span class="filter-chip filter-chip--risk is-hover"><span class="filter-chip-label">Hit</span></span></td>
+                        <td><span class="filter-chip filter-chip--risk filter-chip--active"><span class="filter-chip-label">Hit</span><span class="filter-chip-glyph" aria-hidden="true">&times;</span></span></td>
+                        <td><span class="filter-chip filter-chip--risk filter-chip--active filter-chip--pending"><span class="filter-chip-label">Hit</span></span></td></tr>
+                    <tr><th>A favor</th>
+                        <td><span class="filter-chip filter-chip--favorable"><span class="filter-chip-label">No hit</span></span></td>
+                        <td><span class="filter-chip filter-chip--favorable is-hover"><span class="filter-chip-label">No hit</span></span></td>
+                        <td><span class="filter-chip filter-chip--favorable filter-chip--active"><span class="filter-chip-label">No hit</span><span class="filter-chip-glyph" aria-hidden="true">&times;</span></span></td>
+                        <td><span class="filter-chip filter-chip--favorable filter-chip--active filter-chip--pending"><span class="filter-chip-label">No hit</span></span></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
 
-            <article class="ds-tile">
-                <div class="ds-stage ds-stage--form">
-                    <div class="tp-ui-field">
-                        <label class="tp-ui-field-label" for="ds-ex-text">Locus tag</label>
-                        <input id="ds-ex-text" type="text" class="form-control tp-ui-control" placeholder="KPN_00002">
-                    </div>
-                    <div class="tp-ui-field">
-                        <label class="tp-ui-field-label" for="ds-ex-select">Genome</label>
-                        <select id="ds-ex-select" class="form-control tp-ui-control">
-                            <option>KpATCC43816</option>
-                            <option>KpKP13</option>
-                            <option>ST11 VA569</option>
-                        </select>
-                    </div>
-                </div>
-                <h3>Campos</h3>
-                <p>Texto y selector</p>
-            </article>
+        <div class="ds-comp" id="c-campos">
+            <h3>Campos</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Normal</th><th>Foco</th><th>Deshabilitado</th></tr></thead>
+                <tbody>
+                    <tr><th>Texto</th>
+                        <td><input type="text" class="form-control tp-ui-control ds-control" placeholder="KPN_00002" aria-label="Ejemplo"></td>
+                        <td><input type="text" class="form-control tp-ui-control ds-control is-focus" placeholder="KPN_00002" tabindex="-1" aria-label="Ejemplo"></td>
+                        <td><input type="text" class="form-control tp-ui-control ds-control" placeholder="KPN_00002" disabled aria-label="Ejemplo"></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
 
-            <article class="ds-tile">
-                <div class="ds-stage">
-                    <div class="tp-segmented"><label class="tp-segmented-option"><input type="radio" name="ds-seg" checked><span>Nucleotide <small>blastn</small></span></label><label class="tp-segmented-option"><input type="radio" name="ds-seg"><span>Protein <small>blastp</small></span></label></div>
-                </div>
-                <h3>Opciones</h3>
-                <p>Selección única</p>
-            </article>
+        <div class="ds-comp" id="c-selector">
+            <h3>Selector</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix ds-matrix--top">
+                <thead><tr><th></th><th>Normal</th><th>Hover</th><th>Abierto</th><th>Deshabilitado</th></tr></thead>
+                <tbody>
+                    <tr><th>Selector</th>
+                        <td><div class="tp-select ds-control"><button type="button" class="tp-select-trigger" tabindex="-1"><span class="tp-select-label">KpATCC43816</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div></td>
+                        <td><div class="tp-select ds-control"><button type="button" class="tp-select-trigger is-hover" tabindex="-1"><span class="tp-select-label">KpATCC43816</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div></td>
+                        <td><div class="tp-select ds-control is-open"><button type="button" class="tp-select-trigger" tabindex="-1"><span class="tp-select-label">KpATCC43816</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div>
+                            <div class="tp-select-menu ds-menu"><button type="button" class="tp-select-option is-selected" tabindex="-1">KpATCC43816</button><button type="button" class="tp-select-option is-hover" tabindex="-1">KpKP13</button><button type="button" class="tp-select-option" tabindex="-1" aria-disabled="true">ST11 VA569</button></div></td>
+                        <td><div class="tp-select ds-control is-disabled"><button type="button" class="tp-select-trigger" disabled><span class="tp-select-label">KpATCC43816</span><span class="tp-chevron tp-chevron--down tp-select-chevron" aria-hidden="true"></span></button></div></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
 
-            <article class="ds-tile">
-                <div class="ds-stage ds-stage--fill">
-                    <div class="tp-tabs" role="tablist" aria-label="Ejemplo" data-ds-tabs>
-                        <button type="button" class="tp-tab is-active" role="tab">PDB <span class="tp-count">12</span></button>
-                        <button type="button" class="tp-tab" role="tab">ChEMBL <span class="tp-count">48</span></button>
-                        <button type="button" class="tp-tab" role="tab">ZINC <span class="tp-count">50+</span></button>
-                    </div>
-                </div>
-                <h3>Pestañas</h3>
-                <p>Con contador</p>
-            </article>
+        <div class="ds-comp" id="c-opciones">
+            <h3>Opciones</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Seleccionada · Hover</th><th>Tres opciones</th></tr></thead>
+                <tbody>
+                    <tr><th>Opciones</th>
+                        <td><div class="tp-segmented"><label class="tp-segmented-option"><input type="radio" name="ds-seg-a" checked tabindex="-1"><span>Nucleotide <small>blastn</small></span></label><label class="tp-segmented-option is-hover"><input type="radio" name="ds-seg-a" tabindex="-1"><span>Protein <small>blastp</small></span></label></div></td>
+                        <td><div class="tp-segmented"><label class="tp-segmented-option"><input type="radio" name="ds-seg-b" tabindex="-1"><span>7 days</span></label><label class="tp-segmented-option"><input type="radio" name="ds-seg-b" checked tabindex="-1"><span>30 days</span></label><label class="tp-segmented-option"><input type="radio" name="ds-seg-b" tabindex="-1"><span>90 days</span></label></div></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
 
-            <article class="ds-tile">
-                <div class="ds-stage ds-stage--stack">
-                    <p class="tp-state-note tp-state-note--loading">Loading structures…</p>
-                    <p class="tp-state-note tp-state-note--success">Column loaded.</p>
-                    <p class="tp-state-note tp-state-note--warning">Not a value in this genome.</p>
-                    <p class="tp-state-note tp-state-note--error">The file was not loaded.</p>
-                </div>
-                <h3>Avisos</h3>
-                <p>Cargando, listo, atención, error</p>
-            </article>
+        <div class="ds-comp" id="c-pestanas">
+            <h3>Pestañas</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Inactiva</th><th>Hover</th><th>Activa</th></tr></thead>
+                <tbody>
+                    <tr><th>Pestaña</th>
+                        <td><span class="tp-tab">ChEMBL <span class="tp-count">48</span></span></td>
+                        <td><span class="tp-tab is-hover">ChEMBL <span class="tp-count">48</span></span></td>
+                        <td><span class="tp-tab is-active">ChEMBL <span class="tp-count">48</span></span></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
 
-            <article class="ds-tile">
-                <div class="ds-stage ds-stage--stack">
-                    <div class="tp-message tp-message--success"><span>Access requested.</span><button type="button" class="tp-message-close" aria-label="Close">&times;</button></div>
-                    <div class="tp-message tp-message--error"><span>Upload failed.</span><button type="button" class="tp-message-close" aria-label="Close">&times;</button></div>
-                </div>
-                <h3>Mensajes</h3>
-                <p>Éxito y error</p>
-            </article>
+        <div class="ds-comp" id="c-avisos">
+            <h3>Avisos</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Vacío</th><th>Cargando</th><th>Listo</th><th>Atención</th><th>Error</th></tr></thead>
+                <tbody>
+                    <tr><th>Aviso</th>
+                        <td><p class="tp-state-note tp-state-note--empty">No data yet.</p></td>
+                        <td><p class="tp-state-note tp-state-note--loading">Loading…</p></td>
+                        <td><p class="tp-state-note tp-state-note--success">Column loaded.</p></td>
+                        <td><p class="tp-state-note tp-state-note--warning">Not in this genome.</p></td>
+                        <td><p class="tp-state-note tp-state-note--error">Not loaded.</p></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
 
-            <article class="ds-tile">
-                <div class="ds-stage ds-stage--center">
-                    <span class="ds-tip">
-                        <span class="tp-global-tooltip is-visible ds-tip-bubble" aria-hidden="true">Same-protein PDB ligands or ChEMBL bioactivity.</span>
-                        <span class="tp-chip" title="Same-protein PDB ligands or ChEMBL bioactivity.">Direct ligand evidence</span>
-                    </span>
-                </div>
-                <h3>Tooltips</h3>
-                <p>Al pasar el mouse</p>
-            </article>
+        <div class="ds-comp" id="c-mensajes">
+            <h3>Mensajes</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Listo</th><th>Info</th><th>Atención</th><th>Error</th></tr></thead>
+                <tbody>
+                    <tr><th>Mensaje</th>
+                        <td><div class="tp-message tp-message--success"><span>Access requested.</span><button type="button" class="tp-message-close" aria-label="Close">&times;</button></div></td>
+                        <td><div class="tp-message tp-message--info"><span>Already requested.</span><button type="button" class="tp-message-close" aria-label="Close">&times;</button></div></td>
+                        <td><div class="tp-message tp-message--warning"><span>2 values not found.</span><button type="button" class="tp-message-close" aria-label="Close">&times;</button></div></td>
+                        <td><div class="tp-message tp-message--error"><span>Upload failed.</span><button type="button" class="tp-message-close" aria-label="Close">&times;</button></div></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
 
-            <article class="ds-tile">
-                <div class="ds-stage ds-stage--center">
-                    <div class="tp-metrics ds-metrics">
-                        <div class="metric-pill"><span class="metric-label">Length</span><span class="metric-value">262</span></div>
-                        <div class="metric-pill metric-pill--success"><span class="metric-label">Binding site</span><span class="metric-value">0.94</span></div>
-                    </div>
-                </div>
-                <h3>Números</h3>
-                <p>Valor y estado</p>
-            </article>
+        <div class="ds-comp" id="c-numeros">
+            <h3>Números</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Normal</th><th>A favor</th><th>Atención</th><th>Riesgo</th><th>Link</th></tr></thead>
+                <tbody>
+                    <tr><th>Valor</th>
+                        <td><div class="metric-pill ds-metric"><span class="metric-label">Length</span><span class="metric-value">262</span></div></td>
+                        <td><div class="metric-pill metric-pill--success ds-metric"><span class="metric-label">Binding site</span><span class="metric-value">0.94</span></div></td>
+                        <td><div class="metric-pill metric-pill--warning ds-metric"><span class="metric-label">Binding site</span><span class="metric-value">0.38</span></div></td>
+                        <td><div class="metric-pill metric-pill--danger ds-metric"><span class="metric-label">Binding site</span><span class="metric-value">0.12</span></div></td>
+                        <td><a class="metric-pill metric-pill--link ds-metric" href="#c-numeros"><span class="metric-label">Ligands</span><span class="metric-value">12 <span class="metric-pill-jump">See evidence</span></span></a></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
 
-            <article class="ds-tile">
-                <div class="ds-stage ds-stage--center">
-                    <div class="tp-page-loader-card ds-loader" role="img" aria-label="Cargando">
-                        <div class="tp-page-loader-head">
-                            <span class="tp-page-loader-mark" aria-hidden="true"><span class="tp-page-loader-target"><span class="tp-page-loader-target-ring"></span><span class="tp-page-loader-target-ring"></span></span></span>
-                            <div>
-                                <p class="tp-page-loader-title">Target Pathogen</p>
-                                <p class="tp-page-loader-copy">Opening the next view…</p>
+        <div class="ds-comp" id="c-navegacion">
+            <h3>Navegación</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Página</th><th>Hover</th><th>Actual</th><th>No disponible</th></tr></thead>
+                <tbody>
+                    <tr><th>Paginación</th>
+                        <td><ul class="pagination tp-pagination ds-pagination"><li class="page-item"><span class="page-link">2</span></li></ul></td>
+                        <td><ul class="pagination tp-pagination ds-pagination"><li class="page-item"><span class="page-link is-hover">3</span></li></ul></td>
+                        <td><ul class="pagination tp-pagination ds-pagination"><li class="page-item active"><span class="page-link">1</span></li></ul></td>
+                        <td><ul class="pagination tp-pagination ds-pagination"><li class="page-item disabled"><span class="page-link">…</span></li></ul></td></tr>
+                    <tr><th>Ruta</th>
+                        <td colspan="4"><nav class="tp-breadcrumb ds-crumb" aria-label="Ejemplo"><ol class="tp-breadcrumb-list"><li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#c-navegacion"><span class="tp-breadcrumb-home-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>Home</a></li><li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#c-navegacion">Genomes</a></li><li class="tp-breadcrumb-item"><span class="tp-breadcrumb-current">Proteins</span></li></ol></nav></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <div class="ds-comp" id="c-tooltips">
+            <h3>Tooltips</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Arriba</th><th>Abajo</th></tr></thead>
+                <tbody>
+                    <tr><th>Tooltip</th>
+                        <td><span class="ds-tip"><span class="tp-global-tooltip is-visible ds-tip-bubble" aria-hidden="true">Same-protein PDB ligands or ChEMBL bioactivity.</span><span class="tp-chip">Direct ligand evidence</span></span></td>
+                        <td><span class="ds-tip"><span class="tp-chip">Direct ligand evidence</span><span class="tp-global-tooltip is-visible is-below ds-tip-bubble" aria-hidden="true">Same-protein PDB ligands or ChEMBL bioactivity.</span></span></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <div class="ds-comp" id="c-ventanas">
+            <h3>Ventanas</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th></th><th>Confirmación</th><th>Cargando</th></tr></thead>
+                <tbody>
+                    <tr><th>Ventana</th>
+                        <td class="ds-scrim-cell">
+                            <div class="tp-modal-panel tp-modal-panel--sm ds-modal" role="img" aria-label="Ejemplo de ventana">
+                                <div class="tp-modal-head">
+                                    <p class="tp-modal-title">Revoke access?</p>
+                                    <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close" aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button>
+                                </div>
+                                <div class="tp-modal-body"><p class="ds-modal-text">This person will lose access immediately.</p></div>
+                                <div class="tp-modal-actions">
+                                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm">Cancel</button>
+                                    <button type="button" class="btn tp-btn tp-btn--danger tp-btn--sm">Revoke access</button>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <h3>Cargando</h3>
-                <p>Entre vistas</p>
-            </article>
+                        </td>
+                        <td class="ds-scrim-cell">
+                            <div class="tp-page-loader-card ds-loader" role="img" aria-label="Cargando">
+                                <div class="tp-page-loader-head">
+                                    <span class="tp-page-loader-mark" aria-hidden="true"><span class="tp-page-loader-target"><span class="tp-page-loader-target-ring"></span><span class="tp-page-loader-target-ring"></span></span></span>
+                                    <div>
+                                        <p class="tp-page-loader-title">Target Pathogen</p>
+                                        <p class="tp-page-loader-copy">Opening the next view…</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
 
-            <article class="ds-tile ds-tile--wide">
-                <div class="ds-stage ds-stage--nav">
-                    <nav class="tp-breadcrumb ds-crumb" aria-label="Ejemplo">
-                        <ol class="tp-breadcrumb-list">
-                            <li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#piezas"><span class="tp-breadcrumb-home-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>Home</a></li>
-                            <li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#piezas">Genomes</a></li>
-                            <li class="tp-breadcrumb-item"><span class="tp-breadcrumb-current">Proteins</span></li>
-                        </ol>
-                    </nav>
-                    <ul class="pagination tp-pagination ds-pagination">
-                        <li class="page-item disabled"><span class="page-link"><span class="tp-chevron tp-chevron--left" aria-hidden="true"></span></span></li>
-                        <li class="page-item active"><span class="page-link">1</span></li>
-                        <li class="page-item"><span class="page-link">2</span></li>
-                        <li class="page-item"><span class="page-link">3</span></li>
-                        <li class="page-item disabled"><span class="page-link">…</span></li>
-                        <li class="page-item"><span class="page-link">204</span></li>
-                        <li class="page-item"><span class="page-link"><span class="tp-chevron tp-chevron--right" aria-hidden="true"></span></span></li>
-                    </ul>
-                </div>
-                <h3>Navegación</h3>
-                <p>Ruta y paginación</p>
-            </article>
-
-            <article class="ds-tile ds-tile--wide">
-                <div class="ds-stage">
-                    <div class="tp-table-shell ds-table">
-                        <table class="table mb-0 tp-table tp-table--plain">
-                            <thead><tr><th scope="col">Protein</th><th scope="col">Description</th><th scope="col">Binding site</th></tr></thead>
-                            <tbody>
-                                <tr><td><a href="#piezas">VK055_2067</a></td><td>UDP-2,3-diacylglucosamine hydrolase</td><td><span class="tp-chip tp-chip--success">0.94</span></td></tr>
-                                <tr><td><a href="#piezas">VK055_0860</a></td><td>4-hydroxythreonine-4-phosphate dehydrogenase</td><td><span class="tp-chip tp-chip--success">0.91</span></td></tr>
-                                <tr><td><a href="#piezas">VK055_3185</a></td><td>Hypothetical protein</td><td><span class="tp-chip tp-chip--warning">0.38</span></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <h3>Tablas</h3>
-                <p>Filas con estado</p>
-            </article>
-
-            <article class="ds-tile ds-tile--wide">
-                <div class="ds-stage ds-stage--scrim">
-                    <div class="tp-modal-panel tp-modal-panel--sm ds-modal" role="img" aria-label="Ejemplo de ventana">
-                        <div class="tp-modal-head">
-                            <p class="tp-modal-title">Revoke access?</p>
-                            <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close" aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button>
-                        </div>
-                        <div class="tp-modal-body">
-                            <p class="ds-modal-text">This person will lose access immediately.</p>
-                        </div>
-                        <div class="tp-modal-actions">
-                            <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm">Cancel</button>
-                            <button type="button" class="btn tp-btn tp-btn--danger tp-btn--sm">Revoke access</button>
-                        </div>
-                    </div>
-                </div>
-                <h3>Ventanas</h3>
-                <p>Confirmación</p>
-            </article>
+        <div class="ds-comp" id="c-tablas">
+            <h3>Tablas</h3>
+            <div class="tp-table-shell ds-table">
+                <table class="table mb-0 tp-table tp-table--plain">
+                    <thead><tr><th scope="col">Protein</th><th scope="col">Description</th><th scope="col">Binding site</th></tr></thead>
+                    <tbody>
+                        <tr><td><a href="#c-tablas">VK055_2067</a></td><td>UDP-2,3-diacylglucosamine hydrolase</td><td><span class="tp-chip tp-chip--success">0.94</span></td></tr>
+                        <tr><td><a href="#c-tablas">VK055_0860</a></td><td>4-hydroxythreonine-4-phosphate dehydrogenase</td><td><span class="tp-chip tp-chip--success">0.91</span></td></tr>
+                        <tr><td><a href="#c-tablas">VK055_3185</a></td><td>Hypothetical protein</td><td><span class="tp-chip tp-chip--warning">0.38</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </section>
 
