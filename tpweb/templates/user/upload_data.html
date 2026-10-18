@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20261017-system3">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20261017-tables">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -183,7 +183,7 @@
             </div>
             {% if jobs %}
                 <div class="tp-table-shell">
-                    <table class="table table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium">
+                    <table class="table mb-0 tp-table">
                         <thead>
                         <tr>
                             <th>{% trans "Genome" %}</th>
@@ -458,7 +458,7 @@
                 </div>
             </div>
             <div class="tp-table-shell">
-                <table class="table table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium">
+                <table class="table mb-0 tp-table">
                     <thead>
                     <tr>
                         <th>{% trans "Genome" %}</th>

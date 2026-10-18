@@ -67,7 +67,7 @@
 
 .explorer-head p {
     margin: var(--tp-space-1) 0 0;
-    max-width: 60ch;
+    max-width: var(--tp-measure);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.45;
@@ -272,7 +272,7 @@
     margin: 0 var(--tp-space-5);
     padding-top: var(--tp-space-5);
     border-top: 1px solid var(--tp-color-border-soft);
-    max-width: 720px;
+    max-width: var(--tp-measure);
 }
 
 .explorer-empty h2 {

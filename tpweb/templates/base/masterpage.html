@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261017-english">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261017-tables">
     <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261017-system3">
     <style>
         :root {
@@ -172,6 +172,8 @@
             --tp-heading-xl: clamp(2rem, 3vw, 3rem);
             --tp-heading-lg: clamp(1.55rem, 2.2vw, 2.05rem);
             --tp-heading-md: clamp(1.2rem, 1.8vw, 1.45rem);
+            /* One reading width for paragraphs. */
+            --tp-measure: 72ch;
             /* Uppercase labels use label tracking; display headings tight. */
             --tp-tracking-label: 0.06em;
             --tp-tracking-tight: -0.01em;
@@ -796,18 +798,6 @@
             margin-bottom: 0;
         }
 
-        .tp-table-shell thead th,
-        .tp-table-shell thead td {
-            background: var(--tp-color-surface-soft);
-            font-size: var(--tp-font-size-sm);
-            font-weight: 600;
-            color: var(--tp-color-text-secondary);
-            position: sticky;
-            top: 0;
-            z-index: 1;
-            white-space: nowrap;
-            border-bottom: 1px solid var(--tp-color-border-soft);
-        }
 
         /* ── Global messages ── */
         .tp-messages {
@@ -1695,15 +1685,7 @@
             color: var(--tp-color-text-soft);
         }
 
-        /* Bootstrap .table-hover sets color: #212529 on hover — override */
-        .tp-dark .table-hover tbody tr:hover {
-            color: var(--tp-color-text-primary);
-            background-color: var(--tp-color-surface-muted);
-        }
-
         /* table row hover — more visible in dark */
-        .tp-dark .tp-table--premium tbody tr:hover,
-        .tp-dark .tp-table--sortable tbody tr:hover,
         .tp-dark .genome-row:hover,
         .tp-dark .genome-row:focus-visible {
             background: var(--tp-color-surface-muted) !important;

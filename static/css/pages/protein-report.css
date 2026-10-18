@@ -149,11 +149,6 @@
         font-size: var(--tp-font-size-2xs);
     }
 
-    .protein-report-table th,
-    .protein-report-table td {
-        padding: 3px var(--tp-space-1) !important;
-    }
-
     .protein-report-table thead {
         display: table-header-group;
     }

@@ -221,7 +221,7 @@
 
 .tp-main .tp-view-lead {
     margin: var(--tp-space-3) 0 0;
-    max-width: 72ch;
+    max-width: var(--tp-measure);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
     font-weight: 400;
@@ -819,48 +819,74 @@ button.tp-chip:hover,
     border-color: var(--tp-color-idle-border);
 }
 
-.tp-table--premium thead th {
-    background: var(--tp-color-surface-soft);
+/* ── Table (see /design): one look everywhere. Header on a soft band,
+   rows split by a hairline, gray hover, no zebra stripes. --compact for
+   big data tables. Page classes only set column widths/alignment. ── */
+.tp-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: collapse;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.tp-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: var(--tp-table-sticky-z);
+    padding: var(--tp-table-cell-py) var(--tp-table-cell-px);
+    border: 0;
     border-bottom: var(--tp-table-row-border);
+    background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     font-weight: 500;
     letter-spacing: 0;
-    position: sticky;
-    top: 0;
+    text-transform: none;
     white-space: nowrap;
-    z-index: var(--tp-table-sticky-z);
-}
-
-.tp-table--premium thead th,
-.tp-table--premium tbody td {
-    padding: var(--tp-table-cell-py) var(--tp-table-cell-px);
     vertical-align: middle;
 }
 
-.tp-table--premium thead th:first-child,
-.tp-table--premium tbody td:first-child {
+.tp-table tbody td {
+    padding: var(--tp-table-cell-py) var(--tp-table-cell-px);
+    border: 0;
+    border-top: var(--tp-table-row-border);
+    background: transparent;
+    vertical-align: middle;
+}
+
+.tp-table tbody tr:first-child td {
+    border-top: 0;
+}
+
+.tp-table thead th:first-child,
+.tp-table tbody td:first-child {
     padding-left: var(--tp-table-cell-first-pl);
 }
 
-.tp-table--premium tbody tr:nth-of-type(odd) {
-    background: var(--tp-color-surface-muted);
-}
-
-.tp-table--premium tbody tr:nth-of-type(even) {
+.tp-table tbody tr {
     background: var(--tp-color-surface);
-}
-
-.tp-table--premium tbody tr {
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.tp-table--premium tbody tr:hover {
+.tp-table tbody tr:hover {
     background: var(--tp-color-surface-soft);
 }
 
-.tp-table--premium tbody td {
-    border-top: var(--tp-table-row-border);
+/* DataTables paints its own odd/even stripes; keep one look. */
+.tp-table tbody tr.odd,
+.tp-table tbody tr.even {
+    background: var(--tp-color-surface) !important;
+}
+
+.tp-table tbody tr.odd:hover,
+.tp-table tbody tr.even:hover {
+    background: var(--tp-color-surface-soft) !important;
+}
+
+.tp-table--compact {
+    --tp-table-cell-py: var(--tp-space-2);
+    --tp-table-cell-px: var(--tp-space-2);
 }
 
 .tp-pagination {
@@ -925,48 +951,6 @@ button.tp-chip:hover,
     display: inline-flex;
     align-items: center;
     justify-content: center;
-}
-
-.tp-table--sortable tbody tr:nth-of-type(odd) {
-    background: var(--tp-color-surface-muted);
-}
-
-.tp-table--sortable tbody tr:nth-of-type(even) {
-    background: var(--tp-color-surface);
-}
-
-.tp-table--sortable tbody tr {
-    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.tp-table--sortable tbody tr:hover {
-    background: var(--tp-color-surface-soft);
-}
-
-.tp-table--plain thead th::after {
-    display: none !important;
-}
-
-.tp-table--sortable tbody td,
-.tp-table--plain tbody td {
-    border-top: var(--tp-table-row-border);
-}
-
-.table-shell .table {
-    margin-bottom: 0;
-    background: var(--tp-color-surface);
-}
-
-.table-shell thead th {
-    background: var(--tp-color-surface-soft);
-    border-bottom-width: 1px;
-    position: sticky;
-    top: 0;
-    z-index: var(--tp-table-sticky-z);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 500;
-    color: var(--tp-color-text-secondary);
-    white-space: nowrap;
 }
 
 .tp-dt-wrapper,
@@ -1129,13 +1113,9 @@ button.tp-chip:hover,
         border-radius: var(--tp-radius-sm);
     }
 
-    .tp-table--premium {
-        font-size: var(--tp-font-size-sm);
-    }
-
     /* Sticky first column as anchor while scrolling horizontally */
-    .tp-table--premium thead th:first-child,
-    .tp-table--premium tbody td:first-child {
+    .tp-table thead th:first-child,
+    .tp-table tbody td:first-child {
         position: sticky;
         left: 0;
         background: inherit;
@@ -1143,9 +1123,9 @@ button.tp-chip:hover,
         box-shadow: inset -1px 0 0 var(--tp-color-border-soft);
     }
 
-    .tp-table--premium thead th:first-child {
+    .tp-table thead th:first-child {
         z-index: calc(var(--tp-table-sticky-z) + 1);
-        background: var(--tp-color-surface-muted);
+        background: var(--tp-color-surface-soft);
     }
 
     .tp-pagination {

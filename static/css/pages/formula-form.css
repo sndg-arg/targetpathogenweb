@@ -344,7 +344,7 @@
 
 .formula-footer-copy {
     min-width: 0;
-    max-width: 720px;
+    max-width: var(--tp-measure);
     padding-bottom: 2px;
 }
 

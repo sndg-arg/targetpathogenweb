@@ -5,9 +5,9 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-showcase">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-showcase">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261017-english">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-tables">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-tables">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261017-tables">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -477,15 +477,27 @@
 
         <div class="ds-comp" id="c-tables">
             <h3>Tables</h3>
-            <div class="tp-table-shell ds-table">
-                <table class="table mb-0 tp-table tp-table--plain">
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix ds-matrix--stack">
+                <tbody>
+                    <tr><th>Default</th><td><div class="tp-table-shell ds-table"><table class="table mb-0 tp-table">
                     <thead><tr><th scope="col">Protein</th><th scope="col">Description</th><th scope="col">Binding site</th></tr></thead>
                     <tbody>
                         <tr><td><a href="#c-tables">VK055_2067</a></td><td>UDP-2,3-diacylglucosamine hydrolase</td><td><span class="tp-chip tp-chip--success">0.94</span></td></tr>
                         <tr><td><a href="#c-tables">VK055_0860</a></td><td>4-hydroxythreonine-4-phosphate dehydrogenase</td><td><span class="tp-chip tp-chip--success">0.91</span></td></tr>
                         <tr><td><a href="#c-tables">VK055_3185</a></td><td>Hypothetical protein</td><td><span class="tp-chip tp-chip--warning">0.38</span></td></tr>
                     </tbody>
-                </table>
+                </table></div></td></tr>
+                    <tr><th>Compact</th><td><div class="tp-table-shell ds-table"><table class="table mb-0 tp-table tp-table--compact">
+                    <thead><tr><th scope="col">Protein</th><th scope="col">Description</th><th scope="col">Binding site</th></tr></thead>
+                    <tbody>
+                        <tr><td><a href="#c-tables">VK055_2067</a></td><td>UDP-2,3-diacylglucosamine hydrolase</td><td><span class="tp-chip tp-chip--success">0.94</span></td></tr>
+                        <tr><td><a href="#c-tables">VK055_0860</a></td><td>4-hydroxythreonine-4-phosphate dehydrogenase</td><td><span class="tp-chip tp-chip--success">0.91</span></td></tr>
+                        <tr><td><a href="#c-tables">VK055_3185</a></td><td>Hypothetical protein</td><td><span class="tp-chip tp-chip--warning">0.38</span></td></tr>
+                    </tbody>
+                </table></div></td></tr>
+                </tbody>
+            </table>
             </div>
         </div>
     </section>

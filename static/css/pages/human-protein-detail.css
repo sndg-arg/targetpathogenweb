@@ -463,8 +463,6 @@
 .human-expression-rank-table th,
 .human-expression-rank-table td {
     text-align: left;
-    padding: var(--tp-space-2);
-    border-bottom: 1px solid var(--tp-color-border-soft);
 }
 
 .human-expression-rank-table__celltype {

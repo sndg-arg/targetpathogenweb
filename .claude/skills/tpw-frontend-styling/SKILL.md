@@ -92,7 +92,10 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
   bar, left-aligned, never centered or boxed).
 - `.tp-card` only for repeated grid items (border, no shadow). Sections are never boxed.
 - `.tp-metrics` > `.metric-pill` (+ `--success|--warning|--danger|--link`) for every "number in a pill".
-- `.tp-tabs` > `.tp-tab` (+ `.tp-tab-count`) for every tab set inside a section.
+- `.tp-tabs` > `.tp-tab` (+ `.tp-count`) for every tab set inside a section; `.tp-count` for any number next to a label.
+- Tables: `table tp-table` (+ `tp-table--compact` for big data tables) inside `.tp-table-shell`. No zebra, no
+  Bootstrap `table-striped/-hover/-sm`; page table classes set column widths/alignment only.
+- Paragraph width: `max-width: var(--tp-measure)` (72ch), never a px value.
 - `.tp-view-eyebrow` is the one uppercase rótulo above any title (page or section).
 - Dialogs: `.tp-modal` (backdrop, `.is-open` shows it) > `.tp-modal-panel[--sm|--lg]` >
   `.tp-modal-head` (`.tp-modal-title`, optional `.tp-modal-meta`, close =

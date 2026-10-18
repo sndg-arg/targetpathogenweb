@@ -164,11 +164,11 @@
     font-weight: 600;
 }
 
-.ds-type tbody th {
+.ds-type > tbody > tr > th {
     vertical-align: baseline;
 }
 
-.ds-type td {
+.ds-type > tbody > tr > td {
     white-space: normal;
 }
 
@@ -219,15 +219,15 @@
     border-collapse: collapse;
 }
 
-.ds-matrix th,
-.ds-matrix td {
+.ds-matrix > * > tr > th,
+.ds-matrix > * > tr > td {
     padding: var(--tp-space-3) var(--tp-space-6) var(--tp-space-3) 0;
     text-align: left;
     vertical-align: middle;
     white-space: nowrap;
 }
 
-.ds-matrix thead th {
+.ds-matrix > thead > tr > th {
     padding-bottom: var(--tp-space-1);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
@@ -236,15 +236,15 @@
     text-transform: uppercase;
 }
 
-.ds-matrix tbody th {
+.ds-matrix > tbody > tr > th {
     min-width: 128px;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
 }
 
-.ds-matrix--top td,
-.ds-matrix--top tbody th {
+.ds-matrix--top > tbody > tr > td,
+.ds-matrix--top > tbody > tr > th {
     vertical-align: top;
 }
 
@@ -253,12 +253,12 @@
     width: 100%;
 }
 
-.ds-matrix--stack tbody th {
+.ds-matrix--stack > tbody > tr > th {
     vertical-align: top;
     padding-top: var(--tp-space-5);
 }
 
-.ds-matrix--stack td {
+.ds-matrix--stack > tbody > tr > td {
     width: 100%;
     padding-right: 0;
     white-space: normal;

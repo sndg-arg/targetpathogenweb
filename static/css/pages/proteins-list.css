@@ -757,19 +757,14 @@ a.filter-pill .filter-pill-remove {
 }
 
 .protein-table thead th {
-    background: var(--tp-color-surface-soft);
     position: sticky;
     top: 0;
     z-index: var(--tp-table-sticky-z);
     white-space: nowrap;
-    font-size: var(--tp-font-size-sm);
-    font-weight: 500;
-    color: var(--tp-color-text-secondary);
 }
 
 .protein-table thead th,
 .protein-table tbody td {
-    padding: var(--tp-table-cell-py) var(--tp-table-cell-px);
     vertical-align: middle;
     white-space: nowrap;
 }
@@ -786,10 +781,6 @@ a.filter-pill .filter-pill-remove {
 
 .protein-table tbody tr {
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.protein-table tbody tr:hover {
-    background: var(--tp-color-surface-soft);
 }
 
 .protein-table thead th:nth-child(1),

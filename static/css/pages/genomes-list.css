@@ -321,7 +321,7 @@
 .genome-workspace-empty-copy {
     display: grid;
     gap: var(--tp-space-2);
-    max-width: 620px;
+    max-width: var(--tp-measure);
 }
 
 .genome-workspace-empty-copy h2 {

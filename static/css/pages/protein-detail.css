@@ -78,7 +78,7 @@
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
     line-height: 1.42;
-    max-width: 920px;
+    max-width: var(--tp-measure);
 }
 
 .hero-chip-list {
@@ -130,7 +130,7 @@
 }
 
 .target-summary-lead p {
-    max-width: 760px;
+    max-width: var(--tp-measure);
     margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
@@ -2232,8 +2232,6 @@ body.binder-mol-modal-open {
 
 .binder-table-wrap {
     overflow-x: auto;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-sm);
 }
 
 .binder-table-wrap.tp-table-shell--with-export {
@@ -2247,33 +2245,13 @@ body.binder-mol-modal-open {
     font-size: var(--tp-font-size-sm);
 }
 
-.binder-tbl thead tr {
-    background: var(--tp-color-surface-soft);
-    border-bottom: 1px solid var(--tp-color-border-soft);
-}
-
 .binder-tbl th {
-    padding: var(--tp-space-3) var(--tp-space-4);
     text-align: left;
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-    color: var(--tp-color-text-muted);
     white-space: nowrap;
 }
 
 .binder-tbl tbody tr {
-    border-bottom: 1px solid var(--tp-color-border-soft);
     transition: background 120ms ease;
-}
-
-.binder-tbl tbody tr:last-child {
-    border-bottom: none;
-}
-
-.binder-tbl tbody tr:nth-child(even) {
-    background: var(--tp-color-surface-soft);
 }
 
 .binder-tbl__row {
@@ -2285,8 +2263,6 @@ body.binder-mol-modal-open {
 }
 
 .binder-tbl td {
-    padding: var(--tp-space-3) var(--tp-space-4);
-    color: var(--tp-color-text-primary);
     vertical-align: middle;
 }
 
@@ -2969,36 +2945,9 @@ body.residue-modal-open {
     border-collapse: collapse;
 }
 
-/* Headers: small-caps, muted, spaced */
-.experimental-structure-table thead th {
-    padding: var(--tp-space-3) var(--tp-space-5);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: var(--tp-tracking-label);
-    color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-soft);
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    white-space: nowrap;
-    vertical-align: middle;
-}
-
 /* Data rows */
 .experimental-structure-table tbody td {
-    padding: var(--tp-space-4) var(--tp-space-5);
     vertical-align: middle;
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    font-size: var(--tp-font-size-sm);
-    color: var(--tp-color-text-primary);
-}
-
-.experimental-structure-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-/* Subtle hover */
-.experimental-structure-table tbody tr:hover > td {
-    background: var(--tp-color-surface-soft);
 }
 
 /* Active row — left accent + warm tint */
@@ -3251,56 +3200,12 @@ body.residue-modal-open {
     background: transparent;
 }
 
-/* Premium header */
-.binder-tbl th {
-    padding: var(--tp-space-3) var(--tp-space-4) !important;
-    font-size: var(--tp-font-size-2xs) !important;
-    font-weight: 500 !important;
-    text-transform: uppercase !important;
-    letter-spacing: var(--tp-tracking-label) !important;
-    color: var(--tp-color-text-muted) !important;
-    background: var(--tp-color-surface-soft) !important;
-}
-
-/* Slightly more vertical room in cells */
-.binder-tbl td {
-    padding: var(--tp-space-3) var(--tp-space-4) !important;
-}
-
 /* Brand-mix hover */
 .binder-tbl__row:hover {
     background: var(--tp-color-surface-soft) !important;
 }
 
 /* ── Features table (#features_table, DataTables) ── */
-
-/* Strip Bootstrap/DataTables alternating backgrounds */
-#features_table.table-striped tbody tr:nth-of-type(odd),
-#features_table.table-striped tbody tr:nth-of-type(even),
-#features_table tbody tr.odd,
-#features_table tbody tr.even {
-    background-color: transparent !important;
-    --bs-table-accent-bg: transparent;
-    --bs-table-striped-bg: transparent;
-}
-
-/* Premium header */
-#features_table thead th {
-    font-size: var(--tp-font-size-2xs) !important;
-    font-weight: 500 !important;
-    text-transform: uppercase !important;
-    letter-spacing: var(--tp-tracking-label) !important;
-    color: var(--tp-color-text-muted) !important;
-}
-
-/* Clean row borders */
-#features_table tbody tr {
-    border-bottom: 1px solid var(--tp-color-border-soft) !important;
-}
-
-#features_table tbody tr:last-child {
-    border-bottom: none !important;
-}
 
 /* ── Dark mode ── */
 .tp-dark .binder-tbl__row:hover {

@@ -84,7 +84,7 @@
 
 .customparam-card-note {
     margin: var(--tp-space-2) 0 0;
-    max-width: 720px;
+    max-width: var(--tp-measure);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-md);
     line-height: 1.45;

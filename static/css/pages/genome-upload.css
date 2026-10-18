@@ -109,7 +109,7 @@
 
 .genome-upload-card-note {
     margin: 0 0 var(--tp-space-4);
-    max-width: 720px;
+    max-width: var(--tp-measure);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.45;
@@ -460,7 +460,7 @@
 }
 
 .genome-upload-empty-note {
-    max-width: 760px;
+    max-width: var(--tp-measure);
 }
 
 .genome-upload-hero,

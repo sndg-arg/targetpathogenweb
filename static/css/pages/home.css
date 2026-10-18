@@ -466,7 +466,7 @@ body.pipeline-info-open {
 
 .pipeline-info-subtitle {
     margin: var(--tp-space-3) 0 0;
-    max-width: 54ch;
+    max-width: var(--tp-measure);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     line-height: 1.6;
@@ -730,7 +730,7 @@ body.pipeline-info-open {
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
     line-height: 1.62;
-    max-width: 76ch;
+    max-width: var(--tp-measure);
 }
 
 /* These are small individual rounded cards on purpose -- unlike the

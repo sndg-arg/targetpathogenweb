@@ -57,7 +57,7 @@
 
 .settings-section-description {
     margin: var(--tp-space-2) 0 0;
-    max-width: 760px;
+    max-width: var(--tp-measure);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     line-height: 1.5;
@@ -173,12 +173,12 @@
 
 .settings-empty {
     margin: var(--tp-space-3) 0 0;
-    max-width: 760px;
+    max-width: var(--tp-measure);
 }
 
 .settings-note {
     margin: var(--tp-space-3) 0 0;
-    max-width: 760px;
+    max-width: var(--tp-measure);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.5;

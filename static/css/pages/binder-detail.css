@@ -68,7 +68,7 @@
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
     line-height: 1.42;
-    max-width: 920px;
+    max-width: var(--tp-measure);
 }
 
 .binder-context {

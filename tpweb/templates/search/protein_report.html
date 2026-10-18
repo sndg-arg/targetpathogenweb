@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-report.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-report.css' %}?v=20261017-tables">
 {% endblock %}
 
 {% block body %}
@@ -56,7 +56,7 @@
                 </p>
             {% endif %}
             <div class="protein-report-table-wrap">
-                <table class="table tp-table tp-table--plain tp-table--premium protein-report-table" data-table-export="off">
+                <table class="table tp-table protein-report-table" data-table-export="off">
                     <thead>
                         <tr>{% for header in table_headers %}<th>{{ header }}</th>{% endfor %}</tr>
                     </thead>
@@ -74,7 +74,7 @@
         <section class="protein-report-section protein-report-section--sources">
             <h2>{% trans "Data sources" %}</h2>
             <div class="protein-report-table-wrap">
-                <table class="table tp-table tp-table--plain tp-table--premium protein-report-table protein-report-table--sources" data-table-export="off">
+                <table class="table tp-table protein-report-table protein-report-table--sources" data-table-export="off">
                     <thead>
                         <tr>
                             <th>{% trans "Column" %}</th>

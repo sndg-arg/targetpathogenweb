@@ -506,34 +506,16 @@
     width: 100%;
     border-collapse: collapse;
     font-size: var(--tp-font-size-sm);
-    margin-top: var(--tp-space-4);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-sm);
-    overflow: hidden;
 }
 
 .ds-table th {
-    background: var(--tp-color-surface-muted);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: var(--tp-tracking-label);
-    padding: var(--tp-space-2) var(--tp-space-3);
     text-align: left;
-    border-bottom: 1px solid var(--tp-color-border-soft);
 }
 
 .ds-table td {
-    padding: var(--tp-space-2) var(--tp-space-3);
-    color: var(--tp-color-text-secondary);
-    border-bottom: 1px solid var(--tp-color-border-soft);
     line-height: 1.45;
     vertical-align: top;
 }
-
-.ds-table tr:last-child td { border-bottom: none; }
-.ds-table tr:nth-child(even) td { background: var(--tp-color-surface-soft); }
 
 /* ── Definitions (pChEMBL, Tanimoto) ── */
 .ds-def-list {
