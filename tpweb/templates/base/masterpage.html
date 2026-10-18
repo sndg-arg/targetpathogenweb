@@ -471,14 +471,16 @@
             font-size: var(--tp-font-size-xs);
         }
 
-        /* Icon-only buttons are square. */
-        .tp-btn:has(> .tp-btn-icon:only-child) {
-            width: var(--tp-ui-control-height);
-            padding: 0;
+        /* Icon-only buttons (they carry an aria-label) are square. :only-child
+           ignores bare text, so the label check keeps "icon + text" buttons
+           out; min-width, not width, so nothing can ever overflow. */
+        .tp-btn[aria-label]:has(> .tp-btn-icon:only-child) {
+            min-width: var(--tp-ui-control-height);
+            padding: 0 var(--tp-space-2);
         }
 
-        .tp-btn.tp-btn--sm:has(> .tp-btn-icon:only-child) {
-            width: var(--tp-ui-control-height-compact);
+        .tp-btn.tp-btn--sm[aria-label]:has(> .tp-btn-icon:only-child) {
+            min-width: var(--tp-ui-control-height-compact);
         }
 
         .tp-btn--primary {
