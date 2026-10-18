@@ -1,5 +1,5 @@
-/* ── /design: a showcase of the site's look, to browse at a stand. Only
-   the layout of the page lives here; every sample is the real component. ── */
+/* ── /design: a showcase of the site's look, shared at stands. Only the
+   layout of the page lives here; every sample is the real component. ── */
 
 .ds-page {
     display: grid;
@@ -43,7 +43,29 @@
     font-weight: 700;
     letter-spacing: var(--tp-tracking-tight);
     line-height: 1.1;
-    text-wrap: balance;
+}
+
+.ds-subhead {
+    margin: 0 0 calc(-1 * var(--tp-space-3));
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-lg);
+    font-weight: 600;
+}
+
+.ds-index {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-1) var(--tp-space-4);
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-index a {
+    color: var(--tp-color-text-secondary);
+}
+
+.ds-index a:hover {
+    color: var(--tp-color-link-hover);
 }
 
 /* ── Color ── */
@@ -99,21 +121,13 @@
     font-size: var(--tp-font-size-sm);
 }
 
-.ds-subhead {
-    margin: 0 0 calc(-1 * var(--tp-space-3));
-    color: var(--tp-color-text-primary);
-    font-family: var(--tp-font-head);
-    font-size: var(--tp-font-size-lg);
-    font-weight: 600;
-}
-
 .ds-tones {
     display: flex;
     flex-wrap: wrap;
     gap: var(--tp-space-3);
 }
 
-/* ── Type ── */
+/* ── Typography ── */
 .ds-fonts {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -141,7 +155,6 @@
 .ds-font figcaption {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
 }
 
 .ds-font figcaption strong {
@@ -151,55 +164,32 @@
     font-weight: 600;
 }
 
-.ds-specimen {
-    display: grid;
-    gap: var(--tp-space-2);
-    padding-top: var(--tp-space-6);
-    border-top: 1px solid var(--tp-color-border-soft);
+.ds-type tbody th {
+    vertical-align: baseline;
 }
 
-.ds-specimen p {
-    margin: 0;
+.ds-type td {
+    white-space: normal;
 }
 
-.ds-specimen-title {
-    color: var(--tp-color-brand-900);
-    font-family: var(--tp-font-head);
-    font-size: var(--tp-heading-lg);
-    font-weight: 700;
-    letter-spacing: var(--tp-tracking-tight);
-    line-height: 1.1;
-}
+.ds-t { color: var(--tp-color-text-primary); }
+.ds-t--head { font-family: var(--tp-font-head); font-weight: 700; letter-spacing: var(--tp-tracking-tight); }
+.ds-t--heading-lg { font-size: var(--tp-heading-lg); line-height: 1.1; }
+.ds-t--heading-md { font-size: var(--tp-heading-md); line-height: 1.15; }
+.ds-t--lg { font-size: var(--tp-font-size-lg); font-weight: 600; }
+.ds-t--md { font-size: var(--tp-font-size-md); }
+.ds-t--sm { color: var(--tp-color-text-secondary); font-size: var(--tp-font-size-sm); }
+.ds-t--mono { color: var(--tp-color-text-secondary); font-family: var(--tp-font-mono); font-size: var(--tp-font-size-sm); }
 
-.ds-specimen-lead {
-    max-width: 64ch;
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-lg);
-    line-height: 1.5;
-}
-
-.ds-specimen-code {
+.ds-t--label {
     color: var(--tp-color-text-muted);
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-sm);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
 }
 
 /* ── Components: name, then every variant side by side ── */
-.ds-index {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-1) var(--tp-space-4);
-    font-size: var(--tp-font-size-sm);
-}
-
-.ds-index a {
-    color: var(--tp-color-text-secondary);
-}
-
-.ds-index a:hover {
-    color: var(--tp-color-link-hover);
-}
-
 .ds-comp {
     display: grid;
     gap: var(--tp-space-3);
@@ -231,14 +221,14 @@
 
 .ds-matrix th,
 .ds-matrix td {
-    padding: var(--tp-space-3) var(--tp-space-5) var(--tp-space-3) 0;
+    padding: var(--tp-space-3) var(--tp-space-6) var(--tp-space-3) 0;
     text-align: left;
     vertical-align: middle;
     white-space: nowrap;
 }
 
 .ds-matrix thead th {
-    padding-bottom: var(--tp-space-2);
+    padding-bottom: var(--tp-space-1);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
@@ -247,7 +237,7 @@
 }
 
 .ds-matrix tbody th {
-    min-width: 120px;
+    min-width: 128px;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
@@ -258,12 +248,28 @@
     vertical-align: top;
 }
 
+/* Full-width samples, one per row (page headers). */
+.ds-matrix--stack {
+    width: 100%;
+}
+
+.ds-matrix--stack tbody th {
+    vertical-align: top;
+    padding-top: var(--tp-space-5);
+}
+
+.ds-matrix--stack td {
+    width: 100%;
+    padding-right: 0;
+    white-space: normal;
+}
+
 .ds-matrix .tp-message,
 .ds-matrix .tp-state-note {
     white-space: normal;
 }
 
-/* Samples inside the grid are pictures: the frozen ones must not react. */
+/* Frozen samples must not react to the mouse. */
 .ds-matrix .is-hover,
 .ds-matrix .is-focus,
 .ds-matrix .tp-select,
@@ -289,114 +295,29 @@
     min-width: 150px;
 }
 
-.ds-scrim-cell {
-    padding: var(--tp-space-5) !important;
-    background: var(--tp-color-scrim);
-}
-
-.ds-scrim-cell + .ds-scrim-cell {
-    border-left: var(--tp-space-3) solid var(--tp-color-surface);
-}
-
-/* ── Gallery of pieces ── */
-.ds-gallery {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--tp-space-7) var(--tp-space-6);
-}
-
-/* Stage stretches so tiles side by side end at the same height. */
-.ds-tile {
-    display: grid;
-    grid-template-rows: 1fr auto auto;
-    gap: var(--tp-space-2);
-    min-width: 0;
-}
-
-.ds-tile--wide {
-    grid-column: 1 / -1;
-}
-
-.ds-tile h3 {
-    margin: var(--tp-space-2) 0 0;
-    color: var(--tp-color-text-primary);
-    font-family: var(--tp-font-head);
-    font-size: var(--tp-font-size-lg);
-    font-weight: 600;
-}
-
-.ds-tile > p {
-    margin: 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
-}
-
-/* The stage every piece sits on. No overflow clipping: menus open below. */
-.ds-stage {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-    min-height: 168px;
-    padding: var(--tp-space-6);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-md);
-    background: var(--tp-color-surface);
-}
-
-.ds-stage > * {
-    min-width: 0;
-}
-
-.ds-stage--center {
-    justify-content: center;
-}
-
-.ds-stage--fill > * {
-    flex: 1 1 auto;
-}
-
-.ds-stage--stack,
-.ds-stage--form {
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: center;
-    gap: var(--tp-space-3);
-}
-
-.ds-stage--form .tp-ui-field {
+.ds-card {
     display: grid;
     gap: var(--tp-space-1);
+    width: 240px;
+    white-space: normal;
 }
 
-.ds-stage--nav {
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: var(--tp-space-5);
+a.ds-card {
+    color: inherit;
+    text-decoration: none;
 }
 
-.ds-stage--scrim {
-    justify-content: center;
-    border-color: transparent;
-    background: var(--tp-color-scrim);
+.ds-card-meta {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
 }
 
-.ds-stage--flush {
-    display: block;
-    padding: 0;
-    background: var(--tp-color-surface);
+.ds-frame {
     border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
 }
 
-.ds-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--tp-space-3);
-}
-
-.ds-metrics {
-    width: 100%;
+.ds-pagination {
     margin: 0;
 }
 
@@ -404,29 +325,33 @@
     position: static;
 }
 
-.ds-pagination {
-    margin: 0;
-}
-
 .ds-table {
     width: 100%;
 }
 
-/* The tooltip drawn open, above its chip. */
 .ds-tip {
     display: inline-grid;
-    white-space: normal;
     justify-items: center;
     gap: var(--tp-space-3);
+    white-space: normal;
 }
 
 .ds-page .ds-tip-bubble {
     position: relative;
-    width: 240px;
-    max-width: 100%;
+    width: max-content;
+    max-width: 320px;
     white-space: normal;
     opacity: 1;
     z-index: auto;
+}
+
+.ds-scrim-cell {
+    padding: var(--tp-space-5) !important;
+    background: var(--tp-color-scrim);
+}
+
+.ds-scrim-cell + .ds-scrim-cell {
+    border-left: var(--tp-space-3) solid var(--tp-color-surface);
 }
 
 .ds-loader {
@@ -440,62 +365,7 @@
     line-height: 1.5;
 }
 
-/* Floating pieces (panel, assistant) drawn in place. */
-.ds-split {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: var(--tp-space-6);
-}
-
-.ds-split .ds-stage {
-    justify-content: center;
-}
-
-.ds-page .ds-drawer {
-    position: static;
-    transform: none;
-    transition: none;
-    height: auto;
-    width: min(420px, 100%);
-    z-index: auto;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-md);
-    box-shadow: var(--tp-shadow-lg);
-    overflow: hidden;
-}
-
-.ds-drawer .drawer-body {
-    overflow: visible;
-}
-
-.ds-drawer-title {
-    margin: 0;
-    font-family: var(--tp-font-head);
-    font-size: var(--tp-font-size-lg);
-    font-weight: 600;
-}
-
-.ds-agent {
-    width: min(380px, 100%);
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-md);
-    background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-lg);
-    overflow: hidden;
-}
-
-.ds-agent .tp-agent-drawer-messages {
-    overflow: visible;
-}
-
 @media (max-width: 900px) {
-    .ds-gallery,
-    .ds-split {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
     .ds-scale {
         grid-template-columns: repeat(5, minmax(0, 1fr));
     }

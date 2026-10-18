@@ -738,9 +738,16 @@
     border-color: var(--tp-color-danger-border);
 }
 
+/* Inferred (via homolog): dashed, like a pending filter. */
 .tp-chip--muted {
     color: var(--tp-color-text-muted);
     background: transparent;
+    border-style: dashed;
+}
+
+/* A chip that goes somewhere reads as a link. */
+.tp-chip--link {
+    color: var(--tp-color-link);
 }
 
 button.tp-chip {
