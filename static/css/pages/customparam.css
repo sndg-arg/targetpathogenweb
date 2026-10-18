@@ -75,12 +75,7 @@
     margin-bottom: var(--tp-space-4);
 }
 
-.customparam-card h2 {
-    margin: 0 0 var(--tp-space-4);
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-font-size-lg);
-    line-height: 1.15;
-}
+
 
 .customparam-card-note {
     margin: var(--tp-space-2) 0 0;

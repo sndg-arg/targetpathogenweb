@@ -50,9 +50,6 @@
     display: flex;
     align-items: baseline;
     gap: var(--tp-space-3);
-    margin: 0;
-    font-size: var(--tp-font-size-xl);
-    font-weight: 600;
 }
 
 .settings-section-description {

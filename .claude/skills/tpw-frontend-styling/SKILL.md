@@ -97,6 +97,8 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
   Bootstrap `table-striped/-hover/-sm`; page table classes set column widths/alignment only.
 - Paragraph width: `max-width: var(--tp-measure)` (72ch), never a px value.
 - `.tp-view-eyebrow` is the one uppercase rótulo above any title (page or section).
+- Section header: `.section-head` > title `h2` + optional `.section-subtitle`, tools in `.section-tools`.
+  A section title outside a `.section-head` uses `.tp-section-title`. No page-specific title classes.
 - Dialogs: `.tp-modal` (backdrop, `.is-open` shows it) > `.tp-modal-panel[--sm|--lg]` >
   `.tp-modal-head` (`.tp-modal-title`, optional `.tp-modal-meta`, close =
   `btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close` with `icons/x.html`) + `.tp-modal-body` +

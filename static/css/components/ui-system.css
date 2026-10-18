@@ -101,20 +101,52 @@
     flex: 1 1 auto;
 }
 
-/* This header row (title + a right-side action/chip/legend) is reused
-   across ~75 section headers site-wide. Without flex-wrap, any instance
-   whose right-side child doesn't shrink to near-zero pushes the row wider
-   than a phone viewport -- and since these sit in normal page flow (not a
-   scroll container), that becomes page-wide horizontal scroll, not a
-   contained one. Wrapping here fixes every page that uses this class at
-   once instead of each page reinventing its own media query. */
-.tp-ui-panel-head {
+/* ── Section header (see /design): the title row that opens every
+   section, with an optional one-line subtitle and tools on the right.
+   Wraps instead of overflowing; stacks on phones. ── */
+.section-head {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     flex-wrap: wrap;
-    row-gap: var(--tp-space-2);
+    gap: var(--tp-space-2) var(--tp-space-3);
+    margin-bottom: var(--tp-space-3);
+}
+
+.section-head h2,
+.tp-section-title {
+    margin: 0;
+    color: var(--tp-color-brand-900);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-lg);
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.section-subtitle {
+    margin: var(--tp-space-1) 0 0;
+    max-width: var(--tp-measure);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.45;
+}
+
+.section-tools {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: var(--tp-space-2);
+}
+
+@media (max-width: 700px) {
+    .section-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .section-tools {
+        width: 100%;
+    }
 }
 
 .tp-ui-count {

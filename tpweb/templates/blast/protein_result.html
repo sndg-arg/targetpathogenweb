@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261017-sections">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -36,7 +36,7 @@
         <section class="blast-results">
             <div class="blast-result-head">
                 <div>
-                    <h2>{% trans "Closest proteins" %}</h2>
+                    <h2 class="tp-section-title">{% trans "Closest proteins" %}</h2>
                     {% if hits %}<p class="blast-result-count">{% blocktrans count n=hits|length %}{{ n }} match, best first{% plural %}{{ n }} matches, best first{% endblocktrans %}</p>{% endif %}
                 </div>
                 <a class="btn tp-btn tp-btn--secondary tp-btn-with-icon" href="{{ proteins_url }}">

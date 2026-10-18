@@ -55,9 +55,6 @@
 .home-panel h2,
 .home-post h2 {
     margin: var(--tp-space-1) 0 0;
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-font-size-md);
-    line-height: 1.24;
 }
 
 .home-pipeline-copy,
@@ -78,8 +75,8 @@
     padding: var(--tp-space-4) var(--tp-space-5);
 }
 
-.home-panel .tp-ui-panel-head,
-.home-post .tp-ui-panel-head {
+.home-panel .section-head,
+.home-post .section-head {
     align-items: flex-start;
 }
 

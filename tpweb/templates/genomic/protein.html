@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-tables">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-sections">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -229,7 +229,7 @@
         <div class="protein-grid">
             {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}
             <section class="protein-card" id="section-target-profile">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Prioritization evidence" %}{% trans "Hover any value below for what it means and how it's scored." as target_profile_help %}{% include "components/ui/section_help.html" with text=target_profile_help %}</h2>
                         <p class="section-subtitle">{% trans "Selectivity, essentiality, structural confidence, conservation, and predicted binding-site evidence." %}</p>
@@ -453,7 +453,7 @@
 
             {% if metabolic_context %}
             <section class="protein-card metabolic-browser-card" id="section-metabolic-context">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Metabolic context" %}{% trans "This network is curated, not automatically generated. Hover the values below for details." as metabolic_help %}{% include "components/ui/section_help.html" with text=metabolic_help %}</h2>
                         <p class="section-subtitle">{% trans "Reactions catalyzed, pathway membership, and centrality in the genome-scale metabolic network." %}</p>
@@ -546,7 +546,7 @@
             {% endif %}
 
             <section class="protein-card" id="section-sequence">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Sequence" %}</h2>
                         <p class="section-subtitle">{% trans "Primary amino-acid sequence viewer." %}</p>
@@ -570,7 +570,7 @@
             </section>
 
             <section class="protein-card" id="section-annotations">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Functional annotations" %}</h2>
                         <p class="section-subtitle">{% trans "Enzyme classification and Gene Ontology terms linked to this protein." %}</p>
@@ -639,7 +639,7 @@
             </section>
 
             <section class="protein-card" id="section-features">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Sequence domains and features" %}</h2>
                         <p class="section-subtitle">{% trans "Domain and signature matches imported from InterPro and related databases." %}</p>
@@ -700,7 +700,7 @@
 
             {% if identical_sequence_siblings %}
                 <section class="protein-card" id="section-identical-sequences">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "Identical sequence in other strains" %}</h2>
                             <p class="section-subtitle">{% trans "100% identical amino-acid sequence, from a curated cross-strain mapping." %}</p>
@@ -727,7 +727,7 @@
 
             {% if structure %}
                 <section class="protein-card" id="section-structure">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "3D structure" %}</h2>
                             <p class="section-subtitle">{% trans "Selected loaded structure. Experimental PDB entries may cover only a portion of the sequence; AlphaFold DB and ColabFold models typically cover the full protein but remain computational predictions." %}</p>
@@ -882,7 +882,7 @@
 
             {% if not structure %}
                 <section class="protein-card" id="section-structure">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "3D structure" %}</h2>
                             <p class="section-subtitle">{% trans "No structural model is available for this protein." %}</p>
@@ -912,7 +912,7 @@
 
             {% if binders.total or binders.search_query %}
                 <section class="protein-card" id="section-binders">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "Ligand evidence" %}</h2>
                             <p class="section-subtitle">{% trans "Ligands grouped by evidence source. PDB ligands keep the source crystal visible, and loaded crystals can be opened directly in the structure viewer." %}</p>
@@ -1094,7 +1094,7 @@
 
             {% if cross_references.sequence or cross_references.structure or cross_references.chemistry or cross_references.pathways %}
             <section class="protein-card" id="section-cross-references">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Cross-references" %}</h2>
                         <p class="section-subtitle">{% trans "External database identifiers for this protein, its structures, ligands, and metabolic reactions." %}</p>

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20261017-tables">
+    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20261017-sections">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -45,7 +45,7 @@
 
         <section class="customparam-layout">
             <article class="customparam-card customparam-card--form">
-                <h2>{% trans "Upload evidence file" %}</h2>
+                <h2 class="tp-section-title">{% trans "Upload evidence file" %}</h2>
 
                 {% if import_problems %}
                     <div class="customparam-state-note tp-state-note tp-state-note--error" role="alert">
@@ -111,7 +111,7 @@
             </article>
 
             <aside class="customparam-card customparam-card--guide">
-                <h2>{% trans "File format" %}</h2>
+                <h2 class="tp-section-title">{% trans "File format" %}</h2>
 
                 <div class="customparam-guide">
                     <div class="customparam-guide-item">

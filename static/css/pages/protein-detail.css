@@ -617,28 +617,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 68px);
 }
 
-.protein-card h2 {
-    margin: 0;
-    font-size: var(--tp-font-size-lg);
-    font-weight: 600;
-    color: var(--tp-color-brand-900);
-}
-
-.section-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: var(--tp-space-3);
-    margin-bottom: var(--tp-space-3);
-}
-
-.section-tools {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-2);
-    flex-wrap: wrap;
-}
-
 .features-tools-inline {
     display: inline-flex;
     align-items: center;
@@ -665,13 +643,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .features-zoom-reset-slot .features-reset-btn {
     min-height: 34px !important;
     padding: var(--tp-space-1) var(--tp-space-3) !important;
-}
-
-.section-subtitle {
-    margin: var(--tp-space-1) 0 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
-    line-height: 1.4;
 }
 
 /* ── No-structure note ── */
@@ -2679,15 +2650,6 @@ body.residue-modal-open {
 
     .target-summary-list--strengths {
         grid-template-columns: 1fr;
-    }
-
-    .section-head {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .section-tools {
-        width: 100%;
     }
 
     .section-tools .btn {

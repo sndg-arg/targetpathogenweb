@@ -6,8 +6,8 @@
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-tables">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-tables">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261017-tables">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-sections">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261017-sections">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -127,7 +127,7 @@
     <section class="ds-chapter tp-quick-nav-target" id="components">
         <header class="ds-chapter-head">
             <h2>Components</h2>
-            <nav class="ds-index" aria-label="Components"><a href="#c-buttons">Buttons</a><a href="#c-tags">Tags</a><a href="#c-filters">Filters</a><a href="#c-fields">Fields</a><a href="#c-select">Select</a><a href="#c-options">Options</a><a href="#c-tabs">Tabs</a><a href="#c-notes">Notes</a><a href="#c-messages">Messages</a><a href="#c-metrics">Metrics</a><a href="#c-cards">Cards</a><a href="#c-header">Page header</a><a href="#c-navigation">Navigation</a><a href="#c-tooltips">Tooltips</a><a href="#c-dialogs">Dialogs</a><a href="#c-tables">Tables</a></nav>
+            <nav class="ds-index" aria-label="Components"><a href="#c-buttons">Buttons</a><a href="#c-tags">Tags</a><a href="#c-filters">Filters</a><a href="#c-fields">Fields</a><a href="#c-select">Select</a><a href="#c-options">Options</a><a href="#c-tabs">Tabs</a><a href="#c-notes">Notes</a><a href="#c-messages">Messages</a><a href="#c-metrics">Metrics</a><a href="#c-cards">Cards</a><a href="#c-header">Page header</a><a href="#c-section">Section header</a><a href="#c-navigation">Navigation</a><a href="#c-tooltips">Tooltips</a><a href="#c-dialogs">Dialogs</a><a href="#c-tables">Tables</a></nav>
         </header>
 
         <div class="ds-comp" id="c-buttons">
@@ -402,6 +402,22 @@
                             <div class="metric-pill"><span class="metric-label">With structure</span><span class="metric-value">4,918</span></div>
                             <div class="metric-pill"><span class="metric-label">Ligand evidence</span><span class="metric-value">1,204</span></div>
                         </div></div></div></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <div class="ds-comp" id="c-section">
+            <h3>Section header</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix ds-matrix--stack">
+                <tbody>
+                    <tr><th>Title</th>
+                        <td><div class="section-head"><div><h2>Binding-site evidence</h2></div></div></td></tr>
+                    <tr><th>Title and subtitle</th>
+                        <td><div class="section-head"><div><h2>Binding-site evidence</h2><p class="section-subtitle">Pockets predicted on the selected structure.</p></div></div></td></tr>
+                    <tr><th>With tools</th>
+                        <td><div class="section-head"><div><h2>Ligands</h2><p class="section-subtitle">PDB, ChEMBL and ZINC records for this protein.</p></div><div class="section-tools"><button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span><span>Export CSV</span></button></div></div></td></tr>
                 </tbody>
             </table>
             </div>

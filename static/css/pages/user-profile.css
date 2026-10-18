@@ -59,11 +59,6 @@
     color: var(--tp-color-text-primary);
 }
 
-.profile-section-title {
-    margin: var(--tp-space-1) 0 0;
-    font-size: var(--tp-font-size-lg);
-}
-
 /* Seamless mosaic grid (1px gaps reading as hairline dividers, same trick
    as .target-profile-grid in protein-detail.css) instead of a flat vertical
    list -- groups the capabilities into a card mosaic that fuses with the

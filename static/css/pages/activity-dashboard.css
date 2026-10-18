@@ -47,11 +47,6 @@
 }
 
 .activity-page h1,
-.activity-page h2 {
-    font-family: var(--tp-font-head);
-    font-weight: 700;
-    letter-spacing: 0;
-}
 
 /* Editorial "kicker" rule above the eyebrow -- the letterhead detail that
    reads as a prepared report rather than a live app screen. */
@@ -182,14 +177,6 @@
 /* ── Panels — fused onto the page background, no individual box ── */
 .activity-panel {
     padding: 0 var(--tp-space-5);
-}
-
-.activity-panel-title {
-    margin: 2px 0 0;
-    font-size: var(--tp-font-size-lg);
-    font-weight: 600;
-    color: var(--tp-color-text-primary);
-    letter-spacing: var(--tp-tracking-tight);
 }
 
 /* ── Accounts list ── */

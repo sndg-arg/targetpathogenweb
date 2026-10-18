@@ -10,7 +10,7 @@
     styling this page deliberately reuses verbatim (same markup, same tokens) --
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-tables">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261017-sections">
     <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261017-tables">
 {% endblock %}
 
@@ -99,7 +99,7 @@
         <div class="protein-main" role="region" aria-label="{% trans 'Protein evidence sections' %}">
 
             <section class="protein-card" id="section-overview-detail">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Overview" %}</h2>
                         <p class="section-subtitle">{{ overview.summary_sentence|default:"—" }}</p>
@@ -171,7 +171,7 @@
             </section>
 
             <section class="protein-card" id="section-function">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Function" %}</h2>
                         <p class="section-subtitle">{% trans "Molecular function, catalytic activity, and Gene Ontology annotations." %}</p>
@@ -217,7 +217,7 @@
 
             {% if diseases.has_diseases %}
             <section class="protein-card" id="section-diseases">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Diseases" %}</h2>
                         <p class="section-subtitle">{% trans "Disease associations annotated on this protein's UniProt record." %}</p>
@@ -247,7 +247,7 @@
             {% endif %}
 
             <section class="protein-card" id="section-sequence">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Sequence" %}</h2>
                         <p class="section-subtitle">{% blocktrans with length=sequence.sequence_length %}{{ length }} amino acids{% endblocktrans %}</p>
@@ -287,7 +287,7 @@
 
             {% if structure.has_structure %}
             <section class="protein-card" id="section-structure">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "3D structure" %}</h2>
                         <p class="section-subtitle">{% trans "AlphaFold and AlphaFill predicted models, plus experimental PDB structures when available." %}</p>
@@ -328,7 +328,7 @@
 
             {% if binders.total %}
             <section class="protein-card" id="section-binders">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Ligand evidence" %}</h2>
                         <p class="section-subtitle">{% trans "Ligands grouped by evidence source, via the same LigQ_2 pipeline used across Target." %}</p>
@@ -437,7 +437,7 @@
 
             {% if expression.has_expression %}
             <section class="protein-card" id="section-expression">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Expression" %}</h2>
                         <p class="section-subtitle">{% trans "Tissue and cell-type expression, from Bgee." %}</p>
@@ -519,7 +519,7 @@
 
             {% if pathways.has_pathways %}
             <section class="protein-card" id="section-pathways">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Pathways" %}</h2>
                         <p class="section-subtitle">{% trans "KEGG pathways this protein participates in." %}</p>
@@ -570,7 +570,7 @@
             {% endif %}
 
             <section class="protein-card" id="section-xrefs">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Cross-references" %}</h2>
                         <p class="section-subtitle">{% trans "External database identifiers grouped by category." %}</p>

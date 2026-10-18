@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261017-tables">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261017-sections">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -48,10 +48,10 @@
 
     {# ── How to read the results (first, before the architecture) ── #}
     <section class="ds-panel" id="interpretation">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Read this first" %}</p>
-                <h2 class="ds-panel-title">{% trans "How to read the results" %}</h2>
+                <h2 class="tp-section-title">{% trans "How to read the results" %}</h2>
             </div>
         </div>
         <ul class="ds-caveats">
@@ -84,10 +84,10 @@
 
     {# -- 1. Platform capabilities -- #}
     <section class="ds-panel" id="platform-capabilities">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Integrated functionality" %}</p>
-                <h2 class="ds-panel-title">{% trans "What the platform lets you do" %}</h2>
+                <h2 class="tp-section-title">{% trans "What the platform lets you do" %}</h2>
                 <p class="ds-panel-subtitle">{% trans "A single workspace to move from a bacterial genome to a defensible shortlist of target candidates with traceable evidence." %}</p>
             </div>
         </div>
@@ -139,10 +139,10 @@
 
     {# -- 2. Pipeline -- #}
     <section class="ds-panel" id="pipeline">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Overview" %}</p>
-                <h2 class="ds-panel-title">{% trans "Analysis pipeline" %}</h2>
+                <h2 class="tp-section-title">{% trans "Analysis pipeline" %}</h2>
                 <p class="ds-panel-subtitle">{% trans "24 stages run linearly. Compute-heavy stages (★) run on dedicated compute nodes." %}</p>
             </div>
         </div>
@@ -369,10 +369,10 @@
 
     {# ── 2. Protein data ── #}
     <section class="ds-panel" id="protein-data">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Stages 2–3" %}</p>
-                <h2 class="ds-panel-title">{% trans "Protein data" %}</h2>
+                <h2 class="tp-section-title">{% trans "Protein data" %}</h2>
                 <p class="ds-panel-subtitle">{% trans "GenBank record from NCBI or your own upload" %}</p>
             </div>
         </div>
@@ -411,10 +411,10 @@
 
     {# ── 3. 3D Structure ── #}
     <section class="ds-panel" id="structure">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Stages 13, 15, 16" %}</p>
-                <h2 class="ds-panel-title">{% trans "3D structure" %}</h2>
+                <h2 class="tp-section-title">{% trans "3D structure" %}</h2>
                 <p class="ds-panel-subtitle">{% trans "PDB, then AlphaFold DB, then ColabFold" %}</p>
             </div>
         </div>
@@ -457,10 +457,10 @@
 
     {# ── 4. Binding sites ── #}
     <section class="ds-panel" id="binding-sites">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Stages 17–19" %}</p>
-                <h2 class="ds-panel-title">{% trans "Binding sites" %}</h2>
+                <h2 class="tp-section-title">{% trans "Binding sites" %}</h2>
                 <p class="ds-panel-subtitle">{% trans "FPocket + P2Rank" %}</p>
             </div>
         </div>
@@ -496,10 +496,10 @@
 
     {# ── 5. Functional annotation ── #}
     <section class="ds-panel" id="annotation">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Stages 10–11, 13" %}</p>
-                <h2 class="ds-panel-title">{% trans "Functional annotation" %}</h2>
+                <h2 class="tp-section-title">{% trans "Functional annotation" %}</h2>
                 <p class="ds-panel-subtitle">{% trans "InterProScan + UniProt" %}</p>
             </div>
         </div>
@@ -535,10 +535,10 @@
 
     {# ── 5b. Metabolism ── #}
     <section class="ds-panel" id="metabolism-methodology">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Manual, per genome" %}</p>
-                <h2 class="ds-panel-title">{% trans "Metabolic network" %}</h2>
+                <h2 class="tp-section-title">{% trans "Metabolic network" %}</h2>
                 <p class="ds-panel-subtitle">{% trans "Imported metabolic model" %}</p>
             </div>
         </div>
@@ -570,10 +570,10 @@
 
     {# ── 6. Target profile ── #}
     <section class="ds-panel" id="target-profile">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Stages 4–7, 20–21" %}</p>
-                <h2 class="ds-panel-title">{% trans "Target profile" %}</h2>
+                <h2 class="tp-section-title">{% trans "Target profile" %}</h2>
                 <p class="ds-panel-subtitle">{% trans "FastTarget + PSORTb" %}</p>
             </div>
         </div>
@@ -616,10 +616,10 @@
 
     {# ── 7. Ligand evidence ── #}
     <section class="ds-panel" id="ligands">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Stage 24" %}</p>
-                <h2 class="ds-panel-title">{% trans "Ligand evidence" %}</h2>
+                <h2 class="tp-section-title">{% trans "Ligand evidence" %}</h2>
                 <p class="ds-panel-subtitle">{% trans "Known and proposed ligands" %}</p>
             </div>
         </div>
@@ -703,10 +703,10 @@
 
     {# ── 8. Drug-likeness ── #}
     <section class="ds-panel" id="drug-likeness">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Computed from SMILES · RDKit" %}</p>
-                <h2 class="ds-panel-title">{% trans "Drug-likeness" %}</h2>
+                <h2 class="tp-section-title">{% trans "Drug-likeness" %}</h2>
                 <p class="ds-panel-subtitle">{% trans "Calculated at page load. Predicted values, not experimental measurements." %}</p>
             </div>
         </div>

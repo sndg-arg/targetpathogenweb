@@ -44,14 +44,6 @@
 /* ── Panel common ── */
 .ds-panel { padding: var(--tp-space-5) var(--tp-space-5); }
 
-.ds-panel-title {
-    margin: 2px 0 0;
-    font-size: var(--tp-font-size-lg);
-    font-weight: 600;
-    color: var(--tp-color-brand-900);
-    letter-spacing: var(--tp-tracking-tight);
-}
-
 .ds-panel-subtitle {
     margin: var(--tp-space-1) 0 0;
     font-family: var(--tp-font-mono);

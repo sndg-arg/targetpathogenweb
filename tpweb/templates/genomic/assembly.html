@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system3">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-sections">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -156,7 +156,7 @@
         <div class="genome-grid">
             <!-- Evidence available -->
             <section class="genome-card genome-card--evidence" id="section-evidence">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Evidence available" %}{% trans "Hover any stat below for what it counts and how it's computed." as evidence_help %}{% include "components/ui/section_help.html" with text=evidence_help %}</h2>
                         <p class="section-subtitle">{% trans "Structural, functional, ligand, and metabolic evidence available for proteins in this genome." %}</p>
@@ -292,7 +292,7 @@
 
             {% if jbrowse_embed.enabled %}
                 <section class="genome-card genome-card--browse" id="section-browse">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "Genome browser" %}</h2>
                             <p class="section-subtitle">{% trans "Interactive view of contigs and annotation tracks." %}</p>
@@ -312,7 +312,7 @@
 
             <!-- Downloads -->
             <section class="genome-card genome-card--downloads" id="section-downloads">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Downloads" %}</h2>
                         <p class="section-subtitle">{% trans "Download source genome and annotation files." %}</p>
@@ -341,7 +341,7 @@
                 <section class="genome-targets-wrap" id="section-targets">
                     {% if top_targets_by_score.items %}
                         <div class="genome-card genome-card--ranking">
-                            <div class="section-head tp-ui-panel-head">
+                            <div class="section-head">
                                 <div>
                                     <!-- Invisible spacer matching the secondary ranking's "No ligand evidence
                                          yet" eyebrow -- without it, that card's header is one line taller and
@@ -408,7 +408,7 @@
 
                     {% if unexplored_targets.items %}
                         <div class="genome-card genome-card--ranking genome-card--ranking-secondary">
-                            <div class="section-head tp-ui-panel-head">
+                            <div class="section-head">
                                 <div>
                                     <span class="tp-view-eyebrow">{% trans "No ligand evidence yet" %}</span>
                                     <h2>{% trans "Worth a fresh look" %}</h2>
@@ -442,7 +442,7 @@
 
             <!-- Imported details -->
             <section class="genome-card genome-card--details" id="section-details">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Imported genome details" %}</h2>
                         <p class="section-subtitle">{% trans "Properties imported from the source record." %}</p>
@@ -471,7 +471,7 @@
 
             {% if can_delete_workspace %}
                 <section class="genome-card genome-card--danger" id="section-dataset">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "Dataset removal" %}</h2>
                             <p class="section-subtitle">{% trans "Delete this uploaded genome dataset and all derived records." %}</p>

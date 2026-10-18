@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261017-tables">
+    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261017-sections">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -30,7 +30,7 @@
     </section>
 
     <section class="settings-section">
-        <h2 class="settings-section-title">{% trans "My scoring formulas" %} <span class="settings-count">{{ my_formula_rows|length }}</span></h2>
+        <h2 class="tp-section-title settings-section-title">{% trans "My scoring formulas" %} <span class="settings-count">{{ my_formula_rows|length }}</span></h2>
         {% if my_formula_rows %}
         <ul class="settings-rows">
             {% for row in my_formula_rows %}{% include "users/_settings_formula_row.html" with show_delete=True %}{% endfor %}
@@ -41,7 +41,7 @@
     </section>
 
     <section class="settings-section">
-        <h2 class="settings-section-title">{% trans "My uploaded data" %} <span class="settings-count">{{ my_param_rows|length }}</span></h2>
+        <h2 class="tp-section-title settings-section-title">{% trans "My uploaded data" %} <span class="settings-count">{{ my_param_rows|length }}</span></h2>
         {% if my_param_rows %}
         <ul class="settings-rows">
             {% for row in my_param_rows %}{% include "users/_settings_column_row.html" with show_delete=True %}{% endfor %}
@@ -55,7 +55,7 @@
     {% if is_superuser_view %}
     <section class="settings-section">
         <p class="tp-view-eyebrow">{% trans "Admin only" %}</p>
-        <h2 class="settings-section-title">{% trans "Everyone's formulas and data" %}</h2>
+        <h2 class="tp-section-title settings-section-title">{% trans "Everyone's formulas and data" %}</h2>
         <p class="settings-section-description">{% trans "Read-only: only the owner can change who sees their formulas and data. Built-in formula copies are left out." %}</p>
 
         <h3 class="settings-subtitle">{% trans "Shared right now" %} <span class="settings-count">{{ shared_total }}</span></h3>
@@ -95,7 +95,7 @@
 
     <section class="settings-section">
         <p class="tp-view-eyebrow">{% trans "Admin only" %}</p>
-        <h2 class="settings-section-title">{% trans "Restricted genomes" %} <span class="settings-count">{{ restricted_genomes|length }}</span></h2>
+        <h2 class="tp-section-title settings-section-title">{% trans "Restricted genomes" %} <span class="settings-count">{{ restricted_genomes|length }}</span></h2>
         <p class="settings-section-description">
             {% url 'tpwebapp:genomes_list' as genomes_url %}
             {% if gates_viewer %}{% blocktrans %}Only Gates members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% else %}{% blocktrans %}Only project members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% endif %}

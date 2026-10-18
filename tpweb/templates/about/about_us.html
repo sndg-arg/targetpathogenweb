@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261017-tables">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261017-sections">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -39,10 +39,10 @@
     </nav>
 
     <section class="ds-panel" id="purpose">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Why it exists" %}</p>
-                <h2 class="ds-panel-title">{% trans "A shared workspace for target prioritization" %}</h2>
+                <h2 class="tp-section-title">{% trans "A shared workspace for target prioritization" %}</h2>
                 <p class="ds-panel-subtitle">{% trans "From genome-scale evidence to focused biological review." %}</p>
             </div>
         </div>
@@ -50,10 +50,10 @@
     </section>
 
     <section class="ds-panel" id="institution">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Institutional context" %}</p>
-                <h2 class="ds-panel-title">{% trans "Facultad de Ciencias Exactas y Naturales, UBA" %}</h2>
+                <h2 class="tp-section-title">{% trans "Facultad de Ciencias Exactas y Naturales, UBA" %}</h2>
                 <p class="ds-panel-subtitle">{% trans "Public university, public research, interdisciplinary work." %}</p>
             </div>
         </div>
@@ -74,10 +74,10 @@
     </section>
 
     <section class="ds-panel" id="partners">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Institutional support" %}</p>
-                <h2 class="ds-panel-title">{% trans "Partners" %}</h2>
+                <h2 class="tp-section-title">{% trans "Partners" %}</h2>
             </div>
         </div>
         <div class="ds-partner-grid">
@@ -97,10 +97,10 @@
     </section>
 
     <section class="ds-panel" id="team">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "People" %}</p>
-                <h2 class="ds-panel-title">{% trans "Team" %}</h2>
+                <h2 class="tp-section-title">{% trans "Team" %}</h2>
                 <p class="ds-panel-subtitle">{% trans "Biology, chemistry, bioinformatics, and software working together." %}</p>
             </div>
         </div>
@@ -163,10 +163,10 @@
     </section>
 
     <section class="ds-panel" id="cite">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Citation" %}</p>
-                <h2 class="ds-panel-title">{% trans "How to cite" %}</h2>
+                <h2 class="tp-section-title">{% trans "How to cite" %}</h2>
             </div>
         </div>
         <p class="ds-body">{% trans "If Target Pathogen helped your work, please cite the original Target-Pathogen paper and mention the version you used:" %}</p>
@@ -175,10 +175,10 @@
     </section>
 
     <section class="ds-panel" id="contact">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-view-eyebrow">{% trans "Contact" %}</p>
-                <h2 class="ds-panel-title">{% trans "Questions and access requests" %}</h2>
+                <h2 class="tp-section-title">{% trans "Questions and access requests" %}</h2>
             </div>
         </div>
         <p class="ds-body">

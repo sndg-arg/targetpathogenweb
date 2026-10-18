@@ -61,13 +61,6 @@
     border-left: 1px solid var(--tp-color-border-soft);
 }
 
-.blast-card h2 {
-    margin: 0;
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-font-size-lg);
-    line-height: 1.15;
-}
-
 .blast-card-note {
     margin: var(--tp-space-2) 0 0;
     color: var(--tp-color-text-muted);

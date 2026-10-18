@@ -100,12 +100,6 @@
 }
 
 .genome-upload-card h2,
-.genome-upload-history h2 {
-    margin: 0 0 var(--tp-space-4);
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-font-size-xl);
-    line-height: 1.15;
-}
 
 .genome-upload-card-note {
     margin: 0 0 var(--tp-space-4);

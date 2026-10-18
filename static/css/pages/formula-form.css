@@ -89,13 +89,6 @@
     margin-bottom: 0;
 }
 
-.formula-card h2 {
-    margin: 0;
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-font-size-lg);
-    line-height: 1.15;
-}
-
 .formula-card-note {
     margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-muted);

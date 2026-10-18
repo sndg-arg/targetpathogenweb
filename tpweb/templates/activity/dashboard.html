@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20261017-system3">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20261017-sections">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -71,10 +71,10 @@
 
     <div class="activity-panel-pair">
         <section class="activity-panel">
-            <div class="section-head tp-ui-panel-head">
+            <div class="section-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "Over time" %}</p>
-                    <h2 class="activity-panel-title">{% blocktrans %}Requests, last {{ window_days }} days{% endblocktrans %}</h2>
+                    <h2 class="tp-section-title">{% blocktrans %}Requests, last {{ window_days }} days{% endblocktrans %}</h2>
                 </div>
                 <div class="activity-chart-legend" aria-hidden="true">
                     <span class="activity-chart-legend-item"><i class="activity-chart-legend-swatch activity-chart-legend-swatch--authenticated"></i>{% trans "Authenticated" %}</span>
@@ -88,10 +88,10 @@
         </section>
 
         <section class="activity-panel">
-            <div class="section-head tp-ui-panel-head">
+            <div class="section-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "Audience" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Unique visitors" %}</h2>
+                    <h2 class="tp-section-title">{% trans "Unique visitors" %}</h2>
                 </div>
                 <div class="activity-chart-legend" aria-hidden="true">
                     <span class="activity-chart-legend-item"><i class="activity-chart-legend-swatch activity-chart-legend-swatch--authenticated"></i>{% trans "Users" %}</span>
@@ -106,10 +106,10 @@
 
     <div class="activity-panel-pair">
         <section class="activity-panel">
-            <div class="section-head tp-ui-panel-head">
+            <div class="section-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "What they look at" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Top pages" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
+                    <h2 class="tp-section-title">{% trans "Top pages" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
                 </div>
             </div>
             <div class="activity-chart-wrap activity-chart-wrap--tall">
@@ -118,10 +118,10 @@
         </section>
 
         <section class="activity-panel">
-            <div class="section-head tp-ui-panel-head">
+            <div class="section-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "When they're active" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Requests by hour of day" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
+                    <h2 class="tp-section-title">{% trans "Requests by hour of day" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
                 </div>
             </div>
             <div class="activity-chart-wrap activity-chart-wrap--tall">
@@ -131,10 +131,10 @@
     </div>
 
     <section class="activity-panel">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Who's logging in" %}</p>
-                <h2 class="activity-panel-title">{% trans "Accounts" %}</h2>
+                <h2 class="tp-section-title">{% trans "Accounts" %}</h2>
             </div>
         </div>
         <details class="activity-details js-smooth-details">
@@ -151,10 +151,10 @@
     </section>
 
     <section class="activity-panel">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Where real, logged-in sessions connect from" %}</p>
-                <h2 class="activity-panel-title">{% trans "Logged-in sessions" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
+                <h2 class="tp-section-title">{% trans "Logged-in sessions" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
             </div>
         </div>
         <div class="activity-summary-chips" data-locations-summary></div>
@@ -178,10 +178,10 @@
     </section>
 
     <section class="activity-panel">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Submitted a username and password, and failed" %}</p>
-                <h2 class="activity-panel-title">{% trans "Login attempts" %} <span class="tp-chip">{% trans "not a bot signal by itself" %}</span></h2>
+                <h2 class="tp-section-title">{% trans "Login attempts" %} <span class="tp-chip">{% trans "not a bot signal by itself" %}</span></h2>
             </div>
         </div>
         <div class="activity-summary-chips" data-login-attempts-summary></div>
@@ -207,10 +207,10 @@
 
     <div class="activity-panel-pair">
         <section class="activity-panel">
-            <div class="section-head tp-ui-panel-head">
+            <div class="section-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "Hit the login wall on a random path, never even tried to log in" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Scanning &amp; bot traffic" %} <span class="tp-chip tp-chip--warning">{% trans "likely automated" %}</span></h2>
+                    <h2 class="tp-section-title">{% trans "Scanning &amp; bot traffic" %} <span class="tp-chip tp-chip--warning">{% trans "likely automated" %}</span></h2>
                 </div>
             </div>
             <p class="activity-chart-note">{% trans "AI-crawler and generic-bot IPs are blocked automatically the moment they touch a real page — no action needed here." %}</p>
@@ -221,10 +221,10 @@
         </section>
 
         <section class="activity-panel">
-            <div class="section-head tp-ui-panel-head">
+            <div class="section-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "Over time" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Bot traffic over time" %}</h2>
+                    <h2 class="tp-section-title">{% trans "Bot traffic over time" %}</h2>
                 </div>
             </div>
             <div class="activity-chart-wrap activity-chart-wrap--compact">
@@ -255,10 +255,10 @@
     </section>
 
     <section class="activity-panel">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Denied outright, not just redirected" %}</p>
-                <h2 class="activity-panel-title">{% trans "Blocked IPs" %}{% if blocked_ips %} <span class="tp-chip tp-chip--warning">{{ blocked_ips|length }}</span>{% endif %}</h2>
+                <h2 class="tp-section-title">{% trans "Blocked IPs" %}{% if blocked_ips %} <span class="tp-chip tp-chip--warning">{{ blocked_ips|length }}</span>{% endif %}</h2>
             </div>
             <a href="{% url 'admin:tpweb_blockedip_changelist' %}" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Manage in admin" %}</a>
         </div>
@@ -294,10 +294,10 @@
 
     <div class="activity-panel-pair">
         <section class="activity-panel">
-            <div class="section-head tp-ui-panel-head">
+            <div class="section-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "Request health, over time" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Status codes" %}</h2>
+                    <h2 class="tp-section-title">{% trans "Status codes" %}</h2>
                 </div>
             </div>
             <div class="activity-chart-wrap activity-chart-wrap--compact">
@@ -309,10 +309,10 @@
         </section>
 
         <section class="activity-panel">
-            <div class="section-head tp-ui-panel-head">
+            <div class="section-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "Over time" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Errors" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
+                    <h2 class="tp-section-title">{% trans "Errors" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
                 </div>
             </div>
             <div class="activity-chart-wrap activity-chart-wrap--compact">
@@ -323,10 +323,10 @@
 
     <div class="activity-panel-pair">
         <section class="activity-panel">
-            <div class="section-head tp-ui-panel-head">
+            <div class="section-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "What's actually failing" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Top erroring paths" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
+                    <h2 class="tp-section-title">{% trans "Top erroring paths" %} <span class="tp-chip">{% trans "authenticated" %}</span></h2>
                 </div>
             </div>
             <details class="activity-details js-smooth-details">
@@ -343,10 +343,10 @@
         </section>
 
         <section class="activity-panel">
-            <div class="section-head tp-ui-panel-head">
+            <div class="section-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "What they're actually requesting" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Most-probed paths" %}</h2>
+                    <h2 class="tp-section-title">{% trans "Most-probed paths" %}</h2>
                 </div>
             </div>
             <details class="activity-details js-smooth-details">

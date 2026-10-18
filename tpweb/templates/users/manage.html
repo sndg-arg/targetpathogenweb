@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20261017-sections">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -30,10 +30,10 @@
     </section>
 
     <section class="user-mgmt-section">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Deactivated" %}</p>
-                <h2 class="user-mgmt-section-title">{% trans "Revoked accounts" %}</h2>
+                <h2 class="tp-section-title">{% trans "Revoked accounts" %}</h2>
             </div>
             <span class="tp-chip">{{ pending_users|length }}</span>
         </div>
@@ -76,10 +76,10 @@
     </section>
 
     <section class="user-mgmt-section">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Roster" %}</p>
-                <h2 class="user-mgmt-section-title">{% trans "Approved users" %}</h2>
+                <h2 class="tp-section-title">{% trans "Approved users" %}</h2>
             </div>
             <span class="tp-chip">{{ approved_users|length }}</span>
         </div>

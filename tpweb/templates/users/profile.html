@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261017-system3">
-    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261017-sections">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -68,10 +68,10 @@
         </section>
 
         <section class="profile-section">
-            <div class="section-head tp-ui-panel-head">
+            <div class="section-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "Access" %}</p>
-                    <h2 class="profile-section-title">{% trans "What you can do" %}</h2>
+                    <h2 class="tp-section-title">{% trans "What you can do" %}</h2>
                 </div>
                 <span class="tp-chip">{{ role_display }}</span>
             </div>

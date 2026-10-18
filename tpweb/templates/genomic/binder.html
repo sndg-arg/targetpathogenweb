@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261017-tables">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261017-sections">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -129,7 +129,7 @@
         <div class="binder-grid">
             <!-- Identifiers -->
             <section class="binder-card binder-card--identifiers">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Identifiers" %}</h2>
                         <p class="section-subtitle">{% trans "Database identifiers and provenance." %}</p>
@@ -173,7 +173,7 @@
 
             {% if binder.svg %}
                 <section class="binder-card binder-card--structure" id="section-structure">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "Structure" %}</h2>
                             <p class="section-subtitle">{% trans "2D representation rendered from SMILES." %}</p>
@@ -185,7 +185,7 @@
 
             {% if properties %}
                 <section class="binder-card binder-card--properties" id="section-properties">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "Physicochemical properties" %}</h2>
                             <p class="section-subtitle">{% trans "Computed with RDKit from SMILES." %}</p>
@@ -236,7 +236,7 @@
                 </section>
 
                 <section class="binder-card binder-card--druglikeness" id="section-druglikeness">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "Drug-likeness" %}</h2>
                             <p class="section-subtitle">{% trans "Lipinski and PAINS flags computed from the chemical structure (SMILES), not measured in the lab." %}</p>
@@ -321,7 +321,7 @@
             {% endif %}
 
             <section class="binder-card binder-card--strings" id="section-strings">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Chemical representations" %}</h2>
                         <p class="section-subtitle">{% trans "Canonical representations for cheminformatics workflows." %}</p>
@@ -374,7 +374,7 @@
 
             {% if binder.notes_items %}
                 <section class="binder-card binder-card--provenance" id="section-provenance">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "Provenance" %}</h2>
                             <p class="section-subtitle">{% trans "Annotation context from LigQ_2, the internal Target step that collects PDB, ChEMBL, and ZINC ligand evidence." %}</p>
@@ -393,7 +393,7 @@
 
             {% if external_links %}
                 <section class="binder-card binder-card--external" id="section-external">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "External resources" %}</h2>
                             <p class="section-subtitle">{% trans "Open this ligand in third-party databases and cheminformatics tools." %}</p>
@@ -412,7 +412,7 @@
 
             {% if siblings.pdb or siblings.chembl or siblings.proposed %}
                 <section class="binder-card binder-card--siblings" id="section-siblings">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "Other ligands for this protein" %}</h2>
                             <p class="section-subtitle">{% blocktrans with prot=protein.accession %}Quick navigation to other ligands bound to {{ prot }}.{% endblocktrans %}</p>

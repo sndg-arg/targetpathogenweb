@@ -4,7 +4,7 @@
 {% load custom_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261017-system2">
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261017-sections">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -57,7 +57,7 @@
         <section class="blast-workbench">
 
             <div class="blast-card">
-                <h2>{% if blast_locked_to_genome %}{% trans "Search this genome" %}{% else %}{% trans "New search" %}{% endif %}</h2>
+                <h2 class="tp-section-title">{% if blast_locked_to_genome %}{% trans "Search this genome" %}{% else %}{% trans "New search" %}{% endif %}</h2>
 
                 <form method="POST" class="blast-form-inner">
                     {% csrf_token %}
@@ -112,7 +112,7 @@
 
             <aside class="blast-card blast-card--guide">
                 <div>
-                    <h2>{% trans "Before you run" %}</h2>
+                    <h2 class="tp-section-title">{% trans "Before you run" %}</h2>
                     <p class="blast-card-note">{% trans "One sequence per search, as a FASTA entry or plain letters." %}</p>
                 </div>
                 <ul class="blast-tip-list">

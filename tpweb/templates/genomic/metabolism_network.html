@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-system3">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-sections">
     <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261017-system3">
     <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261017-system3">
 {% endblock %}
@@ -65,7 +65,7 @@
     {% endif %}
 
     <section class="genome-card metabolism-panel">
-        <div class="section-head tp-ui-panel-head">
+        <div class="section-head">
             <div>
                 <h2>{% trans "Reaction network" %}</h2>
                 <p class="section-subtitle">{% trans "Each pathway starts collapsed. Click a pathway node to zoom into its reactions, then zoom back out to see the whole network again." %}</p>

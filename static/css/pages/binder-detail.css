@@ -160,28 +160,6 @@
     flex-direction: column;
 }
 
-.binder-card h2 {
-    margin: 0;
-    font-size: var(--tp-font-size-lg);
-    font-weight: 600;
-    color: var(--tp-color-brand-900);
-}
-
-.binder-page .section-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: var(--tp-space-3);
-    margin-bottom: var(--tp-space-3);
-}
-
-.binder-page .section-subtitle {
-    margin: var(--tp-space-1) 0 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
-}
-
 .binder-card--properties,
 .binder-card--druglikeness,
 .binder-card--strings,
