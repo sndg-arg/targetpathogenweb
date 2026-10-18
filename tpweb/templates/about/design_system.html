@@ -22,7 +22,7 @@
 {% block body %}
 {# A showcase to browse, not a developer reference: no class names, no code. #}
 {# Every sample is the real component, so it always matches the site. #}
-{# Hover and focus are drawn frozen with is-hover / is-focus (the real rules match). #}
+{# Hover and typing are drawn frozen with is-hover / is-focus (the real rules match). #}
 <div class="ds-page">
 
     <section class="tp-page-hero ds-hero">
@@ -238,10 +238,11 @@
             <h3>Fields</h3>
             <div class="ds-matrix-wrap">
             <table class="ds-matrix">
-                <thead><tr><th>Empty</th><th>Filled</th><th>Disabled</th></tr></thead>
+                <thead><tr><th>Empty</th><th>Typing</th><th>Filled</th><th>Disabled</th></tr></thead>
                 <tbody>
                     <tr>
                         <td><input type="text" class="form-control tp-ui-control ds-control" placeholder="KPN_00002" aria-label="Example"></td>
+                        <td><input type="text" class="form-control tp-ui-control ds-control is-focus" value="KPN_044" tabindex="-1" aria-label="Example"></td>
                         <td><input type="text" class="form-control tp-ui-control ds-control" value="KPN_04417" aria-label="Example"></td>
                         <td><input type="text" class="form-control tp-ui-control ds-control" placeholder="KPN_00002" disabled aria-label="Example"></td></tr>
                 </tbody>
