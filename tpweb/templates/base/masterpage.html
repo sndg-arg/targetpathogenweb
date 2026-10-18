@@ -2078,6 +2078,12 @@
                             {% trans "Human Targets" %}
                         </a>
                         {% endif %}
+                        {% if user.is_superuser or user.role == "gates_collaborator" %}
+                        <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'design_system' %}active{% endif %}" href="{% url 'tpwebapp:design_system' %}">
+                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/columns.html" %}</span>
+                            {% trans "Design" %}
+                        </a>
+                        {% endif %}
                         {% if user.is_superuser %}
                         <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'activity_dashboard' %}active{% endif %}" href="{% url 'tpwebapp:activity_dashboard' %}">
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/eye.html" %}</span>
@@ -2190,6 +2196,9 @@
                             <a class="dropdown-item" href="{% url 'tpwebapp:profile' %}">{% trans "My profile" %}</a>
                             {% if perms.tpweb.can_view_human_targets %}
                             <a class="dropdown-item" href="{% url 'human_target:human_protein_list' %}">{% trans "Human Targets" %}</a>
+                            {% endif %}
+                            {% if user.is_superuser or user.role == "gates_collaborator" %}
+                            <a class="dropdown-item" href="{% url 'tpwebapp:design_system' %}">{% trans "Design" %}</a>
                             {% endif %}
                             {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
                             <a class="dropdown-item" href="{% url 'tpwebapp:settings' %}">{% trans "Settings" %}</a>

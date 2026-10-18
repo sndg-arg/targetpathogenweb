@@ -35,6 +35,7 @@ PUBLIC_URL_NAMES = frozenset(
         "index",
         "data_sources",
         "about_us",
+        "design_system",
         "assembly",
         "genome_metabolism",
         "genome_metabolism_network",
@@ -88,7 +89,6 @@ GATED_PAGE_TITLES = {
     "profile": "My profile",
     "human_protein_list": "Human Targets",
     "human_protein": "Human Targets",
-    "design_system": "Design",
 }
 
 LOGIN_REQUIRED_MESSAGE = (
@@ -100,7 +100,7 @@ LOGIN_REQUIRED_MESSAGE = (
 # by an administrator. An anonymous visitor is told to sign in and request
 # access instead of just "sign in" (which alone wouldn't get them in).
 COLLABORATOR_URL_NAMES = frozenset(
-    {"genome_upload", "data_file_upload", "human_protein_list", "human_protein", "design_system"}
+    {"genome_upload", "data_file_upload", "human_protein_list", "human_protein"}
 )
 COLLABORATOR_REQUIRED_MESSAGE = (
     "This section is available to project collaborators. Sign in (or create an "

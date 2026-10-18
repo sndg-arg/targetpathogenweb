@@ -256,33 +256,43 @@ class ProteinListPresetGuardTests(TestCase):
 
 
 class DesignPageAccessTests(TestCase):
-    """/design is for Gates collaborators, admins and the owner only."""
+    """/design opens for anyone with the link; only Gates collaborators,
+    admins and the owner get the link in their profile menu."""
 
     def setUp(self):
         self.url = reverse("tpwebapp:design_system")
         self.User = get_user_model()
 
-    def test_anonymous_sees_the_locked_page(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 403)
-
-    def test_basic_and_consumer_are_locked_out(self):
-        for role in [self.User.Role.BASIC, self.User.Role.GATES_CONSUMER]:
-            with self.subTest(role=role):
-                user = self.User.objects.create_user(
-                    username=f"design-{role}", password="x", role=role
-                )
-                self.client.force_login(user)
-                self.assertEqual(self.client.get(self.url).status_code, 403)
-
-    def test_collaborator_and_superuser_can_open_it(self):
-        collaborator = self.User.objects.create_user(
-            username="design-collab", password="x", role=self.User.Role.GATES_COLLABORATOR
+    def test_anyone_with_the_link_can_open_it(self):
+        self.assertEqual(self.client.get(self.url).status_code, 200)
+        basic = self.User.objects.create_user(
+            username="design-basic", password="x", role=self.User.Role.BASIC
         )
-        admin = self.User.objects.create_user(
-            username="design-admin", password="x", is_superuser=True
-        )
-        for user in [collaborator, admin]:
+        self.client.force_login(basic)
+        self.assertEqual(self.client.get(self.url).status_code, 200)
+
+    def test_menu_link_only_for_collaborators_and_admins(self):
+        cases = [
+            (self.User.objects.create_user(username="design-b", password="x"), False),
+            (
+                self.User.objects.create_user(
+                    username="design-c", password="x", role=self.User.Role.GATES_CONSUMER
+                ),
+                False,
+            ),
+            (
+                self.User.objects.create_user(
+                    username="design-k", password="x", role=self.User.Role.GATES_COLLABORATOR
+                ),
+                True,
+            ),
+            (
+                self.User.objects.create_user(username="design-a", password="x", is_superuser=True),
+                True,
+            ),
+        ]
+        for user, sees_link in cases:
             with self.subTest(user=user.username):
                 self.client.force_login(user)
-                self.assertEqual(self.client.get(self.url).status_code, 200)
+                body = self.client.get(reverse("tpwebapp:index")).content.decode()
+                self.assertEqual(f'href="{self.url}"' in body, sees_link)
