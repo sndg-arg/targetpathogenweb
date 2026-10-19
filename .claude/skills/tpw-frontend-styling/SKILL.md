@@ -97,6 +97,11 @@ Components (all on /design). There is no `.tp-ui-panel`/`.tp-ui-panel-head` any 
 - Weights: 400 text, 500 labels, 600 emphasis/headings (no 700; fonts load only these).
   Overlays/backdrops: `--tp-color-scrim`, no blur. Transitions: 140ms state changes, 180ms movement.
   No ad-hoc `color-mix()` tints: use the token it approximates.
+- Uppercase label = xs, 500, `--tp-tracking-label`, text-muted — the only uppercase style. Line
+  heights only 1 / 1.1 / 1.2 / 1.35 / 1.5 / 1.6. Fields and file pickers are 38px, sm radius, regular weight;
+  pages never resize them. Keyboard focus is never removed (`outline: none` needs a focus box-shadow).
+- Layers: drawers 1050–1200 < dialogs (`.tp-modal`, 2000) < site tooltip (3000) < page loader (5000).
+- Dark mode is only the token swap; a `.tp-dark` rule is for third-party/Bootstrap colors or the viewer, never a re-tint.
 - `.tp-card` only for repeated grid items (border, no shadow). Sections are never boxed.
 - `.tp-metrics` > `.metric-pill` (+ `--success|--warning|--danger|--link`) for every "number in a pill".
 - `.tp-tabs` > `.tp-tab` (+ `.tp-count`) for every tab set inside a section; `.tp-count` for any number next to a label.
