@@ -61,6 +61,15 @@
             --tp-focus-outline: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-focus-color);
             /* Top bar: stays dark in both themes. */
             --tp-color-nav-900: #0f2a33;
+            /* Top bar ink, lines and fills (the bar is dark in both themes). */
+            --tp-nav-ink: rgba(235, 246, 251, 0.9);
+            --tp-nav-ink-muted: rgba(232, 245, 250, 0.66);
+            --tp-nav-line: rgba(255, 255, 255, 0.1);
+            --tp-nav-line-strong: rgba(255, 255, 255, 0.26);
+            --tp-nav-fill: rgba(255, 255, 255, 0.08);
+            --tp-nav-fill-strong: rgba(255, 255, 255, 0.15);
+            --tp-nav-sunken: rgba(0, 0, 0, 0.2);
+            --tp-nav-menu-bg: rgba(13, 27, 34, 0.97);
             /* Page background = surface: sections sit on it, no cards. */
             --tp-color-surface: #ffffff;
             --tp-color-surface-soft: #f6f7f9;
@@ -706,7 +715,7 @@
 
         .tp-topbar-mobile {
             background: var(--tp-color-nav-900);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid var(--tp-nav-line);
             box-shadow: var(--tp-shadow-sm);
         }
 
@@ -732,7 +741,7 @@
         }
 
         .tp-topbar-mobile .nav-link {
-            color: rgba(235, 246, 251, 0.9) !important;
+            color: var(--tp-nav-ink) !important;
             font-weight: 600;
             border-radius: var(--tp-radius-sm);
             padding: var(--tp-space-2) var(--tp-space-3);
@@ -740,7 +749,7 @@
 
         #main_header {
             background: var(--tp-color-nav-900);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid var(--tp-nav-line);
             box-shadow: var(--tp-shadow-sm);
         }
 
@@ -750,7 +759,7 @@
         }
 
         #main_header .nav-link {
-            color: rgba(235, 246, 251, 0.9) !important;
+            color: var(--tp-nav-ink) !important;
             font-weight: 600;
             border-radius: var(--tp-radius-sm);
             padding: var(--tp-space-2) var(--tp-space-3);
@@ -758,14 +767,14 @@
         }
 
         #main_header .nav-link:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: var(--tp-nav-fill);
             color: var(--tp-color-on-accent) !important;
         }
 
         #main_header .nav-link.is-active {
-            background: rgba(255, 255, 255, 0.16);
+            background: var(--tp-nav-fill-strong);
             color: var(--tp-color-on-accent) !important;
-            box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.6);
+            box-shadow: inset 0 -2px 0 var(--tp-nav-ink);
         }
 
         /* Used to be two nested wrappers, main.tp-main > div.tp-shell --
@@ -921,11 +930,11 @@
                 min-width: 44px;
                 min-height: 44px;
                 padding: var(--tp-space-2) var(--tp-space-3);
-                border-color: rgba(255, 255, 255, 0.28);
+                border-color: var(--tp-nav-line-strong);
             }
 
             .tp-topbar-mobile .navbar-toggler:focus {
-                box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+                box-shadow: 0 0 0 0.2rem var(--tp-nav-line-strong);
                 outline: none;
             }
 
@@ -933,8 +942,8 @@
                 margin-top: var(--tp-space-2);
                 padding: var(--tp-space-2);
                 border-radius: var(--tp-radius-md);
-                background: rgba(0, 0, 0, 0.22);
-                border: 1px solid rgba(255, 255, 255, 0.08);
+                background: var(--tp-nav-sunken);
+                border: 1px solid var(--tp-nav-line);
             }
 
             .tp-topbar-mobile .navbar-nav {
@@ -942,7 +951,7 @@
             }
 
             .tp-topbar-mobile .nav-item + .nav-item {
-                border-top: 1px solid rgba(255, 255, 255, 0.06);
+                border-top: 1px solid var(--tp-nav-line);
             }
 
             .tp-topbar-mobile .nav-link {
@@ -955,7 +964,7 @@
 
             .tp-topbar-mobile .nav-link:hover,
             .tp-topbar-mobile .nav-link:focus {
-                background: rgba(255, 255, 255, 0.08);
+                background: var(--tp-nav-fill);
                 color: var(--tp-color-on-accent) !important;
             }
 
@@ -964,25 +973,25 @@
                 float: none;
                 width: 100%;
                 margin-top: var(--tp-space-1);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                background: rgba(0, 0, 0, 0.18);
+                border: 1px solid var(--tp-nav-line);
+                background: var(--tp-nav-sunken);
                 box-shadow: none;
             }
 
             .tp-topbar-mobile .dropdown-menu .dropdown-item {
-                color: rgba(235, 246, 251, 0.9);
+                color: var(--tp-nav-ink);
                 padding: var(--tp-space-3) var(--tp-space-3);
                 min-height: 44px;
             }
 
             .tp-topbar-mobile .dropdown-menu .dropdown-item:hover,
             .tp-topbar-mobile .dropdown-menu .dropdown-item:focus {
-                background: rgba(255, 255, 255, 0.08);
+                background: var(--tp-nav-fill);
                 color: var(--tp-color-on-accent);
             }
 
             .tp-topbar-mobile .dropdown-menu .dropdown-divider {
-                border-top-color: rgba(255, 255, 255, 0.12);
+                border-top-color: var(--tp-nav-line);
                 margin: var(--tp-space-1) 0;
             }
         }
@@ -1008,7 +1017,7 @@
                 display: flex;
                 align-items: stretch;
                 background: var(--tp-color-nav-900);
-                border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+                border-bottom: 1px solid var(--tp-nav-line);
                 box-shadow: none;
                 color: var(--tp-color-brand-100);
                 z-index: 1030;
@@ -1081,7 +1090,7 @@
                 align-items: center;
                 gap: var(--tp-space-2);
                 border-radius: var(--tp-radius-sm);
-                color: rgba(232, 245, 250, 0.88);
+                color: var(--tp-nav-ink);
                 text-decoration: none;
                 font-weight: 600;
                 font-size: var(--tp-font-size-sm);
@@ -1116,7 +1125,7 @@
             }
 
             .tp-topbar-desktop-link:hover {
-                background: rgba(255, 255, 255, 0.08);
+                background: var(--tp-nav-fill);
                 color: var(--tp-color-on-accent);
                 text-decoration: none;
             }
@@ -1125,7 +1134,7 @@
                selected editorial tab, not an app button. */
             .tp-topbar-desktop-link.active {
                 color: var(--tp-color-on-accent);
-                box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.85);
+                box-shadow: inset 0 -2px 0 var(--tp-nav-ink);
             }
 
             /* "About" opens Methodology / About us instead of two separate links. */
@@ -1156,8 +1165,8 @@
                 align-items: center;
                 gap: var(--tp-space-2);
                 padding: var(--tp-space-1) var(--tp-space-2) var(--tp-space-1) var(--tp-space-3);
-                background: rgba(255, 255, 255, 0.07);
-                border: 1px solid rgba(255, 255, 255, 0.14);
+                background: var(--tp-nav-fill);
+                border: 1px solid var(--tp-nav-line);
                 border-radius: var(--tp-radius-pill);
             }
 
@@ -1166,7 +1175,7 @@
                 width: 13px;
                 height: 13px;
                 flex: 0 0 auto;
-                color: rgba(232, 245, 250, 0.7);
+                color: var(--tp-nav-ink-muted);
             }
 
             .tp-topbar-desktop-account-icon svg {
@@ -1179,7 +1188,7 @@
 
             .tp-topbar-desktop-user {
                 font-weight: 600;
-                color: rgba(231, 244, 249, 0.92);
+                color: var(--tp-nav-ink);
                 font-size: var(--tp-font-size-sm);
                 white-space: nowrap;
                 /* Primary truncation is at the word level, in the template
@@ -1207,7 +1216,7 @@
                 border: none;
                 border-radius: var(--tp-radius-pill);
                 background: transparent;
-                color: rgba(232, 245, 250, 0.7);
+                color: var(--tp-nav-ink-muted);
                 cursor: pointer;
                 transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
                     color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -1215,7 +1224,7 @@
 
             .tp-topbar-desktop-logout-btn:hover,
             .tp-topbar-desktop-logout-btn:focus-visible {
-                background: rgba(255, 255, 255, 0.16);
+                background: var(--tp-nav-fill-strong);
                 color: var(--tp-color-on-accent);
                 outline: none;
             }
@@ -1256,8 +1265,8 @@
             .tp-topbar-desktop-account--menu:hover,
             .tp-topbar-desktop-account--menu:focus-visible,
             .tp-topbar-desktop-account--menu[aria-expanded="true"] {
-                background: rgba(255, 255, 255, 0.13);
-                border-color: rgba(255, 255, 255, 0.24);
+                background: var(--tp-nav-fill-strong);
+                border-color: var(--tp-nav-line-strong);
                 outline: none;
             }
 
@@ -1266,7 +1275,7 @@
                 width: 11px;
                 height: 11px;
                 flex: 0 0 auto;
-                color: rgba(232, 245, 250, 0.6);
+                color: var(--tp-nav-ink-muted);
                 transition: transform var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
             }
 
@@ -1289,10 +1298,10 @@
                 margin-top: var(--tp-space-3) !important;
                 padding: var(--tp-space-2);
                 min-width: 196px;
-                background: rgba(13, 27, 34, 0.97);
+                background: var(--tp-nav-menu-bg);
                 backdrop-filter: blur(16px);
                 -webkit-backdrop-filter: blur(16px);
-                border: 1px solid rgba(255, 255, 255, 0.12);
+                border: 1px solid var(--tp-nav-line);
                 border-radius: var(--tp-radius-md);
                 box-shadow: var(--tp-shadow-sm);
             }
@@ -1306,7 +1315,7 @@
                 border: none;
                 border-radius: var(--tp-radius-sm);
                 background: transparent;
-                color: rgba(232, 245, 250, 0.88);
+                color: var(--tp-nav-ink);
                 font-size: var(--tp-font-size-sm);
                 font-weight: 500;
                 text-align: left;
@@ -1317,13 +1326,17 @@
 
             .tp-topbar-desktop-account-item:hover,
             .tp-topbar-desktop-account-item:focus-visible {
-                background: rgba(255, 255, 255, 0.1);
+                background: var(--tp-nav-fill);
                 color: var(--tp-color-on-accent);
                 outline: none;
             }
 
+            .tp-topbar-desktop-account-item:focus-visible {
+                box-shadow: 0 0 0 2px var(--tp-nav-line-strong);
+            }
+
             .tp-topbar-desktop-account-item.active {
-                background: rgba(255, 255, 255, 0.08);
+                background: var(--tp-nav-fill-strong);
                 color: var(--tp-color-on-accent);
             }
 
@@ -1332,7 +1345,7 @@
                 width: 15px;
                 height: 15px;
                 flex: 0 0 auto;
-                color: rgba(232, 245, 250, 0.62);
+                color: var(--tp-nav-ink-muted);
             }
 
             .tp-topbar-desktop-account-item-icon svg {
@@ -1349,7 +1362,7 @@
             .tp-topbar-desktop-account-divider {
                 height: 1px;
                 margin: var(--tp-space-2) var(--tp-space-1);
-                background: rgba(255, 255, 255, 0.1);
+                background: var(--tp-nav-fill);
             }
 
             .tp-topbar-desktop-login {
@@ -1358,7 +1371,7 @@
                 gap: var(--tp-space-2);
                 background: none;
                 border: none;
-                color: rgba(232, 245, 250, 0.88);
+                color: var(--tp-nav-ink);
                 font-weight: 600;
                 font-size: var(--tp-font-size-sm);
                 letter-spacing: 0;
