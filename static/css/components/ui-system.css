@@ -1798,7 +1798,8 @@ button.tp-chip:hover,
         color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.tp-file-input:hover {
+.tp-file-input:hover,
+.tp-file-input.is-hover {
     border-color: var(--tp-color-text-muted);
 }
 
@@ -1806,6 +1807,21 @@ button.tp-chip:hover,
     border-color: var(--tp-color-text-muted);
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-primary);
+}
+
+/* Disabled: same as a disabled field. */
+.tp-file-input:disabled {
+    color: var(--tp-color-text-soft);
+    border-color: var(--tp-color-border-soft);
+    background: var(--tp-color-surface-muted);
+    cursor: not-allowed;
+}
+
+.tp-file-input:disabled::file-selector-button {
+    color: var(--tp-color-text-soft);
+    border-color: var(--tp-color-border-soft);
+    background: var(--tp-color-surface-muted);
+    cursor: not-allowed;
 }
 
 .tp-file-input:focus-visible {
