@@ -1613,40 +1613,8 @@
             cursor: pointer;
         }
 
-        /* ── Dark mode component overrides (must come after base rules) ── */
-        /* inset glass highlights → subtle shadow in dark */
-        .tp-dark .tp-select-trigger,
-        .tp-dark .tp-state-chip,
-        .tp-dark .tp-chip--state,
-        .tp-dark .tp-chip {
-            box-shadow: none !important;
-        }
-
-        /* headings / components using nav-800 for text */
-        .tp-dark .tp-page-title,
-        .tp-dark .tp-section-title,
-        .tp-dark .tp-select-option:hover,
-        .tp-dark .tp-select-option:focus-visible,
-        .tp-dark .tp-select-option.is-selected,
-        .tp-dark .tp-select-option.is-selected:hover,
-        .tp-dark .tp-select-option.is-selected:focus-visible,
-        .tp-dark .tp-select-option.is-selected.is-placeholder-selected:hover,
-        .tp-dark .tp-select-option.is-selected.is-placeholder-selected:focus-visible,
-        .tp-dark .tp-pagination .page-link:hover,
-        .tp-dark .tp-dt-wrapper .dataTables_paginate .paginate_button:hover {
-            color: var(--tp-color-text-primary) !important;
-        }
-
-        /* select options: flat in dark too */
-        .tp-dark .tp-select-option:hover,
-        .tp-dark .tp-select-option:focus-visible,
-        .tp-dark .tp-select-option.is-selected,
-        .tp-dark .tp-select-option.is-selected:hover,
-        .tp-dark .tp-select-option.is-selected:focus-visible {
-            box-shadow: none !important;
-        }
-
-        /* Bootstrap .table hardcodes color: #212529 — override in dark */
+        /* ── Dark mode: Bootstrap hardcodes these colors; everything else is the token swap. ── */
+        .tp-dark body,
         .tp-dark .table {
             color: var(--tp-color-text-primary);
         }
@@ -1654,63 +1622,6 @@
         .tp-dark .table td,
         .tp-dark .table th {
             border-color: var(--tp-color-border-soft);
-        }
-
-        /* Bootstrap hardcodes body/table/input colors — override for dark */
-        .tp-dark body {
-            color: var(--tp-color-text-primary);
-        }
-
-        .tp-dark .form-control {
-            color: var(--tp-color-text-primary);
-            background-color: var(--tp-color-surface);
-            border-color: var(--tp-color-border-strong);
-        }
-
-        .tp-dark .form-control:focus {
-            color: var(--tp-color-text-primary);
-            background-color: var(--tp-color-surface-soft);
-            border-color: var(--tp-focus-color);
-        }
-
-        /* table row hover — more visible in dark */
-        .tp-dark .genome-row:hover,
-        .tp-dark .genome-row:focus-visible {
-            background: var(--tp-color-surface-muted) !important;
-            color: var(--tp-color-text-primary);
-        }
-
-        /* ── Glass & color-mix polish for dark ─────── */
-
-        /* select option base + all states: kill white inset */
-        .tp-dark .tp-select-trigger {
-            box-shadow: none;
-        }
-        .tp-dark .tp-select-trigger:focus-within {
-            box-shadow: var(--tp-focus-outline);
-        }
-        .tp-dark .tp-select-option {
-            box-shadow: none;
-        }
-        .tp-dark .tp-select-option:hover,
-        .tp-dark .tp-select-option:focus-visible,
-        .tp-dark .tp-select-option.is-selected,
-        .tp-dark .tp-select-option.is-selected:hover,
-        .tp-dark .tp-select-option.is-selected:focus-visible,
-        .tp-dark .tp-select-option.is-selected.is-placeholder-selected,
-        .tp-dark .tp-select-option.is-selected.is-placeholder-selected:hover {
-            box-shadow: none !important;
-        }
-
-        /* horizontal scroll fade — use surface instead of white */
-        .tp-dark .tp-table-shell.is-h-scrollable:not(.is-h-scroll-end)::after {
-            background: linear-gradient(90deg, transparent 0%, var(--tp-color-surface) 86%);
-        }
-
-        /* scroll hint pill */
-        .tp-dark .tp-table-scroll-hint {
-            border-color: var(--tp-color-border-strong);
-            background: var(--tp-color-surface-muted);
         }
 
         .tp-global-tooltip {

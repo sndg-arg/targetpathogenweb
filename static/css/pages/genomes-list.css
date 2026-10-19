@@ -180,7 +180,6 @@
 
 .genome-row:hover {
     background: var(--tp-color-surface-soft) !important;
-    box-shadow: inset 3px 0 0 var(--tp-color-brand-300);
 }
 
 .genome-row:focus-visible {
@@ -189,19 +188,10 @@
     box-shadow: inset 3px 0 0 var(--tp-color-primary), var(--tp-focus-outline);
 }
 
+/* The genome being processed: the current-row tint (same as the running
+   upload). Incomplete/failed rows already carry a state chip and a note. */
 .genome-row.is-processing {
-    background: var(--tp-color-success-bg) !important;
-    box-shadow: inset 3px 0 0 var(--tp-color-brand-600);
-}
-
-.genome-row.is-incomplete {
-    background: var(--tp-color-warning-bg) !important;
-    box-shadow: inset 3px 0 0 var(--tp-color-warning-border);
-}
-
-.genome-row.is-failed {
-    background: var(--tp-color-danger-bg) !important;
-    box-shadow: inset 3px 0 0 var(--tp-color-danger-border);
+    background: var(--tp-color-brand-100) !important;
 }
 
 .genomes-name-stack {
