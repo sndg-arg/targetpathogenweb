@@ -22,7 +22,8 @@ no raw rem font sizes, no raw shadows, no page-local color aliases (`--blast-ink
   `--tp-color-surface{,-soft,-muted}`, `--tp-color-border{-soft,,-strong}`; links
   `--tp-color-link{,-hover}` (= brand-700/900); `--tp-color-primary{,-hover}`, `--tp-color-accent-line`;
   five tones `--tp-color-{success,info,warning,danger,idle}-{ink,bg,border}` + `--tp-color-danger-fill`;
-  `--tp-color-nav-900` (top bar), `--tp-color-on-accent`, `--tp-color-scrim`, `--tp-tooltip-*`;
+  `--tp-color-nav-900` (top bar) + `--tp-nav-{ink,ink-muted,line,line-strong,fill,fill-strong,sunken,menu-bg}`
+  for everything drawn on it (hover = fill, current = fill-strong), `--tp-color-on-accent`, `--tp-color-scrim`, `--tp-tooltip-*`;
   viewer-only `--tp-color-structure-*`, `-sstruc-*`, `-plddt-*`. The old rose/sage/amber scales,
   surface-panel/alt, border-accent, page-start/end and `--tp-ink`-style aliases are gone — use tones.
   Data-viz palettes in JS read tones too (`success-ink`, `danger-ink`, `warning-ink`, `info-ink`).
