@@ -304,7 +304,7 @@
                     <span class="ds-priority-badge">16</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Structure prediction" %} <span class="ds-stage-tag">★</span></strong>
-                        <p>{% trans "For proteins with neither an experimental structure nor an AlphaFold DB model (usually because UniProt mapping failed or AlphaFold DB hasn't processed that entry yet), predicts a structure locally with ColabFold — an accelerated AlphaFold2 implementation that builds its multiple sequence alignment via the MMseqs2 API instead of a slow classic homology search. Runs on CPU by default (~30–60 minutes per protein). When GPU mode is enabled, routing is per-protein, not all-or-nothing: sequences longer than a configured limit (800 aa by default, sized for 8 GB VRAM GPUs) still run on local CPU, and so does any individual protein whose GPU job fails." %}</p>
+                        <p>{% trans "For proteins with neither an experimental structure nor an AlphaFold DB model (usually because UniProt mapping failed or AlphaFold DB has no entry yet), predicts a structure with ColabFold, an AlphaFold2 implementation that builds its sequence alignment with MMseqs2. Runs on the computing cluster." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
@@ -403,7 +403,7 @@
                 <span class="ds-field-desc">{% trans "Annotated or hypothetical — derived by checking whether the product description is empty or literally contains the word hypothetical, not by any independent functional check" %}</span>
             </div>
         </div>
-        <p class="ds-body">{% trans "sync_genome_metadata additionally imports assembly-level fields — organism, strain, and total sequence length — shown on the genome overview page alongside the per-protein table." %}</p>
+        <p class="ds-body">{% trans "Assembly-level fields (organism, strain and total sequence length) are imported too and shown on the genome page." %}</p>
         <div class="tp-state-note ds-callout">
             {% trans "The quality of functional annotations depends entirely on how the genome was originally annotated (PGAP/NCBI, Prokka, RAST, etc.). Target Pathogen does not modify or validate those annotations." %}
         </div>
@@ -438,11 +438,11 @@
                 <span class="ds-priority-badge">3</span>
                 <div class="ds-priority-body">
                     <strong>{% trans "ColabFold prediction" %}</strong>
-                    <p>{% trans "Generated locally for proteins with no other structural coverage. Runs on CPU (~30–60 min/protein) or on cluster GPUs." %}</p>
+                    <p>{% trans "Predicted with ColabFold for proteins with no other structural coverage." %}</p>
                 </div>
             </div>
         </div>
-        <p class="ds-body">{% trans "AlphaFold DB and ColabFold models are stored and treated identically once loaded — the viewer and every downstream stage (pocket detection, druggability, site projection) read from the same per-protein structure folder convention regardless of which one produced it. Only the source label distinguishes them." %}</p>
+        <p class="ds-body">{% trans "Once loaded, AlphaFold DB and ColabFold models are treated the same way by the viewer, pocket detection, druggability and site projection. Only the source label tells them apart." %}</p>
         <div class="ds-subsection">
             <h3>{% trans "pLDDT — model confidence" %}</h3>
             <p class="ds-body">{% trans "The predicted Local Distance Difference Test (pLDDT) is a per-residue confidence score produced by AlphaFold and ColabFold. The platform stores and displays the mean pLDDT across all residues." %}</p>
@@ -609,7 +609,7 @@
                     <span class="ds-profile-tool">PSORTb v3</span>
                 </div>
                 <p>{% trans "SVM classifier trained on experimentally characterized bacterial proteins. Predicts: Cytoplasmic, CytoplasmicMembrane, Periplasmic, OuterMembrane, Extracellular, or Unknown." %}</p>
-                <p class="ds-desirable">{% trans "Context: outer membrane and extracellular proteins are more accessible; cytoplasmic targets require compounds to cross both membranes. If the containerized classifier is unavailable on the compute node, every protein for that genome falls back to Unknown rather than blocking the pipeline." %}</p>
+                <p class="ds-desirable">{% trans "Context: outer membrane and extracellular proteins are more accessible; cytoplasmic targets require compounds to cross both membranes. If PSORTb cannot run for a genome, its proteins show Unknown." %}</p>
             </div>
         </div>
     </section>
@@ -618,13 +618,13 @@
     <section class="ds-panel" id="ligands">
         <div class="section-head">
             <div>
-                <p class="tp-view-eyebrow">{% trans "Stage 24" %}</p>
+                <p class="tp-view-eyebrow">{% trans "Stages 22–24" %}</p>
                 <h2 class="tp-section-title">{% trans "Ligand evidence" %}</h2>
                 <p class="section-subtitle">{% trans "Known and proposed ligands" %}</p>
             </div>
         </div>
-        <p class="ds-body">{% trans "Every genome gets a baseline of ligand evidence for free: get_binders (stage 22) cross-references each protein's own UniProt entry against BioLiP and loads any co-crystallized PDB ligands, independently of everything below." %}</p>
-        <p class="ds-body">{% trans "LigQ_2 is an internal Target Pathogen Web pipeline step, disabled by default (stage 24 — see the stage-by-stage breakdown above). When enabled, it exports all protein sequences once per genome, transfers them to a compute node, and searches PDB, ChEMBL, and ZINC — including matches on homologous proteins, not just the protein itself — for known or candidate binders. Non-relevant compounds (amino acids, water, crystallization agents, common ions) are filtered out at load time. The five evidence categories below are specific to LigQ_2's output." %}</p>
+        <p class="ds-body">{% trans "Every genome gets a baseline of ligand evidence: stage 22 cross-references each protein's own UniProt entry against BioLiP and loads any co-crystallized PDB ligands." %}</p>
+        <p class="ds-body">{% trans "LigQ_2 (stage 24, optional) searches PDB, ChEMBL and ZINC for known or candidate binders of each protein and of its homologs. Amino acids, water, crystallization agents and common ions are filtered out. It produces the five evidence categories below." %}</p>
         {% comment %}
         The only table in the app not wrapped in the standard scroll shell --
         doesn't overflow with today's copy, but one longer inclusion-criterion
