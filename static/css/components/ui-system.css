@@ -18,10 +18,10 @@
     --tp-ui-motion-fast: 140ms;
     --tp-ui-motion-base: 180ms;
     --tp-ui-ease-standard: cubic-bezier(0.2, 0.65, 0.3, 1);
-    /* ── table tokens ── */
-    --tp-table-cell-px: 0.64rem;
-    --tp-table-cell-py: 0.72rem;
-    --tp-table-cell-first-pl: 0.88rem;
+    /* ── table tokens: default rows are roomy, --compact halves them ── */
+    --tp-table-cell-px: var(--tp-space-4);
+    --tp-table-cell-py: var(--tp-space-4);
+    --tp-table-cell-first-pl: var(--tp-space-5);
     --tp-table-row-border: 1px solid var(--tp-color-border-soft);
     --tp-table-sticky-z: 2;
 }
@@ -935,6 +935,7 @@ button.tp-chip:hover,
 .tp-table--compact {
     --tp-table-cell-py: var(--tp-space-2);
     --tp-table-cell-px: var(--tp-space-2);
+    --tp-table-cell-first-pl: var(--tp-space-3);
 }
 
 .tp-pagination {
@@ -1157,9 +1158,9 @@ button.tp-chip:hover,
 /* ── Mobile tables (<768px): tighten padding, keep horizontal scroll ── */
 @media (max-width: 767.98px) {
     .tp-table-shell {
-        --tp-table-cell-px: 0.5rem;
-        --tp-table-cell-py: 0.55rem;
-        --tp-table-cell-first-pl: 0.7rem;
+        --tp-table-cell-px: var(--tp-space-3);
+        --tp-table-cell-py: var(--tp-space-3);
+        --tp-table-cell-first-pl: var(--tp-space-4);
         border-radius: var(--tp-radius-sm);
     }
 
