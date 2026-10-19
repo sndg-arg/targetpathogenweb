@@ -92,6 +92,9 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
   bar, left-aligned, never centered or boxed).
 - `.tp-code-block` for a formula, command, log or long identifier (SMILES, InChI). Lists are
   hairline rows (`border-bottom`), never one box per row. Counts and scores are plain text, not tinted.
+- Weights: 400 text, 500 labels, 600 emphasis/headings (no 700; fonts load only these).
+  Overlays/backdrops: `--tp-color-scrim`, no blur. Transitions: 140ms state changes, 180ms movement.
+  No ad-hoc `color-mix()` tints: use the token it approximates.
 - `.tp-card` only for repeated grid items (border, no shadow). Sections are never boxed.
 - `.tp-metrics` > `.metric-pill` (+ `--success|--warning|--danger|--link`) for every "number in a pill".
 - `.tp-tabs` > `.tp-tab` (+ `.tp-count`) for every tab set inside a section; `.tp-count` for any number next to a label.
