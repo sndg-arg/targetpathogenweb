@@ -69,7 +69,7 @@
     max-width: calc(100vw - 44px);
     padding: 0;
     border: none;
-    border-radius: var(--tp-radius-md);
+    border-radius: var(--tp-radius-pill);
     /* --tp-color-primary stays dark petrol in both themes, so white text reads. */
     background: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
