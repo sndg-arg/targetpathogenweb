@@ -376,6 +376,22 @@
     font-weight: 600;
 }
 
+/* Code block: a command, a log or a long identifier (SMILES, InChI). */
+.tp-code-block {
+    display: block;
+    margin: 0;
+    padding: var(--tp-space-2) var(--tp-space-3);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 /* Shared "you don't have access to this page" state (components/access_locked.html),
    used by every permission-gated view (tpweb.views.mixins.PermissionLockedMixin,
    Human Targets, genome upload) instead of Django's bare 403 page or a page that

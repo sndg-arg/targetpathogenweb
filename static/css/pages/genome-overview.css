@@ -690,21 +690,8 @@
     font-size: var(--tp-font-size-sm);
 }
 
-.evidence-breakdown-priority {
-    padding: var(--tp-space-1) var(--tp-space-2);
-    margin-inline: calc(-1 * var(--tp-space-2));
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-success-bg);
-}
-
-.evidence-breakdown-priority .evidence-bd-label {
-    color: var(--tp-color-success-ink);
-}
-
 .evidence-breakdown-priority .evidence-bd-value {
-    color: var(--tp-color-success-ink);
     font-weight: 700;
-    font-size: var(--tp-font-size-lg);
 }
 
 .evidence-bd-label {
@@ -857,18 +844,6 @@
 .genome-delete-summary summary {
     cursor: pointer;
     list-style: none;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-2);
-    min-height: 34px;
-    padding: 0 var(--tp-space-4);
-    border: 1px solid var(--tp-color-danger-border);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-danger-bg);
-    color: var(--tp-color-danger-ink);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 500;
-    transition: border-color 140ms ease, background 140ms ease;
 }
 
 .genome-delete-summary summary::-webkit-details-marker {

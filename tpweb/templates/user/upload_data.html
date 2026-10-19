@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20261018-neutral">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20261018-notes">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -433,15 +433,15 @@
                         {% endif %}
                         {% if external_import_result.command %}
                             <p class="genome-upload-import-key">{% trans "Equivalent command" %}</p>
-                            <code class="genome-upload-import-code">{{ external_import_result.command }}</code>
+                            <code class="tp-code-block genome-upload-import-code">{{ external_import_result.command }}</code>
                         {% endif %}
                         {% if external_import_result.stdout %}
                             <p class="genome-upload-import-key">{% trans "Command output" %}</p>
-                            <pre class="genome-upload-import-pre">{{ external_import_result.stdout }}</pre>
+                            <pre class="tp-code-block genome-upload-import-pre">{{ external_import_result.stdout }}</pre>
                         {% endif %}
                         {% if external_import_result.stderr %}
                             <p class="genome-upload-import-key">{% trans "Command warnings" %}</p>
-                            <pre class="genome-upload-import-pre">{{ external_import_result.stderr }}</pre>
+                            <pre class="tp-code-block genome-upload-import-pre">{{ external_import_result.stderr }}</pre>
                         {% endif %}
                     </div>
                 {% endif %}
@@ -527,7 +527,7 @@
                 </form>
                 <div id="data-file-upload-result" class="genome-upload-import-result genome-upload-import-result--hidden">
                     <p class="genome-upload-import-key">{% trans "File saved. Use this path in the management command:" %}</p>
-                    <code id="data-file-upload-path" class="genome-upload-import-code"></code>
+                    <code id="data-file-upload-path" class="tp-code-block genome-upload-import-code"></code>
                 </div>
                 <div id="data-file-upload-error" class="tp-state-note tp-state-note--error genome-upload-import-result--hidden"></div>
             </div>

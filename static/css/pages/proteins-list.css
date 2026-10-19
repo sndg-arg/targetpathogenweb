@@ -2261,10 +2261,6 @@ a.filter-pill .filter-pill-remove {
     flex-wrap: wrap;
     align-items: center;
     gap: var(--tp-space-2) var(--tp-space-3);
-    padding: var(--tp-space-3) var(--tp-space-4);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
 }
 
 .columns-fixed-note__label {
@@ -2280,11 +2276,6 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     flex-wrap: wrap;
     gap: var(--tp-space-2);
-}
-
-.columns-fixed-chip {
-    border-color: var(--tp-color-border);
-    background: var(--tp-color-surface);
 }
 
 /* === Columns modal — sections (Visible / Available) === */
@@ -3264,33 +3255,10 @@ a.filter-pill .filter-pill-remove {
 /* "X is not a value in this genome, not added": a small speech bubble
    pointing up at the field, gone after a few seconds. */
 .filter-token-notice {
-    position: relative;
     justify-self: start;
     max-width: 100%;
     margin-top: 2px;
-    padding: var(--tp-space-2) var(--tp-space-3);
-    border: 1px solid var(--tp-color-warning-border);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-warning-bg);
-    color: var(--tp-color-warning-ink);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
-    line-height: 1.35;
-    box-shadow: none;
     animation: filter-token-notice-in 180ms ease;
-}
-
-.filter-token-notice::before {
-    content: "";
-    position: absolute;
-    top: -6px;
-    left: 18px;
-    width: 10px;
-    height: 10px;
-    border-top: 1px solid var(--tp-color-warning-border);
-    border-left: 1px solid var(--tp-color-warning-border);
-    background: var(--tp-color-warning-bg);
-    transform: rotate(45deg);
 }
 
 .filter-token-notice[hidden] {

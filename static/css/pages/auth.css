@@ -110,15 +110,6 @@
 
 /* ── Error banner ── */
 
-.auth-errors {
-    padding: var(--tp-space-3) var(--tp-space-4);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-danger-bg);
-    border: 1px solid var(--tp-color-danger-border);
-    color: var(--tp-color-danger-ink);
-    font-size: var(--tp-font-size-sm);
-}
-
 .auth-errors ul {
     margin: 0;
     padding: 0;

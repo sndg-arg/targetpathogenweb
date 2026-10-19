@@ -4,7 +4,7 @@
 {% load account %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261017-system3">
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261018-notes">
 {% endblock %}
 
 {% block body %}
@@ -17,7 +17,7 @@
             </div>
 
             {% if form.non_field_errors %}
-                <div class="auth-errors">
+                <div class="tp-state-note tp-state-note--error auth-errors">
                     {{ form.non_field_errors }}
                 </div>
             {% endif %}

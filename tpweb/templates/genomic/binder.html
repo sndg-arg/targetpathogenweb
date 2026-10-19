@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261017-sections">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261018-notes">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -337,7 +337,7 @@
                             <span data-copy-label>{% trans "Copy" %}</span>
                         </button>
                     </div>
-                    <pre class="binder-string-value">{{ binder.smiles }}</pre>
+                    <pre class="tp-code-block binder-string-value">{{ binder.smiles }}</pre>
                     <span hidden id="binder-smiles-text">{{ binder.smiles }}</span>
                 </div>
                 {% if properties.inchi %}
@@ -351,7 +351,7 @@
                                 <span data-copy-label>{% trans "Copy" %}</span>
                             </button>
                         </div>
-                        <pre class="binder-string-value">{{ properties.inchi }}</pre>
+                        <pre class="tp-code-block binder-string-value">{{ properties.inchi }}</pre>
                         <span hidden id="binder-inchi-text">{{ properties.inchi }}</span>
                     </div>
                 {% endif %}
@@ -366,7 +366,7 @@
                                 <span data-copy-label>{% trans "Copy" %}</span>
                             </button>
                         </div>
-                        <pre class="binder-string-value binder-string-value--short">{{ properties.inchi_key }}</pre>
+                        <pre class="tp-code-block binder-string-value binder-string-value--short">{{ properties.inchi_key }}</pre>
                         <span hidden id="binder-inchikey-text">{{ properties.inchi_key }}</span>
                     </div>
                 {% endif %}

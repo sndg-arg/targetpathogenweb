@@ -24,7 +24,7 @@
                         <span class="tp-chip js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob" title="{{ p2.score_label }}">{{ p2.probability }}{% if p2.score_band %} · {{ p2.score_band }}{% endif %}</span>
                     </div>
                     {% if p2.consensus_label %}
-                    <div class="pocket-consensus"
+                    <div class="tp-state-note tp-state-note--success pocket-consensus"
                          title="{% trans 'The FPocket and P2Rank pocket centers are within the 8 Å same-site threshold.' %}">
                         <span class="pocket-consensus-status">{% blocktrans with site=p2.consensus_label %}Likely same site as {{ site }}{% endblocktrans %}</span>
                         <span>{{ p2.consensus_distance }} Å</span>
@@ -85,7 +85,7 @@
                         </div>
                     </div>
                     {% if p.consensus_label %}
-                    <div class="pocket-consensus"
+                    <div class="tp-state-note tp-state-note--success pocket-consensus"
                          title="{% trans 'The FPocket and P2Rank pocket centers are within the 8 Å same-site threshold.' %}">
                         <span class="pocket-consensus-status">{% blocktrans with site=p.consensus_label %}Likely same site as {{ site }}{% endblocktrans %}</span>
                         <span>{{ p.consensus_distance }} Å</span>

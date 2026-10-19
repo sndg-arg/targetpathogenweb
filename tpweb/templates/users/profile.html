@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261017-system3">
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261018-notes">
     <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261017-sections">
 {% endblock %}
 
@@ -137,7 +137,7 @@
                 {% csrf_token %}
                 <div class="tp-modal-body profile-edit-body">
                     {% if form.non_field_errors %}
-                        <div class="auth-errors">{{ form.non_field_errors }}</div>
+                        <div class="tp-state-note tp-state-note--error auth-errors">{{ form.non_field_errors }}</div>
                     {% endif %}
 
                     <div class="auth-field" data-field-group="first_name">

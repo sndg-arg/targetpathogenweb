@@ -498,21 +498,11 @@ body:has(.sv-root) { overflow: hidden; }
 }
 .sv-sidebar-meta-tag--dim { opacity: 0.65; }
 .sv-sidebar-meta-tag--count {
-    color: var(--tp-color-brand-800);
-    background: var(--tp-color-brand-050);
-    border-color: var(--tp-color-brand-200);
+    color: var(--tp-color-text-secondary);
 }
 
 .sv-sidebar-note {
     margin: var(--tp-space-3) 0 0;
-    padding: var(--tp-space-2) var(--tp-space-3);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    line-height: 1.35;
 }
 
 .sv-pocket-inspector {
@@ -722,30 +712,21 @@ body:has(.sv-root) { overflow: hidden; }
 
 .pocket-consensus {
     margin-top: var(--tp-space-2);
-    padding: var(--tp-space-2) var(--tp-space-3);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-muted);
-    border: 1px solid var(--tp-color-border-soft);
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     column-gap: var(--tp-space-2);
     row-gap: 2px;
-    font-size: var(--tp-font-size-xs);
-    color: var(--tp-color-text-secondary);
-    line-height: 1.4;
 }
 
 .pocket-consensus-status {
     flex-basis: 100%;
-    font-weight: 700;
-    color: var(--tp-color-brand-900);
+    font-weight: 600;
 }
 
 .pocket-consensus span:not(.pocket-consensus-status):not(:last-child)::after {
     content: "·";
     margin-left: var(--tp-space-2);
-    color: var(--tp-color-text-muted);
 }
 
 .pocket-card-badges {
@@ -1276,7 +1257,6 @@ body.viewer-settings-open { overflow: hidden; }
 .tp-dark .residueset-row { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
 .tp-dark .data-details { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
 .tp-dark .sv-sidebar-meta-tag { background: var(--tp-color-surface-muted); border-color: var(--tp-color-border); }
-.tp-dark .sv-sidebar-meta-tag--count { background: var(--tp-color-brand-050); border-color: var(--tp-color-brand-200); }
 
 /* ── 18. Premium load-in motion for the floating HUD chrome ──
    The viewer's glass panels (topbar, toolbar, legend, sidebar) previously appeared

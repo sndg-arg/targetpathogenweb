@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261017-sections">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261018-notes">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -478,7 +478,7 @@
                         </div>
                     </div>
                     <details class="genome-delete-summary js-smooth-details">
-                        <summary>{% trans "Show deletion controls" %}</summary>
+                        <summary class="btn tp-btn tp-btn--danger tp-btn--sm">{% trans "Show deletion controls" %}</summary>
                         <form method="post" class="genome-delete-form">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="delete_workspace">

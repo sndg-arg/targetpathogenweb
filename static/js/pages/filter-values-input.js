@@ -123,7 +123,7 @@
         // A value no protein has is taken out right away and named in a small
         // bubble on the field, instead of staying as a chip nobody can use.
         var notice = document.createElement("div");
-        notice.className = "filter-token-notice";
+        notice.className = "tp-state-note tp-state-note--warning filter-token-notice";
         notice.setAttribute("role", "status");
         notice.hidden = true;
         row.insertAdjacentElement("afterend", notice); // in flow: the drawer clips overflow

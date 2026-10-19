@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261017-viewer">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261018-notes">
 {% endblock %}
 
 {% block body %}
@@ -232,7 +232,7 @@
                     {% if s.structure_data.p2_pockets %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ s.structure_data.p2_pockets|length }} P2Rank</span>{% endif %}
                     {% endif %}{% endfor %}
                 </div>
-                <p class="sv-sidebar-note">
+                <p class="tp-state-note sv-sidebar-note">
                     {% trans "Pocket predictions are computational screening signals. FPocket scores geometric cavities; P2Rank predicts likely ligand-binding sites. Use them with structure source, confidence, and ligand evidence." %}
                 </p>
                 <section class="sv-pocket-inspector" id="sv-pocket-inspector" hidden aria-live="polite">

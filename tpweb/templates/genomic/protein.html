@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261018-neutral">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261018-notes">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -482,7 +482,7 @@
                 {% else %}
 
                 {% if metabolic_context.summary_sentence %}
-                <p class="metabolic-summary-sentence">{{ metabolic_context.summary_sentence }}</p>
+                <p class="tp-state-note metabolic-summary-sentence">{{ metabolic_context.summary_sentence }}</p>
                 {% endif %}
 
                 <div class="metabolic-context-preview">
@@ -1780,7 +1780,6 @@
                     pendingStructureSource = which || "primary";
                     _loadStructureById(which);
                 };
-
 
                 function initStructureComponent(component) {
                     // NGL 0.10.4's own secondary-structure calc emits 's' for beta-sheet

@@ -250,13 +250,6 @@
 /* ── Callout ── */
 .ds-callout {
     margin-top: var(--tp-space-4);
-    padding: var(--tp-space-3) var(--tp-space-4);
-    border-radius: var(--tp-radius-sm);
-    border: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface-muted);
-    font-size: var(--tp-font-size-sm);
-    color: var(--tp-color-text-secondary);
-    line-height: 1.62;
 }
 
 /* ── Priority stack ── */

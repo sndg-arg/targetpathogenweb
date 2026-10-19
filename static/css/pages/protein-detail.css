@@ -320,26 +320,6 @@
     gap: var(--tp-space-2);
 }
 
-.hero-annotation-label {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 28px;
-    height: 24px;
-    padding: 0 var(--tp-space-2);
-    border-radius: var(--tp-radius-sm);
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-    color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-muted, var(--tp-color-surface-soft));
-    border: 1px solid var(--tp-color-border-soft);
-    flex-shrink: 0;
-    margin-top: 1px;
-}
-
 .hero-annotation-group .tp-chip-group {
     gap: var(--tp-space-1);
 }
@@ -1130,28 +1110,18 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .pocket-consensus {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: var(--tp-space-1) var(--tp-space-2);
-    padding: var(--tp-space-2) var(--tp-space-2);
-    border: 1px solid var(--tp-color-success-border);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-success-bg);
-    color: var(--tp-color-success-ink);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
-    line-height: 1.25;
+    align-items: baseline;
+    gap: 2px var(--tp-space-2);
 }
 
 .pocket-consensus-status {
     flex-basis: 100%;
-    color: var(--tp-color-success-ink);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .pocket-consensus span:not(:first-child) + span::before {
     content: "·";
     margin-right: var(--tp-space-2);
-    color: var(--tp-color-success-ink);
 }
 
 .pocket-card-repr-group {
@@ -2162,10 +2132,6 @@ body.binder-mol-modal-open {
 .binder-tbl__pdb-id {
     font-family: var(--tp-font-mono);
     font-weight: 600;
-    font-size: var(--tp-font-size-xs);
-    background: var(--tp-color-surface-muted);
-    padding: 2px var(--tp-space-2);
-    border-radius: var(--tp-radius-sm);
 }
 
 .binder-tbl__score-col {
@@ -2272,7 +2238,6 @@ body.binder-mol-modal-open {
 }
 
 .binder-tbl__pdb-link:hover .binder-tbl__pdb-id {
-    background: var(--tp-color-surface-soft);
     color: var(--tp-color-link-hover);
 }
 
@@ -3515,14 +3480,6 @@ body.residue-modal-open {
 
 .metabolic-summary-sentence {
     margin: var(--tp-space-3) 0 0;
-    padding: var(--tp-space-3) var(--tp-space-4);
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    line-height: 1.4;
 }
 
 /* protein_metabolic_network.html's own page usage -- unlike protein.html's,

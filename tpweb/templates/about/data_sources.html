@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261017-sections">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261018-notes">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -404,7 +404,7 @@
             </div>
         </div>
         <p class="ds-body">{% trans "sync_genome_metadata additionally imports assembly-level fields — organism, strain, and total sequence length — shown on the genome overview page alongside the per-protein table." %}</p>
-        <div class="ds-callout">
+        <div class="tp-state-note ds-callout">
             {% trans "The quality of functional annotations depends entirely on how the genome was originally annotated (PGAP/NCBI, Prokka, RAST, etc.). Target Pathogen does not modify or validate those annotations." %}
         </div>
     </section>
@@ -748,7 +748,6 @@
             </div>
         </div>
     </section>
-
 
 </div>
 
