@@ -702,7 +702,7 @@ a.filter-pill .filter-pill-remove {
     transform: translateX(var(--protein-scroll-thumb-offset));
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-border-strong);
-    transition: transform 120ms ease, width 120ms ease, opacity 120ms ease;
+    transition: transform 140ms ease, width 140ms ease, opacity 140ms ease;
 }
 
 .protein-table-top-scroll.is-disabled::after {
@@ -924,7 +924,7 @@ a.filter-pill .filter-pill-remove {
     text-align: center;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 120ms ease;
+    transition: opacity 140ms ease;
     z-index: 50;
     box-shadow: var(--tp-shadow-sm);
 }
@@ -984,7 +984,7 @@ a.filter-pill .filter-pill-remove {
     text-align: center;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 120ms ease;
+    transition: opacity 140ms ease;
     z-index: 50;
     box-shadow: var(--tp-shadow-sm);
 }
@@ -1070,7 +1070,7 @@ a.filter-pill .filter-pill-remove {
     text-align: center;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 120ms ease;
+    transition: opacity 140ms ease;
     z-index: 50;
     box-shadow: var(--tp-shadow-sm);
 }
@@ -1528,7 +1528,7 @@ a.filter-pill .filter-pill-remove {
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     overflow: hidden;
-    transition: border-color 120ms ease, background 120ms ease;
+    transition: border-color 140ms ease, background 140ms ease;
 }
 
 .tpd-row:hover,
@@ -1579,7 +1579,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-primary);
     text-align: left;
     cursor: pointer;
-    transition: background 120ms ease;
+    transition: background 140ms ease;
 }
 
 .tpd-apply-btn:hover,
@@ -1678,7 +1678,7 @@ a.filter-pill .filter-pill-remove {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: background 120ms ease, color 120ms ease;
+    transition: background 140ms ease, color 140ms ease;
 }
 
 .tpd-row .tpd-delete-btn.tpd-delete-btn:hover,
@@ -2827,7 +2827,7 @@ a.filter-pill .filter-pill-remove {
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     overflow: hidden;
-    transition: border-color 160ms ease;
+    transition: border-color 140ms ease;
 }
 
 .filter-group:hover {
@@ -3211,7 +3211,7 @@ a.filter-pill .filter-pill-remove {
 .filter-token-notice.is-leaving {
     opacity: 0;
     transform: translateY(-3px);
-    transition: opacity 200ms ease, transform 200ms ease;
+    transition: opacity 180ms ease, transform 180ms ease;
 }
 
 @keyframes filter-token-notice-in {

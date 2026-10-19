@@ -175,7 +175,7 @@
     font-weight: 600;
     box-shadow: var(--tp-shadow-sm);
     opacity: 1;
-    transition: opacity 200ms ease;
+    transition: opacity 180ms ease;
     pointer-events: none;
 }
 
@@ -220,7 +220,7 @@
     font-weight: 600;
     box-shadow: var(--tp-shadow-sm);
     opacity: 0;
-    transition: opacity 260ms ease 200ms, transform 260ms ease 200ms;
+    transition: opacity 260ms ease 180ms, transform 260ms ease 180ms;
     pointer-events: none;
 }
 

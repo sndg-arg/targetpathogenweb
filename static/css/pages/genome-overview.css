@@ -116,7 +116,7 @@
 
 /* Arrow nudges forward on hover -- reinforces "this takes you somewhere". */
 .genome-hero-actions .tp-btn-icon {
-    transition: transform 160ms ease;
+    transition: transform 140ms ease;
 }
 
 .genome-hero-actions .btn:hover .tp-btn-icon,

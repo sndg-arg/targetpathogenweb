@@ -76,7 +76,7 @@
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
     font-weight: 600;
-    transition: border-color 150ms ease, box-shadow 150ms ease;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
 .auth-field input:hover {

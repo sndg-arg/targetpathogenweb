@@ -103,7 +103,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--tp-space-1);
-    transition: background 120ms ease, border-color 120ms ease;
+    transition: background 140ms ease, border-color 140ms ease;
 }
 
 .binder-pdb-chip:hover {
@@ -513,7 +513,7 @@
     border-radius: var(--tp-radius-sm);
     text-decoration: none;
     color: var(--tp-color-text-primary);
-    transition: background 120ms ease;
+    transition: background 140ms ease;
 }
 
 .siblings-list li a:hover,

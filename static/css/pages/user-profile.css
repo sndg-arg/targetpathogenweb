@@ -83,7 +83,7 @@
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-md);
-    transition: background var(--tp-ui-motion-base, 160ms) var(--tp-ui-ease-standard, ease);
+    transition: background var(--tp-ui-motion-base, 140ms) var(--tp-ui-ease-standard, ease);
 }
 
 .profile-capability-card:hover {

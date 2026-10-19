@@ -2096,7 +2096,7 @@ body.binder-mol-modal-open {
 }
 
 .binder-tbl tbody tr {
-    transition: background 120ms ease;
+    transition: background 140ms ease;
 }
 
 .binder-tbl__row {
@@ -2191,7 +2191,7 @@ body.binder-mol-modal-open {
     align-items: center;
     gap: var(--tp-space-1);
     cursor: copy;
-    transition: color 120ms ease, background 120ms ease;
+    transition: color 140ms ease, background 140ms ease;
 }
 
 .binder-tbl__smiles code {
@@ -2210,7 +2210,7 @@ body.binder-mol-modal-open {
     flex-shrink: 0;
     color: var(--tp-color-text-soft);
     opacity: 0.35;
-    transition: opacity 120ms ease;
+    transition: opacity 140ms ease;
 }
 
 .binder-tbl__smiles[data-smiles]:hover .binder-tbl__copy-icon {
@@ -2247,7 +2247,7 @@ body.binder-mol-modal-open {
     color: var(--tp-color-text-muted);
     flex-shrink: 0;
     opacity: 0;
-    transition: opacity 120ms ease;
+    transition: opacity 140ms ease;
 }
 
 .binder-tbl__pdb-link:hover .binder-tbl__ext-icon {
