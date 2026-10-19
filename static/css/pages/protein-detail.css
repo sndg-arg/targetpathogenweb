@@ -268,12 +268,6 @@
 
 .target-summary-empty {
     display: block;
-    padding: var(--tp-space-2) var(--tp-space-3);
-    border: 1px dashed var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-md);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
-    line-height: 1.35;
 }
 
 .target-summary-complete {

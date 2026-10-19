@@ -292,31 +292,6 @@
     padding: var(--tp-space-5) var(--tp-space-5);
 }
 
-.genome-workspace-empty-copy {
-    display: grid;
-    gap: var(--tp-space-2);
-    max-width: var(--tp-measure);
-}
-
-.genome-workspace-empty-copy h2 {
-    margin: 0;
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-heading-md);
-    line-height: 1.2;
-}
-
-.genome-workspace-empty-copy p {
-    margin: 0;
-    color: var(--tp-color-text-secondary);
-    line-height: 1.5;
-}
-
-.genome-workspace-empty-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2);
-}
-
 .genomes-hero,
 .genomes-toolbar,
 .genome-workspace-empty {

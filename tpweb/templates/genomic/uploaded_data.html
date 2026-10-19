@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/uploaded-data.css' %}?v=20261018-lh">
+    <link rel="stylesheet" href="{% static 'css/pages/uploaded-data.css' %}?v=20261018-empty">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -64,10 +64,10 @@
             {% endfor %}
         </ul>
         {% else %}
-        <div class="uploaded-data-empty">
-            <h2>{% trans "Nothing uploaded for this genome yet" %}</h2>
-            <p>{% trans "Upload a table with one value per protein (locus tag + value). It becomes a column you can show, filter on and use in your own score, and you choose who else can see it." %}</p>
-            <div class="uploaded-data-actions">
+        <div class="tp-empty uploaded-data-empty">
+            <h2 class="tp-empty-title">{% trans "Nothing uploaded for this genome yet" %}</h2>
+            <p class="tp-empty-text">{% trans "Upload a table with one value per protein (locus tag + value). It becomes a column you can show, filter on and use in your own score, and you choose who else can see it." %}</p>
+            <div class="tp-empty-actions">
                 {% if can_upload %}
                 <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'tpwebapp:customparam' genome=genome %}">
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span>

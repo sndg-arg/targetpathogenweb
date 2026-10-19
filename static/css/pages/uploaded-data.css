@@ -77,29 +77,3 @@
     font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
-
-.uploaded-data-empty {
-    margin: 0;
-    color: var(--tp-color-text-muted);
-}
-
-.uploaded-data-empty {
-    max-width: var(--tp-measure);
-}
-
-.uploaded-data-empty h2 {
-    margin: 0;
-    font-size: var(--tp-font-size-lg);
-    font-weight: 600;
-    color: var(--tp-color-text-primary);
-}
-
-.uploaded-data-empty p {
-    margin: var(--tp-space-2) 0 0;
-    color: var(--tp-color-text-secondary);
-    line-height: 1.5;
-}
-
-.uploaded-data-empty .uploaded-data-actions {
-    margin-top: var(--tp-space-5);
-}

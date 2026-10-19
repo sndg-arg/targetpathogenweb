@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261018-lh">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261018-lh">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261018-empty">
     <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261018-labels">
     <link rel="stylesheet" href="{% static 'css/pages/protein-metabolic-network.css' %}?v=20261017-system3">
 {% endblock %}
@@ -186,7 +186,7 @@
                         {% for s in reaction.substrates %}
                         <span class="metabolite-chip{% if s.is_currency %} is-currency{% endif %}" title="{% trans 'Substrate metabolite' %}: {{ s.name }}"><span class="metabolite-chip-label">{% if s.stoichiometry != 1.0 %}{{ s.stoichiometry|floatformat:0 }} {% endif %}{{ s.name }}</span></span>
                         {% empty %}
-                        <span class="annotation-empty">-</span>
+                        <span class="annotation-empty">—</span>
                         {% endfor %}
                     </div>
                     <span class="metabolite-arrow{% if reaction.reversible %} metabolite-arrow--reversible{% endif %}" title="{% if reaction.reversible %}{% trans "Reversible reaction" %}{% else %}{% trans "Not reversible" %}{% endif %}">{% if reaction.reversible %}&#8652;{% else %}&rarr;{% endif %}</span>
@@ -194,7 +194,7 @@
                         {% for p in reaction.products %}
                         <span class="metabolite-chip{% if p.is_currency %} is-currency{% endif %}" title="{% trans 'Product metabolite' %}: {{ p.name }}"><span class="metabolite-chip-label">{% if p.stoichiometry != 1.0 %}{{ p.stoichiometry|floatformat:0 }} {% endif %}{{ p.name }}</span></span>
                         {% empty %}
-                        <span class="annotation-empty">-</span>
+                        <span class="annotation-empty">—</span>
                         {% endfor %}
                     </div>
                 </div>

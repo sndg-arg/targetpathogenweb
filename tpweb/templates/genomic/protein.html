@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261018-lh">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261018-empty">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -143,7 +143,7 @@
                             <span>{{ item.detail }}</span>
                         </a>
                         {% empty %}
-                        <span class="target-summary-empty">{% trans "No strong positive signals detected yet." %}</span>
+                        <span class="tp-state-note tp-state-note--empty target-summary-empty">{% trans "No strong positive signals detected yet." %}</span>
                         {% endfor %}
                         {% if target_summary.strengths|length > 4 %}
                         <a href="#section-target-profile" class="target-summary-more">{% trans "Review the complete evidence below" %}</a>

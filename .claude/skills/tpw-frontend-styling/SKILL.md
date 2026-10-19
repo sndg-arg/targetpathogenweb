@@ -92,6 +92,8 @@ Components (all on /design). There is no `.tp-ui-panel`/`.tp-ui-panel-head` any 
   any new hover/focus rule you want shown there.
 - `.tp-state-note--{empty,loading,success,warning,error}` for every inline status message (left
   bar, left-aligned, never centered or boxed).
+- `.tp-empty` > `.tp-empty-title` + `.tp-empty-text` + `.tp-empty-actions` for a whole section/page with
+  nothing to show (left-aligned, no icon, no box). A missing value in a cell is always "—".
 - `.tp-code-block` for a formula, command, log or long identifier (SMILES, InChI). Lists are
   hairline rows (`border-bottom`), never one box per row. Counts and scores are plain text, not tinted.
 - Weights: 400 text, 500 labels, 600 emphasis/headings (no 700; fonts load only these).

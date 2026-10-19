@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261018-lh">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261018-empty">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -201,12 +201,10 @@
                 {% if has_search %}
                     <p class="tp-state-note tp-state-note--empty mb-0">{% trans "No genomes match the current search." %}</p>
                 {% else %}
-                    <div class="genome-workspace-empty-copy">
-                        <span class="tp-view-eyebrow">{% trans "Genome collection" %}</span>
-                        <h2>{% trans "No genomes yet" %}</h2>
-                        <p>{% trans "Upload a compressed GenBank file to create the first genome overview for this account." %}</p>
-                    </div>
-                    <div class="genome-workspace-empty-actions">
+                    <div class="tp-empty">
+                        <h2 class="tp-empty-title">{% trans "No genomes yet" %}</h2>
+                        <p class="tp-empty-text">{% trans "Upload a compressed GenBank file to create the first genome overview for this account." %}</p>
+                    <div class="tp-empty-actions">
                         {% if perms.tpweb.can_upload_genome %}
                         <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'tpwebapp:genome_upload' %}">
                             <span class="tp-btn-icon" aria-hidden="true">
@@ -215,6 +213,7 @@
                             {% trans "Upload genome" %}
                         </a>
                         {% endif %}
+                    </div>
                     </div>
                 {% endif %}
             </section>

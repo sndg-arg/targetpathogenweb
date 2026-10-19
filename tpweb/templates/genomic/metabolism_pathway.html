@@ -158,7 +158,7 @@
                         {% for item in reaction.substrates %}
                         <span class="tp-chip{% if item.is_currency %} tp-chip--muted{% endif %}" title="{% trans 'Substrate metabolite' %}: {{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
                         {% empty %}
-                        <span class="annotation-empty">-</span>
+                        <span class="annotation-empty">—</span>
                         {% endfor %}
                         {% if reaction.substrate_hidden %}<span class="tp-chip tp-chip--muted" title="{{ reaction.substrate_hidden }} additional substrate{{ reaction.substrate_hidden|pluralize }}"><span class="metabolite-chip-label">+{{ reaction.substrate_hidden }}</span></span>{% endif %}
                     </div>
@@ -167,7 +167,7 @@
                         {% for item in reaction.products %}
                         <span class="tp-chip{% if item.is_currency %} tp-chip--muted{% endif %}" title="{% trans 'Product metabolite' %}: {{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
                         {% empty %}
-                        <span class="annotation-empty">-</span>
+                        <span class="annotation-empty">—</span>
                         {% endfor %}
                         {% if reaction.product_hidden %}<span class="tp-chip tp-chip--muted" title="{{ reaction.product_hidden }} additional product{{ reaction.product_hidden|pluralize }}"><span class="metabolite-chip-label">+{{ reaction.product_hidden }}</span></span>{% endif %}
                     </div>

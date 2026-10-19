@@ -376,6 +376,40 @@
     font-weight: 600;
 }
 
+/* Empty state (see /design): a whole section or page with nothing to show
+   yet. Title, one line of text, optional actions. Left-aligned, no icon, no
+   box. One-line "nothing here" messages use .tp-state-note--empty instead. */
+.tp-empty {
+    display: grid;
+    gap: var(--tp-space-2);
+    max-width: var(--tp-measure);
+    padding: var(--tp-space-5) 0;
+}
+
+.tp-empty-title {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-lg);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.tp-empty-text {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.tp-empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2) var(--tp-space-4);
+    margin-top: var(--tp-space-2);
+}
+
 /* Code block: a command, a log or a long identifier (SMILES, InChI). */
 .tp-code-block {
     display: block;

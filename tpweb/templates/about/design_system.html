@@ -5,8 +5,8 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-widedrawer">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261018-lh">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-empty">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261018-empty">
     <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261018-lh">
 {% endblock %}
 
@@ -127,7 +127,7 @@
     <section class="ds-chapter tp-quick-nav-target" id="components">
         <header class="ds-chapter-head">
             <h2>Components</h2>
-            <nav class="ds-index" aria-label="Components"><a href="#c-buttons">Buttons</a><a href="#c-tags">Tags</a><a href="#c-filters">Filters</a><a href="#c-fields">Fields</a><a href="#c-file">File picker</a><a href="#c-select">Select</a><a href="#c-options">Options</a><a href="#c-tabs">Tabs</a><a href="#c-notes">Notes</a><a href="#c-messages">Messages</a><a href="#c-values">Long values</a><a href="#c-metrics">Metrics</a><a href="#c-cards">Cards</a><a href="#c-header">Page header</a><a href="#c-section">Section header</a><a href="#c-navigation">Navigation</a><a href="#c-assistant">Assistant button</a><a href="#c-tooltips">Tooltips</a><a href="#c-dialogs">Dialogs</a><a href="#c-tables">Tables</a></nav>
+            <nav class="ds-index" aria-label="Components"><a href="#c-buttons">Buttons</a><a href="#c-tags">Tags</a><a href="#c-filters">Filters</a><a href="#c-fields">Fields</a><a href="#c-file">File picker</a><a href="#c-select">Select</a><a href="#c-options">Options</a><a href="#c-tabs">Tabs</a><a href="#c-notes">Notes</a><a href="#c-empty">Empty state</a><a href="#c-messages">Messages</a><a href="#c-values">Long values</a><a href="#c-metrics">Metrics</a><a href="#c-cards">Cards</a><a href="#c-header">Page header</a><a href="#c-section">Section header</a><a href="#c-navigation">Navigation</a><a href="#c-assistant">Assistant button</a><a href="#c-tooltips">Tooltips</a><a href="#c-dialogs">Dialogs</a><a href="#c-tables">Tables</a></nav>
         </header>
 
         <div class="ds-comp" id="c-buttons">
@@ -322,6 +322,20 @@
                         <td><p class="tp-state-note tp-state-note--success">Column loaded.</p></td>
                         <td><p class="tp-state-note tp-state-note--warning">Not in this genome.</p></td>
                         <td><p class="tp-state-note tp-state-note--error">Not loaded.</p></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <div class="ds-comp" id="c-empty">
+            <h3>Empty state</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th>Text only</th><th>With actions</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><div class="tp-empty"><p class="tp-empty-title">No proteins match the current filters</p><p class="tp-empty-text">Try adjusting or removing some filters.</p></div></td>
+                        <td><div class="tp-empty"><p class="tp-empty-title">No genomes yet</p><p class="tp-empty-text">Upload a compressed GenBank file to start.</p><div class="tp-empty-actions"><button type="button" class="btn tp-btn tp-btn--primary" tabindex="-1">Upload genome</button></div></div></td></tr>
                 </tbody>
             </table>
             </div>

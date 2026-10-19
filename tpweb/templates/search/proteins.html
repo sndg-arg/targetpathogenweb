@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-widedrawer">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-empty">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -344,9 +344,8 @@
         <section class="protein-workspace" id="protein-workspace">
             <div class="protein-table-panel">
                 {% if filtered_protein_count == 0 %}
-                <div class="protein-empty-state">
-                    <svg class="protein-empty-state__icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
-                    <p class="protein-empty-state__title">
+                <div class="tp-empty protein-empty-state">
+                    <p class="tp-empty-title">
                         {% if selection_criteria_count or search_query %}
                             {% trans "No proteins match the current filters" %}
                         {% else %}
@@ -354,8 +353,8 @@
                         {% endif %}
                     </p>
                     {% if selection_criteria_count or search_query %}
-                    <p class="protein-empty-state__hint">{% trans "Try adjusting or removing some filters to see results." %}</p>
-                    <div class="protein-empty-state__actions">
+                    <p class="tp-empty-text">{% trans "Try adjusting or removing some filters to see results." %}</p>
+                    <div class="tp-empty-actions">
                         {% if selection_criteria_count %}
                         <form method="POST" action="" class="protein-empty-clear-form">
                             {% csrf_token %}
