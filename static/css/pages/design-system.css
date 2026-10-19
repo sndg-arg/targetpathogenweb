@@ -359,6 +359,14 @@ a.ds-card {
     height: 56px;
 }
 
+/* Top-bar menu: the real dropdown, shown in place. */
+.ds-menu {
+    position: static;
+    display: block;
+    float: none;
+    margin: 0 !important;
+}
+
 .ds-pagination {
     margin: 0;
 }

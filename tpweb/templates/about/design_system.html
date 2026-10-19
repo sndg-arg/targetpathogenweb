@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-empty">
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261018-empty">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261018-lh">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261018-menu">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -476,6 +476,8 @@
                         <td><ul class="pagination tp-pagination ds-pagination"><li class="page-item"><span class="page-link is-hover">3</span></li></ul></td>
                         <td><ul class="pagination tp-pagination ds-pagination"><li class="page-item active"><span class="page-link">1</span></li></ul></td>
                         <td><ul class="pagination tp-pagination ds-pagination"><li class="page-item disabled"><span class="page-link">…</span></li></ul></td></tr>
+                    <tr><th>Menu</th>
+                        <td colspan="4"><div class="dropdown-menu show tp-topbar-desktop-account-menu ds-menu"><a class="dropdown-item tp-topbar-desktop-account-item active" href="#c-navigation" tabindex="-1"><span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span><span>My profile</span></a><a class="dropdown-item tp-topbar-desktop-account-item is-hover" href="#c-navigation" tabindex="-1"><span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/columns.html" %}</span><span>Design</span></a><a class="dropdown-item tp-topbar-desktop-account-item" href="#c-navigation" tabindex="-1"><span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/dna.html" %}</span><span>Human Targets</span></a></div></td></tr>
                     <tr><th>Breadcrumb</th>
                         <td colspan="4"><nav class="tp-breadcrumb ds-crumb" aria-label="Example"><ol class="tp-breadcrumb-list"><li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#c-navigation"><span class="tp-breadcrumb-home-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>Home</a></li><li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#c-navigation">Genomes</a></li><li class="tp-breadcrumb-item"><span class="tp-breadcrumb-current">Proteins</span></li></ol></nav></td></tr>
                 </tbody>
