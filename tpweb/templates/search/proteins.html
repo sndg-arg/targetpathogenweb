@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-notes">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-notes2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -900,16 +900,16 @@
                                                 <input type="hidden" name="action" value="add_numeric_filter">
                                                 <input type="hidden" name="score_param_id" value="{{ param.id }}">
                                                 <input type="hidden" name="return_query" value="{{ query_string }}">
-                                                <div class="filter-numeric-toolbar" role="radiogroup" aria-label="{% trans 'Numeric filter mode' %}">
-                                                    <label class="filter-numeric-mode">
+                                                <div class="tp-segmented filter-numeric-toolbar" role="radiogroup" aria-label="{% trans 'Numeric filter mode' %}">
+                                                    <label class="tp-segmented-option filter-numeric-mode">
                                                         <input type="radio" name="numeric_operation" value="gte" checked>
                                                         <span>{% trans "At least" %}</span>
                                                     </label>
-                                                    <label class="filter-numeric-mode">
+                                                    <label class="tp-segmented-option filter-numeric-mode">
                                                         <input type="radio" name="numeric_operation" value="lte">
                                                         <span>{% trans "At most" %}</span>
                                                     </label>
-                                                    <label class="filter-numeric-mode">
+                                                    <label class="tp-segmented-option filter-numeric-mode">
                                                         <input type="radio" name="numeric_operation" value="between">
                                                         <span>{% trans "Between" %}</span>
                                                     </label>
@@ -1223,7 +1223,7 @@
                                             <span class="scoring-formula-row__name">{% trans "No scoring" %}</span>
                                             <span class="tp-chip">{% trans "Default" %}</span>
                                         </span>
-                                        <code class="scoring-formula-row__expression">{% trans "Sort by any column independently" %}</code>
+                                        <code class="tp-code-block scoring-formula-row__expression">{% trans "Sort by any column independently" %}</code>
                                     </span>
                                 </button>
                             </form>
@@ -1252,7 +1252,7 @@
                                             </span>
                                             {% if entry.expression %}
                                                 <span class="scoring-formula-expression-wrap">
-                                                    <code class="scoring-formula-row__expression">{{ entry.expression }}</code>
+                                                    <code class="tp-code-block scoring-formula-row__expression">{{ entry.expression }}</code>
                                                     {% if entry.term_help %}<span class="cell-tooltip scoring-formula-help" role="tooltip">{% for term in entry.term_help %}<span class="scoring-formula-help-term"><strong>{{ term.label }}</strong>: {{ term.description }}</span>{% endfor %}</span>{% endif %}
                                                 </span>
                                                 {% if entry.readable and entry.readable != entry.expression %}

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261018-notes">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261018-notes2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -196,168 +196,168 @@
             <p class="ds-body">{% trans "Stages run in this order for every genome and stop at the first failure rather than continuing with incomplete data. Stage 24 (extended ligand search) is optional. Stages marked ★ run on the computing cluster." %}</p>
             <div class="ds-priority-stack">
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">1</span>
+                    <span class="ds-priority-badge">1</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Genome cleanup" %}</strong>
                         <p>{% trans "Removes any existing working directory for the genome before a fresh run, so stale files from a previous attempt can't mix with new output. Skipped automatically when resuming a partial run or reprocessing an already-loaded genome." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">2</span>
+                    <span class="ds-priority-badge">2</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Genome import" %}</strong>
                         <p>{% trans "Retrieves the annotated GenBank record from NCBI via Entrez, loads a manually uploaded .gbk/.gbk.gz file, or (for pipeline testing) loads a small built-in reference genome. This is the nucleotide sequence and gene/CDS features everything downstream is built from." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">3</span>
+                    <span class="ds-priority-badge">3</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Protein and metadata loading" %}</strong>
                         <p>{% trans "Parses the GenBank file and imports every protein: locus tag, product description, gene symbol, translated amino-acid length, and RefSeq protein ID when present. Also imports assembly-level metadata (organism, strain, sequence length). Functional descriptions are taken as-is from whatever annotation pipeline (PGAP, Prokka, RAST, etc.) the original submitter used — Target Pathogen Web does not re-annotate gene function at this stage." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">4</span>
+                    <span class="ds-priority-badge">4</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Target scoring" %} <span class="ds-stage-tag">★</span></strong>
                         <p>{% trans "Runs FastTarget's off-target and essentiality modules, both built on DIAMOND BLASTP (an accelerated BLAST-compatible aligner): every protein is searched against the complete human proteome, a curated set of human gut-commensal reference genomes, and the Database of Essential Genes (DEG). Compute-heavy; runs on the computing cluster. FastTarget itself also has structural-similarity, conservation (Roary/CoreCruncher), and foldseek-based modules — only off-target and essentiality are activated in this pipeline." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">5</span>
+                    <span class="ds-priority-badge">5</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Score loading — human off-target" %}</strong>
                         <p>{% trans "Loads the human-proteome BLASTP results: hit/no-hit plus the best hit's percent identity and e-value. No hit is the desirable outcome for a selective target." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">6</span>
+                    <span class="ds-priority-badge">6</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Score loading — gut microbiome" %}</strong>
                         <p>{% trans "Loads the gut-microbiome BLASTP results the same way, using an identity > 40% and coverage > 70% threshold." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">7</span>
+                    <span class="ds-priority-badge">7</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Score loading — essentiality" %}</strong>
                         <p>{% trans "Loads the DEG BLASTP results: a Y/N essential-homolog flag plus identity/e-value of the best hit. A hit means the protein has a homolog experimentally shown essential (by transposon mutagenesis, deletion, or fitness competition) in a reference organism." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">8</span>
+                    <span class="ds-priority-badge">8</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Genome database indexing" %}</strong>
                         <p>{% trans "Builds internal search indexes over the genome and proteome for fast in-app lookups." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">9</span>
+                    <span class="ds-priority-badge">9</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Sequence file indexing" %}</strong>
                         <p>{% trans "Regenerates and indexes the canonical sequence/feature file bundle every later stage reads from: bgzipped genome and protein FASTA, a tabix-indexed GFF3 track, and BLAST databases (makeblastdb, nucleotide and protein). Also feeds the genome browser." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">10</span>
+                    <span class="ds-priority-badge">10</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Domain annotation — InterProScan" %} <span class="ds-stage-tag">★</span></strong>
                         <p>{% trans "Runs InterProScan v5 on the computing cluster. Scans every protein against roughly 20 member databases (domains, families, structural classifications, signal peptides, transmembrane regions, disordered regions) and returns per-residue domain hits, plus GO terms and EC numbers where the source database supplies them. Can legitimately run for hours." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">11</span>
+                    <span class="ds-priority-badge">11</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Domain annotation loading" %}</strong>
                         <p>{% trans "Imports the InterProScan results as protein features, together with any GO terms and EC numbers embedded in the output." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">12</span>
+                    <span class="ds-priority-badge">12</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "UniProt mapping" %}</strong>
                         <p>{% trans "Maps each protein's RefSeq accession to a UniProt identifier via UniProt's asynchronous ID-mapping API, falling back to a UniProtKB cross-reference search if the mapping service errors. This mapping is a prerequisite for nearly everything that follows: UniProt-curated GO/EC annotation, experimental structure lookup, AlphaFold DB lookup, functional-site projection, and classifying ligand evidence as direct vs. homolog-derived." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">13</span>
+                    <span class="ds-priority-badge">13</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "UniProt annotation + experimental structures" %}</strong>
                         <p>{% trans "For every UniProt-mapped protein: pulls UniProt-curated GO terms and EC numbers (complementing, not replacing, InterProScan's), and separately queries the Protein Data Bank for existing experimental structures linked to that UniProt entry, downloading the best available structure by resolution and coverage." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">14</span>
+                    <span class="ds-priority-badge">14</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "UniProt list resolution" %}</strong>
                         <p>{% trans "Reads back the UniProt mapping produced at stage 12 to build the list of (UniProt ID, locus tag) pairs used to query AlphaFold DB next." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">15</span>
+                    <span class="ds-priority-badge">15</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "AlphaFold DB download" %}</strong>
                         <p>{% trans "For every mapped protein still without an experimental structure, downloads the precomputed model from the AlphaFold Protein Structure Database, keyed by UniProt ID. Runs four downloads in parallel." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">16</span>
+                    <span class="ds-priority-badge">16</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Structure prediction" %} <span class="ds-stage-tag">★</span></strong>
                         <p>{% trans "For proteins with neither an experimental structure nor an AlphaFold DB model (usually because UniProt mapping failed or AlphaFold DB hasn't processed that entry yet), predicts a structure locally with ColabFold — an accelerated AlphaFold2 implementation that builds its multiple sequence alignment via the MMseqs2 API instead of a slow classic homology search. Runs on CPU by default (~30–60 minutes per protein). When GPU mode is enabled, routing is per-protein, not all-or-nothing: sequences longer than a configured limit (800 aa by default, sized for 8 GB VRAM GPUs) still run on local CPU, and so does any individual protein whose GPU job fails." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">17</span>
+                    <span class="ds-priority-badge">17</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Pocket detection + site projection" %} <span class="ds-stage-tag">★</span></strong>
                         <p>{% trans "For every protein with a structure now on disk, runs pocket detection: FPocket and P2Rank each analyze the structure's surface, and both tools' results are loaded and linked to the protein for visualization. Separately, known functional residues (active sites, binding sites) from UniProt are projected onto AlphaFold DB and ColabFold models — AlphaFold DB uses UniProt's numbering directly, while ColabFold models require the sequence to align to the canonical UniProt sequence at ≥ 90% identity and coverage before residues are transferred." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">18</span>
+                    <span class="ds-priority-badge">18</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Druggability scoring" %}</strong>
                         <p>{% trans "For each protein, collects every FPocket druggability score across all of its structures and pockets and takes the maximum as that protein's single druggability value." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">19</span>
+                    <span class="ds-priority-badge">19</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Score loading — druggability" %}</strong>
                         <p>{% trans "Loads the per-protein druggability values into the scoring system." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">20</span>
+                    <span class="ds-priority-badge">20</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Subcellular localization" %}</strong>
                         <p>{% trans "Runs PSORTb v3, an SVM classifier trained on bacterial proteins with experimentally confirmed localization, using sequence signals (signal peptides, transmembrane domains, lipoprotein anchors, membrane-retention motifs) and the genome's Gram-stain flag to predict one of: cytoplasmic, cytoplasmic membrane, periplasmic, outer membrane, extracellular, or unknown." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">21</span>
+                    <span class="ds-priority-badge">21</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Score loading — localization" %}</strong>
                         <p>{% trans "Loads the PSORTb localization call into the scoring system." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">22</span>
+                    <span class="ds-priority-badge">22</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Co-crystallized ligand mining" %}</strong>
                         <p>{% trans "Cross-references every UniProt ID the genome maps to against BioLiP (a curated database of ligand-protein interactions extracted from the PDB) and the PDB Chemical Component Dictionary, matching only the protein's own UniProt entry (not homologs) and collecting co-crystallized ligands while excluding a fixed list of crystallization noise (metal ions, buffer components, generic amino acids/peptide, water). Runs for every genome, independently of LigQ_2 below." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">23</span>
+                    <span class="ds-priority-badge">23</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Ligand loading" %}</strong>
                         <p>{% trans "Loads the resulting ligand records into the binders table, matched to their protein by locus tag." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
-                    <span class="ds-priority-badge ds-priority-badge--3">24</span>
+                    <span class="ds-priority-badge">24</span>
                     <div class="ds-priority-body">
                         <strong>{% trans "Homology-based ligand enrichment" %} <span class="ds-stage-tag">★</span></strong>
                         <p>{% trans "When enabled, runs LigQ_2 over every protein on the computing cluster; it BLAST/HMMER-searches its own reference databases and then queries PDB and ChEMBL for ligands bound to homologous proteins, plus proposes ZINC compounds by chemical (Tanimoto) similarity to known binders. Results are classified as direct (matches this protein's own UniProt ID) or homolog-derived, and filtered against the same crystallization-noise denylist — this is the same evidence category described in the Ligand evidence section further down this page." %}</p>
@@ -421,21 +421,21 @@
         <p class="ds-body">{% trans "Each protein is assigned a single preferred structure following a strict priority order:" %}</p>
         <div class="ds-priority-stack">
             <div class="ds-priority-row">
-                <span class="ds-priority-badge ds-priority-badge--1">1</span>
+                <span class="ds-priority-badge">1</span>
                 <div class="ds-priority-body">
                     <strong>{% trans "Experimental structure" %}</strong>
                     <p>{% trans "Crystallography, cryo-EM, or NMR entries retrieved by searching PDB for all structures linked to the protein's UniProt ID, preferring higher resolution and higher sequence coverage of the protein. Multiple chains and entries can be switched in the viewer." %}</p>
                 </div>
             </div>
             <div class="ds-priority-row">
-                <span class="ds-priority-badge ds-priority-badge--2">2</span>
+                <span class="ds-priority-badge">2</span>
                 <div class="ds-priority-body">
                     <strong>{% trans "AlphaFold Database model" %}</strong>
                     <p>{% trans "Computational model downloaded using the protein's UniProt ID. Requires a successful UniProt mapping at stage 12." %}</p>
                 </div>
             </div>
             <div class="ds-priority-row">
-                <span class="ds-priority-badge ds-priority-badge--3">3</span>
+                <span class="ds-priority-badge">3</span>
                 <div class="ds-priority-body">
                     <strong>{% trans "ColabFold prediction" %}</strong>
                     <p>{% trans "Generated locally for proteins with no other structural coverage. Runs on CPU (~30–60 min/protein) or on cluster GPUs." %}</p>

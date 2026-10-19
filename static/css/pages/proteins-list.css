@@ -2047,21 +2047,6 @@ a.filter-pill .filter-pill-remove {
     overflow-wrap: anywhere;
 }
 
-.scoring-formula-row__expression {
-    display: block;
-    margin: 0;
-    padding: var(--tp-space-2) var(--tp-space-3);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-xs);
-    font-family: var(--tp-font-mono);
-    line-height: 1.45;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    border-radius: var(--tp-radius-sm);
-    border: 1px solid var(--tp-color-border-soft);
-}
-
 .scoring-formula-expression-wrap {
     position: relative;
     display: block;
@@ -2181,10 +2166,6 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     flex-direction: column;
     gap: var(--tp-space-2);
-    padding: var(--tp-space-3) var(--tp-space-4);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
 }
 
 .scoring-mydata__files-label {
@@ -2719,45 +2700,9 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-brand-700);
 }
 
-/* Active filter pills — brand-teal tint to communicate "applied" state */
-.drawer-active-summary .filter-pill {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border);
-    color: var(--tp-color-brand-900);
-    border-radius: var(--tp-radius-sm);
-    padding: var(--tp-space-1) var(--tp-space-1) var(--tp-space-1) var(--tp-space-3);
-    font-size: var(--tp-font-size-sm);
-    gap: var(--tp-space-2);
-    transition: border-color 120ms ease, background 120ms ease;
-}
-
-.drawer-active-summary .filter-pill:hover {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-strong);
-}
-
 .drawer-active-summary .filter-pill strong {
     font-weight: 600;
     color: var(--tp-color-brand-800);
-}
-
-.drawer-active-summary .filter-pill-remove {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border);
-    color: var(--tp-color-brand-700);
-    width: 18px;
-    min-width: 18px;
-    height: 18px;
-    min-height: 18px;
-    flex: 0 0 18px;
-    font-size: var(--tp-font-size-sm);
-}
-
-.drawer-active-summary .filter-pill-remove:hover,
-.drawer-active-summary .filter-pill-remove:focus-visible {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-text-muted);
-    color: var(--tp-color-text-primary);
 }
 
 /* ==========================================================================
@@ -3034,8 +2979,8 @@ a.filter-pill .filter-pill-remove {
     top: 0;
     left: 0;
     right: auto;
-    background: var(--tp-color-text-primary);
-    color: var(--tp-color-surface);
+    background: var(--tp-tooltip-bg);
+    color: var(--tp-tooltip-color);
     padding: var(--tp-space-2) var(--tp-space-3);
     border-radius: var(--tp-radius-sm);
     font-size: var(--tp-font-size-xs);
@@ -3351,61 +3296,22 @@ a.filter-pill .filter-pill-remove {
 .filter-numeric-form {
     display: grid;
     gap: var(--tp-space-2);
-    padding: var(--tp-space-3);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-soft);
 }
 
 .filter-numeric-toolbar {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 3px;
-    padding: 3px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-muted);
+    width: auto;
 }
 
 .filter-numeric-mode {
     min-width: 0;
-    margin: 0;
-}
-
-.filter-numeric-mode input {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    opacity: 0;
-    pointer-events: none;
 }
 
 .filter-numeric-mode span {
     display: flex;
-    min-height: 28px;
-    align-items: center;
     justify-content: center;
-    border-radius: var(--tp-radius-sm);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: 0;
-    line-height: 1.1;
-    text-align: center;
-    cursor: pointer;
-    transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
-}
-
-.filter-numeric-mode input:checked + span {
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
-    font-weight: 600;
-    box-shadow: none;
-}
-
-.filter-numeric-mode input:focus-visible + span {
-    outline: 2px solid var(--tp-focus-color);
-    outline-offset: 2px;
+    padding-inline: var(--tp-space-2);
 }
 
 .filter-numeric-values {

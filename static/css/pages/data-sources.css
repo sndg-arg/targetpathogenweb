@@ -280,29 +280,13 @@
     justify-content: center;
     width: 26px;
     height: 26px;
+    border: 1px solid var(--tp-color-border-strong);
     border-radius: 50%;
+    color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
     font-weight: 600;
     flex-shrink: 0;
     margin-top: 1px;
-}
-
-.ds-priority-badge--1 {
-    background: var(--tp-color-success-bg);
-    color: var(--tp-color-success-ink);
-    border: 1.5px solid var(--tp-color-success-border);
-}
-
-.ds-priority-badge--2 {
-    background: var(--tp-color-warning-bg);
-    color: var(--tp-color-warning-ink);
-    border: 1.5px solid var(--tp-color-warning-border);
-}
-
-.ds-priority-badge--3 {
-    background: var(--tp-color-surface-muted);
-    color: var(--tp-color-text-muted);
-    border: 1.5px solid var(--tp-color-border);
 }
 
 .ds-priority-body {

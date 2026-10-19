@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261018-notes">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261018-notes">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261018-notes2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -108,11 +108,11 @@
                                     <span class="metabolism-stat-l">{% trans "Proteins" %}</span>
                                 </div>
                                 <div class="metabolism-stat" title="{% trans "Reactions that are the sole producer or consumer of a metabolite in this pathway." %}">
-                                    <span class="metabolism-stat-n{% if pathway.chokepoint_count %} is-warm{% endif %}">{{ pathway.chokepoint_count }}</span>
+                                    <span class="metabolism-stat-n">{{ pathway.chokepoint_count }}</span>
                                     <span class="metabolism-stat-l">{% trans "Chokepoints" %}</span>
                                 </div>
                                 <div class="metabolism-stat" title="{% trans "Share of this pathway's reactions that are chokepoints." %}">
-                                    <span class="metabolism-stat-n{% if pathway.chokepoint_count %} is-warm{% endif %}">{{ pathway.chokepoint_density_pct }}%</span>
+                                    <span class="metabolism-stat-n">{{ pathway.chokepoint_density_pct }}%</span>
                                     <span class="metabolism-stat-l">{% trans "Density" %}</span>
                                 </div>
                                 <div class="metabolism-stat" title="{% trans "Other pathways in this genome that share reactions with this one." %}">

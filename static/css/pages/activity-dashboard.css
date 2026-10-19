@@ -321,20 +321,6 @@
     border-top: none;
 }
 
-/* Data rows only (not the static header) -- a quiet warning tint marks
-   "never authenticated" without shouting like a full danger/error state. */
-.activity-locations .activity-location-row--blocked {
-    background: var(--tp-color-warning-bg);
-    border-radius: var(--tp-radius-sm);
-    padding-left: var(--tp-space-2);
-    padding-right: var(--tp-space-2);
-    margin: 0 calc(-1 * var(--tp-space-2));
-}
-
-.activity-locations .activity-location-row--blocked + .activity-location-row--blocked {
-    border-top-color: var(--tp-color-warning-border);
-}
-
 /* Login attempts / scanning traffic rows: Location, IP, User agent, a
    4th metric column (last seen or paths touched), Requests. */
 .activity-location-row--wide {

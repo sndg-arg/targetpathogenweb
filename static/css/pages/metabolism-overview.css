@@ -152,10 +152,6 @@
     line-height: 1.2;
 }
 
-.metabolism-stat-n.is-warm {
-    color: var(--tp-color-warning-ink);
-}
-
 .metabolism-stat-l {
     display: block;
     margin-top: 1px;
