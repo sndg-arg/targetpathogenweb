@@ -2500,7 +2500,9 @@ a.metric-pill:focus-visible .metric-pill-jump {
     display: none;
     position: fixed;
     inset: 0;
-    z-index: 9000;
+    /* Above drawers (1200), below the site tooltip (3000) so tooltips
+       inside a dialog still show, and below the page loader (5000). */
+    z-index: 2000;
     align-items: center;
     justify-content: center;
     padding: var(--tp-space-4);
