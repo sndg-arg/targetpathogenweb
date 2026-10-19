@@ -35,7 +35,7 @@
     background: conic-gradient(from 0deg,
         transparent 0%,
         transparent 55%,
-        var(--tp-color-on-accent) 100%);
+        var(--tp-color-accent-line) 100%);
     animation: tp-agent-fab-ring-spin 3.6s linear infinite;
     pointer-events: none;
 }
