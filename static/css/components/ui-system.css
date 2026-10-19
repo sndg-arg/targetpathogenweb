@@ -1862,7 +1862,11 @@ button.tp-chip:hover,
 .section-help-icon:hover,
 .section-help-icon:focus-visible {
     color: var(--tp-color-text-secondary);
+}
+
+.section-help-icon:focus-visible {
     outline: none;
+    box-shadow: var(--tp-focus-outline);
 }
 
 /* ── metabolic-network-tooltip ── */

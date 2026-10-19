@@ -1047,6 +1047,10 @@ body.viewer-settings-open { overflow: hidden; }
     outline: none;
 }
 
+.viewer-settings-swatch:focus-visible {
+    box-shadow: var(--tp-focus-outline);
+}
+
 /* Which preset (if any) is the category's current color -- without this
    the four presets and the live custom swatch all look equally weighted
    and there's no way to tell which one is actually applied. */

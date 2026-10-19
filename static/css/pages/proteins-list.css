@@ -398,11 +398,6 @@ a.filter-pill .filter-pill-remove {
     grid-column: 2;
 }
 
-.toolbar-controls-left .toolbar-action-btn:hover,
-.toolbar-controls-left .toolbar-action-btn:focus-visible {
-    outline: none;
-}
-
 /* Closed drawer still needs a visible cue that filter changes are queued
    but not yet applied -- otherwise pending state is invisible once the
    drawer closes (see #filter-pending-summary, which only exists inside it). */
@@ -1666,16 +1661,6 @@ a.filter-pill .filter-pill-remove {
     align-items: center;
     justify-content: center;
     transition: background 140ms ease, color 140ms ease;
-}
-
-.tpd-row .tpd-delete-btn.tpd-delete-btn:hover,
-.tpd-row .tpd-delete-btn.tpd-delete-btn:focus-visible {
-    outline: none;
-}
-
-.tpd-row .tpd-rename-btn.tpd-rename-btn:hover,
-.tpd-row .tpd-rename-btn.tpd-rename-btn:focus-visible {
-    outline: none;
 }
 
 .tpd-foot {

@@ -460,7 +460,6 @@
 
 .genome-upload-details summary:hover,
 .genome-upload-details summary:focus-visible {
-    outline: none;
     color: var(--tp-color-link-hover);
     text-decoration-color: currentColor;
 }
