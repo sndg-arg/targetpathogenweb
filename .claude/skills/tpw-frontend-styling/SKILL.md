@@ -90,6 +90,8 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
   any new hover/focus rule you want shown there.
 - `.tp-state-note--{empty,loading,success,warning,error}` for every inline status message (left
   bar, left-aligned, never centered or boxed).
+- `.tp-code-block` for a formula, command, log or long identifier (SMILES, InChI). Lists are
+  hairline rows (`border-bottom`), never one box per row. Counts and scores are plain text, not tinted.
 - `.tp-card` only for repeated grid items (border, no shadow). Sections are never boxed.
 - `.tp-metrics` > `.metric-pill` (+ `--success|--warning|--danger|--link`) for every "number in a pill".
 - `.tp-tabs` > `.tp-tab` (+ `.tp-count`) for every tab set inside a section; `.tp-count` for any number next to a label.
