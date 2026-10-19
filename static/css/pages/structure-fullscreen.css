@@ -1091,7 +1091,6 @@ body.viewer-settings-open { overflow: hidden; }
 
 /* ── 15. Dark mode sidebar overrides ── */
 .tp-dark .sv-sidebar { background: var(--tp-color-surface-soft); border-left-color: var(--tp-color-border-strong); }
-.tp-dark .pocket-card { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
 
 /* ── 16. Structure picker (custom dropdown — no native select) ── */
 .sv-struct-picker {
@@ -1241,10 +1240,6 @@ body.viewer-settings-open { overflow: hidden; }
     flex: 1 1 auto;
     min-width: 0;
 }
-
-.tp-dark .residueset-row { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
-.tp-dark .data-details { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
-.tp-dark .sv-sidebar-meta-tag { background: var(--tp-color-surface-muted); border-color: var(--tp-color-border); }
 
 /* ── 18. Premium load-in motion for the floating HUD chrome ──
    The viewer's glass panels (topbar, toolbar, legend, sidebar) previously appeared

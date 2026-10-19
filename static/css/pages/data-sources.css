@@ -226,7 +226,6 @@
 }
 
 .ds-field-row:last-child { border-bottom: none; }
-.ds-field-row:nth-child(even) { background: var(--tp-color-surface-soft); }
 
 .ds-field-name {
     font-size: var(--tp-font-size-sm);
@@ -265,7 +264,6 @@
 }
 
 .ds-priority-row:last-child { border-bottom: none; }
-.ds-priority-row:nth-child(even) { background: var(--tp-color-surface-soft); }
 
 .ds-priority-badge {
     display: inline-flex;
@@ -500,7 +498,6 @@
 }
 
 .ds-def-row:last-child { border-bottom: none; }
-.ds-def-row:nth-child(even) { background: var(--tp-color-surface-soft); }
 
 .ds-def-term {
     font-family: var(--tp-font-mono);
@@ -591,21 +588,4 @@
     .ds-pipeline-grid { grid-template-columns: 1fr; }
     .ds-field-row { grid-template-columns: 1fr; gap: 3px; }
     .ds-def-row { grid-template-columns: 1fr; gap: var(--tp-space-1); }
-}
-
-/* ── Dark mode ── */
-.tp-dark .ds-pipeline-card,
-.tp-dark .ds-tool-block,
-.tp-dark .ds-profile-card,
-.tp-dark .ds-priority-row,
-.tp-dark .ds-db-row {
-    background: var(--tp-color-surface-soft);
-}
-
-.tp-dark .ds-priority-row:nth-child(even),
-.tp-dark .ds-db-row:nth-child(odd),
-.tp-dark .ds-field-row:nth-child(even),
-.tp-dark .ds-table tr:nth-child(even) td,
-.tp-dark .ds-def-row:nth-child(even) {
-    background: var(--tp-color-surface-muted);
 }

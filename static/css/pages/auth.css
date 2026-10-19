@@ -216,6 +216,3 @@
 }
 
 /* Dark: typed text as bright as the standard field's. */
-.tp-dark .auth-field input {
-    color: var(--tp-color-text-primary);
-}

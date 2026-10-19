@@ -123,11 +123,6 @@
     transform: none !important;
 }
 
-.tp-dark .home-pipeline-refresh {
-    --_refresh-hover-mix: 18%;
-    --_refresh-active-mix: 28%;
-}
-
 .home-pipeline-btn-icon {
     display: inline-flex;
     width: 16px;
@@ -764,47 +759,4 @@ body.pipeline-info-open {
 
 @media (max-width: 640px) {
     .home-about-grid { grid-template-columns: 1fr; }
-}
-
-.tp-dark .home-about-card {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-soft);
-}
-
-.tp-dark .home-about-card:hover {
-    border-color: var(--tp-color-border);
-}
-
-/* ── Dark mode overrides — pipeline roadmap panel ── */
-.tp-dark .pipeline-info-panel {
-    background: var(--tp-color-surface);
-    border-color: var(--tp-color-border-soft);
-    box-shadow: none;
-}
-
-.tp-dark .pipeline-info-head {
-    border-bottom-color: var(--tp-color-border-soft);
-}
-
-.tp-dark .pipeline-info-overview {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-soft);
-    box-shadow: none;
-}
-
-.tp-dark .pipeline-info-branch {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-soft);
-    box-shadow: none;
-}
-
-.tp-dark .pipeline-info-foot {
-    background: var(--tp-color-surface-soft);
-    border-top-color: var(--tp-color-border-soft);
-}
-
-.tp-dark .pipeline-info-step.is-done .pipeline-info-step-num {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border);
-    color: var(--tp-color-brand-700);
 }

@@ -1200,8 +1200,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .residueset-row-actions { display: flex; gap: var(--tp-space-1); flex-shrink: 0; }
 .residueset-row-actions .btn { font-size: var(--tp-font-size-xs); padding: var(--tp-space-1) var(--tp-space-2); }
 
-.tp-dark .pocket-card { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
-
 .table-hint {
     margin: 0;
     color: var(--tp-color-text-muted);
@@ -2578,26 +2576,9 @@ body.residue-modal-open {
     color: var(--tp-color-text-secondary) !important;
 }
 
-/* Structure viewport — subtle accent glow */
-.tp-dark .structure-viewport-wrap {
-    background: var(--tp-color-surface);
-    border-color: var(--tp-color-border);
-    box-shadow: none;
-}
-
 .tp-dark #viewport {
     background: var(--tp-color-structure-bg);
     border-color: var(--tp-color-border);
-}
-
-/* Binder cards */
-.tp-dark .binder-card {
-    border-color: var(--tp-color-border);
-    background: var(--tp-color-surface-soft);
-}
-
-.tp-dark .binder-preview {
-    background: var(--tp-color-surface-muted);
 }
 
 /* === Target profile section === */
@@ -2978,21 +2959,6 @@ body.residue-modal-open {
 
 .experimental-structure-table tr.experimental-row--viewer-active .experimental-switch-btn {
     display: none;
-}
-
-/* Dark mode */
-.tp-dark .experimental-structure-shell {
-    border-color: var(--tp-color-border);
-}
-
-.tp-dark .experimental-source {
-    color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-strong);
-}
-
-.tp-dark .experimental-coverage-track {
-    background: var(--tp-color-surface-muted);
 }
 
 /* Legacy class — kept for JS compat */
