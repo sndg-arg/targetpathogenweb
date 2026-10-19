@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261018-lh">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261018-icons">
 {% endblock %}
 
 {% block body %}
@@ -132,14 +132,10 @@
 
             {# Zoom controls #}
             <button type="button" class="sv-tb-btn" onclick="ngl_zoom_step(1)" title="{% trans 'Zoom in' %}" aria-label="{% trans 'Zoom in' %}">
-                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
-                    <circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M7 5v4M5 7h4"/>
-                </svg>
+                <span class="sv-tb-icon" aria-hidden="true">{% include "components/icons/zoom_in.html" %}</span>
             </button>
             <button type="button" class="sv-tb-btn" onclick="ngl_zoom_step(-1)" title="{% trans 'Zoom out' %}" aria-label="{% trans 'Zoom out' %}">
-                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
-                    <circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M5 7h4"/>
-                </svg>
+                <span class="sv-tb-icon" aria-hidden="true">{% include "components/icons/zoom_out.html" %}</span>
             </button>
             <button type="button" class="sv-tb-btn" id="structure-reset-zoom-btn" onclick="ngl_reset_zoom()"
                     title="{% trans 'Reset view' %}" aria-label="{% trans 'Reset view' %}" disabled>
