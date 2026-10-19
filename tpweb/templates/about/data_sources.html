@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261018-weights">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20261018-subtitles">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -88,7 +88,7 @@
             <div>
                 <p class="tp-view-eyebrow">{% trans "Integrated functionality" %}</p>
                 <h2 class="tp-section-title">{% trans "What the platform lets you do" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "A single workspace to move from a bacterial genome to a defensible shortlist of target candidates with traceable evidence." %}</p>
+                <p class="section-subtitle">{% trans "A single workspace to move from a bacterial genome to a defensible shortlist of target candidates with traceable evidence." %}</p>
             </div>
         </div>
         <div class="ds-pipeline-grid">
@@ -143,7 +143,7 @@
             <div>
                 <p class="tp-view-eyebrow">{% trans "Overview" %}</p>
                 <h2 class="tp-section-title">{% trans "Analysis pipeline" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "24 stages run linearly. Compute-heavy stages (★) run on dedicated compute nodes." %}</p>
+                <p class="section-subtitle">{% trans "24 stages run linearly. Compute-heavy stages (★) run on dedicated compute nodes." %}</p>
             </div>
         </div>
         <div class="ds-pipeline-grid">
@@ -373,7 +373,7 @@
             <div>
                 <p class="tp-view-eyebrow">{% trans "Stages 2–3" %}</p>
                 <h2 class="tp-section-title">{% trans "Protein data" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "GenBank record from NCBI or your own upload" %}</p>
+                <p class="section-subtitle">{% trans "GenBank record from NCBI or your own upload" %}</p>
             </div>
         </div>
         <p class="ds-body">{% trans "The GenBank file is downloaded from NCBI or uploaded manually. Each CDS feature is parsed and the following fields are imported:" %}</p>
@@ -415,7 +415,7 @@
             <div>
                 <p class="tp-view-eyebrow">{% trans "Stages 13, 15, 16" %}</p>
                 <h2 class="tp-section-title">{% trans "3D structure" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "PDB, then AlphaFold DB, then ColabFold" %}</p>
+                <p class="section-subtitle">{% trans "PDB, then AlphaFold DB, then ColabFold" %}</p>
             </div>
         </div>
         <p class="ds-body">{% trans "Each protein is assigned a single preferred structure following a strict priority order:" %}</p>
@@ -461,7 +461,7 @@
             <div>
                 <p class="tp-view-eyebrow">{% trans "Stages 17–19" %}</p>
                 <h2 class="tp-section-title">{% trans "Binding sites" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "FPocket + P2Rank" %}</p>
+                <p class="section-subtitle">{% trans "FPocket + P2Rank" %}</p>
             </div>
         </div>
         <p class="ds-body">{% trans "Two complementary tools detect and rank putative binding pockets on each protein structure. Results are stored as residue sets and visualized in the 3D viewer." %}</p>
@@ -500,7 +500,7 @@
             <div>
                 <p class="tp-view-eyebrow">{% trans "Stages 10–11, 13" %}</p>
                 <h2 class="tp-section-title">{% trans "Functional annotation" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "InterProScan + UniProt" %}</p>
+                <p class="section-subtitle">{% trans "InterProScan + UniProt" %}</p>
             </div>
         </div>
         <div class="ds-subsection">
@@ -539,7 +539,7 @@
             <div>
                 <p class="tp-view-eyebrow">{% trans "Manual, per genome" %}</p>
                 <h2 class="tp-section-title">{% trans "Metabolic network" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "Imported metabolic model" %}</p>
+                <p class="section-subtitle">{% trans "Imported metabolic model" %}</p>
             </div>
         </div>
         <div class="ds-subsection">
@@ -574,7 +574,7 @@
             <div>
                 <p class="tp-view-eyebrow">{% trans "Stages 4–7, 20–21" %}</p>
                 <h2 class="tp-section-title">{% trans "Target profile" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "FastTarget + PSORTb" %}</p>
+                <p class="section-subtitle">{% trans "FastTarget + PSORTb" %}</p>
             </div>
         </div>
         <p class="ds-body">{% trans "Four evidence signals are combined to support target prioritization. All are computationally derived — see How to read the results at the top of this page." %}</p>
@@ -620,7 +620,7 @@
             <div>
                 <p class="tp-view-eyebrow">{% trans "Stage 24" %}</p>
                 <h2 class="tp-section-title">{% trans "Ligand evidence" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "Known and proposed ligands" %}</p>
+                <p class="section-subtitle">{% trans "Known and proposed ligands" %}</p>
             </div>
         </div>
         <p class="ds-body">{% trans "Every genome gets a baseline of ligand evidence for free: get_binders (stage 22) cross-references each protein's own UniProt entry against BioLiP and loads any co-crystallized PDB ligands, independently of everything below." %}</p>
@@ -707,7 +707,7 @@
             <div>
                 <p class="tp-view-eyebrow">{% trans "Computed from SMILES · RDKit" %}</p>
                 <h2 class="tp-section-title">{% trans "Drug-likeness" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "Calculated at page load. Predicted values, not experimental measurements." %}</p>
+                <p class="section-subtitle">{% trans "Calculated at page load. Predicted values, not experimental measurements." %}</p>
             </div>
         </div>
         <div class="ds-dl-list">

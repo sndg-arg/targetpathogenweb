@@ -22,10 +22,6 @@
     display: inline-flex;
     align-items: center;
     gap: var(--tp-space-2);
-    /* Same sans uppercase eyebrow as Genomes/Proteins -- this page used the
-       monospace font here, one of the things that made it look unlike the
-       rest of the site. */
-    font-size: var(--tp-font-size-xs);
 }
 
 .customparam-chip-group {

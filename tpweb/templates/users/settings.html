@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261017-sections">
+    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261018-subtitles">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -56,7 +56,7 @@
     <section class="settings-section">
         <p class="tp-view-eyebrow">{% trans "Admin only" %}</p>
         <h2 class="tp-section-title settings-section-title">{% trans "Everyone's formulas and data" %}</h2>
-        <p class="settings-section-description">{% trans "Read-only: only the owner can change who sees their formulas and data. Built-in formula copies are left out." %}</p>
+        <p class="section-subtitle settings-section-description">{% trans "Read-only: only the owner can change who sees their formulas and data. Built-in formula copies are left out." %}</p>
 
         <h3 class="settings-subtitle">{% trans "Shared right now" %} <span class="settings-count">{{ shared_total }}</span></h3>
         {% if shared_formula_rows or shared_param_rows %}
@@ -96,7 +96,7 @@
     <section class="settings-section">
         <p class="tp-view-eyebrow">{% trans "Admin only" %}</p>
         <h2 class="tp-section-title settings-section-title">{% trans "Restricted genomes" %} <span class="settings-count">{{ restricted_genomes|length }}</span></h2>
-        <p class="settings-section-description">
+        <p class="section-subtitle settings-section-description">
             {% url 'tpwebapp:genomes_list' as genomes_url %}
             {% if gates_viewer %}{% blocktrans %}Only Gates members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% else %}{% blocktrans %}Only project members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% endif %}
         </p>

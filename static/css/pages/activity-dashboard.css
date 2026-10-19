@@ -50,20 +50,6 @@
 
 /* Editorial "kicker" rule above the eyebrow -- the letterhead detail that
    reads as a prepared report rather than a live app screen. */
-.activity-eyebrow {
-    position: relative;
-    padding-top: var(--tp-space-3);
-}
-
-.activity-eyebrow::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 28px;
-    height: 2px;
-    background: var(--tp-color-brand-900);
-}
 
 .activity-hero-meta {
     margin: var(--tp-space-2) 2px 0 0;

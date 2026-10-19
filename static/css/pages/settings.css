@@ -53,11 +53,7 @@
 }
 
 .settings-section-description {
-    margin: var(--tp-space-2) 0 0;
-    max-width: var(--tp-measure);
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
-    line-height: 1.5;
+    margin-top: var(--tp-space-2);
 }
 
 .settings-section-description a,
