@@ -96,6 +96,8 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
 - Tables: `table tp-table` (+ `tp-table--compact` for big data tables) inside `.tp-table-shell`. No zebra, no
   Bootstrap `table-striped/-hover/-sm`; page table classes set column widths/alignment only.
 - Paragraph width: `max-width: var(--tp-measure)` (72ch), never a px value.
+- Missing data (no structure, no score, not computed) is neutral gray, never a warning tone. Warning is
+  for something that needs a second look; statuses use `tp-chip--state idle|running|finished|failed`.
 - `.tp-view-eyebrow` is the one uppercase rótulo above any title (page or section).
 - Section header: `.section-head` > title `h2` + optional `.section-subtitle`, tools in `.section-tools`.
   A section title outside a `.section-head` uses `.tp-section-title`. No page-specific title classes.
