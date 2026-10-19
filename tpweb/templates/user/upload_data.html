@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20261018-weights">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20261018-controls">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -516,7 +516,7 @@
                     {% csrf_token %}
                     <div class="genome-upload-field tp-ui-field genome-upload-field--narrow">
                         <label class="tp-ui-field-label" for="data_file_input">{% trans "File" %}</label>
-                        <input class="tp-ui-field-input" type="file" id="data_file_input" name="data_file"
+                        <input class="tp-file-input" type="file" id="data_file_input" name="data_file"
                                accept=".tsv,.csv,.tar.gz,.gz,.tar,.txt,.json">
                         <p class="genome-upload-field-help">{% trans "Accepted: .tsv, .csv, .tar.gz, .json" %}</p>
                     </div>

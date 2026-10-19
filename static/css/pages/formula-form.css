@@ -258,10 +258,6 @@
     flex-shrink: 0;
 }
 
-.formula-var-search {
-    min-height: 38px;
-}
-
 .formula-var-groups {
     overflow-y: auto;
     flex: 1;

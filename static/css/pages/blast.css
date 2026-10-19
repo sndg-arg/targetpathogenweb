@@ -81,10 +81,6 @@
 }
 
 .blast-form-inner .form-control,
-.blast-form-inner .tp-ui-control {
-    min-height: 44px;
-    border-radius: var(--tp-radius-md);
-}
 
 .blast-seq-input {
     font-family: var(--tp-font-mono) !important;

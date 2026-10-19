@@ -148,56 +148,6 @@
     gap: var(--tp-space-2);
 }
 
-.genome-upload-field .tp-ui-control,
-.genome-upload-field .form-control,
-.genome-upload-field select,
-.genome-upload-field input[type="text"] {
-    min-height: 46px;
-    border-radius: var(--tp-radius-md);
-}
-
-/* The native file input otherwise renders as unstyled browser chrome --
-   the one control on this form that didn't match the rest of the design
-   system. Styled to look like the other fields, with the browser's own
-   picker button restyled via ::file-selector-button rather than replaced
-   by JS, so it stays a real, accessible <input type="file">. */
-.genome-upload-field .tp-file-input {
-    display: flex;
-    align-items: center;
-    min-height: 46px;
-    padding: var(--tp-space-1) var(--tp-space-2);
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-radius-md);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
-}
-
-.genome-upload-field .tp-file-input::file-selector-button {
-    margin-right: var(--tp-space-3);
-    padding: var(--tp-space-2) var(--tp-space-4);
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
-    font-weight: 600;
-    font-size: var(--tp-font-size-sm);
-    cursor: pointer;
-    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.genome-upload-field .tp-file-input::file-selector-button:hover {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-text-muted);
-    color: var(--tp-color-text-primary);
-}
-
-.genome-upload-field .tp-file-input:focus-visible {
-    outline: none;
-    border-color: var(--tp-focus-color);
-    box-shadow: var(--tp-focus-outline);
-}
-
 .genome-upload-field-help,
 .genome-upload-field-error {
     margin: 0;

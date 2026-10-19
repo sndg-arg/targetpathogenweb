@@ -1764,16 +1764,17 @@ button.tp-chip:hover,
 
 /* ── tp-file-input ────────────────────────────────────────── */
 .tp-file-input {
-    display: block;
+    display: flex;
+    align-items: center;
     width: 100%;
     min-height: var(--tp-ui-control-height);
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    padding: var(--tp-space-2) var(--tp-space-3);
+    font-weight: 400;
+    padding: 2px;
     transition:
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -1781,14 +1782,15 @@ button.tp-chip:hover,
 
 .tp-file-input::file-selector-button {
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-radius-sm);
+    border-radius: var(--tp-radius-xs);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     line-height: 1;
-    padding: var(--tp-space-2) var(--tp-space-3);
+    padding: 0 var(--tp-space-3);
     margin-right: var(--tp-space-3);
+    height: var(--tp-ui-control-height-compact);
     cursor: pointer;
     transition:
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),

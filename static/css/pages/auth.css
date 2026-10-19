@@ -125,12 +125,6 @@
 
 /* ── Actions ── */
 
-.auth-submit button,
-.auth-actions .btn {
-    height: 46px;
-    font-size: var(--tp-font-size-md);
-}
-
 .auth-submit button {
     width: 100%;
 }
@@ -188,18 +182,6 @@
     text-transform: uppercase;
     letter-spacing: var(--tp-tracking-label);
     margin-bottom: var(--tp-space-1);
-}
-
-.auth-card .form-group .form-control {
-    height: 44px;
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-soft);
-    font-size: var(--tp-font-size-md);
-}
-
-.auth-card .form-group .form-control:focus {
-    border-color: var(--tp-focus-color);
-    box-shadow: var(--tp-focus-outline);
 }
 
 .auth-card .form-group textarea.form-control {
