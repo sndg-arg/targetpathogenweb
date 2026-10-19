@@ -214,21 +214,19 @@
             <table class="ds-matrix">
                 <thead><tr><th></th><th>Available</th><th>Hover</th><th>Applied</th><th>Pending</th></tr></thead>
                 <tbody>
-                    <tr><th>Neutral</th>
-                        <td><span class="filter-chip"><span class="filter-chip-label">Core</span></span></td>
-                        <td><span class="filter-chip is-hover"><span class="filter-chip-label">Core</span></span></td>
-                        <td><span class="filter-chip filter-chip--active"><span class="filter-chip-label">Core</span><span class="filter-chip-glyph" aria-hidden="true">&times;</span></span></td>
-                        <td><span class="filter-chip filter-chip--active filter-chip--pending"><span class="filter-chip-label">Core</span></span></td></tr>
-                    <tr><th>Risk</th>
+                    <tr><th>State</th>
+                        <td><span class="filter-chip"><span class="filter-chip-label">Cytoplasmic</span></span></td>
+                        <td><span class="filter-chip is-hover"><span class="filter-chip-label">Cytoplasmic</span></span></td>
+                        <td><span class="filter-chip filter-chip--active"><span class="filter-chip-label">Cytoplasmic</span><span class="filter-chip-glyph" aria-hidden="true">&times;</span></span></td>
+                        <td><span class="filter-chip filter-chip--active filter-chip--pending"><span class="filter-chip-label">Cytoplasmic</span></span></td></tr>
+                </tbody>
+                <thead><tr><th></th><th>Neutral</th><th>Favorable</th><th>Risk</th><th>Secondary</th></tr></thead>
+                <tbody>
+                    <tr><th>Tone</th>
+                        <td><span class="filter-chip"><span class="filter-chip-label">Cytoplasmic</span></span></td>
+                        <td><span class="filter-chip filter-chip--favorable"><span class="filter-chip-label">Core</span></span></td>
                         <td><span class="filter-chip filter-chip--risk"><span class="filter-chip-label">Hit</span></span></td>
-                        <td><span class="filter-chip filter-chip--risk is-hover"><span class="filter-chip-label">Hit</span></span></td>
-                        <td><span class="filter-chip filter-chip--risk filter-chip--active"><span class="filter-chip-label">Hit</span><span class="filter-chip-glyph" aria-hidden="true">&times;</span></span></td>
-                        <td><span class="filter-chip filter-chip--risk filter-chip--active filter-chip--pending"><span class="filter-chip-label">Hit</span></span></td></tr>
-                    <tr><th>Favorable</th>
-                        <td><span class="filter-chip filter-chip--favorable"><span class="filter-chip-label">No hit</span></span></td>
-                        <td><span class="filter-chip filter-chip--favorable is-hover"><span class="filter-chip-label">No hit</span></span></td>
-                        <td><span class="filter-chip filter-chip--favorable filter-chip--active"><span class="filter-chip-label">No hit</span><span class="filter-chip-glyph" aria-hidden="true">&times;</span></span></td>
-                        <td><span class="filter-chip filter-chip--favorable filter-chip--active filter-chip--pending"><span class="filter-chip-label">No hit</span></span></td></tr>
+                        <td><span class="filter-chip filter-chip--secondary"><span class="filter-chip-label">Accessory</span></span></td></tr>
                 </tbody>
             </table>
             </div>
@@ -238,10 +236,11 @@
             <h3>Fields</h3>
             <div class="ds-matrix-wrap">
             <table class="ds-matrix">
-                <thead><tr><th>Empty</th><th>Typing</th><th>Filled</th><th>Disabled</th></tr></thead>
+                <thead><tr><th>Empty</th><th>Hover</th><th>Typing</th><th>Filled</th><th>Disabled</th></tr></thead>
                 <tbody>
                     <tr>
                         <td><input type="text" class="form-control tp-ui-control ds-control" placeholder="KPN_00002" aria-label="Example"></td>
+                        <td><input type="text" class="form-control tp-ui-control ds-control is-hover" placeholder="KPN_00002" tabindex="-1" aria-label="Example"></td>
                         <td><input type="text" class="form-control tp-ui-control ds-control is-focus" value="KPN_044" tabindex="-1" aria-label="Example"></td>
                         <td><input type="text" class="form-control tp-ui-control ds-control" value="KPN_04417" aria-label="Example"></td>
                         <td><input type="text" class="form-control tp-ui-control ds-control" placeholder="KPN_00002" disabled aria-label="Example"></td></tr>

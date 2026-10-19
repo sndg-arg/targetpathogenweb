@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261018-tables">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261018-review">
     <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261018-ring">
     <style>
         :root {
@@ -402,7 +402,7 @@
         select.form-control:not([multiple]):not([size]):not(.tp-select-native):focus,
         select.form-control:not([multiple]):not([size]):not(.tp-select-native):focus-visible {
             border-color: var(--tp-focus-color);
-            box-shadow: var(--tp-focus-outline);
+            box-shadow: 0 0 0 1px var(--tp-focus-color);
         }
 
         select.form-control:not([multiple]):not([size]):not(.tp-select-native):disabled {
@@ -616,8 +616,8 @@
             border-color: var(--tp-color-border-strong);
             border-radius: var(--tp-radius-sm);
             background: var(--tp-color-surface);
-            color: var(--tp-color-text-secondary);
-            font-weight: 600;
+            color: var(--tp-color-text-primary);
+            font-weight: 400;
             min-height: var(--tp-ui-control-height);
             transition:
                 border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -626,12 +626,13 @@
         }
 
         .form-control::placeholder {
-            color: var(--tp-color-text-muted);
-            font-weight: 600;
+            color: var(--tp-color-text-soft);
+            font-weight: 400;
             opacity: 1;
         }
 
         .form-control:hover,
+        .form-control.is-hover,
         .custom-select:hover {
             border-color: var(--tp-color-text-muted);
         }
@@ -643,7 +644,7 @@
         .custom-select:focus-visible {
             outline: none;
             border-color: var(--tp-focus-color);
-            box-shadow: var(--tp-focus-outline);
+            box-shadow: 0 0 0 1px var(--tp-focus-color);
         }
 
         .form-control:disabled,
@@ -1670,10 +1671,6 @@
             color: var(--tp-color-text-primary);
             background-color: var(--tp-color-surface-soft);
             border-color: var(--tp-focus-color);
-        }
-
-        .tp-dark .form-control::placeholder {
-            color: var(--tp-color-text-soft);
         }
 
         /* table row hover — more visible in dark */

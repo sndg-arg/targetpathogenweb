@@ -2339,6 +2339,7 @@ a.metric-pill:focus-visible .metric-pill-jump {
 .tp-tab:hover,
 .tp-tab.is-hover {
     color: var(--tp-color-text-primary);
+    border-bottom-color: var(--tp-color-border-strong);
 }
 
 .tp-tab.is-active {
