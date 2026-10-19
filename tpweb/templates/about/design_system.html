@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-motion">
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261018-chips">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261018-weights">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261018-fab-ds">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -127,7 +127,7 @@
     <section class="ds-chapter tp-quick-nav-target" id="components">
         <header class="ds-chapter-head">
             <h2>Components</h2>
-            <nav class="ds-index" aria-label="Components"><a href="#c-buttons">Buttons</a><a href="#c-tags">Tags</a><a href="#c-filters">Filters</a><a href="#c-fields">Fields</a><a href="#c-select">Select</a><a href="#c-options">Options</a><a href="#c-tabs">Tabs</a><a href="#c-notes">Notes</a><a href="#c-messages">Messages</a><a href="#c-values">Long values</a><a href="#c-metrics">Metrics</a><a href="#c-cards">Cards</a><a href="#c-header">Page header</a><a href="#c-section">Section header</a><a href="#c-navigation">Navigation</a><a href="#c-tooltips">Tooltips</a><a href="#c-dialogs">Dialogs</a><a href="#c-tables">Tables</a></nav>
+            <nav class="ds-index" aria-label="Components"><a href="#c-buttons">Buttons</a><a href="#c-tags">Tags</a><a href="#c-filters">Filters</a><a href="#c-fields">Fields</a><a href="#c-select">Select</a><a href="#c-options">Options</a><a href="#c-tabs">Tabs</a><a href="#c-notes">Notes</a><a href="#c-messages">Messages</a><a href="#c-values">Long values</a><a href="#c-metrics">Metrics</a><a href="#c-cards">Cards</a><a href="#c-header">Page header</a><a href="#c-section">Section header</a><a href="#c-navigation">Navigation</a><a href="#c-assistant">Assistant button</a><a href="#c-tooltips">Tooltips</a><a href="#c-dialogs">Dialogs</a><a href="#c-tables">Tables</a></nav>
         </header>
 
         <div class="ds-comp" id="c-buttons">
@@ -450,6 +450,20 @@
                         <td><ul class="pagination tp-pagination ds-pagination"><li class="page-item disabled"><span class="page-link">…</span></li></ul></td></tr>
                     <tr><th>Breadcrumb</th>
                         <td colspan="4"><nav class="tp-breadcrumb ds-crumb" aria-label="Example"><ol class="tp-breadcrumb-list"><li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#c-navigation"><span class="tp-breadcrumb-home-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>Home</a></li><li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#c-navigation">Genomes</a></li><li class="tp-breadcrumb-item"><span class="tp-breadcrumb-current">Proteins</span></li></ol></nav></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <div class="ds-comp" id="c-assistant">
+            <h3>Assistant button</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th>Rest</th><th>Hover</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><div class="ds-fab"><span class="tp-agent-fab-ring" aria-hidden="true"></span><span class="tp-agent-fab" aria-hidden="true"><span class="tp-agent-fab-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/><path d="M5 6.5h6M5 8.5h4"/></svg></span><span class="tp-agent-fab-label">Assistant</span></span></div></td>
+                        <td><div class="ds-fab ds-fab--open"><span class="tp-agent-fab-ring" aria-hidden="true"></span><span class="tp-agent-fab is-peeking" aria-hidden="true"><span class="tp-agent-fab-icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/><path d="M5 6.5h6M5 8.5h4"/></svg></span><span class="tp-agent-fab-label">Assistant</span></span></div></td></tr>
                 </tbody>
             </table>
             </div>

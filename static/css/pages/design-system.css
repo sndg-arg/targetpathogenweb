@@ -317,6 +317,46 @@ a.ds-card {
     border-radius: var(--tp-radius-md);
 }
 
+/* Assistant button: the real fixed button, placed in the page instead. */
+.ds-fab {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.ds-fab--open {
+    width: 182px;
+}
+
+.ds-fab .tp-agent-fab-ring {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 60px;
+    height: 60px;
+    z-index: 0;
+}
+
+.ds-fab .tp-agent-fab {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    width: 56px;
+    height: 56px;
+    z-index: 1;
+    cursor: default;
+}
+
+.ds-fab .tp-agent-fab.is-peeking {
+    width: 178px;
+}
+
+.ds-fab .tp-agent-fab-icon {
+    flex-basis: 56px;
+    width: 56px;
+    height: 56px;
+}
+
 .ds-pagination {
     margin: 0;
 }
