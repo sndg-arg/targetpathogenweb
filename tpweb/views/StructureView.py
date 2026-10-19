@@ -25,7 +25,9 @@ class StructureView(View):
     template_name = "genomic/structure.html"
 
     def get(self, request, struct_id, *args, **kwargs):
-        structure = PDB.objects.filter(id=struct_id).get()
+        structure = PDB.objects.filter(id=struct_id).first()
+        if structure is None:
+            raise Http404("Structure not found")
         source_bioentry = self._resolve_source_bioentry(request, structure)
 
         primary_link = None

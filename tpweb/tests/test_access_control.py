@@ -223,6 +223,15 @@ class VisitorBrowsingTests(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertNotContains(response, "Sign in required", status_code=404)
 
+    def test_missing_protein_or_structure_is_not_found_not_a_server_error(self):
+        for name, kwargs in [
+            ("protein", {"protein_id": 99999999}),
+            ("structure", {"struct_id": 99999999}),
+        ]:
+            with self.subTest(name=name):
+                response = self.client.get(reverse(f"tpwebapp:{name}", kwargs=kwargs))
+                self.assertEqual(response.status_code, 404)
+
     def test_agent_chat_bypasses_the_locked_page_and_gets_json_instead(self):
         # API_URL_NAMES carve-out -- a fetch() caller needs JSON, not HTML.
         response = self.client.post(reverse("tpwebapp:agent_chat"), content_type="application/json")

@@ -496,7 +496,7 @@ class ProteinView(View):
                 ),
                 "structures__pdb__residue_sets__properties__property",
             )
-            .get()
+            .first()
         )
         # bioentry_id is shared across a genome's <name>, <name>_prots, and
         # <name>_rnas biodatabases (same numeric id space, different rows) --
@@ -506,7 +506,7 @@ class ProteinView(View):
         # catastrophically slowly: a whole-chromosome Bioentry can carry
         # thousands of GenBank features that this view and its template only
         # expect a handful of per protein.
-        if not protein.biodatabase.name.endswith(Biodatabase.PROT_POSTFIX):
+        if protein is None or not protein.biodatabase.name.endswith(Biodatabase.PROT_POSTFIX):
             raise Http404("Protein not found")
         assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
         if not user_can_access_genome_name(request.user, assembly_name):
