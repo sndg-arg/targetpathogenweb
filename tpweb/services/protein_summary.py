@@ -1163,22 +1163,19 @@ def build_target_executive_summary(
     evidence_kinds = _summary_evidence_kinds(strengths)
     kinds_text = _join_evidence_kinds(evidence_kinds)
     if not strengths:
-        verdict = "Evidence is still sparse for this target."
+        verdict = "Sparse evidence so far."
         tone = "sparse"
     elif signal_score >= 8:
-        verdict = f"Well-supported target candidate: {kinds_text} evidence point the same way."
+        verdict = f"Well supported: {kinds_text} evidence agree."
         tone = "strong"
     elif signal_score >= 5:
-        verdict = f"Promising target candidate with {kinds_text} evidence."
+        verdict = f"Promising: {kinds_text} evidence."
         tone = "promising"
     else:
-        verdict = (
-            f"Target candidate with partial support ({kinds_text} evidence); "
-            "inspect missing evidence before prioritizing."
-        )
+        verdict = f"Partial support: {kinds_text} evidence."
         tone = "partial"
     if risks and strengths:
-        verdict += f" Review {len(risks)} flagged risk{'s' if len(risks) != 1 else ''} below."
+        verdict += f" {len(risks)} flagged risk{'s' if len(risks) != 1 else ''}."
 
     # Stable sort: higher-priority (more specific, e.g. direct ligand evidence,
     # experimental structure, pocket consensus) items surface first so they
