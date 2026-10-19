@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261018-chips">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261018-export">
     <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261018-ring">
     <style>
         :root {
@@ -222,7 +222,6 @@
             --tp-color-success-ink: #6ccba0;
             --tp-color-success-bg: #0f2a20;
             --tp-color-success-border: #1a4a36;
-
 
             /* state — warning */
             --tp-color-warning-ink: #d4a84a;
@@ -564,7 +563,8 @@
         .btn:disabled,
         .btn.disabled,
         .tp-btn:disabled,
-        .tp-btn.disabled {
+        .tp-btn.disabled,
+        .tp-btn.is-disabled {
             color: var(--tp-color-text-soft) !important;
             border-color: var(--tp-color-border-soft) !important;
             background: var(--tp-color-surface-muted) !important;
@@ -694,19 +694,6 @@
             padding: var(--tp-space-3);
         }
 
-        .page-link {
-            color: var(--tp-color-text-secondary);
-            border-color: var(--tp-color-border);
-            border-radius: var(--tp-radius-sm);
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-        }
-
-        .page-item.active .page-link {
-            background: linear-gradient(180deg, var(--tp-color-brand-700) 0%, var(--tp-color-brand-800) 100%);
-            border-color: var(--tp-color-brand-800);
-            color: var(--tp-color-on-accent);
-        }
-
         .tp-topbar-desktop {
             display: none;
         }
@@ -802,7 +789,6 @@
         .tp-table-shell .table {
             margin-bottom: 0;
         }
-
 
         /* ── Global messages ── */
         .tp-messages {
@@ -1735,16 +1721,6 @@
             border-bottom-color: var(--tp-color-border-soft);
         }
 
-        /* export button — swap color-mix(white) */
-        .tp-dark .tp-table-export-btn {
-            border-color: var(--tp-color-border-strong);
-            background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
-        }
-        .tp-dark .tp-table-export-btn:hover {
-            border-color: var(--tp-color-text-muted);
-            background: var(--tp-color-surface-soft);
-        }
-
         .tp-global-tooltip {
             position: fixed;
             top: 0;
@@ -1795,10 +1771,7 @@
             align-items: center;
             justify-content: center;
             padding: var(--tp-space-6);
-            background:
-                radial-gradient(560px 260px at 22% 14%, rgba(74, 122, 137, 0.16), transparent 62%),
-                radial-gradient(520px 280px at 82% 82%, rgba(47, 127, 103, 0.16), transparent 65%),
-                rgba(238, 240, 243, 0.88);
+            background: color-mix(in srgb, var(--tp-color-surface) 88%, transparent);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             opacity: 0;
@@ -1821,8 +1794,7 @@
             width: min(380px, 100%);
             border: 1px solid var(--tp-color-border);
             border-radius: var(--tp-radius-md);
-            background:
-                linear-gradient(180deg, rgba(253, 253, 253, 0.94) 0%, rgba(246, 247, 249, 0.94) 100%);
+            background: var(--tp-color-surface);
             box-shadow: var(--tp-shadow-lg);
             padding: var(--tp-space-5) var(--tp-space-5);
             color: var(--tp-color-text-primary);
@@ -1919,18 +1891,6 @@
             color: var(--tp-color-text-secondary);
             font-size: var(--tp-font-size-sm);
             line-height: 1.35;
-        }
-
-        html.tp-dark .tp-page-loader {
-            background:
-                radial-gradient(560px 260px at 22% 14%, rgba(107, 145, 157, 0.14), transparent 62%),
-                radial-gradient(520px 280px at 82% 82%, rgba(47, 127, 103, 0.15), transparent 65%),
-                rgba(8, 22, 30, 0.72);
-        }
-
-        html.tp-dark .tp-page-loader-card {
-            background:
-                linear-gradient(180deg, rgba(18, 37, 47, 0.96) 0%, rgba(14, 30, 39, 0.94) 100%);
         }
 
         .tp-page-action-loading {
@@ -2398,7 +2358,7 @@
 <script src="{% static 'js/global/page-loader.js' %}?v=20261012-skip-export"></script>
 <script src="{% static 'js/global/theme-and-chrome.js' %}?v=20261013-theme-auto-mobile"></script>
 <script src="{% static 'js/global/custom-select.js' %}?v=20260812-js-externalize"></script>
-<script src="{% static 'js/global/table-utilities.js' %}?v=20260812-js-externalize"></script>
+<script src="{% static 'js/global/table-utilities.js' %}?v=20261018-export"></script>
 
 {% block jsloaded %}
     <script>

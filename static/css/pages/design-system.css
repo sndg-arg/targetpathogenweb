@@ -317,11 +317,13 @@ a.ds-card {
     border-radius: var(--tp-radius-md);
 }
 
-/* Assistant button: the real fixed button, placed in the page instead. */
+/* Assistant button: the real fixed button, placed in the page instead.
+   Room around it so the scroll box doesn't clip its shadow. */
 .ds-fab {
     position: relative;
     width: 60px;
     height: 60px;
+    margin: var(--tp-space-3) var(--tp-space-6) var(--tp-space-8);
 }
 
 .ds-fab--open {

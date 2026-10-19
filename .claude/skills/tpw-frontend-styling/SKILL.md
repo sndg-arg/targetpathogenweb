@@ -30,7 +30,7 @@ no raw rem font sizes, no raw shadows, no page-local color aliases (`--blast-ink
   for <=3px nudges and rare >44px layout). The page inset is `--tp-space-5` (20px).
 - **Type**: families `--tp-font-{head,body,mono}`; sizes `--tp-font-size-{2xs .7, xs .78, sm .88,
   md .98, lg 1.12, xl 1.28}rem` + `--tp-heading-{md,lg,xl}`; tracking `--tp-tracking-label` (uppercase
-  labels) / `--tp-tracking-tight` (display headings); weights only 400/500/600/700 as numbers.
+  labels) / `--tp-tracking-tight` (display headings); weights only 400/500/600 (no 700, not loaded).
 - **Shadows**: `--tp-shadow-sm` (menus, tooltips, popovers) and `--tp-shadow-lg` (modals, drawers,
   FAB). In-flow content is flat. Focus = `--tp-focus-outline` (or `outline: 2px solid var(--tp-focus-color)`).
 - **Radius**: `--tp-radius-{xs:4, sm:8, md:12, pill:999}`. Circles may use `50%`.
@@ -41,9 +41,12 @@ no raw rem font sizes, no raw shadows, no page-local color aliases (`--blast-ink
 ## Palette: deep petrol, one accent (since 2026-10-16)
 
 **`/design`** (`tpweb/templates/about/design_system.html`, `static/css/pages/design-system.css`) is a
-public showcase shared at stands: real components in a gallery, plain Spanish copy, **no code, class
-names or token names**. When you add a component, add a tile there with a one-line human description.
-This skill is the developer reference.
+public showcase (anyone with the link; menu entry for Gates collaborators/superusers) shared at stands.
+English, plain titles, **no code, class names, token names or explanatory prose**. Each component is a
+title + a variant matrix (`.ds-matrix`: columns = states such as Default/Hover/Selected/Disabled, rows
+= types or sizes), built from the real classes. Never show keyboard focus. When you add or change a
+component, add/update its matrix there. design-system.css may only place samples (e.g. `.ds-fab`
+un-fixes the assistant button), never restyle them. This skill is the developer reference.
 - The brand scale is low-chroma petrol (brand-800 `#1d4b5a` = primary). Never reintroduce bright
   cyan (`#39a6be`-style) values or `rgba(57,166,190,...)` glows.
 - **One-accent rule**: brand color only for (1) the one primary action per view, (2) links,
@@ -62,20 +65,19 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
 
 ## Reusable component idioms — extend these, don't invent parallel ones
 
-- `.tp-ui-panel` / `.protein-card`-style panel shell: bordered card, `tp-shadow-xs`, hover raises to
-  `tp-shadow-sm` and darkens the border.
-- `.section-head.tp-ui-panel-head`: the h2 + subtitle + optional right-aligned tools/button row that
-  opens every content card.
-- `.target-evidence-card` (in `protein-detail.css`): the "stat card" idiom — small uppercase
-  `.target-evidence-label` + a bold `.target-evidence-value` + optional `.target-evidence-meta`
-  key/value rows below a hairline divider. Modifiers: `--compact` (small text value instead of the
-  large display-font number, for short strings), `--warning` (amber/warning tint), `--secondary`
-  (muted background variant), `--fpocket`/`--p2rank` (colored left accent bar). Reach for this
-  before building a new stat-card pattern from scratch.
-- The "seamless mosaic" grid trick for a hairline-divided card grid with no per-item borders:
-  container gets `gap: 1px` + `background: var(--tp-color-border-soft)`, each grid item gets
-  `background: var(--tp-color-surface)` — the 1px gaps read as thin dividers. See
-  `.target-profile-grid` in `protein-detail.css`.
+Components (all on /design). There is no `.tp-ui-panel`/`.tp-ui-panel-head` any more.
+- `.target-evidence-card` (protein-detail.css): stat card — uppercase label, value, optional
+  key/value meta rows; `--secondary` = muted fill. Reuse it for any new evidence card.
+- Filters: `.filter-chip` (available) + `--active` or `[aria-pressed="true"]` (applied, filled
+  primary) + `--pending` (dashed); tone variants for risk/favorable.
+- Select: `.tp-select` (custom dropdown, `.tp-select-option.is-selected`). Fields: `.form-control`.
+- Messages: `.tp-message--{success,info,warning,error}` (dismissible flash). Notes are `tp-state-note`.
+- Navigation: `.tp-pagination` (quiet: plain numbers, current = brand-100), `.tp-breadcrumb`, `.quick-nav`.
+- Tooltips: `.tp-global-tooltip` (`--tp-tooltip-*`, `.is-below`), one for the whole site.
+- Assistant button: `.tp-agent-fab` + `.tp-agent-fab-ring` (agent-drawer.css) — a circle (pill
+  radius) that grows into a labelled pill on hover; the ring's comet uses `--tp-color-accent-line`.
+- Export CSV (table-utilities.js) is a standard `tp-btn--secondary tp-btn--sm` with icon.
+- Page loader: `.tp-page-loader` (surface veil + blur, the one blurred overlay) > `.tp-page-loader-card`.
 - Chip `.tp-chip` (neutral by default, one size) + only: `--code` (mono ids: EC/GO/scores),
   `--link`, `--success`, `--warning`, `--danger`, `--muted`, `--filter` (removable applied
   filter), `--state` + `idle|running|finished|failed`.

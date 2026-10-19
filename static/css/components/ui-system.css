@@ -1186,66 +1186,7 @@ button.tp-chip:hover,
 
 }
 
-.tp-table-export-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-2);
-    min-height: 34px;
-    padding: 0 var(--tp-space-3);
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    letter-spacing: 0;
-    line-height: 1;
-    text-decoration: none;
-    cursor: pointer;
-    transition:
-        border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
-        background var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
-        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.tp-table-export-btn:hover {
-    color: var(--tp-color-text-primary);
-    text-decoration: none;
-    border-color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-soft);
-}
-
-.tp-table-export-btn:focus-visible {
-    outline: none;
-    box-shadow: var(--tp-focus-outline);
-}
-
-.tp-table-export-btn:active {
-    background: var(--tp-color-surface-soft);
-}
-
-.tp-table-export-btn[disabled],
-.tp-table-export-btn.is-disabled {
-    opacity: 0.55;
-    cursor: default;
-    pointer-events: none;
-    box-shadow: none;
-}
-
-.tp-table-export-btn__icon {
-    width: 18px;
-    height: 18px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 auto;
-    color: inherit;
-}
-
 .tp-table-export-btn__icon svg {
-    display: block;
-    width: 16px;
-    height: 16px;
     fill: none;
     stroke: currentColor;
     stroke-width: 1.8;

@@ -102,9 +102,9 @@
 
     function createExportButton(table, targetSelector) {
         const button = document.createElement(table.dataset.exportUrl ? "a" : "button");
-        button.className = "tp-table-export-btn";
+        button.className = "btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon tp-table-export-btn";
         button.innerHTML = [
-            '<span class="tp-table-export-btn__icon" aria-hidden="true">',
+            '<span class="tp-btn-icon tp-table-export-btn__icon" aria-hidden="true">',
             '<svg viewBox="0 0 16 16" width="16" height="16" focusable="false" aria-hidden="true">',
             '<path d="M8 2.5v7"></path>',
             '<path d="m5.25 7.75 2.75 2.75 2.75-2.75"></path>',
