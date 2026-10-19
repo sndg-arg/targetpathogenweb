@@ -215,6 +215,14 @@ class VisitorBrowsingTests(TestCase):
         # of the anonymous panel (the site footer still lists it, small).
         self.assertNotContains(response, "access-locked-fallback", status_code=403)
 
+    def test_mistyped_address_is_not_found_not_a_sign_in_wall(self):
+        # Signing in would not make an unknown address exist: the anonymous
+        # visitor gets the 404 page with a way home, not "Sign in required".
+        response = self.client.get("/this-page-does-not-exist")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertNotContains(response, "Sign in required", status_code=404)
+
     def test_agent_chat_bypasses_the_locked_page_and_gets_json_instead(self):
         # API_URL_NAMES carve-out -- a fetch() caller needs JSON, not HTML.
         response = self.client.post(reverse("tpwebapp:agent_chat"), content_type="application/json")

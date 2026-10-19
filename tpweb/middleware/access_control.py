@@ -114,11 +114,15 @@ def _is_exempt_path(path):
     return path.startswith(EXEMPT_PATH_PREFIXES)
 
 
+_UNKNOWN_PATH = object()
+
+
 def _resolved_url_name(path):
+    """url_name for a known route, or _UNKNOWN_PATH when no route matches."""
     try:
         return resolve(path).url_name
     except Resolver404:
-        return None
+        return _UNKNOWN_PATH
 
 
 def _resolve_client_ip(request):
@@ -160,6 +164,10 @@ class LoginRequiredMiddleware:
         if request.user.is_authenticated or _is_exempt_path(request.path):
             return self.get_response(request)
         url_name = _resolved_url_name(request.path)
+        # A mistyped address is a "page not found" (404 page with a way home),
+        # not a "sign in" wall -- signing in would not make it exist.
+        if url_name is _UNKNOWN_PATH:
+            return self.get_response(request)
         if url_name in PUBLIC_URL_NAMES or url_name in API_URL_NAMES:
             return self.get_response(request)
         return render(
