@@ -242,9 +242,8 @@
 
 .genome-actions-head,
 .genome-actions-cell {
-    width: 128px;
-    min-width: 128px;
     text-align: center;
+    white-space: nowrap;
 }
 
 .genome-actions-inline {

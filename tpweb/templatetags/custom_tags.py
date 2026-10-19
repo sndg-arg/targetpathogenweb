@@ -84,6 +84,15 @@ def druggability_tone(value):
 
 
 @register.filter
+def thousands(value):
+    """6264404 -> "6,264,404"; anything that is not a whole number passes through."""
+    try:
+        return f"{int(str(value)):,}"
+    except (TypeError, ValueError):
+        return value
+
+
+@register.filter
 def score_metric_tone(value, column_name):
     text = str(value if value is not None else "").strip().lower()
     column_key = str(column_name or "").strip().lower()

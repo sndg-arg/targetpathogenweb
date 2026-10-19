@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261018-empty">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261019-genomes">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -168,7 +168,7 @@
                                     </td>
                                     <td>{{ genome.description }}</td>
                                     {% for col in tcolumns %}
-                                        <td class="genome-metric-cell">{{ genome|dictkey:col|default_if_none:"-" }}</td>
+                                        <td class="genome-metric-cell">{{ genome|dictkey:col|default_if_none:"—"|thousands }}</td>
                                     {% endfor %}
                                     <td class="genome-actions-cell">
                                         <div class="genome-actions-inline">
