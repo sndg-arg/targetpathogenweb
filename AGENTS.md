@@ -67,6 +67,7 @@ No ocultar errores para reducir tokens.
 ## 4. Salida de consola y codex-quiet
 
 - Antes de utilizar `codex-quiet`, verificar que esté instalado y disponible (`command -v codex-quiet`).
+- Fuente versionada en este repo: `scripts/codex-quiet.py` (copia instalada en `~/bin`). Si `codex-quiet` no está en el PATH (p. ej. en nodo0 o en un contenedor), usar `python scripts/codex-quiet.py -- <comando>`.
 - Para comandos potencialmente verbosos (tests, builds, instalaciones, linting, etc.), preferir `codex-quiet -- <comando>`.
 - No utilizarlo para comandos cuya salida breve sea necesaria directamente.
 - `codex-quiet` guarda la salida completa en un log temporal y devuelve un JSON compacto con `ok`, `exit_code`, `seconds`, `bytes`, `lines` y `log`.
