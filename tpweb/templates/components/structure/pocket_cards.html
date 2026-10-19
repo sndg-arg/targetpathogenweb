@@ -79,8 +79,6 @@
                             <span class="tp-chip js-score-tag" data-score="{{ p.druggability }}" title="{{ p.score_label }}">{{ p.druggability }}{% if p.score_band %} · {{ p.score_band }}{% endif %}</span>
                             {% if p.size_outlier %}
                                 <span class="tp-chip tp-chip--warning" title="{{ p.size_outlier_note }}">{% trans "Unusual size" %}</span>
-                            {% else %}
-                                <span class="tp-chip tp-chip--warning pocket-card-badge-placeholder" aria-hidden="true">{% trans "Unusual size" %}</span>
                             {% endif %}
                         </div>
                     </div>

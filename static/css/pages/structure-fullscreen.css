@@ -703,10 +703,6 @@ body:has(.sv-root) { overflow: hidden; }
     max-width: 100%;
 }
 
-.pocket-card-badge-placeholder {
-    visibility: hidden;
-}
-
 .pocket-card-name {
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
