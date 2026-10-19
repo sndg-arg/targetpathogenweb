@@ -1224,6 +1224,11 @@ body.viewer-settings-open { overflow: hidden; }
 @media (max-width: 720px) {
     .sv-sidebar-toggle-btn { display: inline-flex; }
 
+    /* On phones the toolbar scrolls sideways; Info (pockets and details) goes
+       first so it is visible without scrolling. */
+    .sv-sidebar-toggle-btn { order: -1; }
+    .sv-tb-sep:has(+ .sv-sidebar-toggle-btn) { display: none; }
+
     .sv-sidebar {
         position: absolute;
         inset: 0 0 0 auto;

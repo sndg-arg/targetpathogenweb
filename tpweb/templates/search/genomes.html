@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261019-genomes">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261019-mobile">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -23,17 +23,7 @@
         <section class="tp-page-hero genomes-hero">
             <div class="tp-view-head">
                 <div class="tp-view-head-copy">
-                </div>
-                <div class="tp-view-head-actions">
-                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon tp-view-export-link">
-                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
-                        {% trans "Download Excel summary" %}
-                    </a>
-                </div>
-            </div>
-            <span class="tp-view-eyebrow genomes-eyebrow">{% trans "Genome collection" %}</span>
-            <div class="genomes-hero-head">
-                <div class="genomes-hero-copy">
+                    <span class="tp-view-eyebrow">{% trans "Genome collection" %}</span>
                     <h1 class="tp-view-title">{% trans "Genomes" %}</h1>
                     {% if genomes or has_search %}
                         <p class="tp-view-lead genomes-subtitle">{% trans "Open a genome to inspect proteins, annotations, and structural evidence." %}</p>
@@ -41,7 +31,8 @@
                         <p class="tp-view-lead genomes-subtitle">{% trans "Upload the first genome to start exploring proteins, annotations, and structures." %}</p>
                     {% endif %}
                 </div>
-                {% if perms.tpweb.can_upload_genome and genomes or perms.tpweb.can_upload_genome and has_search %}
+                <div class="tp-view-head-actions">
+                    {% if perms.tpweb.can_upload_genome and genomes or perms.tpweb.can_upload_genome and has_search %}
                     <a class="btn tp-btn tp-btn--primary tp-btn-with-icon genomes-upload-btn" href="{% url 'tpwebapp:genome_upload' %}">
                         <span class="tp-btn-icon" aria-hidden="true">
                             {% include "components/icons/plus.html" %}
@@ -49,6 +40,11 @@
                         {% trans "Upload genome" %}
                     </a>
                 {% endif %}
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon tp-view-export-link">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                        {% trans "Download Excel summary" %}
+                    </a>
+                </div>
             </div>
             {% if pipeline_status.running and not pipeline_status.running_for_other_workspace %}
                 <div class="genomes-pipeline">

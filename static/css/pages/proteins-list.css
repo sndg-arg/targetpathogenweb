@@ -3121,6 +3121,10 @@ a.filter-pill .filter-pill-remove {
         align-items: stretch;
     }
 
+    .hero-top > * {
+        flex-basis: auto;
+    }
+
     .hero-top .btn {
         width: 100%;
         justify-content: center;

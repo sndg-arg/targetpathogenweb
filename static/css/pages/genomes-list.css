@@ -24,24 +24,6 @@
 }
 .genomes-page h1 { font-weight: 600; }
 
-.genomes-hero-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--tp-space-4);
-    margin-top: var(--tp-space-2);
-}
-
-.genomes-hero-copy {
-    min-width: 0;
-}
-
-.genomes-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-2);
-}
-
 .genomes-upload-btn {
     min-width: 188px;
     justify-content: center;
@@ -315,11 +297,6 @@
 }
 
 @media (max-width: 1080px) {
-    .genomes-hero-head {
-        flex-direction: column;
-        align-items: stretch;
-        gap: var(--tp-space-3);
-    }
 
     .genome-workspace-empty {
         padding: var(--tp-space-5);
