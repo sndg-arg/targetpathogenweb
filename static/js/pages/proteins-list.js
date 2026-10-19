@@ -1224,7 +1224,7 @@ function jsloaded() {
         proteinTableScrollNote.hidden = !hasOverflow;
         if (proteinTableTopScroll && proteinTableTopScrollInner) {
             proteinTableTopScroll.hidden = !hasOverflow;
-            const trackInset = 6;
+            const trackInset = 4;
             const trackWidth = Math.max(1, (proteinTableTopScroll.clientWidth || scrollHost.clientWidth || 1) - trackInset);
             const proportionalThumb = Math.round((scrollHost.clientWidth / contentWidth) * trackWidth);
             const thumbWidth = hasOverflow

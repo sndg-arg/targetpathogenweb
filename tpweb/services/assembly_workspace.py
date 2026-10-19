@@ -482,6 +482,10 @@ def get_unexplored_targets(assembly_name, user, limit=5, scored=None):
     if scored is None:
         scored = _cached_score_proteins(assembly_name)
     unexplored = [r for r in scored if r["binder_count"] == 0]
+    if len(unexplored) == len(scored):
+        # No protein has ligand evidence yet, so this list would just repeat
+        # the main ranking; the overview hides the panel when it's empty.
+        return {"formula_name": "Unexplored candidates", "items": []}
     unexplored.sort(key=lambda r: (r["score"], r.get("pocket", r["fpocket"])), reverse=True)
     return {
         "formula_name": "Unexplored candidates",

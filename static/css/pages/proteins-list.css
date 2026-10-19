@@ -48,53 +48,12 @@
     line-height: 1.1;
 }
 
-/* Which genome you're standing on is the thing that actually changes between
-   visits to this page ("Proteins" as the h1 never does) -- label small and
-   muted like an eyebrow, genome id itself sized closer to a heading so it
-   reads as unmistakable at a glance instead of a footnote under the h1. */
-.hero-context {
-    margin: var(--tp-space-3) 0 0;
-    overflow-wrap: anywhere;
-}
-
-.hero-context strong {
-    display: block;
-    margin-bottom: 2px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-}
-
-.hero-context-id {
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-heading-md);
-    font-weight: 600;
-    line-height: 1.2;
-    color: var(--tp-color-brand-900);
-}
-
-.hero-context-note {
-    margin: var(--tp-space-1) 0 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-md);
-    line-height: 1.35;
-}
-
 .hero-chips {
     margin-top: var(--tp-space-3);
 }
 
 .hero-chips .tp-chip {
     color: var(--tp-color-text-secondary);
-}
-
-.hero-pipeline-group {
-    margin-top: var(--tp-space-4);
-    display: grid;
-    gap: var(--tp-space-2);
-    justify-items: start;
 }
 
 .hero-analysis-value {
@@ -140,10 +99,9 @@ a.filter-pill .filter-pill-remove {
 }
 
 .protein-table td[data-col="go"] .annotation-cell {
-    display: grid;
-    justify-items: center;
-    gap: var(--tp-space-1);
-    width: min(100%, 220px);
+    display: flex;
+    justify-content: center;
+    width: min(100%, 240px);
     margin-inline: auto;
 }
 
@@ -548,7 +506,7 @@ a.filter-pill .filter-pill-remove {
 
 .protein-table-top-scroll {
     position: relative;
-    height: 22px;
+    height: 10px;
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-surface-muted);
     border: 1px solid var(--tp-color-border-soft);
@@ -556,6 +514,12 @@ a.filter-pill .filter-pill-remove {
     --protein-scroll-thumb-size: 96px;
     --protein-scroll-thumb-offset: 0px;
     cursor: grab;
+}
+
+/* The note + top scrollbar above already say "scroll right"; skip the shared
+   floating hint here so there aren't three cues for one thing. */
+.protein-table-panel .tp-table-scroll-hint {
+    display: none;
 }
 
 .protein-table-top-scroll__inner {
@@ -566,7 +530,7 @@ a.filter-pill .filter-pill-remove {
 .protein-table-top-scroll::after {
     content: "";
     position: absolute;
-    inset: 3px auto 3px 3px;
+    inset: 2px auto 2px 2px;
     width: var(--protein-scroll-thumb-size);
     transform: translateX(var(--protein-scroll-thumb-offset));
     border-radius: var(--tp-radius-pill);
@@ -575,7 +539,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .protein-table-top-scroll.is-disabled::after {
-    width: calc(100% - 6px);
+    width: calc(100% - 4px);
     transform: translateX(0);
     opacity: 0.46;
 }
@@ -2270,14 +2234,6 @@ a.filter-pill .filter-pill-remove {
 
     .protein-table td[data-col="go"] {
         text-align: center;
-    }
-
-    .protein-table td[data-col="go"] .annotation-cell {
-        display: grid;
-        justify-items: center;
-        margin-inline: auto;
-        width: min(100%, 280px);
-        max-width: 280px;
     }
 
     .protein-table td[data-col="go"] .annotation-empty {

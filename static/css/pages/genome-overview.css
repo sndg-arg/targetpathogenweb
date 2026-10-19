@@ -272,6 +272,11 @@
     margin-right: var(--tp-space-5);
 }
 
+/* Only one ranking (no ligand evidence anywhere yet): it takes the full row. */
+.genome-targets-wrap > :only-child {
+    grid-column: 1 / -1;
+}
+
 @media (max-width: 980px) {
     .genome-targets-wrap {
         grid-template-columns: minmax(0, 1fr);

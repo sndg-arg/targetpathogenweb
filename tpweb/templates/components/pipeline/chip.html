@@ -1,32 +1,21 @@
 {% load i18n %}
 
+{# A chip holds a short state ("Pipeline running · 16/24"); the long activity line goes in its tooltip. #}
 {% if pipeline_status.available %}
     {% if mode == "global" %}
-        <span class="{{ chip_class }} {{ pipeline_status.state_class }}">
+        <span class="{{ chip_class }} {{ pipeline_status.state_class }}"{% if pipeline_status.activity_label or pipeline_status.stage_label %} title="{{ pipeline_status.activity_label|default:pipeline_status.stage_label }}"{% endif %}>
             {% if pipeline_status.running and pipeline_status.genome_accession %}
-                {% trans "Pipeline in progress for" %} <code>{{ pipeline_status.genome_display_accession|default:pipeline_status.genome_accession }}</code>
-                {% if pipeline_status.stage_current %}
-                    · {% trans "Stage" %} {{ pipeline_status.stage_current }}/{{ pipeline_status.stage_total }}
-                {% endif %}
-                {% if pipeline_status.activity_label or pipeline_status.stage_label %}
-                    · {{ pipeline_status.activity_label|default:pipeline_status.stage_label }}
-                {% endif %}
+                {% trans "Running" %}: <code>{{ pipeline_status.genome_display_accession|default:pipeline_status.genome_accession }}</code>{% if pipeline_status.stage_current %} · {{ pipeline_status.stage_current }}/{{ pipeline_status.stage_total }}{% endif %}
             {% elif pipeline_status.running %}
-                {% trans "Pipeline in progress" %}
+                {% trans "Pipeline running" %}
             {% else %}
                 {{ pipeline_status.state_label }}
             {% endif %}
         </span>
     {% else %}
         {% if pipeline_status.running_for_current_genome %}
-            <span class="{{ chip_class }} running">
-                {% trans "Pipeline in progress for" %} <code>{{ pipeline_status.genome_display_accession|default:pipeline_status.genome_accession }}</code>
-                {% if pipeline_status.stage_current %}
-                    · {% trans "Stage" %} {{ pipeline_status.stage_current }}/{{ pipeline_status.stage_total }}
-                {% endif %}
-                {% if pipeline_status.activity_label or pipeline_status.stage_label %}
-                    · {{ pipeline_status.activity_label|default:pipeline_status.stage_label }}
-                {% endif %}
+            <span class="{{ chip_class }} running"{% if pipeline_status.activity_label or pipeline_status.stage_label %} title="{{ pipeline_status.activity_label|default:pipeline_status.stage_label }}"{% endif %}>
+                {% trans "Pipeline running" %}{% if pipeline_status.stage_current %} · {% trans "stage" %} {{ pipeline_status.stage_current }}/{{ pipeline_status.stage_total }}{% endif %}
             </span>
         {% elif pipeline_status.running_for_other_genome %}
             <span class="{{ chip_class }} running-other">

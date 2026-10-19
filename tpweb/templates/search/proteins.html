@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-icons2">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261019-live">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -27,12 +27,11 @@
         <section class="tp-page-hero proteins-hero">
             <div class="hero-top tp-view-head">
                 <div class="tp-view-head-copy">
-                    <h1 class="tp-view-title">{% trans "Proteins" %}</h1>
-                    <p class="hero-context"><strong>{% trans "Genome" %}:</strong> <span class="hero-context-id">{{ biodb_accession }}</span></p>
+                    <span class="tp-view-eyebrow">{% trans "Proteins" %}</span>
+                    <h1 class="tp-view-title">{{ biodb_accession }}</h1>
                     {% if biodb_description and biodb_description != biodb_accession %}
-                        <p class="hero-context-note"><strong>{% trans "Description" %}:</strong> {{ biodb_description }}</p>
+                        <p class="tp-view-lead">{{ biodb_description }}</p>
                     {% endif %}
-                    <p class="tp-view-lead hero-subtitle">{% trans "Search, filter, and prioritize proteins." %}</p>
                 </div>
                 <div class="tp-view-head-actions">
                     {# Same filtered/sorted/scored view, two formats: Excel (every row + #}
@@ -59,12 +58,10 @@
                 {% if structure_source %}
                     <span class="tp-chip">{% trans "Structure" %}: {{ structure_source|humanize_identifier }}</span>
                 {% endif %}
-            </div>
-            {% if pipeline_status.available and pipeline_status.running_for_current_genome %}
-                <div class="hero-pipeline-group">
+                {% if pipeline_status.available and pipeline_status.running_for_current_genome %}
                     {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state" %}
-                </div>
-            {% endif %}
+                {% endif %}
+            </div>
             {% if pipeline_status.available and pipeline_status.current_genome_status_note %}
                 <p class="tp-state-note {% if pipeline_status.failed_for_current_genome %}tp-state-note--error{% else %}tp-state-note--empty{% endif %}">
                     {{ pipeline_status.current_genome_status_note }}
@@ -1362,6 +1359,6 @@
             confirmClearAll: "{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}"
         };
     </script>
-    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261017-system3"></script>
+    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261019-live"></script>
     <script src="{% static 'js/pages/filter-values-input.js' %}?v=20261018-notes"></script>
 {% endblock %}

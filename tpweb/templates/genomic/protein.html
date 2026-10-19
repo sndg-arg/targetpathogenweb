@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261018-icons2">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261019-live">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -270,10 +270,12 @@
                         </dd>
                         {% elif item.tone == "good" or item.tone == "bad" %}
                         <dd class="target-profile-value">
-                            <span class="tp-chip{% if item.tone == 'good' %} tp-chip--success{% elif item.tone == 'bad' %} tp-chip--warning{% endif %}">
+                            {# Same tones as the protein table: an off-target hit is a risk (red); a gene #}
+                            {# that is not essential is just "No" (neutral), not an alarm. #}
+                            <span class="tp-chip{% if item.tone == 'good' %} tp-chip--success{% elif item.key != 'hit_in_deg' %} tp-chip--danger{% endif %}">
                                 {% if item.tone == "good" %}
                                 {% include "components/icons/check.html" %}
-                                {% else %}
+                                {% elif item.key != "hit_in_deg" %}
                                 <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L13.8 12.5H2.2L8 2.5Z"/><line x1="8" y1="6.3" x2="8" y2="9"/><circle cx="8" cy="10.6" r="0.6" fill="currentColor" stroke="none"/></svg>
                                 {% endif %}
                                 {{ item.value|capfirst }}
