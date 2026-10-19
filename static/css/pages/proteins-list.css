@@ -1336,19 +1336,6 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-secondary);
 }
 
-/* Selector repeats the class -- .tp-dark .tp-btn--neutral (0,2,0, !important)
-   otherwise beats a plain single-class override here in dark mode, even
-   though this already uses !important (same specificity bug found and
-   fixed on .tpd-delete-btn earlier this session: page CSS loads after
-   masterpage.html's inline <style>, so a tie is enough to win -- a deficit
-   isn't). */
-.drawer-close-btn.drawer-close-btn {
-    width: 30px !important;
-    min-width: 30px !important;
-    display: inline-grid;
-    place-items: center;
-}
-
 .drawer-body {
     padding: 0;
     overflow: auto;
@@ -2484,11 +2471,6 @@ a.filter-pill .filter-pill-remove {
     margin: 0;
 }
 
-.columns-restore-link.columns-restore-link:hover,
-.columns-restore-link.columns-restore-link:focus-visible {
-    outline: none;
-}
-
 .proteins-hero,
 .toolbar-card {
     animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
@@ -2804,11 +2786,6 @@ a.filter-pill .filter-pill-remove {
 .drawer-advanced-link:hover,
 .drawer-advanced-link:focus-visible {
     text-decoration: underline;
-}
-
-.drawer-catalogue-toggle.drawer-catalogue-toggle:hover,
-.drawer-catalogue-toggle.drawer-catalogue-toggle:focus-visible {
-    outline: none;
 }
 
 /* ==========================================================================
@@ -4002,12 +3979,8 @@ body.is-resizing-column * {
 
 /* Filters drawer: optional wide mode (expand button in the drawer head),
    two catalogue columns instead of one long scroll. Desktop only. */
-.drawer-expand-btn.drawer-expand-btn {
+.drawer-expand-btn {
     margin-left: auto;
-    width: 30px !important;
-    min-width: 30px !important;
-    display: inline-grid;
-    place-items: center;
 }
 
 @media (min-width: 900px) {

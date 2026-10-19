@@ -269,33 +269,8 @@
     flex-wrap: wrap;
 }
 
-/* Selector doubled + !important throughout -- .tp-btn--neutral (and its
-   .tp-dark counterpart) otherwise beats a plain single-class override here
-   at rest, hover, and in dark mode specifically (same specificity bug
-   fixed on .tpd-delete-btn earlier this session; identical fix applied to
-   .home-pipeline-refresh/.home-pipeline-info-btn). */
-.genome-upload-refresh-btn.genome-upload-refresh-btn {
-    min-width: 32px;
-    width: 32px;
-    justify-content: center;
-    transform: none !important;
-    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.genome-upload-refresh-btn.genome-upload-refresh-btn:active {
-    transform: none !important;
-}
-
 .genome-upload-refresh-icon {
-    display: inline-flex;
-    width: 16px;
-    height: 16px;
     pointer-events: none;
-}
-
-.genome-upload-refresh-icon svg {
-    width: 100%;
-    height: 100%;
 }
 
 .genome-upload-refresh-icon.is-spinning {

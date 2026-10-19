@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20261018-controls">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20261018-iconbtns">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -159,7 +159,7 @@
                         aria-label="{% trans 'Refresh submission list' %}"
                         title="{% trans 'Refresh submission list' %}"
                     >
-                        <span class="genome-upload-refresh-icon" aria-hidden="true">
+                        <span class="tp-btn-icon genome-upload-refresh-icon" aria-hidden="true">
                             {% include "components/icons/refresh.html" %}
                         </span>
                     </button>
