@@ -3969,24 +3969,14 @@ body.is-resizing-column * {
 }
 
 @media (min-width: 900px) {
+    /* Same single column as the side panel, just wider. */
     .filters-drawer.filters-drawer--wide {
         width: min(1080px, 94vw);
-    }
-
-    .filters-drawer--wide .drawer-filter-catalogue {
-        display: block;
-        column-count: 2;
-        column-gap: var(--tp-space-4);
-    }
-
-    .filters-drawer--wide .drawer-filter-catalogue > * {
-        break-inside: avoid;
-        margin-bottom: var(--tp-space-2);
     }
 }
 
 @media (max-width: 899px) {
-    .drawer-expand-btn.drawer-expand-btn {
+    .drawer-expand-btn {
         display: none;
     }
 }
