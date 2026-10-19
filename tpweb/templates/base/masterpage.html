@@ -1294,78 +1294,6 @@
                 transform: rotate(180deg);
             }
 
-            .tp-topbar-desktop-account-menu {
-                margin-top: var(--tp-space-3) !important;
-                padding: var(--tp-space-2);
-                min-width: 196px;
-                background: var(--tp-nav-menu-bg);
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
-                border: 1px solid var(--tp-nav-line);
-                border-radius: var(--tp-radius-md);
-                box-shadow: var(--tp-shadow-sm);
-            }
-
-            .tp-topbar-desktop-account-item {
-                display: flex;
-                align-items: center;
-                gap: var(--tp-space-2);
-                width: 100%;
-                padding: var(--tp-space-2) var(--tp-space-3);
-                border: none;
-                border-radius: var(--tp-radius-sm);
-                background: transparent;
-                color: var(--tp-nav-ink);
-                font-size: var(--tp-font-size-sm);
-                font-weight: 500;
-                text-align: left;
-                text-decoration: none;
-                transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-                    color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-            }
-
-            .tp-topbar-desktop-account-item:hover,
-            .tp-topbar-desktop-account-item.is-hover,
-            .tp-topbar-desktop-account-item:focus-visible {
-                background: var(--tp-nav-fill);
-                color: var(--tp-color-on-accent);
-                outline: none;
-            }
-
-            .tp-topbar-desktop-account-item:focus-visible {
-                box-shadow: 0 0 0 2px var(--tp-nav-line-strong);
-            }
-
-            .tp-topbar-desktop-account-item.active {
-                background: var(--tp-nav-fill-strong);
-                color: var(--tp-color-on-accent);
-            }
-
-            .tp-topbar-desktop-account-item-icon {
-                display: flex;
-                width: 15px;
-                height: 15px;
-                flex: 0 0 auto;
-                color: var(--tp-nav-ink-muted);
-            }
-
-            .tp-topbar-desktop-account-item-icon svg {
-                display: block;
-                width: 100%;
-                height: 100%;
-                stroke: currentColor;
-                fill: none;
-                stroke-width: 1.6;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-            }
-
-            .tp-topbar-desktop-account-divider {
-                height: 1px;
-                margin: var(--tp-space-2) var(--tp-space-1);
-                background: var(--tp-nav-fill);
-            }
-
             .tp-topbar-desktop-login {
                 display: inline-flex;
                 align-items: center;
@@ -1533,6 +1461,79 @@
                     min-height: 100dvh;
                 }
             }
+        }
+
+        /* Top-bar menu (profile, About): desktop only in the bar, also shown on /design. */
+        .tp-topbar-desktop-account-menu {
+            margin-top: var(--tp-space-3) !important;
+            padding: var(--tp-space-2);
+            min-width: 196px;
+            background: var(--tp-nav-menu-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--tp-nav-line);
+            border-radius: var(--tp-radius-md);
+            box-shadow: var(--tp-shadow-sm);
+        }
+
+        .tp-topbar-desktop-account-item {
+            display: flex;
+            align-items: center;
+            gap: var(--tp-space-2);
+            width: 100%;
+            padding: var(--tp-space-2) var(--tp-space-3);
+            border: none;
+            border-radius: var(--tp-radius-sm);
+            background: transparent;
+            color: var(--tp-nav-ink);
+            font-size: var(--tp-font-size-sm);
+            font-weight: 500;
+            text-align: left;
+            text-decoration: none;
+            transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+        }
+
+        .tp-topbar-desktop-account-item:hover,
+        .tp-topbar-desktop-account-item.is-hover,
+        .tp-topbar-desktop-account-item:focus-visible {
+            background: var(--tp-nav-fill);
+            color: var(--tp-color-on-accent);
+            outline: none;
+        }
+
+        .tp-topbar-desktop-account-item:focus-visible {
+            box-shadow: 0 0 0 2px var(--tp-nav-line-strong);
+        }
+
+        .tp-topbar-desktop-account-item.active {
+            background: var(--tp-nav-fill-strong);
+            color: var(--tp-color-on-accent);
+        }
+
+        .tp-topbar-desktop-account-item-icon {
+            display: flex;
+            width: 15px;
+            height: 15px;
+            flex: 0 0 auto;
+            color: var(--tp-nav-ink-muted);
+        }
+
+        .tp-topbar-desktop-account-item-icon svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .tp-topbar-desktop-account-divider {
+            height: 1px;
+            margin: var(--tp-space-2) var(--tp-space-1);
+            background: var(--tp-nav-fill);
         }
 
         @media (prefers-reduced-motion: reduce) {
