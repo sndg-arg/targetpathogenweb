@@ -189,7 +189,7 @@ body:has(.sv-root) { overflow: hidden; }
 }
 
 .sv-legend-label {
-    font-size: var(--tp-font-size-2xs);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     color: var(--sv-overlay-text-muted);
     text-transform: uppercase;
@@ -518,8 +518,8 @@ body:has(.sv-root) { overflow: hidden; }
 
 .sv-pocket-inspector-kicker {
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -551,8 +551,8 @@ body:has(.sv-root) { overflow: hidden; }
 
 .sv-pocket-inspector-grid dt {
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -613,7 +613,7 @@ body:has(.sv-root) { overflow: hidden; }
 .mini-section h3 {
     margin: 0 0 3px;
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
     letter-spacing: var(--tp-tracking-label);
@@ -760,8 +760,8 @@ body:has(.sv-root) { overflow: hidden; }
 
 .pocket-card-layer-label {
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     line-height: 1;
     text-transform: uppercase;
@@ -777,8 +777,8 @@ body:has(.sv-root) { overflow: hidden; }
 .pocket-card-repr-group {
     grid-column: 1 / -1;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     line-height: 1;
     text-transform: uppercase;
@@ -817,7 +817,7 @@ body:has(.sv-root) { overflow: hidden; }
 }
 .residueset-row-info { flex: 1 1 0; min-width: 0; display: grid; gap: 1px; }
 .residueset-type {
-    font-size: var(--tp-font-size-2xs);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
@@ -941,7 +941,7 @@ body.viewer-settings-open { overflow: hidden; }
 .viewer-settings-section-title {
     margin: 0 0 var(--tp-space-2);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);

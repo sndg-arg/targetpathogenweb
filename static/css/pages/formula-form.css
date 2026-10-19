@@ -305,9 +305,10 @@
     flex: 0 0 auto;
     color: var(--tp-color-text-muted);
     font-family: var(--tp-font-body);
-    font-size: var(--tp-font-size-2xs);
+    font-size: var(--tp-font-size-xs);
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
+    font-weight: 500;
 }
 
 /* ── Field error ── */

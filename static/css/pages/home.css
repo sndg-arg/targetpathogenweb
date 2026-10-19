@@ -408,7 +408,7 @@ body.pipeline-info-open {
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
-    color: var(--tp-color-brand-700);
+    color: var(--tp-color-text-muted);
 }
 
 .pipeline-info-sequential {
@@ -467,7 +467,7 @@ body.pipeline-info-open {
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
-    color: var(--tp-color-brand-900);
+    color: var(--tp-color-text-muted);
 }
 
 .pipeline-info-branch-note {

@@ -1912,12 +1912,13 @@ button.tp-chip:hover,
 
 .metabolic-network-tooltip dt {
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     text-transform: uppercase;
     /* Defensive: if a future label is still too wide for the column, wrap
        it instead of repeating this bug by overflowing into the value. */
     overflow-wrap: break-word;
+    letter-spacing: var(--tp-tracking-label);
 }
 
 .metabolic-network-tooltip dd {

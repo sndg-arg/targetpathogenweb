@@ -222,7 +222,7 @@
     padding: var(--tp-space-1) 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);

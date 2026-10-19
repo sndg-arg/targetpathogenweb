@@ -117,7 +117,7 @@
     grid-column: 1 / -1;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -162,7 +162,7 @@
     margin: 0 0 var(--tp-space-3);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -931,8 +931,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .sv-pocket-inspector-kicker {
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -972,8 +972,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .sv-pocket-inspector-grid dt {
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -1128,8 +1128,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     grid-column: 1 / -1;
     margin-top: 2px;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     line-height: 1.1;
     text-transform: uppercase;
@@ -1141,8 +1141,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .pocket-card-layer-label {
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     line-height: 1;
     text-transform: uppercase;
@@ -1304,7 +1304,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     cursor: pointer;
     list-style: none;
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
@@ -1701,7 +1701,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .binder-intel-kicker {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -1733,7 +1733,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     display: block;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -2604,7 +2604,7 @@ body.residue-modal-open {
     border-bottom: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -2645,9 +2645,9 @@ body.residue-modal-open {
 }
 
 .target-profile-label {
-    font-size: var(--tp-font-size-2xs);
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: var(--tp-tracking-label);
     line-height: 1.2;
@@ -2799,13 +2799,13 @@ body.residue-modal-open {
     align-items: center;
     padding: 2px var(--tp-space-2);
     border-radius: var(--tp-radius-xs);
-    font-size: var(--tp-font-size-2xs);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     white-space: nowrap;
     flex-shrink: 0;
-    color: var(--tp-color-brand-800);
+    color: var(--tp-color-text-muted);
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border);
 }
@@ -3245,9 +3245,9 @@ body.residue-modal-open {
 .metabolic-sidebar-title {
     display: block;
     margin-bottom: var(--tp-space-2);
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -3286,8 +3286,9 @@ body.residue-modal-open {
 .metabolic-inspector dt {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
+    letter-spacing: var(--tp-tracking-label);
 }
 
 .metabolic-inspector dd {
@@ -3529,7 +3530,7 @@ body.residue-modal-open {
     border-bottom: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }

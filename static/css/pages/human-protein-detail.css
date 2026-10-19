@@ -76,6 +76,7 @@
     letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
     margin-bottom: var(--tp-space-3);
+    font-weight: 500;
 }
 
 .human-kv-list {
@@ -236,6 +237,7 @@
     letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
     padding-top: 2px;
+    font-weight: 500;
 }
 
 .human-feature-lane__items {
@@ -352,6 +354,7 @@
     letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
     margin-bottom: var(--tp-space-3);
+    font-weight: 500;
 }
 
 .human-xref-list {

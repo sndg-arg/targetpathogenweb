@@ -62,7 +62,7 @@
     margin-bottom: 2px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -517,7 +517,7 @@ a.filter-pill .filter-pill-remove {
     margin: 0;
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-muted);
     text-transform: uppercase;
     letter-spacing: var(--tp-tracking-label);
     white-space: nowrap;
@@ -650,7 +650,7 @@ a.filter-pill .filter-pill-remove {
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
-    color: var(--tp-color-brand-900);
+    color: var(--tp-color-text-muted);
 }
 
 .protein-table-scroll-note__hint {
@@ -1321,14 +1321,13 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-surface-soft);
 }
 
+/* Same title as dialogs and the assistant drawer. */
 .drawer-head h2 {
     margin: 0;
     font-family: var(--tp-font-head);
-    font-size: var(--tp-font-size-sm);
+    font-size: var(--tp-font-size-md);
     font-weight: 600;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-primary);
 }
 
 .drawer-body {
@@ -1357,8 +1356,8 @@ a.filter-pill .filter-pill-remove {
 
 .filter-presets-save-label {
     display: block;
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
@@ -1752,7 +1751,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .drawer-field-label {
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
@@ -1798,6 +1797,7 @@ a.filter-pill .filter-pill-remove {
     font-size: var(--tp-font-size-xs);
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
+    font-weight: 500;
 }
 
 .filter-pill {
@@ -2083,7 +2083,7 @@ a.filter-pill .filter-pill-remove {
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-muted);
 }
 
 .scoring-mydata__actions {
@@ -2140,7 +2140,7 @@ a.filter-pill .filter-pill-remove {
 
 .scoring-mydata__files-label {
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
@@ -2256,7 +2256,7 @@ a.filter-pill .filter-pill-remove {
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-muted);
 }
 
 .columns-section-hint {
@@ -2323,8 +2323,8 @@ a.filter-pill .filter-pill-remove {
 }
 
 .columns-row-category {
-    color: var(--tp-color-text-soft);
-    font-size: var(--tp-font-size-2xs);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
@@ -2609,7 +2609,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-tray-label {
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
@@ -2658,11 +2658,11 @@ a.filter-pill .filter-pill-remove {
 }
 
 .drawer-active-label {
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
-    color: var(--tp-color-brand-700);
+    color: var(--tp-color-text-muted);
 }
 
 .drawer-active-summary .filter-pill strong {
@@ -3294,7 +3294,7 @@ a.filter-pill .filter-pill-remove {
 
 .filter-numeric-field-label {
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     line-height: 1;
@@ -3731,8 +3731,8 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-presets-panel__title {
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);

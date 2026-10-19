@@ -59,9 +59,9 @@
 
 .ds-subsection h3 {
     margin: 0 0 var(--tp-space-2);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
     text-transform: uppercase;
     letter-spacing: var(--tp-tracking-label);
 }
@@ -148,8 +148,8 @@
     display: block;
     margin-bottom: 2px;
     font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     line-height: 1.2;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;

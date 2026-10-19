@@ -66,9 +66,9 @@
 
 .user-mgmt-list-row--head {
     background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     border-bottom: 1px solid var(--tp-color-border-soft);

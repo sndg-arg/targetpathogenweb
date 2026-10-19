@@ -499,7 +499,7 @@
 
 .genome-upload-import-key {
     margin: var(--tp-space-3) 0 var(--tp-space-1);
-    font-size: var(--tp-font-size-sm);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     color: var(--tp-color-text-muted);
     letter-spacing: var(--tp-tracking-label);

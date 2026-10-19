@@ -471,11 +471,11 @@
 
 .siblings-group-title {
     margin: 0 0 var(--tp-space-1);
-    font-size: var(--tp-font-size-sm);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: var(--tp-tracking-label);
-    color: var(--tp-color-brand-900);
+    color: var(--tp-color-text-muted);
     display: flex;
     align-items: center;
     gap: var(--tp-space-2);
@@ -533,7 +533,7 @@
     justify-content: space-between;
     padding: 0 var(--tp-space-3) var(--tp-space-1);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);

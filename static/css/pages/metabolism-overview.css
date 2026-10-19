@@ -156,7 +156,7 @@
     display: block;
     margin-top: 1px;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
@@ -169,7 +169,7 @@
 .metabolism-score-label {
     display: block;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
@@ -389,9 +389,10 @@
 
 .metabolic-pathway-map-tooltip dt {
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     text-transform: uppercase;
+    letter-spacing: var(--tp-tracking-label);
 }
 
 .metabolic-pathway-map-tooltip dd {
@@ -497,7 +498,7 @@
 .pathway-map-axis {
     fill: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }

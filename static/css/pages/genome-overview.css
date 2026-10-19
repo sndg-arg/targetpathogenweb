@@ -153,7 +153,7 @@
 
 .genome-blast-group-label {
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
@@ -505,8 +505,8 @@
 }
 
 .targets-score-tier {
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
