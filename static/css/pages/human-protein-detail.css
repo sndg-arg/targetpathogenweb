@@ -297,8 +297,8 @@
    for its reaction list (box-shadow: inset 3px 0 0 ...). */
 .human-structure-entry.is-active {
     border-color: var(--tp-color-border-soft);
-    background: color-mix(in srgb, var(--human-accent) 6%, var(--tp-color-surface));
-    box-shadow: inset 3px 0 0 var(--human-accent);
+    background: var(--tp-color-brand-100);
+    box-shadow: none;
 }
 
 .human-structure-viewer {

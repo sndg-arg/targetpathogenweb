@@ -125,7 +125,7 @@
 .activity-kpi-value {
     font-family: var(--tp-font-head);
     font-size: var(--tp-heading-lg);
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.1;
     color: var(--tp-color-text-primary);
     font-variant-numeric: proportional-nums;
@@ -367,7 +367,7 @@
     background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0;
 }
 
@@ -469,7 +469,7 @@
     gap: var(--tp-space-2);
     font-family: var(--tp-font-head);
     font-size: var(--tp-font-size-sm);
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-text-primary);
 }
 
@@ -698,7 +698,7 @@
 .activity-status-tile-label {
     margin: 0;
     font-family: var(--tp-font-head);
-    font-weight: 700;
+    font-weight: 600;
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-primary);
 }
@@ -714,7 +714,7 @@
     margin: 0;
     font-family: var(--tp-font-head);
     font-size: var(--tp-heading-md);
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.1;
     color: var(--tp-color-text-primary);
     font-variant-numeric: tabular-nums;

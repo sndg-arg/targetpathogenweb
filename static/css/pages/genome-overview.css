@@ -27,7 +27,7 @@
     font-weight: 600;
     letter-spacing: 0;
 }
-.genome-page h1 { font-weight: 700; }
+.genome-page h1 { font-weight: 600; }
 
 .genome-hero,
 .genome-page .quick-nav,
@@ -478,7 +478,7 @@
     /* Matches .evidence-headline's size -- same page, same "big highlighted
        number" role, so they should read as the same visual weight. */
     font-size: var(--tp-heading-md);
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1;
     font-variant-numeric: tabular-nums;
 }
@@ -691,7 +691,7 @@
 }
 
 .evidence-breakdown-priority .evidence-bd-value {
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .evidence-bd-label {

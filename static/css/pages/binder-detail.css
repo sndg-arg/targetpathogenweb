@@ -16,7 +16,7 @@
     font-weight: 600;
     letter-spacing: 0;
 }
-.binder-page h1 { font-weight: 700; }
+.binder-page h1 { font-weight: 600; }
 
 .binder-page code {
     font-family: var(--tp-font-mono);
@@ -357,12 +357,12 @@
 
 .druglike-checks li.is-ok .check-icon {
     color: var(--tp-color-success-ink);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .druglike-checks li.is-bad .check-icon {
     color: var(--tp-color-danger-ink);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .check-name {

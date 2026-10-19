@@ -20,7 +20,7 @@
     font-weight: 600;
     letter-spacing: var(--tp-tracking-tight);
 }
-.blast-page h1 { font-weight: 700; }
+.blast-page h1 { font-weight: 600; }
 
 .blast-eyebrow {
     display: inline-flex;

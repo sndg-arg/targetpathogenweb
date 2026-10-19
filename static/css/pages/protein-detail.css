@@ -15,7 +15,7 @@
     font-weight: 600;
     letter-spacing: 0;
 }
-.protein-page h1 { font-weight: 700; }
+.protein-page h1 { font-weight: 600; }
 
 /* Base styles from .tp-page-hero in ui-system.css */
 
@@ -46,7 +46,7 @@
 .protein-hero-eyebrow-genome {
     font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-md);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: normal;
     text-transform: none;
     color: var(--tp-color-text-primary);
@@ -117,7 +117,7 @@
     grid-column: 1 / -1;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -162,7 +162,7 @@
     margin: 0 0 var(--tp-space-3);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -219,7 +219,7 @@
     gap: var(--tp-space-2);
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.2;
 }
 
@@ -255,7 +255,7 @@
 }
 
 .target-summary-item--risk {
-    background: color-mix(in srgb, var(--tp-color-danger-bg) 35%, var(--tp-color-surface));
+    background: none;
 }
 
 .target-summary-item--missing {
@@ -296,7 +296,7 @@
     border-radius: var(--tp-radius-pill);
     color: var(--tp-color-success-ink);
     background: var(--tp-color-success-bg);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .target-summary-list--strengths .target-summary-more {
@@ -541,7 +541,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .protein-guide-grid strong {
     color: var(--tp-color-text-primary);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .protein-page a.btn,
@@ -932,7 +932,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .sv-pocket-inspector-kicker {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -973,7 +973,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .sv-pocket-inspector-grid dt {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -1129,7 +1129,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     margin-top: 2px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     line-height: 1.1;
     text-transform: uppercase;
@@ -1142,7 +1142,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .pocket-card-layer-label {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     line-height: 1;
     text-transform: uppercase;
@@ -1220,7 +1220,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     color: var(--tp-color-brand-900);
     background: transparent;
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
     text-decoration: none;
 }
 
@@ -1306,7 +1306,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     cursor: pointer;
     list-style: none;
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
@@ -1518,7 +1518,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .structure-picker-item.is-active {
     background: var(--tp-color-brand-100);
     color: var(--tp-color-brand-900);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .structure-picker-item-label {
@@ -1703,7 +1703,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .binder-intel-kicker {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -1735,7 +1735,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     display: block;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -1820,7 +1820,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .binder-best-empty {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .binder-best-copy {
@@ -1847,14 +1847,14 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .binder-best-copy span {
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .binder-best-copy em {
     color: var(--tp-color-brand-800);
     font-size: var(--tp-font-size-xs);
     font-style: normal;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .binder-best-copy small {
@@ -1900,7 +1900,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
     overflow: hidden;
     cursor: zoom-in;
     padding: 0;
@@ -1916,7 +1916,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     margin-top: var(--tp-space-2);
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2581,7 +2581,7 @@ body.residue-modal-open {
 /* Structure viewport — subtle accent glow */
 .tp-dark .structure-viewport-wrap {
     background: var(--tp-color-surface);
-    border-color: color-mix(in srgb, var(--tp-color-brand-800) 25%, var(--tp-color-border));
+    border-color: var(--tp-color-border);
     box-shadow: none;
 }
 
@@ -2614,7 +2614,7 @@ body.residue-modal-open {
     padding: var(--tp-space-3);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
-    background: color-mix(in srgb, var(--tp-color-surface-soft) 72%, var(--tp-color-surface));
+    background: var(--tp-color-surface-soft);
 }
 
 .target-profile-group-label {
@@ -2623,7 +2623,7 @@ body.residue-modal-open {
     border-bottom: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -2688,12 +2688,12 @@ body.residue-modal-open {
 .target-profile-item--good {
     box-shadow: inset 3px 0 0 var(--tp-color-success-ink);
 }
-.target-profile-item--good .target-profile-label { color: color-mix(in srgb, var(--tp-color-success-ink) 78%, var(--tp-color-text-muted)); }
+.target-profile-item--good .target-profile-label { color: var(--tp-color-success-ink); }
 
 .target-profile-item--bad {
     box-shadow: inset 3px 0 0 var(--tp-color-warning-ink);
 }
-.target-profile-item--bad .target-profile-label { color: color-mix(in srgb, var(--tp-color-warning-ink) 78%, var(--tp-color-text-muted)); }
+.target-profile-item--bad .target-profile-label { color: var(--tp-color-warning-ink); }
 
 .target-profile-bar {
     display: block;
@@ -2889,7 +2889,7 @@ body.residue-modal-open {
     height: 6px;
     border-radius: var(--tp-radius-pill);
     overflow: hidden;
-    background: color-mix(in srgb, var(--tp-color-text-primary) 10%, var(--tp-color-surface));
+    background: var(--tp-color-surface-muted);
 }
 
 .experimental-coverage-fill {
@@ -3097,7 +3097,7 @@ body.residue-modal-open {
 .target-evidence-value {
     font-family: var(--tp-font-head);
     font-size: var(--tp-heading-md);
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.1;
     color: var(--tp-color-brand-900);
 }
@@ -3206,7 +3206,7 @@ body.residue-modal-open {
 .binder-crystal-badge--loaded {
     color: var(--tp-color-success-ink);
     background: var(--tp-color-success-bg);
-    border-color: color-mix(in srgb, var(--tp-color-success-ink) 20%, var(--tp-color-border-soft));
+    border-color: var(--tp-color-success-border);
 }
 
 .binder-crystal-viewer {
@@ -3287,7 +3287,7 @@ body.residue-modal-open {
     margin-bottom: var(--tp-space-2);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -3326,7 +3326,7 @@ body.residue-modal-open {
 .metabolic-inspector dt {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
 }
 
@@ -3569,7 +3569,7 @@ body.residue-modal-open {
     border-bottom: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }

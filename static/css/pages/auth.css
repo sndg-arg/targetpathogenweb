@@ -29,7 +29,7 @@
 .auth-header h1 {
     margin: 0;
     font-size: var(--tp-heading-md);
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.1;
     letter-spacing: var(--tp-tracking-tight);
     color: var(--tp-color-brand-900);

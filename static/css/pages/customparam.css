@@ -17,7 +17,7 @@
     font-weight: 600;
     letter-spacing: var(--tp-tracking-tight);
 }
-.customparam-page h1 { font-weight: 700; }
+.customparam-page h1 { font-weight: 600; }
 .customparam-eyebrow {
     display: inline-flex;
     align-items: center;

@@ -108,7 +108,7 @@
 
 .metabolic-network-genome-breadcrumb-current {
     color: var(--tp-color-text-primary);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .metabolic-network-genome-body {
@@ -279,7 +279,7 @@
     margin-bottom: var(--tp-space-2);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -303,7 +303,7 @@
 .metabolic-network-genome-inspector dt {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
 }
 

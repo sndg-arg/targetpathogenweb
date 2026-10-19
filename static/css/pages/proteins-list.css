@@ -30,7 +30,7 @@
 }
 
 .proteins-page h1 {
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .hero-top {
@@ -70,7 +70,7 @@
 .hero-context-id {
     font-family: var(--tp-font-mono);
     font-size: var(--tp-heading-md);
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.2;
     color: var(--tp-color-brand-900);
 }
@@ -1283,9 +1283,7 @@ a.filter-pill .filter-pill-remove {
 .tp-overlay {
     position: fixed;
     inset: 0;
-    background: color-mix(in srgb, var(--tp-color-brand-900) 55%, transparent);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: var(--tp-color-scrim);
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
@@ -2170,7 +2168,7 @@ a.filter-pill .filter-pill-remove {
 
 .scoring-mydata__files-label {
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
@@ -2694,7 +2692,7 @@ a.filter-pill .filter-pill-remove {
 
 .drawer-active-label {
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-brand-700);
@@ -3194,7 +3192,7 @@ a.filter-pill .filter-pill-remove {
     padding: 0;
     background: transparent;
     color: inherit;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 /* "X is not a value in this genome, not added": a small speech bubble
@@ -3582,7 +3580,7 @@ a.filter-pill .filter-pill-remove {
 
 /* Hero chip: count shown as "N / total" */
 .filter-result-chip strong {
-    font-weight: 700;
+    font-weight: 600;
 }
 
 /* Result count line at the head of the table */
@@ -3605,7 +3603,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .protein-table-results strong {
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-text-primary);
 }
 

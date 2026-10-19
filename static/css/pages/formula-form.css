@@ -12,7 +12,7 @@
     font-weight: 600;
     letter-spacing: var(--tp-tracking-tight);
 }
-.formula-page h1 { font-weight: 700; }
+.formula-page h1 { font-weight: 600; }
 
 .formula-page > form {
     display: contents;

@@ -40,7 +40,7 @@
     color: var(--tp-color-brand-900);
     font-family: var(--tp-font-head);
     font-size: var(--tp-heading-lg);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-tight);
     line-height: 1.1;
 }
@@ -173,7 +173,7 @@
 }
 
 .ds-t { color: var(--tp-color-text-primary); }
-.ds-t--head { font-family: var(--tp-font-head); font-weight: 700; letter-spacing: var(--tp-tracking-tight); }
+.ds-t--head { font-family: var(--tp-font-head); font-weight: 600; letter-spacing: var(--tp-tracking-tight); }
 .ds-t--heading-lg { font-size: var(--tp-heading-lg); line-height: 1.1; }
 .ds-t--heading-md { font-size: var(--tp-heading-md); line-height: 1.15; }
 .ds-t--lg { font-size: var(--tp-font-size-lg); font-weight: 600; }

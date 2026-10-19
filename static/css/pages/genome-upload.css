@@ -11,7 +11,7 @@
     font-weight: 600;
     letter-spacing: var(--tp-tracking-tight);
 }
-.genome-upload-page h1 { font-weight: 700; }
+.genome-upload-page h1 { font-weight: 600; }
 
 .genome-upload-eyebrow {
     display: inline-flex;
@@ -282,7 +282,7 @@
     background: var(--tp-color-info-bg);
     border: 1px solid var(--tp-color-border);
     color: var(--tp-color-brand-900);
-    font-weight: 700;
+    font-weight: 600;
     font-size: var(--tp-font-size-sm);
 }
 

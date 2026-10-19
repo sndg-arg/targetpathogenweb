@@ -264,7 +264,7 @@
 .metabolism-target-id {
     color: var(--tp-color-brand-800);
     font-size: var(--tp-font-size-sm);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .metabolism-target-chip--top .metabolism-target-id {
@@ -301,7 +301,7 @@
 .metabolism-connected-pathway-weight {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .metabolism-target-meta {
@@ -365,7 +365,7 @@
     padding: var(--tp-space-3) var(--tp-space-3);
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-radius-sm);
-    background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-050));
+    background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     box-shadow: var(--tp-shadow-sm);
     pointer-events: none;
@@ -377,14 +377,14 @@
     gap: var(--tp-space-2);
     margin-bottom: var(--tp-space-2);
     font-size: var(--tp-font-size-sm);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .metabolic-pathway-map-tooltip .metabolic-network-tooltip-badge {
     display: inline-flex;
     align-items: center;
     padding: 2px var(--tp-space-2);
-    border: 1px solid color-mix(in srgb, var(--tp-color-warning-ink) 48%, transparent);
+    border: 1px solid var(--tp-color-warning-border);
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-warning-bg);
     color: var(--tp-color-warning-ink);
@@ -401,7 +401,7 @@
 .metabolic-pathway-map-tooltip dt {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
 }
 
@@ -436,7 +436,7 @@
     gap: var(--tp-space-3) var(--tp-space-4);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .metabolism-pathway-map-legend span {
@@ -508,7 +508,7 @@
 .pathway-map-axis {
     fill: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
 }
@@ -516,13 +516,13 @@
 .pathway-map-reaction-label {
     fill: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-xs);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .pathway-map-gene-label {
     fill: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .pathway-map-gene-label.is-muted-label {
@@ -558,7 +558,7 @@
 .pathway-map-shared-label {
     fill: var(--tp-color-success-ink);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .pathway-map-metabolite {
@@ -587,7 +587,7 @@
 }
 
 .pathway-map-row:hover text {
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .metabolic-provenance {
@@ -613,7 +613,7 @@
 }
 
 .pathway-reaction-row--chokepoint {
-    border-color: color-mix(in srgb, var(--tp-color-warning-ink) 42%, var(--tp-color-border-soft));
+    border-color: var(--tp-color-warning-border);
 }
 
 .pathway-reaction-row:hover {
@@ -639,7 +639,7 @@
     color: var(--tp-color-text-primary);
     font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-sm);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .pathway-reaction-main p {
@@ -650,7 +650,7 @@
 
 .reaction-external-link {
     color: var(--tp-color-brand-700);
-    font-weight: 700;
+    font-weight: 600;
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 3px;
@@ -707,7 +707,7 @@
 .metabolite-arrow {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .metabolite-arrow--reversible {

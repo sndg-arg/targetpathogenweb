@@ -233,7 +233,7 @@
     color: var(--tp-color-brand-900);
     font-family: var(--tp-font-head);
     font-size: var(--tp-heading-lg);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: var(--tp-tracking-tight);
     line-height: 1.1;
     margin: 0;
@@ -1682,7 +1682,7 @@ button.tp-chip:hover,
 .tp-breadcrumb-current {
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 /* Docked strip under the fixed top bar (masterpage.html) -- each page
@@ -1932,19 +1932,19 @@ button.tp-chip:hover,
     margin-bottom: var(--tp-space-2);
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .metabolic-network-tooltip-badge {
     display: inline-flex;
     align-items: center;
     padding: 2px var(--tp-space-2);
-    border: 1px solid color-mix(in srgb, var(--tp-color-warning-ink) 48%, transparent);
+    border: 1px solid var(--tp-color-warning-border);
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-warning-bg);
     color: var(--tp-color-warning-ink);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
     white-space: nowrap;
 }
 
@@ -1962,7 +1962,7 @@ button.tp-chip:hover,
 .metabolic-network-tooltip dt {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-2xs);
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
     /* Defensive: if a future label is still too wide for the column, wrap
        it instead of repeating this bug by overflowing into the value. */

@@ -376,8 +376,7 @@
 .pipeline-info-backdrop {
     position: fixed;
     inset: 0;
-    background: color-mix(in srgb, var(--tp-color-brand-900) 60%, transparent);
-    backdrop-filter: blur(4px);
+    background: var(--tp-color-scrim);
     display: none;
     align-items: center;
     justify-content: center;
@@ -808,8 +807,4 @@ body.pipeline-info-open {
     background: var(--tp-color-surface-soft);
     border-color: var(--tp-color-border);
     color: var(--tp-color-brand-700);
-}
-
-.tp-dark .pipeline-info-backdrop {
-    background: color-mix(in srgb, var(--tp-color-brand-050) 70%, transparent);
 }
