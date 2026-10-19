@@ -141,7 +141,7 @@
     function buildTooltipText(nodeData) {
         var genes = (nodeData.genes || []).map(function (g) { return g.locus_tag; });
         var role = nodeData.chokepointRole && nodeData.chokepointRole !== "none" ? formatRole(nodeData.chokepointRole) : "";
-        var roleBadge = role ? '<span class="metabolic-network-tooltip-badge">' + escapeHtml(role) + '</span>' : "";
+        var roleBadge = role ? '<span class="tp-chip metabolic-network-tooltip-badge">' + escapeHtml(role) + '</span>' : "";
         return [
             '<div class="metabolic-network-tooltip-title">' + escapeHtml(nodeData.label || nodeData.id) + roleBadge + '</div>',
             '<dl>',

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261018-weights">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261018-chips">
 {% endblock %}
 
 {% block body %}
@@ -226,10 +226,10 @@
                 {% endif %}
                 <div class="sv-sidebar-meta-row" id="sv-sidebar-meta">
                     {% for s in all_structures %}{% if s.is_active %}
-                    <span class="sv-sidebar-meta-tag" id="sv-sidebar-method">{{ s.method }}</span>
-                    {% if s.resolution %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--dim" id="sv-sidebar-resolution">{{ s.resolution }} Å</span>{% endif %}
-                    {% if s.structure_data.pockets %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ s.structure_data.pockets|length }} FPocket</span>{% endif %}
-                    {% if s.structure_data.p2_pockets %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ s.structure_data.p2_pockets|length }} P2Rank</span>{% endif %}
+                    <span class="tp-chip sv-sidebar-meta-tag" id="sv-sidebar-method">{{ s.method }}</span>
+                    {% if s.resolution %}<span class="tp-chip sv-sidebar-meta-tag sv-sidebar-meta-tag--dim" id="sv-sidebar-resolution">{{ s.resolution }} Å</span>{% endif %}
+                    {% if s.structure_data.pockets %}<span class="tp-chip sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ s.structure_data.pockets|length }} FPocket</span>{% endif %}
+                    {% if s.structure_data.p2_pockets %}<span class="tp-chip sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ s.structure_data.p2_pockets|length }} P2Rank</span>{% endif %}
                     {% endif %}{% endfor %}
                 </div>
                 <p class="tp-state-note sv-sidebar-note">

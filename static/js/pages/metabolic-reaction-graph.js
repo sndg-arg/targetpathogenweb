@@ -301,7 +301,7 @@
     function tooltipForReaction(data) {
         var genes = (data.genes || []).map(function (g) { return g.accession; });
         var role = data.chokepointRole && data.chokepointRole !== "none" ? formatRole(data.chokepointRole) : "";
-        var roleBadge = role ? '<span class="metabolic-network-tooltip-badge">' + escapeHtml(role) + '</span>' : "";
+        var roleBadge = role ? '<span class="tp-chip metabolic-network-tooltip-badge">' + escapeHtml(role) + '</span>' : "";
         return [
             '<div class="metabolic-network-tooltip-title">' + escapeHtml(data.label || data.id) + roleBadge + '</div>',
             '<dl>',

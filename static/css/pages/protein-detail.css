@@ -3203,12 +3203,6 @@ body.residue-modal-open {
     color: var(--tp-color-text-soft);
 }
 
-.binder-crystal-badge--loaded {
-    color: var(--tp-color-success-ink);
-    background: var(--tp-color-success-bg);
-    border-color: var(--tp-color-success-border);
-}
-
 .binder-crystal-viewer {
     white-space: nowrap;
 }

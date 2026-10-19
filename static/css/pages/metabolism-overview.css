@@ -380,17 +380,6 @@
     font-weight: 600;
 }
 
-.metabolic-pathway-map-tooltip .metabolic-network-tooltip-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px var(--tp-space-2);
-    border: 1px solid var(--tp-color-warning-border);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-warning-bg);
-    color: var(--tp-color-warning-ink);
-    font-size: var(--tp-font-size-2xs);
-}
-
 .metabolic-pathway-map-tooltip dl {
     display: grid;
     grid-template-columns: 62px minmax(0, 1fr);

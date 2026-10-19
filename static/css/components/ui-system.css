@@ -1935,19 +1935,6 @@ button.tp-chip:hover,
     font-weight: 600;
 }
 
-.metabolic-network-tooltip-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px var(--tp-space-2);
-    border: 1px solid var(--tp-color-warning-border);
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-warning-bg);
-    color: var(--tp-color-warning-ink);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
-    white-space: nowrap;
-}
-
 .metabolic-network-tooltip dl {
     display: grid;
     /* 62px was narrower than "CHOKEPOINTS" itself (bold, uppercase, no space

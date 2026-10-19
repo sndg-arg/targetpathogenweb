@@ -487,19 +487,9 @@ body:has(.sv-root) { overflow: hidden; }
 }
 
 .sv-sidebar-meta-tag {
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
-    color: var(--tp-color-text-secondary);
-    background: var(--tp-color-surface-muted);
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-radius-xs);
-    padding: 2px var(--tp-space-2);
     white-space: nowrap;
 }
 .sv-sidebar-meta-tag--dim { opacity: 0.65; }
-.sv-sidebar-meta-tag--count {
-    color: var(--tp-color-text-secondary);
-}
 
 .sv-sidebar-note {
     margin: var(--tp-space-3) 0 0;

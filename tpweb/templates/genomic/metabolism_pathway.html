@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261018-motion">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261018-weights">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261018-chips">
     <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261018-motion">
 {% endblock %}
 
@@ -186,7 +186,7 @@
 </div>
 
 {{ graph_payload|json_script:"metabolic-pathway-graph-data" }}
-<script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20260809-hover-highlight"></script>
+<script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20261018-chips"></script>
 <script src="{% static 'js/pages/metabolic-pathway-graph.js' %}?v=20261017-system"></script>
 <script>
 (function () {
