@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261018-deadcss">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261019-home">
 {% endblock %}
 
 {% block body %}
@@ -45,12 +45,9 @@
                     <span class="home-pipeline-chip tp-chip tp-chip--state {% if pipeline_status.available %}{{ pipeline_status.state_class }}{% endif %}" {% if not pipeline_status.available %}hidden{% endif %}>
                         {% if pipeline_status.available %}
                             {% if pipeline_status.running and pipeline_status.genome_accession %}
-                                {% trans "Pipeline in progress for" %} <code>{{ pipeline_status.genome_display_accession|default:pipeline_status.genome_accession }}</code>
-                                {% if pipeline_status.stage_current %}
-                                    · {% trans "Stage" %} {{ pipeline_status.stage_current }}/{{ pipeline_status.stage_total }}
-                                {% endif %}
+                                {% trans "Running" %}: <code>{{ pipeline_status.genome_display_accession|default:pipeline_status.genome_accession }}</code>{% if pipeline_status.stage_current %} · {{ pipeline_status.stage_current }}/{{ pipeline_status.stage_total }}{% endif %}
                             {% elif pipeline_status.running %}
-                                {% trans "Pipeline in progress" %}
+                                {% trans "Pipeline running" %}
                             {% else %}
                                 {{ pipeline_status.state_label }}
                             {% endif %}
@@ -306,8 +303,8 @@
             const initialPipelineStatus = readInitialPipelineStatus();
 
             const labels = {
-                pipelineInProgressFor: "Pipeline in progress for",
-                pipelineInProgress: "Pipeline in progress",
+                pipelineInProgressFor: "{% trans 'Running' %}:",
+                pipelineInProgress: "{% trans 'Pipeline running' %}",
                 stage: "Stage",
                 bioinformaticsStage: "Bioinformatics stage",
                 genome: "Genome",
@@ -336,7 +333,7 @@
                     // chip doesn't switch to a completed-count after pressing refresh.
                     var stageSuffix = "";
                     if (status.stage_current) {
-                        stageSuffix = ` · ${labels.stage} ${escapeHtml(status.stage_current)}/${escapeHtml(status.stage_total)}`;
+                        stageSuffix = ` · ${escapeHtml(status.stage_current)}/${escapeHtml(status.stage_total)}`;
                     }
                     return `${labels.pipelineInProgressFor} <code>${genomeLabel}</code>${stageSuffix}`;
                 }

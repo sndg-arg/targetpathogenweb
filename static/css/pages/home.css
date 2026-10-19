@@ -257,7 +257,7 @@
 }
 
 .home-pipeline-meta code {
-    color: var(--tp-color-danger-ink);
+    color: inherit;
     background: transparent;
     padding: 0;
 }
