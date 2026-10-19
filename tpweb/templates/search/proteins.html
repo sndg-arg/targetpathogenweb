@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-deadcss">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-icons2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -178,7 +178,7 @@
                                             aria-haspopup="true"
                                             aria-expanded="false"
                                             title="{% trans 'Saved presets' %}">
-                                        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2.5h10a.5.5 0 0 1 .5.5v10.3a.3.3 0 0 1-.47.25L8 10.5l-5.03 3.05A.3.3 0 0 1 2.5 13.3V3a.5.5 0 0 1 .5-.5z"/></svg>
+                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/bookmark.html" %}</span>
                                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
                                         {% if active_preset_name %}<span class="toolbar-filter-split__dot" aria-hidden="true"></span>{% endif %}
                                     </button>
@@ -676,7 +676,7 @@
 
             <div class="drawer-search">
                 <span class="drawer-search-icon" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5"/><path d="M14 14l-3.6-3.6"/></svg>
+                    {% include "components/icons/search.html" %}
                 </span>
                 <input type="search"
                        id="filter-search-input"

@@ -2389,10 +2389,17 @@ a.filter-pill .filter-pill-remove {
 }
 
 .drawer-search-icon {
+    width: 16px;
+    height: 16px;
     color: var(--tp-color-text-muted);
     display: inline-flex;
     align-items: center;
     flex: 0 0 auto;
+}
+
+.drawer-search-icon svg {
+    width: 100%;
+    height: 100%;
 }
 
 .drawer-search-input {
