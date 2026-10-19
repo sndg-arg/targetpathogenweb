@@ -2275,12 +2275,16 @@ a.metric-pill:focus-visible .metric-pill-jump {
 /* Tones only color the chip at rest. Hover, applied and pending are the
    same for every chip (base rules above), so a "risk" chip that's applied
    looks applied, not hovered. */
+/* Same tint as the matching tag (tp-chip--danger / --success), so the tone
+   reads the same in light and dark. */
 .filter-chip--risk {
+    background: var(--tp-color-danger-bg);
     border-color: var(--tp-color-danger-border);
     color: var(--tp-color-danger-ink);
 }
 
 .filter-chip--favorable {
+    background: var(--tp-color-success-bg);
     border-color: var(--tp-color-success-border);
     color: var(--tp-color-success-ink);
 }
@@ -2310,6 +2314,7 @@ a.metric-pill:focus-visible .metric-pill-jump {
 /* Pending state: dashed outline (no glowing ring). Same text color for
    every tone -- a pending "risk" chip used to keep its red text. */
 .filter-chip--pending {
+    background: var(--tp-color-surface);
     border-style: dashed !important;
     border-color: var(--tp-color-brand-700) !important;
     color: var(--tp-color-brand-800);
