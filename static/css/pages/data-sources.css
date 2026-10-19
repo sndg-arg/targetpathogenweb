@@ -291,12 +291,6 @@
     color: var(--tp-color-text-primary);
 }
 
-.ds-priority-source {
-    font-size: var(--tp-font-size-xs);
-    color: var(--tp-color-text-muted);
-    font-family: var(--tp-font-mono);
-}
-
 .ds-priority-body p {
     margin: var(--tp-space-1) 0 0;
     font-size: var(--tp-font-size-sm);

@@ -98,18 +98,6 @@ body:has(.sv-root) { overflow: hidden; }
     flex: 1;
 }
 
-.sv-pdb-code {
-    font-family: var(--tp-font-mono);
-    font-weight: 600;
-    font-size: var(--tp-font-size-sm);
-    color: var(--sv-overlay-text);
-    letter-spacing: var(--tp-tracking-label);
-    background: var(--sv-code-bg);
-    border-radius: var(--tp-radius-xs);
-    padding: 2px var(--tp-space-2);
-    line-height: 1.6;
-}
-
 .sv-meta-pill {
     font-size: var(--tp-font-size-xs);
     font-weight: 600;
@@ -392,16 +380,6 @@ body:has(.sv-root) { overflow: hidden; }
     opacity: 1;
 }
 
-/* Structure picker — scrollable pill row for multiple structures */
-.sv-structure-picker {
-    flex: 1 1 0;
-    min-width: 80px;
-    overflow-x: auto;
-    scrollbar-width: none;
-}
-.sv-structure-picker::-webkit-scrollbar { display: none; }
-.sv-structure-picker .sv-mode-btn { flex-shrink: 0; }
-
 /* ── 7. Sidebar (right panel) ── */
 .sv-sidebar {
     width: 320px;
@@ -431,18 +409,6 @@ body:has(.sv-root) { overflow: hidden; }
     padding-bottom: var(--tp-space-4);
     margin-bottom: var(--tp-space-4);
     border-bottom: 1px solid var(--tp-color-border);
-}
-
-.sv-sidebar-protein-name {
-    margin: 0 0 var(--tp-space-1);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    color: var(--tp-color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: var(--tp-tracking-label);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .sv-sidebar-code {
@@ -751,13 +717,6 @@ body:has(.sv-root) { overflow: hidden; }
     cursor: help;
 }
 
-.pocket-card-p2score {
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
-    color: var(--tp-color-text-muted);
-    white-space: nowrap;
-}
-
 .pocket-card-reprs {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -877,37 +836,6 @@ body:has(.sv-root) { overflow: hidden; }
     margin-left: auto;
 }
 .data-details[open] > summary::after { transform: rotate(-135deg); }
-
-/* ── 13. Structure toggle (checkbox pill) ── */
-.structure-toggle {
-    appearance: none;
-    -webkit-appearance: none;
-    display: inline-block;
-    width: 2.1rem;
-    height: 1.18rem;
-    border-radius: var(--tp-radius-pill);
-    border: 1px solid var(--tp-color-border-strong);
-    background: var(--tp-color-surface-muted);
-    position: relative;
-    cursor: pointer;
-    vertical-align: middle;
-    transition: background 0.12s, border-color 0.12s;
-}
-.structure-toggle::after {
-    content: "";
-    position: absolute;
-    top: 1px;
-    left: 1px;
-    width: 0.94rem;
-    height: 0.94rem;
-    border-radius: 50%;
-    background: var(--tp-color-surface);
-    box-shadow: none;
-    transition: transform 0.12s;
-}
-.structure-toggle:checked { background: var(--tp-color-brand-800); border-color: var(--tp-color-brand-800); }
-.structure-toggle:checked::after { transform: translateX(0.9rem); }
-.structure-toggle:focus-visible { outline: none; box-shadow: var(--tp-focus-outline); }
 
 /* ── 14. Residue modal ── */
 /* Residue list inside the shared .tp-modal (ui-system.css). */

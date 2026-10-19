@@ -116,13 +116,6 @@
     list-style: none;
 }
 
-.auth-approval-note {
-    margin: var(--tp-space-1) 0 var(--tp-space-4);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
-    line-height: 1.5;
-}
-
 /* ── Actions ── */
 
 .auth-submit button {

@@ -80,10 +80,6 @@
     animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) backwards;
 }
 
-.tp-ui-enter--delay-1 { animation-delay: 40ms; }
-.tp-ui-enter--delay-2 { animation-delay: 80ms; }
-.tp-ui-enter--delay-3 { animation-delay: 120ms; }
-
 @keyframes tp-ui-enter {
     from {
         opacity: 0;
@@ -149,22 +145,6 @@
     }
 }
 
-.tp-ui-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--tp-radius-pill);
-    min-width: 34px;
-    height: 34px;
-    border: 1px solid var(--tp-color-border-strong);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-md);
-    font-weight: 500;
-    line-height: 1;
-    padding: 0 var(--tp-space-3);
-}
-
 .tp-ui-field {
     display: grid;
     gap: var(--tp-space-1);
@@ -178,15 +158,6 @@
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     line-height: 1.2;
-}
-
-.tp-ui-feedback {
-    margin: 0;
-    min-height: 1.2em;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    line-height: 1.35;
 }
 
 .tp-ui-actions {
@@ -272,14 +243,6 @@
 .tp-view-export-link {
     align-self: flex-start;
     white-space: nowrap;
-}
-
-.tp-ui-feedback.is-ok {
-    color: var(--tp-color-success-ink);
-}
-
-.tp-ui-feedback.is-error {
-    color: var(--tp-color-danger-ink);
 }
 
 .tp-ui-search-row {
@@ -791,15 +754,6 @@
     font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-2xs);
     line-height: 1.35; /* same height as the sans chips next to it */
-}
-
-.tp-chip--code .tp-chip-name {
-    font-family: var(--tp-font-body);
-    color: var(--tp-color-text-muted);
-    max-width: 160px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .tp-chip--success {
@@ -1472,36 +1426,12 @@ button.tp-chip:hover,
     color: var(--tp-color-brand-800);
 }
 
-.tp-page-eyebrow {
-    margin: 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-}
-
-.tp-page-title {
-    margin: 0;
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-heading-xl);
-    line-height: 1.08;
-    letter-spacing: 0;
-}
-
 .tp-section-title {
     margin: 0;
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-xl);
     line-height: 1.2;
     letter-spacing: 0;
-}
-
-.tp-section-subtitle {
-    margin: var(--tp-space-2) 0 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-md);
-    line-height: 1.35;
 }
 
 .tp-breadcrumb {

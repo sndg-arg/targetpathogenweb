@@ -66,10 +66,6 @@
     line-height: 1.6;
 }
 
-.home-hero-note {
-    margin: 0;
-}
-
 .home-panel,
 .home-post {
     padding: var(--tp-space-4) var(--tp-space-5);
@@ -296,11 +292,6 @@
 
 .pipeline-fill.is-failed {
     background: var(--tp-color-danger-ink);
-}
-
-.home-post {
-    display: grid;
-    gap: var(--tp-space-3);
 }
 
 .home-post :is(h3, h4) {

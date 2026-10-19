@@ -48,13 +48,6 @@
     white-space: nowrap;
 }
 
-.genome-upload-metrics {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--tp-space-3);
-    margin-top: var(--tp-space-5);
-}
-
 .genome-upload-layout {
     display: grid;
     grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.9fr);

@@ -299,25 +299,6 @@
 
 /* ── Hero annotation groups ── */
 
-.hero-annotations {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-4);
-    margin-top: var(--tp-space-4);
-    padding-top: var(--tp-space-4);
-    border-top: 1px solid var(--tp-color-border-soft);
-}
-
-.hero-annotation-group {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--tp-space-2);
-}
-
-.hero-annotation-group .tp-chip-group {
-    gap: var(--tp-space-1);
-}
-
 /* ── Annotation panels (detail section) ── */
 
 .annotation-panels {
@@ -1588,13 +1569,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     }
 }
 
-.structure-score-legend {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2);
-}
-
 .legend-label {
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
@@ -1635,23 +1609,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
     padding: var(--tp-space-3);
-}
-
-.binder-preview {
-    height: 190px;
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-muted);
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-}
-
-.binder-preview svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-    transform: scale(1.1) translateY(-4px);
-    transform-origin: center;
 }
 
 .binder-name {
@@ -2277,22 +2234,6 @@ body.binder-mol-modal-open {
     font-variant-numeric: tabular-nums;
 }
 
-.binder-card--link {
-    display: block;
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
-    transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
-}
-
-.binder-card--link:hover,
-.binder-card--link:focus-visible {
-    text-decoration: none;
-    color: inherit;
-    border-color: var(--tp-color-border-strong);
-    outline: none;
-}
-
 .binders-empty {
     margin: var(--tp-space-4) 0;
 }
@@ -2306,64 +2247,6 @@ body.binder-mol-modal-open {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
     overflow: hidden;
-}
-
-.binder-table__head {
-    display: grid;
-    grid-template-columns: minmax(140px, 1fr) 100px minmax(0, 2fr);
-    gap: var(--tp-space-3);
-    padding: var(--tp-space-3) var(--tp-space-4);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-}
-
-.binder-table__row {
-    display: grid;
-    grid-template-columns: minmax(140px, 1fr) 100px minmax(0, 2fr);
-    gap: var(--tp-space-3);
-    align-items: center;
-    padding: var(--tp-space-3) var(--tp-space-4);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
-    text-decoration: none;
-    transition: background 140ms ease, color 140ms ease;
-}
-
-.binder-table__row:hover,
-.binder-table__row:focus-visible {
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-link-hover);
-    text-decoration: none;
-    outline: none;
-}
-
-.binder-table__name {
-    font-weight: 600;
-    font-size: var(--tp-font-size-md);
-}
-
-.binder-table__score {
-    font-variant-numeric: tabular-nums;
-    font-weight: 600;
-    color: var(--tp-color-text-secondary);
-}
-
-.binder-table__score-empty {
-    color: var(--tp-color-text-soft);
-    font-weight: 400;
-}
-
-.binder-table__smiles {
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-xs);
-    color: var(--tp-color-text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 @media (max-width: 720px) {
@@ -2394,11 +2277,6 @@ body.binder-mol-modal-open {
         width: 112px;
     }
 
-    .binder-table__head,
-    .binder-table__row {
-        grid-template-columns: 1fr;
-    }
-    .binder-table__head { display: none; }
 }
 
 /* ── Residue modal ── */
@@ -2955,11 +2833,6 @@ body.residue-modal-open {
     display: none;
 }
 
-/* Legacy class — kept for JS compat */
-.experimental-view-link,
-.experimental-view-button { display: none; }
-.experimental-structure-note { display: none; }
-
 /* ================================================================
    Premium table overrides — pocket tables, binders, features
    Same clean look as the structural evidence table.
@@ -3465,9 +3338,6 @@ body.residue-modal-open {
 }
 
 @media (max-width: 1080px) {
-    .metabolic-context-shell {
-        grid-template-columns: 1fr;
-    }
 
     .metabolic-score-stack {
         grid-template-columns: repeat(2, minmax(0, 1fr));
