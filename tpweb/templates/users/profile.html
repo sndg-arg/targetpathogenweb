@@ -110,7 +110,7 @@
             <form method="post" action="{% url 'tpwebapp:request_access' %}" class="profile-capability-note profile-request-access">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                <span>{% trans "Need more access (collaborative-project genomes, Human Targets, uploads)?" %}</span>
+                <span>{% trans "Need more access (collaborative-project genomes, uploads)?" %}</span>
                 <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Request access" %}</button>
             </form>
             {% endif %}
