@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-neutral">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-sort">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -401,7 +401,7 @@
                         <thead>
                         <tr>
                             <th>#</th>
-                            <th class="th-sortable{% if sort_col == '__accession__' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}">
+                            <th class="th-sortable{% if sort_col == '__accession__' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}"{% if sort_col == '__accession__' %} aria-sort="{% if sort_dir == 'asc' %}ascending{% else %}descending{% endif %}"{% endif %}>
                                 <a href="{{ sort_col_urls|dictkey:'__accession__' }}" class="th-sort-link">{% trans "Protein" %}<span class="th-sort-icon" aria-hidden="true"></span></a>
                             </th>
                             <th>{% trans "Description" %}</th>
@@ -413,7 +413,7 @@
                         {% for col in tcolumns %}
                             {% with col_desc=col_descriptions|dictkey:col %}
                             <th data-col="{{ col|slugify }}"
-                                class="th-sortable{% if sort_col == col %} th-sorted th-sorted--{{ sort_dir }}{% endif %}">
+                                class="th-sortable{% if sort_col == col %} th-sorted th-sorted--{{ sort_dir }}{% endif %}"{% if sort_col == col %} aria-sort="{% if sort_dir == 'asc' %}ascending{% else %}descending{% endif %}"{% endif %}>
                                 <a href="{{ sort_col_urls|dictkey:col }}" class="th-sort-link">
                                     {{ col|humanize_identifier }}<span class="th-sort-icon" aria-hidden="true"></span>
                                     {% if col_desc %}<span class="cell-tooltip" role="tooltip">{{ col_desc }}</span>{% endif %}
