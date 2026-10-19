@@ -1061,8 +1061,8 @@ button.tp-chip:hover,
 .tp-table-export-bar {
     position: absolute;
     inset: 0 0 auto 0;
-    min-height: 44px;
-    padding: var(--tp-space-2) var(--tp-space-3);
+    height: var(--tp-space-8);
+    padding: 0 var(--tp-space-3);
     z-index: 4;
     display: flex;
     align-items: center;
@@ -1093,7 +1093,7 @@ button.tp-chip:hover,
 }
 
 .tp-table-shell.tp-table-shell--with-export.is-h-scrollable:not(.is-h-scroll-end)::after {
-    top: 44px;
+    top: var(--tp-space-8);
 }
 
 .tp-table-shell.is-h-scrollable:not(.is-h-scroll-start)::before {
@@ -1109,7 +1109,7 @@ button.tp-chip:hover,
 }
 
 .tp-table-shell.tp-table-shell--with-export.is-h-scrollable:not(.is-h-scroll-start)::before {
-    top: 44px;
+    top: var(--tp-space-8);
 }
 
 .tp-table-scroll-hint {

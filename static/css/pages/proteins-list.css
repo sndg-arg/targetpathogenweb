@@ -573,7 +573,7 @@ a.filter-pill .filter-pill-remove {
 /* This table's shell is itself the horizontal scroll container, so the
    shared absolutely-positioned Export CSV bar scrolled sideways with the
    table (ending up mid-screen, cut off). Here it's an in-flow sticky row
-   pinned to the left edge instead, sitting in the shell's 44px top padding
+   pinned to the left edge instead, sitting in the shell's top padding
    exactly like before. */
 .protein-table-panel .tp-table-export-bar {
     position: sticky;
