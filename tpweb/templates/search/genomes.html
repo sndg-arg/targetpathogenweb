@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261017-buttons">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261018-neutral">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -154,7 +154,7 @@
                                                 <span class="tp-chip tp-chip--state finished genome-curated-badge" title="{% trans 'Includes expert-reviewed results imported from outside the pipeline.' %}">{% trans "Curated" %}</span>
                                             {% endif %}
                                             {% if genome.is_restricted %}
-                                                <span class="tp-chip tp-chip--state genome-restricted-badge" title="{% if gates_viewer %}{% trans 'Only visible to Gates members.' %}{% else %}{% trans 'Only visible to project members.' %}{% endif %}">{% trans "Restricted" %}</span>
+                                                <span class="tp-chip genome-restricted-badge" title="{% if gates_viewer %}{% trans 'Only visible to Gates members.' %}{% else %}{% trans 'Only visible to project members.' %}{% endif %}">{% trans "Restricted" %}</span>
                                             {% endif %}
                                         </div>
                                         {% if genome.current_genome_status_note %}

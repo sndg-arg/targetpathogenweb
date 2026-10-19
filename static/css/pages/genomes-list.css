@@ -222,13 +222,6 @@
     align-self: flex-start;
 }
 
-.genome-restricted-badge {
-    align-self: flex-start;
-    color: var(--tp-color-warning-ink);
-    background: var(--tp-color-warning-bg);
-    border-color: var(--tp-color-warning-border);
-}
-
 .genomes-name a {
     font-weight: 600;
     color: var(--tp-color-brand-900);

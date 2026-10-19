@@ -86,12 +86,6 @@
     gap: var(--tp-space-2);
 }
 
-.user-mgmt-request-badge {
-    color: var(--tp-color-warning-ink);
-    background: var(--tp-color-warning-bg);
-    border-color: var(--tp-color-warning-border);
-}
-
 .user-mgmt-list-cell--person {
     display: flex;
     flex-direction: column;

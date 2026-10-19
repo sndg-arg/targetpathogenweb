@@ -651,7 +651,7 @@ function jsloaded() {
             var score = Number.parseFloat(tag.dataset.score || "");
             var scoreType = tag.dataset.scoreType || "";
             tag.classList.remove("tp-chip--success", "tp-chip--warning", "tp-chip--danger");
-            if (Number.isNaN(score)) { tag.classList.add("tp-chip--warning"); return; }
+            if (Number.isNaN(score)) return; // no score: neutral chip
             if (scoreType === "p2rank-prob") {
                 tag.classList.add(score >= 0.5 ? "tp-chip--success" : score >= 0.2 ? "tp-chip--warning" : "tp-chip--danger");
             } else {

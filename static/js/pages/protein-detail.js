@@ -12,7 +12,7 @@
     }
 
     function classifyScore(score, scoreType) {
-        if (Number.isNaN(score)) return "tp-chip--warning";
+        if (Number.isNaN(score)) return ""; // no score: neutral chip
         if (scoreType === "p2rank-prob") {
             if (score >= 0.5) return "tp-chip--success";
             if (score >= 0.2) return "tp-chip--warning";
@@ -192,7 +192,7 @@
             var scoreType = tag.getAttribute("data-score-type") || "";
             var statusClass = classifyScore(score, scoreType);
             tag.classList.remove("tp-chip--success", "tp-chip--warning", "tp-chip--danger");
-            tag.classList.add(statusClass);
+            if (statusClass) tag.classList.add(statusClass);
         });
     }
 

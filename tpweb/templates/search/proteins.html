@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261017-buttons">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261018-neutral">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -434,7 +434,7 @@
                                     {% if protein.has_structure %}
                                         <span class="tp-chip">{{ protein.structure_source_label }}</span>
                                     {% else %}
-                                        <span class="tp-chip tp-chip--warning structure-unavailable">{{ protein.structure_source_label }}<span class="cell-tooltip" role="tooltip">{% trans "No 3D model loaded (no PDB entry, AlphaFold DB model or ColabFold prediction)." %}</span></span>
+                                        <span class="tp-chip structure-unavailable">{{ protein.structure_source_label }}<span class="cell-tooltip" role="tooltip">{% trans "No 3D model loaded (no PDB entry, AlphaFold DB model or ColabFold prediction)." %}</span></span>
                                     {% endif %}
                                 </td>
                                 <td data-col="ec">
@@ -486,12 +486,7 @@
                                 {% for col in tcolumns %}
                                     <td data-col="{{ col|slugify }}">
                                         {% if not protein.has_structure and col in structure_columns %}
-                                            <span class="metric-no-structure">
-                                                <span class="metric-no-structure-icon" aria-hidden="true">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v3"/><circle cx="8" cy="11.5" r="0.01" stroke-width="2"/><path d="M6.9 2.5l-5 8.5A1.3 1.3 0 0 0 3 13h10a1.3 1.3 0 0 0 1.1-2l-5-8.5a1.3 1.3 0 0 0-2.2 0z"/></svg>
-                                                </span>
-                                                {% trans "No structure" %}
-                                            </span>
+                                            <span class="metric-no-structure">{% trans "No structure" %}</span>
                                         {% elif col == "Score" %}
                                             {% with score_val=tdata|dictkey:protein.id|dictkey:col %}
                                                 {% if score_val is None or score_val == "" or score_val == "-" %}

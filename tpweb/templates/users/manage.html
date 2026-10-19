@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20261017-sections">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20261018-neutral">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -113,7 +113,7 @@
                         <span class="tp-chip">{{ approved_user.get_role_display }}</span>
                     {% endif %}
                     {% if approved_user.wants_collaborator_access %}
-                        <span class="tp-chip user-mgmt-request-badge">{% trans "Requested collaborator access" %}</span>
+                        <span class="tp-chip tp-chip--warning">{% trans "Requested collaborator access" %}</span>
                     {% endif %}
                 </div>
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="cell">

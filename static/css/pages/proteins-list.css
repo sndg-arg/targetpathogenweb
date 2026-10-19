@@ -1046,23 +1046,10 @@ a.filter-pill .filter-pill-remove {
     align-items: center;
     gap: var(--tp-space-1);
     position: relative;
-    color: var(--tp-color-warning-ink);
+    color: var(--tp-color-text-soft);
     font-size: var(--tp-font-size-xs);
-    font-weight: 600;
     white-space: nowrap;
     cursor: default;
-}
-
-.metric-no-structure-icon {
-    display: inline-flex;
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
-}
-
-.metric-no-structure-icon svg {
-    width: 100%;
-    height: 100%;
 }
 
 .metric-no-structure .metric-tooltip {

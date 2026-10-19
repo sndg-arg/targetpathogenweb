@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20261017-buttons">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20261018-neutral">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -205,7 +205,7 @@
                                 </td>
                                 <td>{{ job.gram }}</td>
                                 <td>{{ job.created_at_label }}</td>
-                                <td><span class="genome-upload-status tp-chip genome-upload-status--{{ job.state_class }}">{{ job.state_label }}</span></td>
+                                <td><span class="tp-chip tp-chip--state genome-upload-status {% if job.state_class == 'running' or job.state_class == 'finished' or job.state_class == 'failed' %}{{ job.state_class }}{% else %}idle{% endif %}">{{ job.state_label }}</span></td>
                                 <td>
                                     {% if job.state_class == "finished" %}
                                         <a href="{% url 'tpwebapp:protein_list' job.protein_workspace_url %}">{% trans "Explore proteins" %}</a>
@@ -473,7 +473,7 @@
                         <tr>
                             <td><code>{{ job.genome_name }}</code></td>
                             <td>{{ job.created_at_label }}</td>
-                            <td><span class="genome-upload-status tp-chip genome-upload-status--{{ job.status }}">{{ job.status_label }}</span></td>
+                            <td><span class="tp-chip tp-chip--state genome-upload-status {% if job.status == 'running' or job.status == 'finished' or job.status == 'failed' %}{{ job.status }}{% else %}idle{% endif %}">{{ job.status_label }}</span></td>
                             <td>{% if job.report_path %}<code>{{ job.report_path }}</code>{% else %}<span class="text-muted">{% trans "No report" %}</span>{% endif %}</td>
                             <td>
                                 {% if job.can_retry %}

@@ -641,28 +641,11 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 /* ── No-structure note ── */
 
+/* Missing data is a neutral note (bar on the left), not a warning. */
 .no-structure-note {
-    display: flex;
-    gap: var(--tp-space-4);
-    align-items: flex-start;
-    padding: var(--tp-space-4);
     margin-top: var(--tp-space-3);
-    border: 1px solid var(--tp-color-warning-border);
-    border-radius: var(--tp-radius-md);
-    background: var(--tp-color-surface);
-}
-
-.no-structure-icon {
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    color: var(--tp-color-warning-ink);
-    margin-top: 1px;
-}
-
-.no-structure-icon svg {
-    width: 100%;
-    height: 100%;
+    padding: 2px 0 2px var(--tp-space-3);
+    border-left: 3px solid var(--tp-color-border-strong);
 }
 
 .no-structure-body {
@@ -676,7 +659,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     font-family: var(--tp-font-head);
     font-size: var(--tp-font-size-md);
     font-weight: 600;
-    color: var(--tp-color-warning-ink);
+    color: var(--tp-color-text-primary);
 }
 
 .no-structure-reason {

@@ -403,40 +403,15 @@
     box-shadow: var(--tp-focus-outline);
 }
 
+/* The running submission: the selected-row tint, like any current row. */
 .genome-upload-history-row.is-running {
-    background: var(--tp-color-success-bg) !important;
-    box-shadow: inset 3px 0 0 var(--tp-color-brand-600);
+    background: var(--tp-color-brand-100) !important;
 }
 
 .genome-upload-status {
     justify-content: center;
     min-width: 92px;
     font-weight: 500;
-}
-
-.genome-upload-status--queued,
-.genome-upload-status--submitted {
-    border-color: var(--tp-color-warning-border);
-    background: var(--tp-color-warning-bg);
-    color: var(--tp-color-warning-ink);
-}
-
-.genome-upload-status--running {
-    border-color: var(--tp-color-success-border);
-    background: var(--tp-color-success-bg);
-    color: var(--tp-color-success-ink);
-}
-
-.genome-upload-status--finished {
-    border-color: var(--tp-color-info-border);
-    background: var(--tp-color-info-bg);
-    color: var(--tp-color-info-ink);
-}
-
-.genome-upload-status--failed {
-    border-color: var(--tp-color-danger-border);
-    background: var(--tp-color-danger-bg);
-    color: var(--tp-color-danger-ink);
 }
 
 .genome-upload-empty-note {
