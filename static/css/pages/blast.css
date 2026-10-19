@@ -65,7 +65,7 @@
     margin: var(--tp-space-2) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-md);
-    line-height: 1.45;
+    line-height: 1.5;
 }
 
 /* ── Form ── */
@@ -87,7 +87,7 @@
     font-size: var(--tp-font-size-sm) !important;
     min-height: 180px !important;
     resize: vertical;
-    line-height: 1.55 !important;
+    line-height: 1.5 !important;
 }
 
 /* Plain text, not a box: a left accent bar (pure-text notes never get their
@@ -98,7 +98,7 @@
     border-left: 3px solid var(--tp-color-info-border);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
+    line-height: 1.5;
 }
 
 .blast-error {
@@ -162,7 +162,7 @@
     margin: 0;
     font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-xs);
-    line-height: 1.55;
+    line-height: 1.5;
     color: var(--tp-color-text-secondary);
     white-space: pre-wrap;
     overflow-wrap: anywhere;

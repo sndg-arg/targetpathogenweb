@@ -70,7 +70,7 @@
     max-width: var(--tp-measure);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
+    line-height: 1.5;
 }
 
 .explorer-plot-shell {

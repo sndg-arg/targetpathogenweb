@@ -448,7 +448,7 @@
     margin: 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
-    line-height: 1.4;
+    line-height: 1.35;
     padding-left: var(--tp-space-8);
     overflow: hidden;
     display: -webkit-box;
@@ -536,7 +536,7 @@
     padding-left: var(--tp-space-8);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
-    line-height: 1.7;
+    line-height: 1.6;
     /* Clamped to a fixed 2 lines -- proteins qualify for anywhere from ~2 to the
        6-signal cap, and letting that vary the wrapped line count made every card
        in the list a different height (reads as unpolished in a ranked list,
@@ -787,7 +787,7 @@
     border-top: 1px dashed var(--tp-color-border-soft);
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
-    line-height: 1.45;
+    line-height: 1.5;
     font-style: italic;
 }
 
@@ -863,7 +863,7 @@
     margin: 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
+    line-height: 1.5;
 }
 
 .genome-delete-actions {

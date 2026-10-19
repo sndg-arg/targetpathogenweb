@@ -97,7 +97,7 @@
 .uploaded-data-empty p {
     margin: var(--tp-space-2) 0 0;
     color: var(--tp-color-text-secondary);
-    line-height: 1.55;
+    line-height: 1.5;
 }
 
 .uploaded-data-empty .uploaded-data-actions {

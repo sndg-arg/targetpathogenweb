@@ -78,7 +78,7 @@
     max-width: var(--tp-measure);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-md);
-    line-height: 1.45;
+    line-height: 1.5;
 }
 
 /* ── State note (overwrite warning) ── */
@@ -149,7 +149,7 @@
     margin: 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.4;
+    line-height: 1.35;
 }
 
 .customparam-field-help a {
@@ -196,7 +196,7 @@
     margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
+    line-height: 1.5;
 }
 
 .customparam-actions {
@@ -245,7 +245,7 @@
     margin: 0;
     color: var(--tp-color-brand-900);
     font-size: var(--tp-font-size-md);
-    line-height: 1.25;
+    line-height: 1.2;
 }
 
 .customparam-guide-item p {
@@ -278,7 +278,7 @@
     font-family: var(--tp-font-mono);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
-    line-height: 1.55;
+    line-height: 1.5;
     white-space: pre;
     overflow-x: auto;
 }

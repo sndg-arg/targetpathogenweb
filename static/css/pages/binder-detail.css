@@ -67,7 +67,7 @@
     margin: var(--tp-space-3) 0 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
-    line-height: 1.42;
+    line-height: 1.35;
     max-width: var(--tp-measure);
 }
 
@@ -485,7 +485,7 @@
     margin: 0 0 var(--tp-space-2);
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-muted);
-    line-height: 1.4;
+    line-height: 1.35;
 }
 
 .siblings-col-hint {

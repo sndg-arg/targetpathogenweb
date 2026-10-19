@@ -154,7 +154,7 @@
     align-items: baseline;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.38;
+    line-height: 1.35;
 }
 
 .hero-analysis-label {
@@ -163,7 +163,7 @@
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
-    line-height: 1.25;
+    line-height: 1.2;
 }
 
 .hero-analysis-value {
@@ -420,7 +420,7 @@ a.filter-pill .filter-pill-remove {
 
 .toolbar-action-btn__meta {
     font-size: var(--tp-font-size-xs);
-    line-height: 1.3;
+    line-height: 1.35;
     color: var(--tp-color-text-muted);
     font-weight: 500;
 }
@@ -494,13 +494,13 @@ a.filter-pill .filter-pill-remove {
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
     color: var(--tp-color-brand-700);
-    line-height: 1.25;
+    line-height: 1.2;
 }
 
 .search-suggestion-description {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.25;
+    line-height: 1.2;
 }
 
 .per-page-control {
@@ -912,7 +912,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-tooltip-color);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    line-height: 1.4;
+    line-height: 1.35;
     white-space: normal;
     width: max-content;
     max-width: 220px;
@@ -972,7 +972,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-tooltip-color);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    line-height: 1.4;
+    line-height: 1.35;
     white-space: normal;
     width: max-content;
     max-width: 260px;
@@ -1058,7 +1058,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-tooltip-color);
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    line-height: 1.4;
+    line-height: 1.35;
     white-space: normal;
     width: max-content;
     max-width: 240px;
@@ -1102,7 +1102,7 @@ a.filter-pill .filter-pill-remove {
 .annotation-badge-caption {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    line-height: 1.3;
+    line-height: 1.35;
 }
 
 .protein-row {
@@ -1252,7 +1252,7 @@ a.filter-pill .filter-pill-remove {
     font-size: inherit;
     font-weight: 600;
     text-align: center;
-    line-height: 1.4;
+    line-height: 1.35;
     -moz-appearance: textfield;
     transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
                 box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -1635,7 +1635,7 @@ a.filter-pill .filter-pill-remove {
     border-radius: var(--tp-radius-xs);
     padding: 2px var(--tp-space-2);
     white-space: nowrap;
-    line-height: 1.4;
+    line-height: 1.35;
 }
 
 .tpd-row--active .tpd-chip {
@@ -1732,7 +1732,7 @@ a.filter-pill .filter-pill-remove {
     margin: 0 0 var(--tp-space-3);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
+    line-height: 1.5;
 }
 
 .drawer-meta {
@@ -2000,7 +2000,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-md);
     font-weight: 600;
-    line-height: 1.25;
+    line-height: 1.2;
 }
 
 .scoring-formula-row--current .scoring-formula-row__name {
@@ -2013,7 +2013,7 @@ a.filter-pill .filter-pill-remove {
     margin-top: var(--tp-space-2);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
+    line-height: 1.5;
     overflow-wrap: anywhere;
 }
 
@@ -2316,7 +2316,7 @@ a.filter-pill .filter-pill-remove {
 .columns-row-label {
     color: var(--tp-color-text-primary);
     font-weight: 600;
-    line-height: 1.25;
+    line-height: 1.2;
     font-size: var(--tp-font-size-sm);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2945,7 +2945,7 @@ a.filter-pill .filter-pill-remove {
     border-radius: var(--tp-radius-sm);
     font-size: var(--tp-font-size-xs);
     font-weight: 400;
-    line-height: 1.4;
+    line-height: 1.35;
     text-transform: none;
     letter-spacing: 0;
     white-space: normal;
@@ -3026,7 +3026,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
     font-weight: 400;
-    line-height: 1.4;
+    line-height: 1.35;
 }
 
 .filter-values-row {
@@ -3354,7 +3354,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
     font-weight: 600;
-    line-height: 1.25;
+    line-height: 1.2;
 }
 
 .filter-input-message:not(:empty) {
@@ -3741,7 +3741,7 @@ a.filter-pill .filter-pill-remove {
 .filter-presets-panel__hint {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
-    line-height: 1.4;
+    line-height: 1.35;
 }
 
 .filter-preset-save-form {
@@ -3869,7 +3869,7 @@ a.filter-pill .filter-pill-remove {
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
     font-weight: 400;
-    line-height: 1.4;
+    line-height: 1.35;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

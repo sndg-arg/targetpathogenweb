@@ -93,7 +93,7 @@
     margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
+    line-height: 1.5;
 }
 
 .formula-hidden-vars {
@@ -116,7 +116,7 @@
 .formula-expression-input {
     font-family: var(--tp-font-mono) !important;
     font-size: var(--tp-font-size-sm) !important;
-    line-height: 1.65 !important;
+    line-height: 1.6 !important;
     resize: vertical;
     min-height: 120px;
     padding: var(--tp-space-4) var(--tp-space-4) !important;

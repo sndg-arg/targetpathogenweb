@@ -302,7 +302,7 @@
     margin: 0;
     color: var(--tp-color-brand-900);
     font-size: var(--tp-heading-md);
-    line-height: 1.15;
+    line-height: 1.2;
 }
 
 .genome-workspace-empty-copy p {

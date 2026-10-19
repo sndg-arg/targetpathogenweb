@@ -289,7 +289,7 @@
     margin-bottom: var(--tp-space-3);
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.25;
+    line-height: 1.2;
     word-break: break-word;
 }
 

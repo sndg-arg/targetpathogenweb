@@ -63,7 +63,7 @@
     margin: 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
-    line-height: 1.58;
+    line-height: 1.6;
 }
 
 .home-hero-note {
@@ -627,7 +627,7 @@ body.pipeline-info-open {
     margin: 0 0 var(--tp-space-5);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
-    line-height: 1.62;
+    line-height: 1.6;
     max-width: var(--tp-measure);
 }
 
@@ -691,7 +691,7 @@ body.pipeline-info-open {
     margin: 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.62;
+    line-height: 1.6;
 }
 
 .home-about-view-btn { flex-shrink: 0; }

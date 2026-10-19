@@ -106,7 +106,7 @@
     max-width: var(--tp-measure);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
+    line-height: 1.5;
 }
 
 .genome-upload-form {
@@ -152,7 +152,7 @@
 .genome-upload-field-error {
     margin: 0;
     font-size: var(--tp-font-size-sm);
-    line-height: 1.4;
+    line-height: 1.35;
 }
 
 .genome-upload-field-error {
@@ -186,7 +186,7 @@
     margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
-    line-height: 1.45;
+    line-height: 1.5;
 }
 
 .genome-upload-actions {
@@ -240,7 +240,7 @@
     margin: 0;
     color: var(--tp-color-brand-900);
     font-size: var(--tp-font-size-md);
-    line-height: 1.25;
+    line-height: 1.2;
 }
 
 .genome-upload-guide-item p {

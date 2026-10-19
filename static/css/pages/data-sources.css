@@ -48,7 +48,7 @@
     margin: var(--tp-space-4) 0 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
-    line-height: 1.65;
+    line-height: 1.6;
 }
 
 .ds-subsection {
@@ -107,7 +107,7 @@
     margin: 0;
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
-    line-height: 1.58;
+    line-height: 1.6;
 }
 
 .ds-pipeline-card-role {
@@ -301,7 +301,7 @@
     margin: var(--tp-space-1) 0 0;
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
-    line-height: 1.58;
+    line-height: 1.6;
 }
 
 /* ── Score table ── */
@@ -409,7 +409,7 @@
 .ds-db-desc {
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
-    line-height: 1.4;
+    line-height: 1.35;
 }
 
 /* ── Target profile grid ── */
@@ -451,7 +451,7 @@
     margin: 0;
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
-    line-height: 1.58;
+    line-height: 1.6;
 }
 
 .ds-desirable {
@@ -473,7 +473,7 @@
 }
 
 .ds-table td {
-    line-height: 1.45;
+    line-height: 1.5;
     vertical-align: top;
 }
 
@@ -509,7 +509,7 @@
 .ds-def-body {
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
-    line-height: 1.55;
+    line-height: 1.5;
 }
 
 /* ── Drug-likeness list ── */
@@ -554,7 +554,7 @@
     margin: 0;
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
-    line-height: 1.62;
+    line-height: 1.6;
 }
 
 /* ── Caveats ── */
@@ -570,7 +570,7 @@
     border-bottom: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
-    line-height: 1.65;
+    line-height: 1.6;
 }
 
 .ds-caveats li:last-child { border-bottom: none; }
