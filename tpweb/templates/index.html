@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261019-home">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20261020-nosteps">
 {% endblock %}
 
 {% block body %}
@@ -23,11 +23,6 @@
                     {% if perms.tpweb.can_upload_genome %}<a class="home-hero-link" href="{% url 'tpwebapp:genome_upload' %}">{% trans "Upload a genome" %} <span aria-hidden="true">→</span></a>{% endif %}
                     <a class="home-hero-link" href="{% url 'tpwebapp:form' %}" title="{% trans 'Nucleotide or protein BLAST against a genome you choose.' %}">{% trans "BLAST a genome" %} <span aria-hidden="true">→</span></a>
                 </div>
-                <ol class="home-steps" aria-label="{% trans 'How to start' %}">
-                    <li><span class="home-step-number">1</span>{% trans "Open a genome" %}</li>
-                    <li><span class="home-step-number">2</span>{% trans "Filter and score its proteins" %}</li>
-                    <li><span class="home-step-number">3</span>{% trans "Review a protein's evidence" %}</li>
-                </ol>
             </div>
         </section>
 

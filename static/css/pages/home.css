@@ -148,38 +148,6 @@
     transform: translateX(3px);
 }
 
-/* "How to start": three quiet numbered steps under the hero actions. */
-.home-steps {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2) var(--tp-space-6);
-    margin: var(--tp-space-5) 0 0;
-    padding: 0;
-    list-style: none;
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
-}
-
-.home-steps li {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-2);
-}
-
-.home-step-number {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-radius-pill);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-2xs);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-}
-
 /* Account shortcuts at the very end of Home, out of the hero. */
 .home-workspace {
     padding: var(--tp-space-5) var(--tp-space-5) var(--tp-space-2);
