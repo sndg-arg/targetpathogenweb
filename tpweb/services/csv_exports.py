@@ -3,14 +3,17 @@ import io
 import re
 
 import openpyxl
-from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
 from django.http import HttpResponse
 
 # Design system brand colors (from masterpage.html :root)
-_XLSX_HEADER_BG = "EAF7FB"  # --tp-color-brand-050
-_XLSX_HEADER_FG = "0B4A61"  # --tp-color-brand-900
-_XLSX_ALT_ROW = "F4FAF7"  # --tp-color-surface-soft
+_XLSX_HEADER_BG = "F1F5F6"  # --tp-color-brand-050
+_XLSX_HEADER_FG = "0F2F3A"  # --tp-color-brand-900
+_XLSX_ALT_ROW = "F6F7F9"  # --tp-color-surface-soft
+_XLSX_GROUP_BG = "E2EAED"  # --tp-color-brand-100
+_XLSX_GROUP_BORDER = "A6BEC6"  # --tp-color-brand-300
 
 
 def build_export_url(request, export_value="csv", strip_params=()):
@@ -61,13 +64,19 @@ def csv_response(filename_stem, headers, rows):
 def xlsx_sections_response(filename_stem, sections):
     """
     Exports multi-section data as a formatted Excel workbook.
-    Each section becomes a separate worksheet with styled headers.
+    Each section becomes a separate worksheet with styled headers. A section
+    may also carry "header_groups" (one label per column, e.g. from
+    export_columns.group_columns_by_block): runs of the same label get a
+    merged band row above the headers.
     """
     filename = _normalize_filename(filename_stem)
 
     header_font = Font(bold=True, color=_XLSX_HEADER_FG)
     header_fill = PatternFill("solid", fgColor=_XLSX_HEADER_BG)
     alt_fill = PatternFill("solid", fgColor=_XLSX_ALT_ROW)
+    group_fill = PatternFill("solid", fgColor=_XLSX_GROUP_BG)
+    group_side = Side(style="thin", color=_XLSX_GROUP_BORDER)
+    group_border = Border(left=group_side, right=group_side)
     center_align = Alignment(vertical="center")
 
     wb = openpyxl.Workbook()
@@ -78,23 +87,47 @@ def xlsx_sections_response(filename_stem, sections):
         headers = list(section.get("headers") or [])
         rows = list(section.get("rows") or [])
 
+        groups = list(section.get("header_groups") or [])
+        if len(groups) != len(headers):
+            groups = []
+
         ws = wb.create_sheet(title=title[:31])
 
         col_widths = [max(len(str(h)), 6) for h in headers]
 
+        header_row = 1
+        if groups:
+            ws.append(groups)
+            start = 0
+            for end in range(1, len(groups) + 1):
+                if end == len(groups) or groups[end] != groups[start]:
+                    if end - start > 1:
+                        ws.merge_cells(
+                            start_row=1, start_column=start + 1, end_row=1, end_column=end
+                        )
+                    start = end
+            for cell in ws[1]:
+                cell.font = header_font
+                cell.fill = group_fill
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+                cell.border = group_border
+            ws.row_dimensions[1].height = 20
+            header_row = 2
+
         if headers:
             ws.append(headers)
-            for cell in ws[1]:
+            for cell in ws[header_row]:
                 cell.font = header_font
                 cell.fill = header_fill
                 cell.alignment = center_align
-            ws.row_dimensions[1].height = 22
-            ws.freeze_panes = "A2"
+            ws.row_dimensions[header_row].height = 22
+            ws.freeze_panes = f"A{header_row + 1}"
 
-        for row_num, row in enumerate(rows, 2):
+        first_data_row = header_row + 1 if headers else header_row
+        for row_num, row in enumerate(rows, first_data_row):
             normalized = ["" if v is None else v for v in row]
             ws.append(normalized)
-            if row_num % 2 == 0:
+            if (row_num - first_data_row) % 2 == 0:
                 for cell in ws[row_num]:
                     cell.fill = alt_fill
             for col_idx, val in enumerate(normalized):
@@ -102,7 +135,7 @@ def xlsx_sections_response(filename_stem, sections):
                     col_widths[col_idx] = max(col_widths[col_idx], min(len(str(val)), 64))
 
         for col_idx, width in enumerate(col_widths, 1):
-            col_letter = ws.cell(1, col_idx).column_letter
+            col_letter = get_column_letter(col_idx)
             ws.column_dimensions[col_letter].width = width + 3
 
     buffer = io.BytesIO()

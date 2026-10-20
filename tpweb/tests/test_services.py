@@ -2292,3 +2292,46 @@ class StructureDownloadsTests(SimpleTestCase):
                 ("colabfold", "ColabFold", 1),
             ],
         )
+
+
+class ExportColumnBlocksTests(SimpleTestCase):
+    def test_columns_grouped_by_block_keeping_order_within_block(self):
+        from tpweb.services.export_columns import group_columns_by_block
+
+        headers = [
+            "Rank",
+            "Protein",
+            "Structure",
+            "Metabolism",
+            "human_offtarget",
+            "Druggability",
+            "S_gene",
+            "colabfold_plddt",
+            "my_upload",
+        ]
+        categories = {
+            "human_offtarget": "Off-target",
+            "Druggability": "Pocket",
+            "S_gene": "Metabolic priority (curated)",
+            "my_upload": "Custom",
+        }
+        new_headers, rows, blocks = group_columns_by_block(
+            headers, [list(range(len(headers)))], categories
+        )
+        self.assertEqual(
+            new_headers,
+            [
+                "Rank",
+                "Protein",
+                "Structure",
+                "Druggability",
+                "colabfold_plddt",
+                "human_offtarget",
+                "Metabolism",
+                "S_gene",
+                "my_upload",
+            ],
+        )
+        self.assertEqual(rows, [[0, 1, 2, 5, 7, 4, 3, 6, 8]])
+        self.assertEqual(blocks[2:5], ["Structure & pockets"] * 3)
+        self.assertEqual(blocks[-1], "Custom data")

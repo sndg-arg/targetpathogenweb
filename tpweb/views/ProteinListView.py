@@ -76,6 +76,7 @@ from tpweb.services.protein_serializer import (
 )
 from tpweb.services.report_sources import build_report_sources
 from tpweb.templatetags.custom_tags import score_metric_display
+from tpweb.services.export_columns import group_columns_by_block
 from tpweb.services.csv_exports import (
     build_export_url,
     build_view_export_url,
@@ -1168,6 +1169,8 @@ class ProteinListView(View):
         annotation_filter,
         fixed_column_labels,
         tcolumns,
+        data_headers,
+        header_blocks,
         rows,
         total_count,
     ):
@@ -1196,16 +1199,6 @@ class ProteinListView(View):
             ["Exported proteins", total_count],
         ]
 
-        data_headers = [
-            "Rank",
-            "Protein",
-            "Description",
-            "Gene",
-            "Structure",
-            "EC",
-            "GO",
-            "Metabolism",
-        ] + list(tcolumns)
         source_rows, reference_rows = build_report_sources(data_headers)
 
         return [
@@ -1217,6 +1210,7 @@ class ProteinListView(View):
             {
                 "title": "Protein table",
                 "headers": data_headers,
+                "header_groups": header_blocks,
                 "rows": rows,
             },
             {
@@ -2042,6 +2036,12 @@ class ProteinListView(View):
                         *[metric_values.get(column, "-") for column in tcolumns],
                     ]
                 )
+            # Related columns side by side (structure, metabolism, ...).
+            headers, rows, header_blocks = group_columns_by_block(
+                headers,
+                rows,
+                {name: score_param.category for name, score_param in score_dict.items()},
+            )
             if export_mode in {"view_csv", "report"}:
                 sections = self._view_export_sections(
                     assembly_name=assembly_name,
@@ -2060,6 +2060,8 @@ class ProteinListView(View):
                     else None,
                     fixed_column_labels=self.FIXED_COLUMN_LABELS,
                     tcolumns=tcolumns,
+                    data_headers=headers,
+                    header_blocks=header_blocks,
                     rows=rows,
                     total_count=len(rows),
                 )
