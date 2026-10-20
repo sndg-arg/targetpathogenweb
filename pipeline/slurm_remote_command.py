@@ -174,7 +174,11 @@ def _open_remote_session(config):
     # a poll loop), killing the whole remote stage instead of just this
     # one connection.
     ssh.get_transport().set_keepalive(30)
-    scp_client = SCPClient(ssh.get_transport())
+    # scp's default 10s socket_timeout covers the wait for the remote side to
+    # acknowledge a finished file -- too short for a multi-GB tar landing on
+    # the cluster's NFS home (observed: stage 17's ~5400-PDB input tar failed
+    # with "Timeout waiting for scp response").
+    scp_client = SCPClient(ssh.get_transport(), socket_timeout=600)
     sftp = ssh.open_sftp()
     return ssh, scp_client, sftp
 
