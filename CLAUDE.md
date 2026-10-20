@@ -1,7 +1,5 @@
 # Target Pathogen Web — Claude Context
 
-Working guidelines (shared with Codex): @AGENTS.md
-
 ## What this is
 Django 4 web platform for genome-level protein exploration and bioinformatics target prioritization.
 Thesis project at FCEN UBA. Stack: Django + PostgreSQL + Docker Compose.
