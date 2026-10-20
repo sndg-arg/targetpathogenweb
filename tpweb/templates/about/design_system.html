@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261019-mobile">
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261020-downloads">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261018-menu">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261020-review">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -253,12 +253,13 @@
             <h3>File picker</h3>
             <div class="ds-matrix-wrap">
             <table class="ds-matrix">
-                <thead><tr><th>Default</th><th>Hover</th><th>Disabled</th></tr></thead>
+                <thead><tr><th>Empty</th><th>Hover</th><th>File chosen</th><th>Disabled</th></tr></thead>
                 <tbody>
                     <tr>
-                        <td><input type="file" class="tp-file-input ds-control" tabindex="-1" aria-label="Example"></td>
-                        <td><input type="file" class="tp-file-input ds-control is-hover" tabindex="-1" aria-label="Example"></td>
-                        <td><input type="file" class="tp-file-input ds-control" disabled aria-label="Example"></td></tr>
+                        <td><div class="ds-control"><input type="file" class="tp-file-input" aria-label="Example"></div></td>
+                        <td><div class="ds-control"><span class="tp-file is-hover"><span class="btn tp-btn tp-btn--sm tp-file-button">Choose file</span><span class="tp-file-name">No file chosen</span></span></div></td>
+                        <td><div class="ds-control"><span class="tp-file has-file"><span class="btn tp-btn tp-btn--sm tp-file-button">Choose file</span><span class="tp-file-name">KpATCC43816.gbk.gz</span></span></div></td>
+                        <td><div class="ds-control"><span class="tp-file is-disabled"><span class="btn tp-btn tp-btn--sm tp-file-button">Choose file</span><span class="tp-file-name">No file chosen</span></span></div></td></tr>
                 </tbody>
             </table>
             </div>
@@ -330,7 +331,7 @@
         <div class="ds-comp" id="c-empty">
             <h3>Empty state</h3>
             <div class="ds-matrix-wrap">
-            <table class="ds-matrix">
+            <table class="ds-matrix ds-matrix--top">
                 <thead><tr><th>Text only</th><th>With actions</th></tr></thead>
                 <tbody>
                     <tr>
@@ -476,10 +477,16 @@
                         <td><ul class="pagination tp-pagination ds-pagination"><li class="page-item"><span class="page-link is-hover">3</span></li></ul></td>
                         <td><ul class="pagination tp-pagination ds-pagination"><li class="page-item active"><span class="page-link">1</span></li></ul></td>
                         <td><ul class="pagination tp-pagination ds-pagination"><li class="page-item disabled"><span class="page-link">…</span></li></ul></td></tr>
+                </tbody>
+            </table>
+            </div>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix ds-matrix--top">
+                <tbody>
                     <tr><th>Menu</th>
-                        <td colspan="4"><div class="dropdown-menu show tp-topbar-desktop-account-menu ds-menu"><a class="dropdown-item tp-topbar-desktop-account-item active" href="#c-navigation" tabindex="-1"><span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span><span>My profile</span></a><a class="dropdown-item tp-topbar-desktop-account-item is-hover" href="#c-navigation" tabindex="-1"><span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/columns.html" %}</span><span>Design</span></a><a class="dropdown-item tp-topbar-desktop-account-item" href="#c-navigation" tabindex="-1"><span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/dna.html" %}</span><span>Human Targets</span></a></div></td></tr>
+                        <td><div class="dropdown-menu show tp-topbar-desktop-account-menu ds-menu"><a class="dropdown-item tp-topbar-desktop-account-item active" href="#c-navigation" tabindex="-1"><span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span><span>My profile</span></a><a class="dropdown-item tp-topbar-desktop-account-item is-hover" href="#c-navigation" tabindex="-1"><span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/columns.html" %}</span><span>Design</span></a><a class="dropdown-item tp-topbar-desktop-account-item" href="#c-navigation" tabindex="-1"><span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/dna.html" %}</span><span>Human Targets</span></a></div></td></tr>
                     <tr><th>Breadcrumb</th>
-                        <td colspan="4"><nav class="tp-breadcrumb ds-crumb" aria-label="Example"><ol class="tp-breadcrumb-list"><li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#c-navigation"><span class="tp-breadcrumb-home-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>Home</a></li><li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#c-navigation">Genomes</a></li><li class="tp-breadcrumb-item"><span class="tp-breadcrumb-current">Proteins</span></li></ol></nav></td></tr>
+                        <td><nav class="tp-breadcrumb ds-crumb" aria-label="Example"><ol class="tp-breadcrumb-list"><li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#c-navigation"><span class="tp-breadcrumb-home-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>Home</a></li><li class="tp-breadcrumb-item"><a class="tp-breadcrumb-link" href="#c-navigation">Genomes</a></li><li class="tp-breadcrumb-item"><span class="tp-breadcrumb-current">Proteins</span></li></ol></nav></td></tr>
                 </tbody>
             </table>
             </div>

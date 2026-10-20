@@ -278,7 +278,7 @@
 }
 
 .ds-control {
-    width: 220px;
+    width: 200px;
 }
 
 .ds-matrix .tp-select {
@@ -287,7 +287,7 @@
 
 .ds-menu {
     position: static;
-    width: 220px;
+    width: 200px;
     margin-top: var(--tp-space-1);
 }
 
@@ -359,8 +359,10 @@ a.ds-card {
     height: 56px;
 }
 
-/* Top-bar menu: the real dropdown, shown in place. */
-.ds-menu {
+/* Top-bar menu: the real dropdown, shown in place. Scoped to .dropdown-menu:
+   a bare .ds-menu also hit the Select sample's menu and laid its options out
+   in one clipped row. */
+.dropdown-menu.ds-menu {
     position: static;
     display: block;
     float: none;

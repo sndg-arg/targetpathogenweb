@@ -72,6 +72,9 @@ Components (all on /design). There is no `.tp-ui-panel`/`.tp-ui-panel-head` any 
 - Filters: `.filter-chip` (available) + `--active` or `[aria-pressed="true"]` (applied, filled
   primary) + `--pending` (dashed); tone variants for risk/favorable.
 - Select: `.tp-select` (custom dropdown, `.tp-select-option.is-selected`). Fields: `.form-control`.
+- File picker: give the input `class="tp-file-input"`; `js/global/file-picker.js` wraps it in
+  `.tp-file` (own "Choose file" button + name, `.has-file`/`.is-disabled`). Never show the native
+  control: its text comes in the browser's language and gets cut off.
 - Messages: `.tp-message--{success,info,warning,error}` (dismissible flash). Notes are `tp-state-note`.
 - Navigation: `.tp-pagination` (quiet: plain numbers, current = brand-100), `.tp-breadcrumb`, `.quick-nav`.
 - Tooltips: `.tp-global-tooltip` (`--tp-tooltip-*`, `.is-below`), one for the whole site.

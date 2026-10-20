@@ -1799,9 +1799,90 @@ button.tp-chip:hover,
     box-shadow: var(--tp-focus-outline);
 }
 
+/* Enhanced picker (js/global/file-picker.js wraps .tp-file-input): the
+   site's own "Choose file" button + file name instead of the browser's. */
+.tp-file {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-3);
+    width: 100%;
+    min-width: 0;
+    min-height: var(--tp-ui-control-height);
+    margin: 0;
+    padding: 2px var(--tp-space-3) 2px 2px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 400;
+    cursor: pointer;
+    transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-file > input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Its own colors: the .tp-btn--secondary rules are !important and would
+   override the picker's hover/disabled states. */
+.tp-file .tp-file-button {
+    flex-shrink: 0;
+    pointer-events: none;
+    color: var(--tp-color-text-primary);
+    border: 1px solid var(--tp-color-border-strong);
+    background: var(--tp-color-surface);
+}
+
+.tp-file-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tp-file.has-file .tp-file-name {
+    color: var(--tp-color-text-primary);
+}
+
+.tp-file:hover,
+.tp-file.is-hover {
+    border-color: var(--tp-color-text-muted);
+}
+
+.tp-file:hover .tp-file-button,
+.tp-file.is-hover .tp-file-button {
+    border-color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface-soft);
+}
+
+.tp-file:focus-within {
+    border-color: var(--tp-focus-color);
+    box-shadow: var(--tp-focus-outline);
+}
+
+.tp-file.is-disabled {
+    color: var(--tp-color-text-soft);
+    border-color: var(--tp-color-border-soft);
+    background: var(--tp-color-surface-muted);
+    cursor: not-allowed;
+}
+
+.tp-file.is-disabled .tp-file-button {
+    color: var(--tp-color-text-soft);
+    border-color: var(--tp-color-border-soft);
+    background: var(--tp-color-surface-muted);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .tp-ui-enter,
     .tp-card,
+    .tp-file,
     .tp-file-input,
     .tp-select-trigger,
     .tp-select-option,
