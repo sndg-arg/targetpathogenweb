@@ -20,6 +20,7 @@ from tpweb.services.assembly_workspace import OVERVIEW_CACHE_TTL_SECONDS
 from tpweb.services.binder_summary import create_binders_dict
 from tpweb.services.metabolism_summary import build_target_metabolic_sentence
 from tpweb.services.genome_workspace import genome_url_slug
+from tpweb.services.score_params import GATES_METABOLIC_HELP
 from tpweb.services.structure_sources import (
     STRUCTURE_SOURCE_EXPERIMENTAL,
     STRUCTURE_SOURCE_MIXED,
@@ -543,7 +544,7 @@ def build_conservation_profile(raw_scores):
     }
 
 
-# Maps the Gates-project pan-genome model's priority label (tpweb/management/
+# Maps the Gates-project curated metabolic analysis' priority label (tpweb/management/
 # commands/load_gates_metabolic_score.py) to one of the site's semantic tone
 # tokens, for the badge color on the protein page's evidence card.
 _GATES_PRIORITY_TONES = {
@@ -554,7 +555,7 @@ _GATES_PRIORITY_TONES = {
 
 
 def build_gates_metabolic_priority(raw_scores):
-    """The Gates-project pan-genome metabolic priority score (S_gene,
+    """The Gates-project curated metabolic priority score (S_gene,
     reaction_support, n_reactions, quadrant, priority) -- a curated
     replacement for the automatic BioCyc/Pathway Tools metrics in
     build_metabolic_context, only loaded for KP13/ATCC43816 so far
@@ -570,6 +571,7 @@ def build_gates_metabolic_priority(raw_scores):
         "s_gene": _format_score_value(_raw_score(raw_scores, "S_gene")),
         "reaction_support": _format_score_value(_raw_score(raw_scores, "reaction_support")),
         "n_reactions": _raw_score(raw_scores, "n_reactions"),
+        "help": GATES_METABOLIC_HELP,
     }
 
 

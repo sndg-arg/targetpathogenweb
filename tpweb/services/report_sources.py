@@ -117,7 +117,7 @@ _PARAM_NAME_SOURCES = [
 ]
 
 _CATEGORY_SOURCES = {
-    "metabolism (gates)": ("Gates-project pan-genome metabolic model", ()),
+    "metabolism (gates)": ("Gates-project curated metabolic analysis", ()),
     "metabolism (automatic)": ("Pathway Tools / MetaFlux", ("metabolism",)),
     "custom": ("Data uploaded by the user (Add my own data)", ()),
 }

@@ -216,7 +216,7 @@
                 <p><strong>{% trans "PDB ligand" %}</strong>: {% trans "a compound observed in an experimental structure. Direct same-protein records are stronger than homolog-transferred records." %}</p>
                 <p><strong>{% trans "ChEMBL" %}</strong>: {% trans "a public database of measured compound bioactivity. Direct entries are stronger than entries transferred from similar proteins." %}</p>
                 <p><strong>{% trans "ZINC" %}</strong>: {% trans "a purchasable-compound database. Here it marks proposed candidates from chemical similarity, not measured binders." %}</p>
-                <p><strong>{% trans "LigQ / LigQ_2" %}</strong>: {% trans "an internal Target pipeline step that gathers PDB, ChEMBL, and ZINC ligand evidence for each protein." %}</p>
+                <p><strong>{% trans "LigQ / LigQ_2" %}</strong>: {% trans "an internal Target pipeline step that gathers PDB, ChEMBL, and ZINC ligand evidence for each protein. It keeps drug-like PDB ligands, the top 100 ChEMBL records by pChEMBL and up to 50 ZINC compounds with Tanimoto ≥ 0.5." %}</p>
                 <p><strong>{% trans "Off-target" %}</strong>: {% trans "sequence similarity to proteins we prefer not to hit, such as human proteins or beneficial gut microbiome proteins." %}</p>
                 <p><strong>{% trans "DEG" %}</strong>: {% trans "Database of Essential Genes. A match suggests the protein resembles genes known to be essential in other organisms." %}</p>
                 <p><strong>{% trans "Roary / CoreCruncher" %}</strong>: {% trans "pan-genome tools used to decide whether a gene is core across analyzed strains or accessory/strain-specific." %}</p>
@@ -402,23 +402,23 @@
                     </div>
                     {% endif %}
                     {% if gates_metabolic_priority %}
-                    <div class="target-evidence-card" title="{% trans "Curated pan-genome metabolic model: how strongly this gene's ortholog mapping and its reaction are supported across the modeled Klebsiella strains. The curated replacement for the automatic BioCyc/Pathway Tools metrics below." %}">
-                        <span class="target-evidence-label">{% trans "Metabolic priority" %} <span class="tp-chip">{% if gates_viewer %}{% trans "Gates pan-genome model" %}{% else %}{% trans "pan-genome model" %}{% endif %}</span></span>
-                        <span class="tp-chip{% if gates_metabolic_priority.tone == 'success' %} tp-chip--success{% elif gates_metabolic_priority.tone == 'warning' %} tp-chip--warning{% endif %}">{{ gates_metabolic_priority.priority }}</span>
+                    <div class="target-evidence-card" title="{{ gates_metabolic_priority.help.card }}">
+                        <span class="target-evidence-label">{% trans "Metabolic priority" %} <span class="tp-chip">{% if gates_viewer %}{% trans "Gates curated" %}{% else %}{% trans "curated" %}{% endif %}</span></span>
+                        <span class="tp-chip{% if gates_metabolic_priority.tone == 'success' %} tp-chip--success{% elif gates_metabolic_priority.tone == 'warning' %} tp-chip--warning{% endif %}" title="{{ gates_metabolic_priority.help.priority }}">{{ gates_metabolic_priority.priority }}</span>
                         {% if gates_metabolic_priority.quadrant %}
-                        <span class="target-evidence-subtext">{{ gates_metabolic_priority.quadrant }}</span>
+                        <span class="target-evidence-subtext" title="{{ gates_metabolic_priority.help.quadrant }}">{{ gates_metabolic_priority.quadrant }}</span>
                         {% endif %}
                         <div class="target-evidence-meta target-evidence-meta--top">
                             <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key" title="{% trans "Per-gene support (0–1) for this gene's ortholog mapping into the pan-genome model." %}">{% trans "Gene support" %}</span>
+                                <span class="target-evidence-meta-key" title="{{ gates_metabolic_priority.help.S_gene }}">{% trans "Gene support" %}</span>
                                 <span class="target-evidence-meta-val">{{ gates_metabolic_priority.s_gene|default:"—" }}</span>
                             </div>
                             <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key" title="{% trans "Per-reaction support (0–1) across the modeled pan-genome strains. Drives the quadrant/priority classification." %}">{% trans "Reaction support" %}</span>
+                                <span class="target-evidence-meta-key" title="{{ gates_metabolic_priority.help.reaction_support }}">{% trans "Reaction support" %}</span>
                                 <span class="target-evidence-meta-val">{{ gates_metabolic_priority.reaction_support|default:"—" }}</span>
                             </div>
                             <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key" title="{% trans "Number of metabolic reactions this gene participates in." %}">{% trans "Reactions" %}</span>
+                                <span class="target-evidence-meta-key" title="{{ gates_metabolic_priority.help.n_reactions }}">{% trans "Reactions" %}</span>
                                 <span class="target-evidence-meta-val">{{ gates_metabolic_priority.n_reactions|default:"—" }}</span>
                             </div>
                         </div>
@@ -947,6 +947,7 @@
                         <div>
                             <h2>{% trans "Ligand evidence" %}</h2>
                             <p class="section-subtitle">{% trans "Ligands grouped by evidence source. PDB ligands keep the source crystal visible, and loaded crystals can be opened directly in the structure viewer." %}</p>
+                            <p class="section-subtitle">{% trans "Per protein: every drug-like PDB ligand (amino acids, water, ions and buffers left out), the 100 ChEMBL records with the highest pChEMBL, and up to 50 ZINC compounds with Tanimoto similarity ≥ 0.5." %}</p>
                         </div>
                         <div class="section-tools">
                             <span class="tp-chip">{{ binders.total }} {% trans "records" %}</span>

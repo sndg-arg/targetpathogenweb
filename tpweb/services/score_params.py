@@ -4,6 +4,34 @@ from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from tpweb.services.score_param_types import is_categorical_score_param, is_numeric_score_param
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME, resolve_workspace_user
 
+# Curated metabolic priority (Gates project, loaded by load_gates_metabolic_score).
+# Its scores don't come only from the pan-genome metabolic model, so the copy
+# avoids saying so. Hover texts on the protein page and the column
+# descriptions all read from here: replace them with the metabolism team's
+# paragraph when it arrives.
+GATES_METABOLIC_CATEGORY = "Metabolic priority (curated)"
+GATES_METABOLIC_HELP = {
+    "card": (
+        "Curated metabolic analysis by the project's metabolism team: how strongly this "
+        "gene and its reactions are supported. Replaces the automatic BioCyc/Pathway Tools "
+        "metrics below."
+    ),
+    "S_gene": "Gene support score (0–1) from the curated metabolic analysis.",
+    "reaction_support": (
+        "Reaction support score (0–1) from the curated metabolic analysis. Drives the "
+        "quadrant and priority classification."
+    ),
+    "n_reactions": "Number of metabolic reactions this gene participates in.",
+    "quadrant": (
+        "Gene-support / reaction-support quadrant (high/low gene support × high/low "
+        "reaction support), from the curated metabolic analysis."
+    ),
+    "priority": (
+        "Target priority tier from the curated metabolic analysis, derived from the "
+        "gene-support / reaction-support quadrant."
+    ),
+}
+
 SYSTEM_SCORE_PARAM_DEFINITIONS = {
     "human_offtarget": {
         "category": "Off-target",
@@ -269,44 +297,29 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "default_value": "0",
     },
     "S_gene": {
-        "category": "Metabolic model (pan-genome)",
-        "description": (
-            "Pan-genome metabolic model (curated): per-gene support score (0–1) for how "
-            "confidently this gene's ortholog mapping into the pan-genome model is supported. "
-            "Curated by the project metabolic team, replacing the automatic BioCyc/Pathway "
-            "Tools metrics as the primary metabolic-importance score for this strain."
-        ),
+        "category": GATES_METABOLIC_CATEGORY,
+        "description": GATES_METABOLIC_HELP["S_gene"],
         "type": "N",
         "default_operation": ">=",
         "default_value": "0",
     },
     "reaction_support": {
-        "category": "Metabolic model (pan-genome)",
-        "description": (
-            "Pan-genome metabolic model (curated): per-reaction support score (0–1) — how "
-            "strongly this gene's reaction is supported across the modeled pan-genome strains. "
-            "Drives the quadrant/priority classification below."
-        ),
+        "category": GATES_METABOLIC_CATEGORY,
+        "description": GATES_METABOLIC_HELP["reaction_support"],
         "type": "N",
         "default_operation": ">=",
         "default_value": "0",
     },
     "n_reactions": {
-        "category": "Metabolic model (pan-genome)",
-        "description": (
-            "Pan-genome metabolic model (curated): number of metabolic reactions this gene "
-            "participates in."
-        ),
+        "category": GATES_METABOLIC_CATEGORY,
+        "description": GATES_METABOLIC_HELP["n_reactions"],
         "type": "N",
         "default_operation": ">=",
         "default_value": "0",
     },
     "quadrant": {
-        "category": "Metabolic model (pan-genome)",
-        "description": (
-            "Pan-genome metabolic model (curated): which gene-support / reaction-support quadrant "
-            "this gene falls into (high/low gene support × high/low reaction support)."
-        ),
+        "category": GATES_METABOLIC_CATEGORY,
+        "description": GATES_METABOLIC_HELP["quadrant"],
         "type": "C",
         "default_operation": "=",
         "default_value": "Low reaction / Low gene",
@@ -318,11 +331,8 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         ),
     },
     "priority": {
-        "category": "Metabolic model (pan-genome)",
-        "description": (
-            "Pan-genome metabolic model (curated): target priority tier derived from the "
-            "gene-support / reaction-support quadrant."
-        ),
+        "category": GATES_METABOLIC_CATEGORY,
+        "description": GATES_METABOLIC_HELP["priority"],
         "type": "C",
         "default_operation": "=",
         "default_value": "Non-priority target",
