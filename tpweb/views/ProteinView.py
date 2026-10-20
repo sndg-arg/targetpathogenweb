@@ -4,6 +4,7 @@ from django.http import Http404
 from django.views import View
 
 import itertools
+import re
 
 from bioseq.io.BioIO import BioIO
 from bioseq.models.Biodatabase import Biodatabase
@@ -45,6 +46,9 @@ from tpweb.services.protein_summary import (
 )
 from tpweb.services.binder_summary import create_binders_dict
 from tpweb.services.cross_references import build_protein_cross_references
+
+# RefSeq (WP_000001.1) or INSDC/GenBank (WHR11391.1) protein IDs.
+PROTEIN_ACCESSION_RE = re.compile(r"^(?:(?:NP|WP|XP|YP|AP)_\d+|[A-Z]{3}\d{5,7})(?:\.\d+)?$")
 
 
 def _short_method(method_str):
@@ -337,10 +341,13 @@ def serialize_prot(protein: Bioentry):
         "id": protein.bioentry_id,
         "accession": protein.accession,
         "description": protein.description,
+        # Gene qualifiers sometimes hold the protein ID itself (RefSeq WP_… or
+        # GenBank WHR11391.1); those aren't gene names, so leave them out.
         "gene": " ".join(
-            g for g in protein.genes() if not g.startswith(("NP_", "WP_", "XP_", "YP_", "AP_"))
-        )
-        or " ".join(protein.genes()),
+            g
+            for g in protein.genes()
+            if g != protein.accession and not PROTEIN_ACCESSION_RE.match(g)
+        ),
         "size": protein.seq.length,
         "assembly_id": bdb.biodatabase_id,
         "assembly_name": bdb.name,
