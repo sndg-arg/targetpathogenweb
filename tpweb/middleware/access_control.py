@@ -55,6 +55,7 @@ PUBLIC_URL_NAMES = frozenset(
         "molecules",
         "structure_raw",
         "structure_export",
+        "protein_structures_export",
         "load_options",
         "structure",
         "binder_detail",

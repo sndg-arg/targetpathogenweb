@@ -2226,3 +2226,69 @@ class ReportSourcesTests(TestCase):
         self.assertIn(REFERENCES["alphafold_db"], references)
         self.assertIn(REFERENCES["diamond"], references)
         self.assertNotIn(REFERENCES["psortb"], references)
+
+
+class StructureDownloadsTests(SimpleTestCase):
+    POCKETS = [
+        {
+            "method": "fpocket",
+            "name": "1",
+            "score_name": "druggability_score",
+            "score": 0.81,
+            "residues": [("A", 12, "ASP"), ("A", 15, "LYS"), ("B", 3, "GLY")],
+        },
+        {
+            "method": "p2rank",
+            "name": "pocket1",
+            "score_name": "probability",
+            "score": None,
+            "residues": [("", 40, "SER")],
+        },
+    ]
+
+    def test_pockets_tsv_lists_every_pocket_with_rank_and_residues(self):
+        from tpweb.services.structure_downloads import pockets_tsv
+
+        lines = pockets_tsv(self.POCKETS).splitlines()
+        self.assertEqual(len(lines), 3)
+        self.assertEqual(
+            lines[1], "fpocket\t1\t1\tdruggability_score\t0.810\t3\tA:ASP12;A:LYS15;B:GLY3"
+        )
+        self.assertEqual(lines[2], "p2rank\tpocket1\t1\tprobability\t\t1\tSER40")
+
+    def test_pymol_script_embeds_structure_and_selects_pockets(self):
+        import base64
+        import re
+        import zlib
+
+        from tpweb.services.structure_downloads import pymol_script
+
+        pdb_text = "ATOM      1  N   ASP A  12      0.0 0.0 0.0  1.00 90.00           N\nEND\n"
+        script = pymol_script(pdb_text, "pdb", "AF-P1-F1", "title", "alphafold", self.POCKETS)
+        data = re.search(r'_data = """(.*?)"""', script, re.S).group(1)
+        self.assertEqual(
+            zlib.decompress(base64.b64decode("".join(data.split()))).decode(), pdb_text
+        )
+        self.assertIn('"pdb", "AF_P1_F1")', script)
+        self.assertIn(
+            "select fpocket_1, AF_P1_F1 and ((chain A and resi 12+15) or (chain B and resi 3))",
+            script,
+        )
+        self.assertIn("select p2rank_pocket1, AF_P1_F1 and ((resi 40))", script)
+        self.assertIn("show spheres, AF_P1_F1 and resn STP and resi 1", script)
+        self.assertIn("spectrum b", script)
+
+    def test_available_download_sources_counts_by_source(self):
+        from tpweb.services.structure_downloads import available_download_sources
+
+        links = [
+            SimpleNamespace(pdb=SimpleNamespace(experiment=e)) for e in ("AF", "EX", "EX", "CF")
+        ]
+        self.assertEqual(
+            available_download_sources(links),
+            [
+                ("experimental", "Experimental (PDB)", 2),
+                ("alphafold", "AlphaFold DB", 1),
+                ("colabfold", "ColabFold", 1),
+            ],
+        )

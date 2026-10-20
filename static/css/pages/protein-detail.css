@@ -1360,8 +1360,32 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     white-space: nowrap;
 }
 
-.structure-picker + .structure-download-btn {
+.structure-picker + .structure-download-btn,
+.structure-picker + .structure-download-menu {
     margin-left: auto;
+}
+
+.structure-download-menu {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.structure-download-menu > summary {
+    list-style: none;
+    cursor: pointer;
+    gap: var(--tp-space-2);
+}
+
+.structure-download-menu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.structure-download-menu[open] .structure-picker-chevron {
+    transform: rotate(180deg);
+}
+
+.structure-download-list .structure-picker-item {
+    text-decoration: none;
 }
 
 .structure-picker {

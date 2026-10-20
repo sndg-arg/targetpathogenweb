@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261019-pockets">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261020-downloads">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -758,12 +758,44 @@
                             </ul>
                         </div>
                         {% endif %}
-                        <a href="{% url "tpwebapp:structure_export" structure.id %}"
+                        {% if structure_download_sources %}
+                        <details class="structure-download-menu js-structure-download-menu">
+                            <summary class="btn tp-btn tp-btn--secondary tp-btn-with-icon structure-action-btn"
+                                     title="{% trans 'Structure files with their FPocket and P2Rank pockets (TSV) and a PyMOL script for each, as a ZIP' %}">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                                <span>{% trans "Structures + pockets" %}</span>
+                                <span class="structure-picker-chevron" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
+                            </summary>
+                            <ul class="structure-picker-menu structure-download-list">
+                                {% if structure_download_sources|length > 1 %}
+                                <li><a class="structure-picker-item" data-no-page-loader
+                                       href="{% url 'tpwebapp:protein_structures_export' protein.id %}?source=all">
+                                    <span class="structure-picker-item-label">{% trans "All sources" %}</span>
+                                </a></li>
+                                {% endif %}
+                                {% for source_key, source_label, source_count in structure_download_sources %}
+                                <li><a class="structure-picker-item" data-no-page-loader
+                                       href="{% url 'tpwebapp:protein_structures_export' protein.id %}?source={{ source_key }}">
+                                    <span class="structure-picker-item-label">{{ source_label }}</span>
+                                    <span class="structure-picker-item-detail">{{ source_count }}</span>
+                                </a></li>
+                                {% endfor %}
+                            </ul>
+                        </details>
+                        {% endif %}
+                        <a href="{% url "tpwebapp:structure_export" structure.id %}?format=pymol&amp;protein_id={{ protein.id }}"
+                           data-no-page-loader
+                           class="btn tp-btn tp-btn--secondary tp-btn-with-icon structure-action-btn structure-download-btn"
+                           title="{% trans 'Download a PyMOL script (.pml) for the structure shown, with its pockets highlighted — opens on its own in PyMOL, pymol.org' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                            <span>{% trans "PyMOL script" %}</span>
+                        </a>
+                        <a href="{% url "tpwebapp:structure_export" structure.id %}?protein_id={{ protein.id }}"
                            data-no-page-loader
                            class="btn tp-btn tp-btn--secondary tp-btn-with-icon structure-action-btn structure-download-btn"
                            title="{% trans 'Download a visualization script for VMD (Visual Molecular Dynamics), free software to view the 3D structure with pocket overlays — vmd.ks.uiuc.edu' %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
-                            <span>{% trans "Download VMD script" %}</span>
+                            <span>{% trans "VMD script" %}</span>
                         </a>
                         <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.id }}"
                            class="btn tp-btn tp-btn--primary tp-btn-with-icon structure-action-btn structure-fullscreen-link"
@@ -1662,7 +1694,24 @@
                     });
                 }());
 
-                // The "Download VMD script" / "Full viewer" / "open the full
+                // "Structures + pockets" menu: close on outside click, Escape
+                // or after picking a download.
+                document.querySelectorAll(".js-structure-download-menu").forEach(function (menu) {
+                    document.addEventListener("click", function (event) {
+                        if (menu.open && !menu.contains(event.target)) menu.open = false;
+                    });
+                    menu.addEventListener("keydown", function (event) {
+                        if (event.key === "Escape" && menu.open) {
+                            menu.open = false;
+                            menu.querySelector("summary").focus();
+                        }
+                    });
+                    menu.querySelectorAll("a").forEach(function (link) {
+                        link.addEventListener("click", function () { menu.open = false; });
+                    });
+                });
+
+                // The "PyMOL/VMD script" / "Full viewer" / "open the full
                 // viewer" links are rendered once at page load pointing at the
                 // default structure -- without this, switching to the alt
                 // structure in the picker updates the 3D view but leaves those

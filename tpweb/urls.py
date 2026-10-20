@@ -24,7 +24,7 @@ from .views.MetabolismPathwayView import (
     MetabolismPathwayDetailView,
     MetabolismPathwayView,
 )
-from .views.StructureExportView import StructureExportView
+from .views.StructureExportView import ProteinStructuresExportView, StructureExportView
 from .views.StructureRawView import StructureRawView
 from .views.StructureView import StructureView
 from .views.FormView import FormView
@@ -155,6 +155,11 @@ urlpatterns = [
         "structure_export/<int:struct_id>",
         view=StructureExportView.as_view(),
         name="structure_export",
+    ),
+    path(
+        "structure_export/protein/<int:protein_id>",
+        view=ProteinStructuresExportView.as_view(),
+        name="protein_structures_export",
     ),
     path("load_options/", load_options, name="load_options"),
     path("structure/<int:struct_id>", view=StructureView.as_view(), name="structure"),

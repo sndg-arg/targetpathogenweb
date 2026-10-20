@@ -46,6 +46,7 @@ from tpweb.services.protein_summary import (
 )
 from tpweb.services.binder_summary import create_binders_dict
 from tpweb.services.cross_references import build_protein_cross_references
+from tpweb.services.structure_downloads import available_download_sources
 
 # RefSeq (WP_000001.1) or INSDC/GenBank (WHR11391.1) protein IDs.
 PROTEIN_ACCESSION_RE = re.compile(r"^(?:(?:NP|WP|XP|YP|AP)_\d+|[A-Z]{3}\d{5,7})(?:\.\d+)?$")
@@ -732,6 +733,7 @@ class ProteinView(View):
             # (ProteinBindersPanelsView) instead of with the page.
             "binders_lazy_threshold": BINDERS_LAZY_THRESHOLD,
             "structure_summary": structure_summary,
+            "structure_download_sources": available_download_sources(structures),
             "experimental_structures": experimental_structures,
             "identical_sequence_siblings": identical_sequence_siblings,
             "target_profile": target_profile,

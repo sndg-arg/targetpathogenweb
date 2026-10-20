@@ -4,92 +4,118 @@ from django.http import Http404
 from django.http import HttpResponse, HttpResponseNotFound
 
 from bioseq.io.BioIO import BioIO
-from tpweb.models.pdb import PDB, Residue
+from bioseq.models.Biodatabase import Biodatabase
+from bioseq.models.Bioentry import Bioentry
+from tpweb.models.BioentryStructure import BioentryStructure
+from tpweb.models.pdb import PDB
 
-import gzip
+import io
 import zipfile
 from tpweb.services.structure_summary import pdb_structure
-import io
 from django.utils.encoding import smart_str
 from tpweb.services.genome_workspace import user_can_access_genome_name
-from tpweb.services.structure_files import structure_file_path
+from tpweb.services.structure_downloads import (
+    DOWNLOAD_SOURCE_ALL,
+    DOWNLOAD_SOURCE_FOLDERS,
+    build_structures_zip,
+    link_genome_name,
+    structure_pymol_script,
+    with_pocket_pseudo_atoms,
+)
+from tpweb.services.structure_files import (
+    display_code,
+    read_structure_text,
+    structure_file_path,
+)
+
+
+def _attachment(payload, content_type, filename):
+    response = HttpResponse(payload, content_type=content_type)
+    response["Content-Disposition"] = f"attachment; filename={smart_str(filename)}"
+    response["Content-Length"] = str(len(payload))
+    return response
 
 
 class StructureExportView(View):
-    def get(self, request, struct_id, *args, **kwargs):
-        pdbqs = PDB.objects.filter(id=struct_id)
+    """VMD bundle (.pdb + .tcl) by default; ?format=pymol returns a
+    self-contained PyMOL script instead."""
 
-        if pdbqs.exists():
-            pdb = pdbqs.get()
-            sequence_links = pdb.sequences.select_related("bioentry__biodatabase").all()
-            if not sequence_links:
-                return HttpResponseNotFound("No linked protein found for this structure.")
-            be = sequence_links[0].bioentry
-            biodb = be.biodatabase.name.replace(BioIO.GENOME_PROT_POSTFIX, "")
-            if not user_can_access_genome_name(request.user, biodb):
-                raise Http404("Structure not found")
+    def get(self, request, struct_id, *args, **kwargs):
+        pdb = PDB.objects.filter(id=struct_id).first()
+        if pdb is None:
+            return HttpResponseNotFound()
+        link = self._resolve_link(request, pdb)
+        if link is None:
+            return HttpResponseNotFound("No linked protein found for this structure.")
+        be = link.bioentry
+        biodb = link_genome_name(link)
+        if not user_can_access_genome_name(request.user, biodb):
+            raise Http404("Structure not found")
+
+        if request.GET.get("format") == "pymol":
             try:
-                raw_structure_path = structure_file_path(biodb, be.accession, pdb.code)
-                data = gzip.open(raw_structure_path, "rt").read()
+                script = structure_pymol_script(link)
             except (FileNotFoundError, OSError):
                 return HttpResponseNotFound("Structure source file not found.")
-            pdb_dto = pdb_structure(pdb, [])
-            pockets = pdb_dto["pockets"]
-            vmd_txt = vmd_style(pockets)
-            data = _with_pocket_pseudo_atoms(data, pdb, pockets)
-            stream = io.BytesIO()
-            with zipfile.ZipFile(stream, mode="w", compression=zipfile.ZIP_DEFLATED) as zip_file:
-                zip_file.writestr(f"{pdb.code}.tcl", vmd_txt)
-                zip_file.writestr(f"{pdb.code}.pdb", data)
-            payload = stream.getvalue()
-            response = HttpResponse(payload, content_type="application/zip")
-            response["Content-Disposition"] = (
-                f"attachment; filename={smart_str(be.accession + '.zip')}"
-            )
-            response["Content-Length"] = str(len(payload))
+            filename = f"{be.accession}_{display_code(pdb.code)}.pml"
+            return _attachment(script.encode("utf-8"), "text/plain; charset=utf-8", filename)
 
-            return response
-        else:
-            return HttpResponseNotFound()
+        try:
+            raw_structure_path = structure_file_path(biodb, be.accession, pdb.code)
+            data = read_structure_text(raw_structure_path)
+        except (FileNotFoundError, OSError):
+            return HttpResponseNotFound("Structure source file not found.")
+        pdb_dto = pdb_structure(pdb, [])
+        pockets = pdb_dto["pockets"]
+        vmd_txt = vmd_style(pockets)
+        data = _with_pocket_pseudo_atoms(data, pdb, pockets)
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, mode="w", compression=zipfile.ZIP_DEFLATED) as zip_file:
+            zip_file.writestr(f"{pdb.code}.tcl", vmd_txt)
+            zip_file.writestr(f"{pdb.code}.pdb", data)
+        return _attachment(stream.getvalue(), "application/zip", be.accession + ".zip")
+
+    @staticmethod
+    def _resolve_link(request, pdb):
+        links = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(pdb=pdb)
+        requested_protein_id = str(request.GET.get("protein_id") or "").strip()
+        if requested_protein_id.isdigit():
+            link = links.filter(bioentry_id=int(requested_protein_id)).first()
+            if link:
+                return link
+        return links.first()
+
+
+class ProteinStructuresExportView(View):
+    """Every structure of one protein (?source=experimental|alphafold|
+    colabfold|all) with its pockets TSV and PyMOL script, as one ZIP."""
+
+    def get(self, request, protein_id, *args, **kwargs):
+        protein = (
+            Bioentry.objects.select_related("biodatabase").filter(bioentry_id=protein_id).first()
+        )
+        if protein is None or not protein.biodatabase.name.endswith(Biodatabase.PROT_POSTFIX):
+            raise Http404("Protein not found")
+        genome_name = protein.biodatabase.name.replace(BioIO.GENOME_PROT_POSTFIX, "")
+        if not user_can_access_genome_name(request.user, genome_name):
+            raise Http404("Protein not found")
+
+        source = request.GET.get("source") or DOWNLOAD_SOURCE_ALL
+        if source != DOWNLOAD_SOURCE_ALL and source not in DOWNLOAD_SOURCE_FOLDERS:
+            raise Http404("Unknown structure source")
+        payload, written = build_structures_zip(protein, source)
+        if not written:
+            return HttpResponseNotFound("No structure files available for this selection.")
+        suffix = "" if source == DOWNLOAD_SOURCE_ALL else f"_{DOWNLOAD_SOURCE_FOLDERS[source]}"
+        return _attachment(
+            payload, "application/zip", f"{protein.accession}_structures{suffix}.zip"
+        )
 
 
 def _with_pocket_pseudo_atoms(pdb_text, pdb, pockets):
-    """vmd_style() below writes VMD selections against "resname STP" --
-    FPocket's alpha-sphere pseudo-atoms -- but those only ever get stored
-    in the DB (see tpweb.io.FPocket2SQL), never written into the raw
-    structure file on disk that `pdb_text` comes from. Without them here,
-    every pocket selection in the exported .tcl script matches zero atoms
-    and the pocket spheres never show up in VMD. Re-serialize them with
-    the existing Residue.lines()/Atom.line() formatters (already
-    special-cased for resname "STP") and splice them in just before the
-    terminating END record, so the exported .pdb actually has something
-    for the script to select.
-    """
-    pocket_resids = []
-    for p in pockets:
-        try:
-            pocket_resids.append(int(p.name))
-        except (TypeError, ValueError):
-            pass
-    if not pocket_resids:
-        return pdb_text
-
-    pocket_lines = []
-    for residue in Residue.objects.prefetch_related("atoms").filter(
-        pdb=pdb, resname="STP", resid__in=pocket_resids
-    ):
-        pocket_lines += residue.lines()
-    if not pocket_lines:
-        return pdb_text
-
-    lines = pdb_text.splitlines()
-    insert_at = len(lines)
-    for i in range(len(lines) - 1, -1, -1):
-        if lines[i].rstrip() == "END":
-            insert_at = i
-            break
-    lines[insert_at:insert_at] = pocket_lines
-    return "\n".join(lines) + "\n"
+    """VMD selections in vmd_style() target "resname STP" (FPocket alpha
+    spheres); see structure_downloads.with_pocket_pseudo_atoms."""
+    return with_pocket_pseudo_atoms(pdb_text, pdb, [p.name for p in pockets])
 
 
 def vmd_style(pockets):
