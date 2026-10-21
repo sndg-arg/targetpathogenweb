@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261020-filepicker">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261021-text-width">
     <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261018-lh">
     <style>
         :root {
@@ -179,8 +179,8 @@
             --tp-heading-xl: clamp(2rem, 3vw, 3rem);
             --tp-heading-lg: clamp(1.55rem, 2.2vw, 2.05rem);
             --tp-heading-md: clamp(1.2rem, 1.8vw, 1.45rem);
-            /* One reading width for paragraphs. */
-            --tp-measure: 72ch;
+            /* Paragraphs use the full width available in their container. */
+            --tp-measure: none;
             /* Uppercase labels use label tracking; display headings tight. */
             --tp-tracking-label: 0.06em;
             --tp-tracking-tight: -0.01em;

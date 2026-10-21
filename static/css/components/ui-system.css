@@ -109,6 +109,12 @@
     margin-bottom: var(--tp-space-3);
 }
 
+/* Let heading copy fill the space left by its tools. */
+.section-head > div:first-child:not(.section-tools) {
+    flex: 1;
+    min-width: 0;
+}
+
 .section-head h2,
 .tp-section-title {
     margin: 0;
