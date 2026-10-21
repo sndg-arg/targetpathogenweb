@@ -131,9 +131,10 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
     "p2rank_probability": {
         "category": "Pocket",
         "description": (
-            "P2Rank binding-site probability for the best pocket in the experimental structure (0–1). "
+            "P2Rank binding-site probability for the selected pocket (0–1). "
             "Higher values mean a more likely ligand-binding site. "
-            "Only available for genomes with imported expert-reviewed results."
+            "Curated selections are preserved. Automatic indexing prefers an experimental "
+            "structure with pockets, falling back to predicted models."
         ),
         "type": "N",
         "default_operation": ">=",
