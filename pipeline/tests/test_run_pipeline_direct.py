@@ -108,12 +108,92 @@ class HeavyStageGuardTests(unittest.TestCase):
     def test_allows_heavy_stage_when_flag_set(self):
         rpd._assert_heavy_stage_allowed(16, "colabfold", allow_local_heavy=True)  # should not raise
 
-    def test_blocks_heavy_stage_without_flag(self):
+    @patch("run_pipeline_direct._record_pipeline_stage")
+    def test_blocks_heavy_stage_without_flag(self, record):
         with self.assertRaises(RuntimeError) as ctx:
             rpd._assert_heavy_stage_allowed(10, "interproscan", allow_local_heavy=False)
         self.assertIn("stage 10", str(ctx.exception))
         self.assertIn("InterProScan", str(ctx.exception))
         self.assertIn("--allow-local-heavy", str(ctx.exception))
+        record.assert_called_once_with(
+            10, "interproscan", status="failed", message=str(ctx.exception)
+        )
+
+
+class PsortRoutingTests(unittest.TestCase):
+    @patch("run_pipeline_direct._run_python_stage")
+    @patch("run_pipeline_direct._run_stage")
+    def test_stage20_routes_to_slurm(self, local, remote):
+        with patch.dict(os.environ, {"TPW_PSORT_USE_REMOTE": "1"}, clear=True):
+            rpd.run_genome(
+                "G",
+                "n",
+                working_dir="/app",
+                cfg_dict=None,
+                start_stage=20,
+                skip_stages={21, 22, 23, 24},
+                allow_local_heavy=False,
+            )
+        local.assert_not_called()
+        self.assertEqual(remote.call_args.args[:3], (20, "psort_remote", rpd.run_remote_psort))
+
+    @patch("run_pipeline_direct._run_stage")
+    def test_stage20_cannot_fall_back_to_nodo0(self, local):
+        with patch.dict(os.environ, {}, clear=True), self.assertRaisesRegex(RuntimeError, "PSORTb"):
+            rpd.run_genome(
+                "G",
+                "n",
+                working_dir="/app",
+                cfg_dict=None,
+                start_stage=20,
+                skip_stages={21, 22, 23, 24},
+                allow_local_heavy=False,
+            )
+        local.assert_not_called()
+
+    @patch("run_pipeline_direct._record_pipeline_stage")
+    @patch("run_pipeline_direct.validate_psort_file", side_effect=ValueError("incomplete PSORT"))
+    @patch("run_pipeline_direct._run_stage")
+    def test_stage21_refuses_loading_invalid_predictions(self, local, validate, record):
+        with self.assertRaisesRegex(ValueError, "incomplete PSORT"):
+            rpd.run_genome(
+                "G",
+                "n",
+                working_dir="/app",
+                cfg_dict=None,
+                start_stage=21,
+                skip_stages={22, 23, 24},
+            )
+        local.assert_not_called()
+        self.assertEqual(record.call_args.kwargs["status"], "failed")
+
+    @patch("run_pipeline_direct._record_pipeline_stage")
+    @patch("run_pipeline_direct._run_python_stage")
+    @patch("run_pipeline_direct._run_stage")
+    def test_ligq_replaces_legacy_binders_when_enabled(self, local, remote, record):
+        with patch.dict(os.environ, {"TPW_LIGQ_USE_REMOTE": "1"}, clear=True):
+            rpd.run_genome(
+                "G", "n", working_dir="/app", cfg_dict=None, start_stage=22, allow_local_heavy=False
+            )
+        local.assert_not_called()
+        self.assertEqual(remote.call_args.args[:3], (24, "ligq_remote", rpd.run_remote_ligq))
+        self.assertEqual([call.args[0] for call in record.call_args_list], [22, 23])
+
+    @patch("run_pipeline_direct._record_pipeline_stage")
+    def test_skipped_ligq_does_not_silently_omit_binders(self, record):
+        with patch.dict(os.environ, {"TPW_LIGQ_USE_REMOTE": "1"}, clear=True):
+            with self.assertRaisesRegex(RuntimeError, "stage 22"):
+                rpd.run_genome(
+                    "G",
+                    "n",
+                    working_dir="/app",
+                    cfg_dict=None,
+                    start_stage=22,
+                    skip_stages={24},
+                    allow_local_heavy=False,
+                )
+        self.assertEqual(record.call_args.args[0], 22)
+        self.assertEqual(record.call_args.kwargs["status"], "failed")
 
 
 class ComputeFolderPathTests(unittest.TestCase):

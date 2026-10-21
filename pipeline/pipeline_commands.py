@@ -303,13 +303,18 @@ def psort_cmd(genome, gram):
         'if [ ! -s "/work/$GENOME.faa" ] && [ -s "/work/$GENOME.faa.gz" ]; then '
         'gzip -dc "/work/$GENOME.faa.gz" > "/work/$GENOME.faa"; '
         "fi; "
-        "rm -f /work/*_psortb_*.txt /work/psort.tsv; "
         f'/usr/local/psortb/bin/psort -{shlex.quote(gram)} -o terse -i "/work/$GENOME.faa"; '
-        "cp /tmp/results/*_psortb_*.txt /work/; "
-        "RAW=$(ls -1 /work/*_psortb_*.txt | tail -n 1); "
+        "set -- /tmp/results/*_psortb_*.txt; "
+        '[ "$#" -eq 1 ] && [ -s "$1" ] || { echo "Missing or ambiguous PSORT output" >&2; exit 1; }; '
+        'RAW="$1"; cp "$RAW" /work/; '
+        'if grep -qE "Fatal error|SCLBLAST_NO_RESULT" "$RAW"; then '
+        'cat "$RAW" >&2; exit 1; fi; '
+        "TMP=$(mktemp /work/.psort.XXXXXX); "
         'awk -F \'\\t\' \'BEGIN{OFS="\\t"; print "gene","Localization"} '
-        'NR>1 && NF>=2 {split($1,a," "); print a[1],$2}\' "$RAW" > /work/psort.tsv; '
-        "chmod 0644 /work/psort.tsv"
+        'NR==1 && ($1!="SeqID" || $2!="Localization") {exit 1} '
+        'NR>1 && NF>=2 {split($1,a," "); print a[1],$2; n++} '
+        'END{if (!n) exit 1}\' "$RAW" > "$TMP"; '
+        'chmod 0644 "$TMP"; mv "$TMP" /work/psort.tsv'
     )
     return (
         f"if command -v docker >/dev/null 2>&1; then "

@@ -60,6 +60,8 @@ from fasttarget_remote import run_remote_fasttarget
 from ligq_remote import run_remote_ligq
 from slurm_remote_command import run_remote_shell_job
 from structures_remote import run_remote_structures
+from psort_remote import run_remote_psort
+from psort_worker import validate_psort_file
 
 
 # ---------------------------------------------------------------------------
@@ -106,6 +108,7 @@ HEAVY_LOCAL_STAGES = {
     10: "InterProScan",
     16: "ColabFold",
     17: "FPocket/P2Rank",
+    20: "PSORTb",
     22: "binders",
     24: "LigQ",
 }
@@ -114,11 +117,13 @@ HEAVY_LOCAL_STAGES = {
 def _assert_heavy_stage_allowed(stage, app_name, allow_local_heavy):
     if allow_local_heavy or stage not in HEAVY_LOCAL_STAGES:
         return
-    raise RuntimeError(
+    message = (
         f"Refusing to run heavy stage {stage} ({HEAVY_LOCAL_STAGES[stage]}) locally "
         f"while handling {app_name}. Configure a SLURM/remote implementation for this "
         "stage, provide curated data and skip it, or pass --allow-local-heavy explicitly."
     )
+    _record_pipeline_stage(stage, app_name, status="failed", message=message)
+    raise RuntimeError(message)
 
 
 def _format_remote_command(template, *, genome, working_dir, folder_path):
@@ -414,10 +419,41 @@ def run_genome(
     if not _skip(19):
         _run_stage(19, "load_score", load_score_cmd(working_dir, genome, "druggability"))
     if not _skip(20):
-        _run_stage(20, "psort", psort_cmd(genome, gram))
+        if os.environ.get("TPW_PSORT_USE_REMOTE", "").strip() == "1":
+            _run_python_stage(
+                20,
+                "psort_remote",
+                run_remote_psort,
+                cfg_dict=cfg_dict,
+                folder_path=folder_path,
+                genome=genome,
+                gram=gram,
+            )
+        else:
+            _assert_heavy_stage_allowed(20, "psort", allow_local_heavy)
+            _run_stage(20, "psort", psort_cmd(genome, gram))
     if not _skip(21):
+        _run_python_stage(
+            21,
+            "validate_psort",
+            validate_psort_file,
+            os.path.join(folder_path, "psort.tsv"),
+            os.path.join(folder_path, genome + ".faa"),
+        )
         _run_stage(21, "load_score", load_score_cmd(working_dir, genome, "psort"))
-    if not _skip(22):
+    ligq_replaces_binders = (
+        os.environ.get("TPW_LIGQ_USE_REMOTE", "").strip() == "1"
+        and os.environ.get("TPW_BINDERS_USE_REMOTE", "").strip() != "1"
+        and not _skip(24)
+    )
+    if not _skip(22) and ligq_replaces_binders:
+        _record_pipeline_stage(
+            22,
+            "get_binders",
+            status="info",
+            message="Remote LigQ stage 24 loads binder evidence directly.",
+        )
+    if not _skip(22) and not ligq_replaces_binders:
         if os.environ.get("TPW_BINDERS_USE_REMOTE", "").strip() == "1":
             _run_configured_remote_stage(
                 22,
@@ -431,8 +467,15 @@ def run_genome(
         else:
             _assert_heavy_stage_allowed(22, "get_binders", allow_local_heavy)
             _run_stage(22, "get_binders", get_binders_cmd(working_dir, genome))
-    if not _skip(23):
+    if not _skip(23) and not ligq_replaces_binders:
         _run_stage(23, "load_binders", load_binders_cmd(working_dir, genome))
+    elif not _skip(23):
+        _record_pipeline_stage(
+            23,
+            "load_binders",
+            status="info",
+            message="Remote LigQ stage 24 loads binder evidence directly.",
+        )
     if not _skip(24):
         if os.environ.get("TPW_LIGQ_USE_REMOTE", "").strip() == "1":
             _run_python_stage(

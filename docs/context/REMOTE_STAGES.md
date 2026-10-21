@@ -51,6 +51,41 @@ Moved out of `CLAUDE.md` so it only loads when needed.
   - `TPW_FASTTARGET_REMOTE_POLL_SEC` — default `30`
   - `TPW_FASTTARGET_REMOTE_WAIT_SEC` — default `21600` (6h)
 
+## PSORTb (stage 20)
+
+- Cluster Compose defaults to `TPW_PSORT_USE_REMOTE=1` for web and queue. Stage 20
+  is now blocked by `--no-local-heavy` unless remote mode is enabled. Nodo0 only
+  transfers FASTA/TSV and loads scores; all PSORT/BLAST work runs inside SLURM.
+- One-time setup on the cluster: copy `scripts/cluster/setup_psort.sh`, then run
+  `sbatch setup_psort.sh`. It installs Apptainer into a separate user environment,
+  pulls `brinkmanlab/psortb_commandline:1.0.2` as a SIF and tests execution. If user
+  namespaces are disabled, the cluster administrator must provide a supported
+  container runtime; the script does not alter kernel settings or use sudo.
+- `TPW_PSORT_APPTAINER_BIN` and `TPW_PSORT_IMAGE` default under `SSH_WORKDIR` to
+  `work/conda_envs/tpw_apptainer/bin/apptainer` and `tpw_images/psortb_1.0.2.sif`.
+  `TPW_PSORT_REMOTE_SETUP` optionally loads modules/environment before the job.
+  `TPW_PSORT_REMOTE_PYTHON` defaults to the Python 3.10 interpreter installed in
+  the same `tpw_apptainer` environment, avoiding dependence on system Python.
+  Setup uses `$HOME` by default; override the same paths if `SSH_WORKDIR` differs.
+- One SLURM job, four parallel 50-protein batches by default. Each container gets
+  isolated `/tmp`; FASTA sequences are preserved. The SCLBlast diagnostic reports
+  the query ID if BioPerl returns no BLAST result, without suppressing the error.
+- Complete batches are cached under `SSH_WORKDIR/tpw_psort/cache`, keyed by input,
+  Gram type, batch size, image contents and worker code. Resume from stage 20
+  reuses validated batches. Failed batches keep input, raw output and logs.
+- Stage 20 requires successful SLURM exit plus a completion marker, downloads to
+  a temporary file and validates exact protein coverage before replacing
+  `psort.tsv`. Fatal messages, malformed headers, missing/duplicate proteins and
+  invalid localizations fail the stage, even if PSORT exits 0. Stage 21 validates
+  again when resumed directly, before any score loading.
+- Tune `TPW_PSORT_SLURM_CPUS` (workers), `TPW_PSORT_BATCH_SIZE`,
+  `TPW_PSORT_BATCH_TIMEOUT_SEC` (per batch), and the usual `TPW_PSORT_SLURM_*` /
+  `TPW_PSORT_REMOTE_*` variables; see `.env.cluster.example`. Defaults: 4 CPU,
+  16G, four-hour job, 24-hour submission-to-completion wait, 30-second polls.
+- With `TPW_LIGQ_USE_REMOTE=1`, direct orchestration also omits stages 22/23 unless
+  a separate remote binders stage is explicitly enabled, matching the curated
+  recovery flow. LigQ stage 24 loads binder evidence directly.
+
 ## InterProScan
 Runs remotely over SSH on the QB cluster. Config in `pipeline/settings.ini` (SSH vars).
 Uses `-b output_prefix` flag (not `-o`/`-d` — they're mutually exclusive in v5.62).
