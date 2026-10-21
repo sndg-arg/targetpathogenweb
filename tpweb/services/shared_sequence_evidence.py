@@ -124,6 +124,7 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
     from tpweb.models.ScoreParamValue import ScoreParamValue
     from tpweb.services.genome_workspace import user_can_access_genome_name
     from tpweb.services.score_params import score_param_visibility_filter
+    from tpweb.services.protein_annotations import annotation_dbnames
 
     proteins = [p for p in proteins if not hasattr(p, "shared_sequence_evidence")]
     if not proteins:
@@ -241,14 +242,8 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
         for relation, key in relations_to_share:
             rows = []
             seen = set()
-            namespaces = {
-                "ec": "ec",
-                "EC": "ec",
-                "go": "go",
-                "GO": "go",
-                "UnipSp": "uniprot",
-                "UnipTr": "uniprot",
-            }
+            namespaces = {name: kind for kind in ("ec", "go") for name in annotation_dbnames(kind)}
+            namespaces.update({"UnipSp": "uniprot", "UnipTr": "uniprot"})
             curated_namespaces = set()
             if relation == "dbxrefs":
                 curated_namespaces = {
@@ -268,16 +263,7 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
                     if (
                         relation == "dbxrefs"
                         and source is not protein
-                        and row.dbxref.dbname
-                        not in {
-                            "ec",
-                            "EC",
-                            "go",
-                            "GO",
-                            "UnipSp",
-                            "UnipTr",
-                            "PDB",
-                        }
+                        and row.dbxref.dbname not in {*namespaces, "PDB"}
                     ):
                         continue
                     identity = getattr(row, key)

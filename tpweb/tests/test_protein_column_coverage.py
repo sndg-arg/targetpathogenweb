@@ -1,10 +1,27 @@
 from types import SimpleNamespace
 from unittest import TestCase
+from unittest.mock import patch
 
 from tpweb.management.commands.protein_column_coverage import has_score_data, score_presence
 
 
 class ProteinColumnCoverageTests(TestCase):
+    def test_fixed_coverage_uses_canonical_go_namespace(self):
+        from tpweb.management.commands.protein_column_coverage import fixed_presence
+        from tpweb.services.protein_annotations import ANNOTATION_KIND_CONFIG
+
+        row = SimpleNamespace(dbxref=SimpleNamespace(dbname="GeneOntology", accession="GO:0016020"))
+        protein = SimpleNamespace(
+            accession="TEST",
+            description="Test",
+            genes=lambda: [],
+            structures=SimpleNamespace(all=lambda: []),
+            dbxrefs=SimpleNamespace(all=lambda: [row]),
+            metabolic_reaction_count=0,
+        )
+        with patch.dict(ANNOTATION_KIND_CONFIG["go"], {"dbnames": ["GeneOntology", "go"]}):
+            self.assertTrue(fixed_presence(protein)["GO"])
+
     def row(self, kind="N", value="", numeric_value=None, protein_id=1, param_id=3):
         return SimpleNamespace(
             score_param=SimpleNamespace(type=kind),

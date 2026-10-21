@@ -463,6 +463,27 @@ class SharedSequenceEvidenceTests(TestCase):
         )
         self.assertTrue(queryset.exists())
 
+    def test_canonical_go_namespace_is_shared_counted_and_filtered_consistently(self):
+        from bioseq.models.Ontology import Ontology
+        from tpweb.management.commands.protein_column_coverage import fixed_presence
+        from tpweb.services.protein_list import apply_selected_parameter_filters
+
+        dbxref = Dbxref.objects.create(dbname=Ontology.GO, accession="GO:0016020", version=0)
+        original = BioentryDbxref.objects.create(bioentry=self.curated, dbxref=dbxref, rank=0)
+        automatic_ref = Dbxref.objects.create(dbname="go", accession="GO:0022857", version=0)
+        BioentryDbxref.objects.create(bioentry=self.target, dbxref=automatic_ref, rank=0)
+        protein = self.fresh()
+        protein.metabolic_reaction_count = 0
+        apply_shared_sequence_evidence([protein], self.user)
+        self.assertEqual([r.pk for r in protein.dbxrefs.all()], [original.pk])
+        self.assertTrue(fixed_presence(protein)["GO"])
+        for value, expected in (("GO:0016020", True), ("GO:0022857", False)):
+            condition = {"type": "special", "special_key": "go_filter", "special_value": value}
+            query = apply_selected_parameter_filters(
+                Bioentry.objects.filter(pk=protein.pk), [condition], self.user
+            )
+            self.assertEqual(query.exists(), expected)
+
     def ligand(self, protein, name, kind="pdb"):
         return Binders.objects.create(
             locustag=protein,

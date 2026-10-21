@@ -40,6 +40,8 @@ def score_presence(protein, param_ids):
 
 
 def fixed_presence(protein):
+    from tpweb.services.protein_annotations import annotation_dbnames
+
     links = list(protein.structures.all())
     names = {
         str(row.dbxref.dbname).lower()
@@ -56,8 +58,8 @@ def fixed_presence(protein):
         ),
         "AlphaFold structure": any((link.pdb.experiment or "").upper() == "AF" for link in links),
         "ColabFold structure": any((link.pdb.experiment or "").upper() == "CF" for link in links),
-        "EC": "ec" in names,
-        "GO": "go" in names,
+        "EC": bool(names.intersection(name.lower() for name in annotation_dbnames("ec"))),
+        "GO": bool(names.intersection(name.lower() for name in annotation_dbnames("go"))),
         "Metabolic context": bool(protein.metabolic_reaction_count),
     }
 

@@ -9,13 +9,13 @@ from bioseq.models.Ontology import Ontology
 
 ANNOTATION_KIND_CONFIG = {
     "ec": {
-        "dbnames": [Ontology.EC, "ec"],
+        "dbnames": list(dict.fromkeys([Ontology.EC, "EC", "ec"])),
         "label": "EC Number",
         "root_label": "EC",
         "supports_prefix": True,
     },
     "go": {
-        "dbnames": [Ontology.GO, "go"],
+        "dbnames": list(dict.fromkeys([Ontology.GO, "GO", "go"])),
         "label": "GO Term",
         "root_label": "GO",
         "supports_prefix": False,

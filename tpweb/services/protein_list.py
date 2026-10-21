@@ -965,27 +965,33 @@ def _apply_and_selected_parameter_filters(
 
     ec_values = [value for value in special_groups.get("ec_filter", []) if value]
     if ec_values:
+        from tpweb.services.protein_annotations import annotation_dbnames
+
+        ec_dbnames = annotation_dbnames("ec")
         ec_query = Q()
         for ec_value in ec_values:
             if ec_value == EC_ANY_VALUE:
-                ec_query |= Q(dbxrefs__dbxref__dbname__in=["ec", "EC"])
+                ec_query |= Q(dbxrefs__dbxref__dbname__in=ec_dbnames)
                 continue
             ec_query |= Q(
-                dbxrefs__dbxref__dbname__in=["ec", "EC"],
+                dbxrefs__dbxref__dbname__in=ec_dbnames,
                 dbxrefs__dbxref__accession__istartswith=ec_value,
             )
-        ec_query = shared_condition(ec_query, Q(dbxrefs__dbxref__dbname__in=["ec", "EC"]))
+        ec_query = shared_condition(ec_query, Q(dbxrefs__dbxref__dbname__in=ec_dbnames))
         filtered_queryset = filtered_queryset.filter(ec_query)
 
     go_values = [value for value in special_groups.get("go_filter", []) if value]
     if go_values:
+        from tpweb.services.protein_annotations import annotation_dbnames
+
+        go_dbnames = annotation_dbnames("go")
         go_query = Q()
         for go_value in go_values:
             go_query |= Q(
-                dbxrefs__dbxref__dbname__in=["go", "GO"],
+                dbxrefs__dbxref__dbname__in=go_dbnames,
                 dbxrefs__dbxref__accession__iexact=go_value,
             )
-        go_query = shared_condition(go_query, Q(dbxrefs__dbxref__dbname__in=["go", "GO"]))
+        go_query = shared_condition(go_query, Q(dbxrefs__dbxref__dbname__in=go_dbnames))
         filtered_queryset = filtered_queryset.filter(go_query)
 
     pathway_values = [
