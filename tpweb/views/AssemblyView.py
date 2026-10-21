@@ -18,6 +18,9 @@ from tpweb.services.pipeline_status import (
     sanitize_pipeline_status_for_user,
 )
 from tpweb.services.assembly_workspace import (
+    EVIDENCE_CONVERGENCE_MAX_SCORE,
+    EVIDENCE_CONVERGENCE_MODERATE_MIN,
+    EVIDENCE_CONVERGENCE_STRONG_MIN,
     build_assembly_workspace_metrics,
     export_composite_ranking_rows,
     get_overview_target_rankings,
@@ -140,6 +143,11 @@ class AssemblyView(View):
             "workspace_metrics": workspace_metrics,
             "unexplored_targets": unexplored_targets,
             "top_targets_by_score": top_targets_by_score,
+            "triage_scoring": {
+                "maximum": int(EVIDENCE_CONVERGENCE_MAX_SCORE),
+                "strong_min": EVIDENCE_CONVERGENCE_STRONG_MIN,
+                "moderate_min": EVIDENCE_CONVERGENCE_MODERATE_MIN,
+            },
             "workspace_links": workspace_links,
             "view_export_url": build_view_export_url(request),
             "jbrowse_url": jbrowse_url,

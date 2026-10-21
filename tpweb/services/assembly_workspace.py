@@ -33,6 +33,8 @@ _SCORE_PROTEINS_PARAM_NAMES = [
 
 EC_DBNAMES = {str(Ontology.EC or "").strip(), "ec", "EC"}
 EVIDENCE_CONVERGENCE_MAX_SCORE = 15.0
+EVIDENCE_CONVERGENCE_STRONG_MIN = 9.75
+EVIDENCE_CONVERGENCE_MODERATE_MIN = 6.0
 
 # Neither the workspace metrics nor the evidence-convergence ranking depend on the
 # requesting user or their scoring formula (it's a fixed per-genome heuristic) -- both
@@ -54,10 +56,9 @@ def _format_decimal(value):
 
 
 def _evidence_convergence_tier(score):
-    fraction = score / EVIDENCE_CONVERGENCE_MAX_SCORE
-    if fraction >= 0.65:
+    if score >= EVIDENCE_CONVERGENCE_STRONG_MIN:
         return "Strong", "good"
-    if fraction >= 0.4:
+    if score >= EVIDENCE_CONVERGENCE_MODERATE_MIN:
         return "Moderate", "neutral"
     return "Limited", "bad"
 
@@ -429,9 +430,11 @@ def _format_score_items(scored_rows):
                 "bioentry_id": row["bioentry_id"],
                 "accession": row["accession"],
                 "description": row["description"],
-                "score": round(row["score"], 1),
+                "score": round(row["score"], 2),
                 "score_max": int(EVIDENCE_CONVERGENCE_MAX_SCORE),
-                "score_percent": round((row["score"] / EVIDENCE_CONVERGENCE_MAX_SCORE) * 100),
+                "score_percent": max(
+                    0, min(100, round((row["score"] / EVIDENCE_CONVERGENCE_MAX_SCORE) * 100))
+                ),
                 "tier_label": tier_label,
                 "tier_tone": tier_tone,
                 "factors": row["factors"],
@@ -470,14 +473,10 @@ def get_top_targets_by_score(assembly_name, user, limit=5, scored=None):
 
 
 def get_unexplored_targets(assembly_name, user, limit=5, scored=None):
-    """Top-N proteins with strong non-chemical evidence but zero ligand records.
+    """Top-N scored proteins with zero loaded ligand records.
 
-    Raw ligand count rewards "well-studied" proteins - a bacterial protein
-    with a well-studied human homolog (kinases, GPCRs) racks up ChEMBL/ZINC
-    hits regardless of whether it's a good bacterial-specific target, and that
-    homology is often the same thing the off-target signal penalizes. This
-    surfaces the inverse: promising, druggable, selective candidates nobody
-    has drugged yet - a target-discovery view instead of a "most-studied" one.
+    This subset uses the same score and tiers as the overall ranking.
+    Missing records do not establish that a protein has never been studied.
     """
     if scored is None:
         scored = _cached_score_proteins(assembly_name)
@@ -502,7 +501,7 @@ def get_overview_target_rankings(assembly_name, user, limit=5):
     twice per page load, the dominant cost on large genomes. Cached by
     genome name (the heuristic ignores `user`), same TTL policy as
     build_assembly_workspace_metrics."""
-    cache_key = f"Target:overview_target_rankings:{assembly_name}:{limit}"
+    cache_key = f"Target:overview_target_rankings:v2:{assembly_name}:{limit}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -551,7 +550,7 @@ def export_composite_ranking_rows(assembly_name):
             [
                 row["accession"],
                 row["description"],
-                round(row["score"], 1),
+                round(row["score"], 2),
                 int(EVIDENCE_CONVERGENCE_MAX_SCORE),
                 tier_label,
                 row["fpocket"],

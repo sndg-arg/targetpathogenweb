@@ -5,7 +5,10 @@ from __future__ import annotations
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 
-from tpweb.services.assembly_workspace import score_single_protein
+from tpweb.services.assembly_workspace import (
+    EVIDENCE_CONVERGENCE_MAX_SCORE,
+    score_single_protein,
+)
 from tpweb.services.protein_summary import build_protein_executive_context
 
 
@@ -50,9 +53,9 @@ def build_target_evidence_record(assembly_name, accession):
     binder_summary = binders.get("summary") or {}
 
     evidence_score = "not loaded"
-    evidence_max = "15"
+    evidence_max = f"{EVIDENCE_CONVERGENCE_MAX_SCORE:g}"
     if score_row is not None:
-        evidence_score = f"{round(score_row['score'], 1)}"
+        evidence_score = f"{round(score_row['score'], 2)}"
 
     reactions = metabolic.get("reactions") or []
     reaction_names = [r.get("reaction_id") for r in reactions[:4] if r.get("reaction_id")]
