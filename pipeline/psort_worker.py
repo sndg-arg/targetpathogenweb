@@ -122,7 +122,37 @@ def instrument_module(source):
     )
 
 
-def _run_batch(index, records, root, runtime, image, gram, module, timeout):
+def _container_command(runtime, image, engine, program, arguments, batch=None, module=None):
+    if engine == "apptainer":
+        command = [runtime, "exec", "--cleanenv", "--containall"]
+        if batch is not None:
+            command += [
+                "--pwd",
+                "/tmp",
+                "--bind",
+                f"{batch}:/tmp",
+                "--bind",
+                f"{module}:{SCLBLAST_MODULE}:ro",
+            ]
+        return command + [image, program] + arguments
+    if engine != "docker":
+        raise ValueError(f"Unsupported PSORT container engine: {engine}")
+    command = [runtime, "run", "--rm", "--pull=never", "--network=none", "--cpus=1", "--memory=2g"]
+    if batch is not None:
+        command += [
+            "--name",
+            "tpw-psort-" + batch.name,
+            "--workdir",
+            "/tmp",
+            "--volume",
+            f"{batch}:/tmp",
+            "--volume",
+            f"{module}:{SCLBLAST_MODULE}:ro",
+        ]
+    return command + ["--entrypoint", program, image] + arguments
+
+
+def _run_batch(index, records, root, runtime, image, gram, module, timeout, engine="apptainer"):
     cache = root / (f"batch-{index:05d}.tsv")
     expected = {name for name, _ in records}
     if cache.exists():
@@ -136,25 +166,15 @@ def _run_batch(index, records, root, runtime, image, gram, module, timeout):
     with (batch / "input.faa").open("w", encoding="utf-8") as handle:
         for name, seq in records:
             handle.write(f">{name}\n{seq}\n")
-    command = [
+    command = _container_command(
         runtime,
-        "exec",
-        "--cleanenv",
-        "--containall",
-        "--pwd",
-        "/tmp",
-        "--bind",
-        f"{batch}:/tmp",
-        "--bind",
-        f"{module}:{SCLBLAST_MODULE}:ro",
         image,
+        engine,
         "/usr/local/psortb/bin/psort",
-        "-" + gram,
-        "-o",
-        "terse",
-        "-i",
-        "/tmp/input.faa",
-    ]
+        ["-" + gram, "-o", "terse", "-i", "/tmp/input.faa"],
+        batch,
+        module,
+    )
     log = batch / "psort.log"
     try:
         with log.open("w", encoding="utf-8") as handle:
@@ -173,28 +193,60 @@ def _run_batch(index, records, root, runtime, image, gram, module, timeout):
         write_predictions(cache, rows, records)
         return rows
     except (ValueError, subprocess.TimeoutExpired) as exc:
+        if engine == "docker" and isinstance(exc, subprocess.TimeoutExpired):
+            # Killing the Docker client alone leaves its daemon-owned container running.
+            subprocess.run(
+                [runtime, "rm", "-f", "tpw-psort-" + batch.name],
+                capture_output=True,
+                timeout=30,
+                check=True,
+            )
         # Preserve raw output, input and logs to reproduce the failing batch.
         details = log.read_text(encoding="utf-8", errors="replace")[-1500:]
         raise RuntimeError(f"PSORT batch {index} failed; files: {batch}: {exc}\n{details}") from exc
 
 
 def run_batches(
-    fasta, output, cache_dir, runtime, image, gram, workers=4, batch_size=50, timeout=1800
+    fasta,
+    output,
+    cache_dir,
+    runtime,
+    image,
+    gram,
+    workers=4,
+    batch_size=50,
+    timeout=1800,
+    engine="apptainer",
 ):
     if gram not in {"n", "p", "a"} or min(workers, batch_size, timeout) < 1:
         raise ValueError("Invalid PSORT gram type or worker/batch/timeout limit")
     records = read_fasta(fasta)
+    # Pin Docker to its local immutable ID; never pull a changing tag mid-run.
+    if engine == "docker":
+        image = subprocess.check_output(
+            [runtime, "image", "inspect", "--format", "{{.Id}}", image],
+            universal_newlines=True,
+            timeout=30,
+        ).strip()
+        if not image.startswith("sha256:"):
+            raise ValueError("Cannot resolve local PSORT Docker image ID")
+    elif engine != "apptainer":
+        raise ValueError(f"Unsupported PSORT container engine: {engine}")
     # Include image contents and worker code, not just filenames, in cache identity.
     digest = hashlib.sha256()
-    for path in (image, __file__):
+    for path in (image, __file__) if engine == "apptainer" else (__file__,):
         with open(path, "rb") as handle:
             for block in iter(lambda: handle.read(1024 * 1024), b""):
                 digest.update(block)
-    digest.update(json.dumps([records, gram, batch_size]).encode())
+    digest.update(
+        json.dumps(
+            [records, gram, batch_size, engine, image if engine == "docker" else ""]
+        ).encode()
+    )
     root = Path(cache_dir).resolve() / digest.hexdigest()
     root.mkdir(parents=True, exist_ok=True)
     source = subprocess.check_output(
-        [runtime, "exec", "--cleanenv", image, "cat", SCLBLAST_MODULE],
+        _container_command(runtime, image, engine, "cat", [SCLBLAST_MODULE]),
         universal_newlines=True,
         timeout=60,
     )
@@ -213,13 +265,14 @@ def run_batches(
                 gram,
                 module,
                 timeout,
+                engine,
             )
             for i, start in enumerate(range(0, len(records), batch_size))
         ]
         try:
             for future in as_completed(futures):
                 rows.update(future.result())
-                print(f"PSORT remote: {len(rows)}/{len(records)} proteins", flush=True)
+                print(f"PSORT: {len(rows)}/{len(records)} proteins", flush=True)
         except Exception:
             for future in futures:
                 future.cancel()
@@ -233,6 +286,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", required=True)
     parser.add_argument("--cache", required=True)
     parser.add_argument("--runtime", default="apptainer")
+    parser.add_argument("--engine", choices=["apptainer", "docker"], default="apptainer")
     parser.add_argument("--image", required=True)
     parser.add_argument("--gram", choices=["n", "p", "a"], required=True)
     parser.add_argument("--workers", type=int, default=4)
@@ -249,4 +303,5 @@ if __name__ == "__main__":
         args.workers,
         args.batch_size,
         args.timeout,
+        args.engine,
     )

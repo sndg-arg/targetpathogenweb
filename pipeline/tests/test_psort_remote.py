@@ -112,6 +112,92 @@ class PredictionsTests(unittest.TestCase):
             worker._run_batch(0, [("A", "MU")], self.root, "apptainer", "image", "n", "module", 30)
         self.assertTrue((self.root / "batch-00000.tsv").exists())
 
+    def test_docker_batch_has_limits_and_is_checkpointed(self):
+        def fake_run(command, **kwargs):
+            self.assertIn("--cpus=1", command)
+            self.assertIn("--memory=2g", command)
+            self.assertIn("--network=none", command)
+            self.assertIn("--pull=never", command)
+            self.assertEqual(
+                command[command.index("--entrypoint") + 1], "/usr/local/psortb/bin/psort"
+            )
+            batch = Path(command[command.index("--volume") + 1].removesuffix(":/tmp"))
+            (batch / "results" / "date_psortb_gramneg.txt").write_text(
+                "SeqID\tLocalization\nA\tUnknown\n", encoding="utf-8"
+            )
+            return SimpleNamespace(returncode=0)
+
+        with patch.object(worker.subprocess, "run", side_effect=fake_run):
+            worker._run_batch(
+                0,
+                [("A", "MU")],
+                self.root,
+                "docker",
+                "sha256:test",
+                "n",
+                "module",
+                30,
+                engine="docker",
+            )
+        self.assertTrue((self.root / "batch-00000.tsv").exists())
+
+    def test_docker_timeout_removes_only_its_own_container(self):
+        import subprocess
+
+        with patch.object(
+            worker.subprocess,
+            "run",
+            side_effect=[subprocess.TimeoutExpired("docker", 30), SimpleNamespace(returncode=0)],
+        ) as run:
+            with self.assertRaisesRegex(RuntimeError, "timed out"):
+                worker._run_batch(
+                    0,
+                    [("A", "MU")],
+                    self.root,
+                    "docker",
+                    "image",
+                    "n",
+                    "module",
+                    30,
+                    engine="docker",
+                )
+        cleanup = run.call_args.args[0]
+        self.assertEqual(cleanup[:3], ["docker", "rm", "-f"])
+        self.assertTrue(cleanup[3].startswith("tpw-psort-batch-00000-"))
+
+    def test_docker_image_is_pinned_and_its_cache_can_be_reused(self):
+        calls = []
+
+        def fake_output(command, **kwargs):
+            if command[1:3] == ["image", "inspect"]:
+                return "sha256:immutable-image\n"
+            self.assertIn("sha256:immutable-image", command)
+            return "my $bres = $brep->next_result();"
+
+        def fake_run(command, **kwargs):
+            self.assertIn("sha256:immutable-image", command)
+            calls.append(command)
+            batch = Path(command[command.index("--volume") + 1].removesuffix(":/tmp"))
+            raw = "SeqID\tLocalization\nA\tUnknown\nB\tCytoplasmic\n"
+            (batch / "results" / "date_psortb_gramneg.txt").write_text(raw, encoding="utf-8")
+            return SimpleNamespace(returncode=0)
+
+        with (
+            patch.object(worker.subprocess, "check_output", side_effect=fake_output),
+            patch.object(worker.subprocess, "run", side_effect=fake_run),
+        ):
+            for _ in range(2):
+                worker.run_batches(
+                    self.fasta,
+                    self.root / "psort.tsv",
+                    self.root / "cache",
+                    "docker",
+                    "image:tag",
+                    "n",
+                    engine="docker",
+                )
+        self.assertEqual(len(calls), 1)
+
     def test_parallel_batches_resume_and_image_change_invalidates_cache(self):
         image = self.root / "psort.sif"
         image.write_bytes(b"version-one")

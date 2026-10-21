@@ -85,6 +85,18 @@ Moved out of `CLAUDE.md` so it only loads when needed.
 - With `TPW_LIGQ_USE_REMOTE=1`, direct orchestration also omits stages 22/23 unless
   a separate remote binders stage is explicitly enabled, matching the curated
   recovery flow. LigQ stage 24 loads binder evidence directly.
+- Explicitly authorized nodo0 recovery only: run
+  `TPW_ALLOW_NODO0_PSORT=1 bash scripts/cluster/recover_psort_nodo0.sh public__ACCESSION n`
+  on the host. It uses the existing Docker image in two parallel, isolated batches
+  (each limited to one CPU and 2 GiB), keeps checkpoints and validates all proteins
+  before continuing stage 21 and remote LigQ. No queue rebuild/restart is needed;
+  stages 22/23 are explicitly skipped. A host lock prevents concurrent recoveries,
+  and the script refuses to start while a pipeline is running. Cluster defaults
+  remain remote; this exception does not change `.env` or disable heavy-stage guards.
+- If user namespaces block Apptainer, `scripts/cluster/probe_psort_udocker.sh`
+  tests udocker 1.3.17 in PRoot mode P1 via SLURM, in a separate user venv/repository.
+  It only checks PSORT startup and SCLBlast module loading; this is an experimental
+  alternative, not an enabled pipeline backend or proof of full prediction support.
 
 ## InterProScan
 Runs remotely over SSH on the QB cluster. Config in `pipeline/settings.ini` (SSH vars).
