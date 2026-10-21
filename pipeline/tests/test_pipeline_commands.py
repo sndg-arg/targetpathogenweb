@@ -158,7 +158,9 @@ class SimpleManageCommandBuildersTests(unittest.TestCase):
         self.assertEqual(
             cmd,
             f"{pc.PYTHON_BIN} /app/tp/manage.py load_interpro NZ_AP023069.1 "
-            "--interpro_tsv /app/tp/data/ABC/NZ_AP023069.1/NZ_AP023069.1.faa.tsv",
+            "--interpro_tsv /app/tp/data/ABC/NZ_AP023069.1/NZ_AP023069.1.faa.tsv"
+            f" && {pc.PYTHON_BIN} /app/tp/manage.py load_interpro_go NZ_AP023069.1"
+            " --interpro-tsv /app/tp/data/ABC/NZ_AP023069.1/NZ_AP023069.1.faa.tsv --apply",
         )
 
     def test_gbk2uniprot_cmd_redirects_stdout_to_unips_lst(self):
