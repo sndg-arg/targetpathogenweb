@@ -23,6 +23,37 @@ from tpweb.services.shared_sequence_evidence import (
 
 
 class SharedSequenceEvidenceTests(TestCase):
+    def test_column_coverage_reports_empty_columns_and_live_shared_values_in_order(self):
+        import csv
+        from io import StringIO
+        from tpweb.management.commands.protein_column_coverage import Command
+
+        self.user.username = "coverage-test"
+        self.value(self.curated, 0)
+        self.value(self.target, 0.2)
+        ScoreParam.objects.create(
+            name="empty_column",
+            category="Test",
+            type="N",
+            default_operation=">=",
+            default_value="0",
+        )
+        users = SimpleNamespace(objects=SimpleNamespace(filter=lambda *args: [self.user]))
+        output = StringIO()
+        with patch("django.contrib.auth.get_user_model", return_value=users):
+            Command(stdout=output, stderr=StringIO()).handle(
+                genome_name=self.target.biodatabase.name.removesuffix(Biodatabase.PROT_POSTFIX),
+                user="coverage-test",
+            )
+        rows = list(csv.DictReader(StringIO(output.getvalue()), delimiter="\t"))
+        counts = [int(row["Con_datos"]) for row in rows]
+        self.assertEqual(counts, sorted(counts))
+        by_name = {row["Columna"]: row for row in rows}
+        self.assertEqual(by_name["empty_column"]["Con_datos"], "0")
+        row = by_name[self.param.name]
+        self.assertEqual((row["Con_datos"], row["Locales"], row["Compartidos"]), ("1", "1", "1"))
+        self.assertEqual(row["Total"], "1")
+
     def setUp(self):
         self.user = SimpleNamespace()
         self.allowed = set()
