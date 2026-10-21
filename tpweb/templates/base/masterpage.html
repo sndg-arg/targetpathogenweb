@@ -1505,7 +1505,7 @@
             margin: 0;
             padding: var(--tp-space-1) var(--tp-space-3);
             color: var(--tp-nav-ink-muted);
-            font-size: var(--tp-font-size-2xs);
+            font-size: var(--tp-font-size-xs);
             font-weight: 500;
             letter-spacing: var(--tp-tracking-label);
             text-transform: uppercase;
@@ -1519,14 +1519,14 @@
             }
         }
 
-        /* 992-1440px: the full link row (icons + labels + account name)
-           wraps onto a second line once Human Targets + Upload genome show
-           (admins/collaborators). Drop the link icons and tighten the spacing
-           first; below 1100px also shrink the wordmark and hide the account
-           name (the account icon stays). */
-        @media (min-width: 992px) and (max-width: 1439.98px) {
+        /* 992-1280px: the full link row (icons + labels + account name) used
+           to wrap onto a second line here. Drop the link icons and tighten the
+           spacing first; below 1100px also shrink the wordmark and hide the
+           account name (the account icon stays). The desktop bar has no Home
+           link (the logo is Home), which keeps the admin row on one line. */
+        @media (min-width: 992px) and (max-width: 1279.98px) {
             .tp-topbar-desktop-nav {
-                gap: 0;
+                gap: var(--tp-space-1);
                 margin-right: var(--tp-space-2);
             }
 
@@ -1866,10 +1866,6 @@
             <span class="tp-topbar-desktop-wordmark">{% trans "Target Pathogen" %}</span>
         </a>
         <div class="tp-topbar-desktop-nav">
-            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}" aria-label="{% trans 'Home' %}" href="{% url 'tpwebapp:index' %}">
-                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>
-                <span>{% trans "Home" %}</span>
-            </a>
             <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' or request.resolver_match.url_name == 'customparam' or request.resolver_match.url_name == 'uploaded_data' or request.resolver_match.url_name == 'formula_form' %}active{% endif %}" aria-label="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span>
                 <span>{% trans "Genomes" %}</span>
