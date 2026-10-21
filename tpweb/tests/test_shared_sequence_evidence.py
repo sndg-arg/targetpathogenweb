@@ -169,6 +169,36 @@ class SharedSequenceEvidenceTests(TestCase):
         apply_shared_sequence_evidence([protein], self.user)
         self.assertEqual(list(protein.score_params.all())[0].numeric_value, 0)
 
+    def test_curated_metabolic_priority_remains_local_in_display_filters_and_columns(self):
+        self.param.name = "priority"
+        self.param.category = "Metabolic priority (curated)"
+        self.param.save()
+        self.value(self.curated, 0.9)
+        local = self.value(self.target, 0.2)
+        protein = self.fresh()
+        apply_shared_sequence_evidence([protein], self.user)
+        self.assertEqual(list(protein.score_params.all())[0].pk, local.pk)
+        query, shared_ids = annotate_shared_score_values(
+            Bioentry.objects.filter(pk=protein.pk), [self.param.pk], self.user
+        )
+        self.assertEqual(shared_ids, set())
+        self.assertEqual(query.get().pk, protein.pk)
+        self.assertNotIn(
+            self.param.pk,
+            inherited_score_param_ids(
+                self.target.biodatabase.name.removesuffix(Biodatabase.PROT_POSTFIX), self.user
+            ),
+        )
+
+    def test_missing_metabolic_priority_is_not_filled_from_another_strain(self):
+        self.param.name = "n_reactions"
+        self.param.category = "Metabolic priority (curated)"
+        self.param.save()
+        self.value(self.curated, 4)
+        protein = self.fresh()
+        apply_shared_sequence_evidence([protein], self.user)
+        self.assertEqual(list(protein.score_params.all()), [])
+
     def test_missing_curated_value_keeps_automatic_fallback(self):
         ScoreParamValue.objects.create(bioentry=self.curated, score_param=self.param, value="")
         local = self.value(self.target, 0.4)

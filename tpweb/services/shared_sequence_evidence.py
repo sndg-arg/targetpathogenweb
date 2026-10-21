@@ -18,9 +18,12 @@ POCKET_SCORE_BUNDLES = {
 
 
 def sequence_specific_score(param):
-    return str(param.category or "").strip().lower() not in LOCAL_SCORE_CATEGORIES and not str(
-        param.name
-    ).lower().startswith(LOCAL_SCORE_PREFIXES)
+    category = str(param.category or "").strip().lower()
+    return (
+        category not in LOCAL_SCORE_CATEGORIES
+        and not category.startswith(("metabolic", "metabolism"))
+        and not str(param.name).lower().startswith(LOCAL_SCORE_PREFIXES)
+    )
 
 
 def _has_value(row):
