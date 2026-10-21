@@ -68,15 +68,20 @@ Moved out of `CLAUDE.md` so it only loads when needed.
   `work/venvs/tpw_udocker/bin/udocker`, `TPW_PSORT_REMOTE_PYTHON` to that venv's
   Python, and `TPW_PSORT_UDOCKER_DIR` to `tpw_psort_udocker`. `TPW_PSORT_IMAGE`
   defaults to `brinkmanlab/psortb_commandline:1.0.2`, staged during setup. Worker
-  jobs never pull images. Each worker has a dedicated temporary P1 container,
-  reused across batches and removed on exit; probe containers remain untouched.
+  jobs never pull images. `TPW_PSORT_UDOCKER_CONTAINERS` names provisioned P1
+  instances (default `tpw_psort`, comma-separated for parallel workers). Setup
+  creates them once and preserves them; jobs lease them under per-instance shared
+  filesystem locks. Worker/CPU count is capped by the available instance count.
+  An existing successful probe can be configured directly, avoiding extraction.
 - `TPW_PSORT_ENGINE=apptainer` remains available for compatible clusters. Its
   optional setup is `scripts/cluster/setup_psort.sh`; default executable/image
   paths under `SSH_WORKDIR` are `work/conda_envs/tpw_apptainer/bin/apptainer` and
   `tpw_images/psortb_1.0.2.sif`. Set `TPW_PSORT_IMAGE` for the chosen engine.
   `TPW_PSORT_REMOTE_SETUP` optionally loads modules/environment before the job.
   Setup uses `$HOME` by default; override the same paths if `SSH_WORKDIR` differs.
-- One SLURM job, four parallel 50-protein batches by default. Each container gets
+- One SLURM job, 50-protein batches with up to four workers; the default single
+  provisioned instance uses one worker/CPU until more instances are configured.
+  Each container gets
   isolated `/tmp`; FASTA sequences are preserved. The SCLBlast diagnostic reports
   the query ID if BioPerl returns no BLAST result, without suppressing the error.
 - Complete batches are cached under `SSH_WORKDIR/tpw_psort/cache`, keyed by input,
@@ -89,7 +94,7 @@ Moved out of `CLAUDE.md` so it only loads when needed.
   again when resumed directly, before any score loading.
 - Tune `TPW_PSORT_SLURM_CPUS` (workers), `TPW_PSORT_BATCH_SIZE`,
   `TPW_PSORT_BATCH_TIMEOUT_SEC` (per batch), and the usual `TPW_PSORT_SLURM_*` /
-  `TPW_PSORT_REMOTE_*` variables; see `.env.cluster.example`. Defaults: 4 CPU,
+  `TPW_PSORT_REMOTE_*` variables; see `.env.cluster.example`. Defaults: up to 4 CPU,
   16G, four-hour job, 24-hour submission-to-completion wait, 30-second polls.
 - With `TPW_LIGQ_USE_REMOTE=1`, direct orchestration also omits stages 22/23 unless
   a separate remote binders stage is explicitly enabled, matching the curated
@@ -105,8 +110,11 @@ Moved out of `CLAUDE.md` so it only loads when needed.
 - `scripts/cluster/probe_psort_udocker.sh` only checks startup/SCLBlast imports.
   The integrated 50-protein test from nodo0 is:
   `bash scripts/cluster/test_psort_udocker.sh public__ACCESSION n`.
-  It exercises the actual worker in two parallel 25-protein batches, including
-  diagnostics, cache, container cleanup and final coverage validation. An optional
+  It exercises the actual worker in two 25-protein batches, including diagnostics,
+  cache, instance locking and final coverage validation. Set
+  `TPW_PSORT_TEST_CONTAINERS=tpw_psort_probe_JOBID` to reuse an existing instance
+  immediately, without creating a new copy. The smoke test accepts one instance;
+  multi-instance parallelism is configured in the pipeline pool. An optional
   third argument `tpw_psort_probe_JOBID` retains the original direct-container test.
   The helper prepares unique remote input/validator files, prints the submitted ID,
   and requires exact coverage and valid localizations before reporting success.

@@ -60,6 +60,13 @@ def _build_script(config, workdir, gram):
     timeout = int(os.getenv("TPW_PSORT_BATCH_TIMEOUT_SEC") or "1800")
     if gram not in {"n", "p", "a"} or min(batch_size, timeout, config.cpus_per_task) < 1:
         raise ValueError("Invalid PSORT gram type or worker/batch/timeout limit")
+    workers = config.cpus_per_task
+    pool = os.getenv("TPW_PSORT_UDOCKER_CONTAINERS") or "tpw_psort"
+    if engine == "udocker":
+        count = len({name.strip() for name in pool.split(",") if name.strip()})
+        if not count:
+            raise ValueError("Empty udocker container pool")
+        workers = min(workers, count)
     command = [
         python,
         "-u",
@@ -79,12 +86,14 @@ def _build_script(config, workdir, gram):
         "--gram",
         gram,
         "--workers",
-        str(config.cpus_per_task),
+        str(workers),
         "--batch-size",
         str(batch_size),
         "--timeout",
         str(timeout),
     ]
+    if engine == "udocker":
+        command += ["--containers", pool]
     return "\n".join(
         [
             "#!/bin/bash",
@@ -92,7 +101,7 @@ def _build_script(config, workdir, gram):
             "#SBATCH --partition=" + config.partition,
             "#SBATCH --time=" + config.time_limit,
             "#SBATCH --mem=" + config.mem,
-            "#SBATCH --cpus-per-task=" + str(config.cpus_per_task),
+            "#SBATCH --cpus-per-task=" + str(workers),
             "#SBATCH --output=" + workdir + "/slurm.out",
             "#SBATCH --error=" + workdir + "/slurm.err",
             *(("#SBATCH --exclude=" + config.exclude,) if config.exclude else ()),

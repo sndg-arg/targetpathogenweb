@@ -5,6 +5,7 @@ import os
 import sys
 import tempfile
 import threading
+from contextlib import contextmanager
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -286,6 +287,75 @@ class PredictionsTests(unittest.TestCase):
         created = run.call_args_list[0].args[0][3].removeprefix("--name=")
         self.assertEqual(run.call_args.args[0], ["udocker", "--quiet", "rm", created])
 
+    def test_provisioned_udocker_is_reused_and_never_created_or_removed(self):
+        released = []
+
+        @contextmanager
+        def lease(runtime, names):
+            self.assertEqual(names, ["existing-probe"])
+            try:
+                yield names
+            finally:
+                released.append(True)
+
+        def fake_output(command, **kwargs):
+            if command[2] == "inspect":
+                return '{"RootFS": {"diff_ids": ["sha256:image-layer"]}}'
+            self.assertIn("existing-probe", command)
+            return "my $bres = $brep->next_result();"
+
+        def fake_run(command, **kwargs):
+            self.assertEqual(command[2], "run")
+            self.assertIn("existing-probe", command)
+            batch = Path(command[command.index("--volume") + 1].removesuffix(":/tmp"))
+            (batch / "results" / "date_psortb_gramneg.txt").write_text(
+                "SeqID\tLocalization\nA\tUnknown\nB\tUnknown\n", encoding="utf-8"
+            )
+            return SimpleNamespace(returncode=0)
+
+        with (
+            patch.object(worker, "_lease_udocker_containers", side_effect=lease),
+            patch.object(worker.subprocess, "check_output", side_effect=fake_output),
+            patch.object(worker.subprocess, "run", side_effect=fake_run),
+            patch.object(worker, "_create_udocker_containers") as create,
+        ):
+            worker.run_batches(
+                self.fasta,
+                self.root / "psort.tsv",
+                self.root / "cache",
+                "udocker",
+                "image:tag",
+                "n",
+                engine="udocker",
+                provisioned="existing-probe",
+            )
+        create.assert_not_called()
+        self.assertEqual(released, [True])
+
+    def test_lease_releases_locks_after_inspection_fails(self):
+        import subprocess
+
+        opened = []
+        fake_fcntl = SimpleNamespace(LOCK_EX=2)
+
+        def flock(fd, operation):
+            opened.append(fd)
+
+        fake_fcntl.flock = flock
+        with (
+            patch.dict(sys.modules, {"fcntl": fake_fcntl}),
+            patch.dict(os.environ, {"UDOCKER_DIR": str(self.root)}),
+            patch.object(
+                worker.subprocess, "run", side_effect=subprocess.CalledProcessError(1, "inspect")
+            ),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "Provisioned udocker container"):
+                with worker._lease_udocker_containers("udocker", ["missing"]):
+                    self.fail("Must not lease an unavailable instance")
+        self.assertEqual(len(opened), 1)
+        with self.assertRaises(OSError):
+            os.fstat(opened[0])
+
     def test_parallel_batches_resume_and_image_change_invalidates_cache(self):
         image = self.root / "psort.sif"
         image.write_bytes(b"version-one")
@@ -353,8 +423,9 @@ class RemoteTests(unittest.TestCase):
     def test_script_uses_compute_resources_and_setup_before_nounset(self):
         with patch.dict(os.environ, {"TPW_PSORT_REMOTE_SETUP": "conda activate tools"}, clear=True):
             script = remote._build_script(config(), "/home/test/job", "n")
-        self.assertIn("#SBATCH --cpus-per-task=4", script)
-        self.assertIn("--workers 4", script)
+        self.assertIn("#SBATCH --cpus-per-task=1", script)
+        self.assertIn("--workers 1", script)
+        self.assertIn("--containers tpw_psort", script)
         self.assertIn("--gram n", script)
         self.assertIn("setup_psort_udocker.sh", script)
         self.assertIn("--engine udocker", script)

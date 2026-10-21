@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import uuid
+from contextlib import contextmanager
 from queue import Queue
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -240,7 +241,7 @@ def _create_udocker_containers(runtime, image, count):
                 [runtime, "--quiet", "create", "--name=" + name, image],
                 capture_output=True,
                 check=True,
-                timeout=300,
+                timeout=int(os.getenv("TPW_PSORT_CREATE_TIMEOUT_SEC") or "1800"),
             )
             names.append(name)
             subprocess.run(
@@ -255,6 +256,41 @@ def _create_udocker_containers(runtime, image, count):
         raise
 
 
+@contextmanager
+def _lease_udocker_containers(runtime, names):
+    """Reuse provisioned instances, locked across jobs on the shared filesystem."""
+    import fcntl
+
+    directory = Path(os.getenv("UDOCKER_DIR") or str(Path.home() / ".udocker"))
+    locks = directory / "tpw_psort_locks"
+    locks.mkdir(parents=True, exist_ok=True)
+    handles = []
+    try:
+        # A consistent acquisition order avoids deadlocks for overlapping pools.
+        for name in sorted(set(names)):
+            key = hashlib.sha256(name.encode()).hexdigest()
+            handle = (locks / (key + ".lock")).open("a")
+            handles.append(handle)
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+            try:
+                subprocess.run(
+                    [runtime, "--quiet", "inspect", "-p", name],
+                    capture_output=True,
+                    check=True,
+                    timeout=60,
+                )
+            except subprocess.CalledProcessError as exc:
+                raise RuntimeError(
+                    f"Provisioned udocker container {name!r} unavailable; "
+                    "run setup_psort_udocker.sh or configure "
+                    "TPW_PSORT_UDOCKER_CONTAINERS to an existing PSORT instance"
+                ) from exc
+        yield list(dict.fromkeys(names))
+    finally:
+        for handle in reversed(handles):
+            handle.close()
+
+
 def run_batches(
     fasta,
     output,
@@ -266,6 +302,7 @@ def run_batches(
     batch_size=50,
     timeout=1800,
     engine="apptainer",
+    provisioned=None,
 ):
     if gram not in {"n", "p", "a"} or min(workers, batch_size, timeout) < 1:
         raise ValueError("Invalid PSORT gram type or worker/batch/timeout limit")
@@ -301,16 +338,27 @@ def run_batches(
     root = Path(cache_dir).resolve() / digest.hexdigest()
     root.mkdir(parents=True, exist_ok=True)
     owned = []
+    lease = None
     try:
         containers = None
         source_image = image
         if engine == "udocker":
             count = min(workers, (len(records) + batch_size - 1) // batch_size)
-            owned = _create_udocker_containers(runtime, image, count)
+            if provisioned:
+                names = [name.strip() for name in provisioned.split(",") if name.strip()]
+                if not names:
+                    raise ValueError("Empty udocker container pool")
+                lease = _lease_udocker_containers(runtime, names[:count])
+                instances = lease.__enter__()
+                workers = min(workers, len(instances))
+                print(f"PSORT: reusing {len(instances)} provisioned udocker instances", flush=True)
+            else:
+                owned = _create_udocker_containers(runtime, image, count)
+                instances = owned
             containers = Queue()
-            for name in owned:
+            for name in instances:
                 containers.put(name)
-            source_image = owned[0]
+            source_image = instances[0]
         source = subprocess.check_output(
             _container_command(runtime, source_image, engine, "cat", [SCLBLAST_MODULE]),
             universal_newlines=True,
@@ -347,6 +395,8 @@ def run_batches(
         write_predictions(output, rows, records)
     finally:
         _remove_udocker_containers(runtime, owned)
+        if lease is not None:
+            lease.__exit__(None, None, None)
 
 
 if __name__ == "__main__":
@@ -357,6 +407,7 @@ if __name__ == "__main__":
     parser.add_argument("--runtime", default="apptainer")
     parser.add_argument("--engine", choices=["apptainer", "docker", "udocker"], default="apptainer")
     parser.add_argument("--image", required=True)
+    parser.add_argument("--containers", help="Comma-separated provisioned udocker instances")
     parser.add_argument("--gram", choices=["n", "p", "a"], required=True)
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--batch-size", type=int, default=50)
@@ -373,4 +424,5 @@ if __name__ == "__main__":
         args.batch_size,
         args.timeout,
         args.engine,
+        args.containers,
     )

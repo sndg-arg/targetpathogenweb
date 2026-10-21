@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # From nodo0: bash scripts/cluster/test_psort_udocker.sh public__ACCESSION n [CONTAINER]
-# Without CONTAINER, tests the full batch worker with two isolated udocker instances.
+# Without CONTAINER, tests the full batch worker using a provisioned instance.
 # Prepares 50 proteins, submits this script to SLURM, validates exact coverage.
 #SBATCH --job-name=psort_test50
 #SBATCH --partition=cpu
@@ -14,9 +14,14 @@ if [ -z "${SLURM_JOB_ID:-}" ]; then
   genome="${1:?Usage: test_psort_udocker.sh INTERNAL_ACCESSION n|p UDOCKER_CONTAINER}"
   gram="${2:?Specify n or p}"
   container="${3:-}"
+  pool="${TPW_PSORT_TEST_CONTAINERS:-tpw_psort}"
   if [[ "$genome" == *[!a-zA-Z0-9_.-]* || "$container" == *[!a-zA-Z0-9_.-]* ]] ||
      [[ "$gram" != n && "$gram" != p ]]; then
     echo "Invalid genome, container name or Gram type" >&2
+    exit 1
+  fi
+  if [[ -z "$pool" || "$pool" == *[!a-zA-Z0-9_.-]* ]]; then
+    echo "Specify one provisioned instance in TPW_PSORT_TEST_CONTAINERS for this smoke test" >&2
     exit 1
   fi
   repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -35,7 +40,7 @@ if [ -z "${SLURM_JOB_ID:-}" ]; then
     "${ssh_command[@]}" "cat > '$remote_dir/input.faa'"
   "${ssh_command[@]}" "cat > '$remote_dir/psort_worker.py'" < "$repo/pipeline/psort_worker.py"
   job=$("${ssh_command[@]}" \
-    "test -s '$remote_dir/input.faa' && test -s '$remote_dir/psort_worker.py' && sbatch --parsable --export=ALL,TPW_PSORT_TEST_DIR=$remote_dir,TPW_PSORT_TEST_CONTAINER=$container,TPW_PSORT_TEST_GRAM=$gram" \
+    "test -s '$remote_dir/input.faa' && test -s '$remote_dir/psort_worker.py' && sbatch --parsable --export=ALL,TPW_PSORT_TEST_DIR=$remote_dir,TPW_PSORT_TEST_CONTAINER=$container,TPW_PSORT_TEST_GRAM=$gram,TPW_PSORT_TEST_CONTAINERS=$pool" \
     < "$repo/scripts/cluster/test_psort_udocker.sh")
   job="${job%%;*}"
   if [[ ! "$job" =~ ^[0-9]+$ ]]; then
@@ -65,6 +70,7 @@ else
   "$HOME/work/venvs/tpw_udocker/bin/python" psort_worker.py \
     --engine udocker --runtime "$HOME/work/venvs/tpw_udocker/bin/udocker" \
     --image brinkmanlab/psortb_commandline:1.0.2 --gram "$gram" \
+    --containers "${TPW_PSORT_TEST_CONTAINERS:-tpw_psort}" \
     --fasta input.faa --output psort.tsv --cache "$base/cache" \
     --workers 2 --batch-size 25
 fi
