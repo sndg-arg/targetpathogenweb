@@ -16,13 +16,16 @@ strains' identical copies, instead of silently redone per-strain.
   structure, a direct link to a sibling's structure if one exists. Scope was deliberately kept
   to structures-only for v1; broader evidence sharing would be a separate, bigger change.
 - **Members don't require the sibling genome to exist yet** — `bioentry` starts null at import
-  time. `python manage.py load_identical_sequence_groups <tsv> --representative-strain
-  ST11_VA569 [--overwrite]` parses the TSV (columns: row id, `locus_tag (accession)`
-  representative, `STRAIN: locus_tag (accession); ...` or `-` for cross-strain matches) into
-  groups. Once a strain's genome finishes loading, run `python manage.py
+  time. `python manage.py load_identical_sequence_groups <tsv> [--overwrite]` accepts
+  `id_representativo` and `identicos_en_otras_cepas` (optional leading row ID).
+  Representatives can come from any strain: MO417/KP13/VK055 prefixes determine the
+  label, and VA569 is normalized to ST11_VA569. `--representative-strain` is only a
+  fallback for unknown prefixes. Once a strain's genome finishes loading, run `python manage.py
   backfill_identical_sequence_links <internal_accession> <strain_label>` to resolve that
   strain's `bioentry` FKs by matching `locus_tag` against `Bioentry.accession` in its `_prots`
-  Biodatabase — safe to re-run, only touches still-unlinked rows.
+  Biodatabase — safe to re-run, only touches still-unlinked rows. `--all-loaded` can
+  resolve all strains when each matches exactly one loaded proteome; ambiguous
+  genomes require explicit arguments. Backfill rejects groups whose loaded sequences differ.
 - **Cleanup**: deleting a genome's workspace does not currently prune its
   `IdenticalSequenceMember.bioentry` links back to null — `on_delete=SET_NULL` means a deleted
   Bioentry just leaves the FK null again next time (effectively self-healing on a future
