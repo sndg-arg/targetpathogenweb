@@ -442,9 +442,12 @@ def score_param_visibility_filter(user, genome_name=None):
 
 def visible_score_params_queryset(user, genome_name=None):
     ensure_system_score_params_exist()
-    return ScoreParam.objects.filter(score_param_visibility_filter(user, genome_name)).order_by(
-        "category", "name", "id"
-    )
+    visibility = score_param_visibility_filter(user, genome_name)
+    if genome_name:
+        from tpweb.services.shared_sequence_evidence import inherited_score_param_ids
+
+        visibility |= Q(pk__in=inherited_score_param_ids(genome_name, user))
+    return ScoreParam.objects.filter(visibility).order_by("category", "name", "id")
 
 
 def visible_categorical_score_params_queryset(user):
@@ -498,7 +501,7 @@ def resolve_score_param_for_import(column_name, owner=None, source_df=None):
 GENOME_PARAM_NAMES_CACHE_TTL_SECONDS = 900
 
 
-def genome_score_param_names(assembly_name):
+def genome_score_param_names(assembly_name, user=None):
     """Names of the ScoreParams that have at least one value loaded for this
     genome's proteins. Used to keep the formula builder's variable palette and
     the Scoring drawer's base formulas to what the genome actually has (e.g.
@@ -510,10 +513,16 @@ def genome_score_param_names(assembly_name):
 
     from bioseq.models.Biodatabase import Biodatabase
     from tpweb.models.ScoreParamValue import ScoreParamValue
+    from tpweb.models import IdenticalSequenceMember
+    from tpweb.services.shared_sequence_evidence import inherited_score_param_ids
+
+    shared = IdenticalSequenceMember.objects.filter(
+        bioentry__biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
+    ).exists()
 
     cache_key = f"Target:genome_score_param_names:{assembly_name}"
     cached = cache.get(cache_key)
-    if cached is not None:
+    if cached is not None and not shared:
         return cached
     names = set(
         ScoreParamValue.objects.filter(
@@ -522,5 +531,12 @@ def genome_score_param_names(assembly_name):
         .values_list("score_param__name", flat=True)
         .distinct()
     )
-    cache.set(cache_key, names, GENOME_PARAM_NAMES_CACHE_TTL_SECONDS)
+    if shared:
+        names.update(
+            ScoreParam.objects.filter(
+                pk__in=inherited_score_param_ids(assembly_name, user),
+            ).values_list("name", flat=True)
+        )
+    else:
+        cache.set(cache_key, names, GENOME_PARAM_NAMES_CACHE_TTL_SECONDS)
     return names

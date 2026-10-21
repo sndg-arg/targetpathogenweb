@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261019-mobile">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261021-shared-sequences">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -423,7 +423,11 @@
                         {% for protein in proteins %}
                             <tr class="protein-row">
                                 <td class="rank-col">{{ pagination.proteins.start_index|add:forloop.counter0 }}</td>
-                                <td class="acc-col"><a href="{% url 'tpwebapp:protein' protein.id %}">{{ protein.accession }}</a></td>
+                                <td class="acc-col"><a href="{% url 'tpwebapp:protein' protein.id %}">{{ protein.accession }}</a>
+                                    {% if protein.identical_sequence_siblings %}<div class="shared-strain-links" aria-label="{% trans 'Identical sequence in other strains' %}">
+                                    {% for sibling in protein.identical_sequence_siblings %}<a href="{% url 'tpwebapp:protein' sibling.bioentry_id %}" title="{% trans 'Identical sequence' %}: {{ sibling.locus_tag }}">{{ sibling.strain_label }} ↗</a>{% endfor %}
+                                    </div>{% endif %}
+                                </td>
                                 <td class="desc-col">{{ protein.description }}</td>
                                 <td class="gene-col">{{ protein.genes|join:', ' }}</td>
                                 <td data-col="structure-source">

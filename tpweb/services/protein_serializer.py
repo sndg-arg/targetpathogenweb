@@ -111,6 +111,9 @@ def build_protein_table_row(
 
     row = {
         "id": protein.bioentry_id,
+        "identical_sequence_siblings": getattr(
+            getattr(protein, "shared_sequence_evidence", None), "siblings", []
+        ),
         "accession": protein.accession,
         "genes": genes,
         "name": protein.name,

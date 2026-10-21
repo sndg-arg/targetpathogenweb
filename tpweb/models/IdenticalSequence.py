@@ -8,12 +8,12 @@ class IdenticalSequenceGroup(models.Model):
     of the same species) whose amino-acid sequences are 100% identical --
     seeded from a hand-curated TSV (see management command
     load_identical_sequence_groups) rather than computed in-app. Membership
-    is read-only data: the groups don't change unless someone re-imports a
-    new TSV.
+    defines the original strain occurrences. New strains may join an existing
+    group only after an exact current-sequence comparison.
 
-    Deliberately display-only for now (tpweb.services.identical_sequences) --
-    no evidence (structures, binders, scores) is copied between members.
-    Each member's own page just surfaces what its siblings already have."""
+    Shared evidence is read live from KP13/ATCC43816 through this group;
+    evidence rows are not copied. Bioentry remains strain-specific so that
+    conservation and metabolic context never propagate between strains."""
 
     created_at = models.DateTimeField(auto_now_add=True)
     source_note = models.CharField(

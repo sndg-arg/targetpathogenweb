@@ -1068,6 +1068,7 @@ class ProteinListView(View):
         coefficient_by_param,
         expression=None,
         zero_cache=None,
+        user=None,
     ):
         if not protein_ids:
             return [], {}
@@ -1090,6 +1091,8 @@ class ProteinListView(View):
                 ),
             )
             .prefetch_related(
+                "seq",
+                "biodatabase",
                 "qualifiers__term",
                 "structures__pdb",
                 "dbxrefs__dbxref__terms__term",
@@ -1098,6 +1101,9 @@ class ProteinListView(View):
         )
 
         proteins_map = {protein.bioentry_id: protein for protein in proteins_queryset}
+        from tpweb.services.shared_sequence_evidence import apply_shared_sequence_evidence
+
+        apply_shared_sequence_evidence(proteins_map.values(), user)
         proteins_dto = []
         tdatas = {}
         for protein_id in protein_ids:
@@ -1532,7 +1538,14 @@ class ProteinListView(View):
         effective_sort_dir,
         selected_parameters,
         needed_score_param_names,
+        user=None,
     ):
+        from tpweb.services.shared_sequence_evidence import apply_shared_sequence_evidence
+
+        ranking_queryset = list(ranking_queryset)
+        apply_shared_sequence_evidence(
+            ranking_queryset, user, details=False, score_param_names=needed_score_param_names
+        )
         ranked_proteins = []
         try:
             for protein in ranking_queryset:
@@ -1753,7 +1766,7 @@ class ProteinListView(View):
         # Base/shared formulas built on data this genome doesn't have (e.g. "Kp
         # score" on Pseudomonas) would silently score every protein 0 -- hide
         # them here. The user's own formulas and the active one always stay.
-        genome_param_names = genome_score_param_names(assembly_name)
+        genome_param_names = genome_score_param_names(assembly_name, request.user)
         var_to_param = {
             entry["var"]: entry["param"]
             for entries in available_variables_grouped(request.user).values()
@@ -1913,7 +1926,9 @@ class ProteinListView(View):
 
         if selected_parameters:
             try:
-                proteins = apply_selected_parameter_filters(proteins, selected_parameters)
+                proteins = apply_selected_parameter_filters(
+                    proteins, selected_parameters, user=request.user
+                )
             except Exception:
                 logger.exception(
                     "Failed to build protein selected-parameter filters: %s", selected_parameters
@@ -1959,11 +1974,14 @@ class ProteinListView(View):
         ranking_queryset = (
             proteins.only(
                 "bioentry_id",
+                "biodatabase",
                 "accession",
                 "name",
                 "description",
             )
-            .prefetch_related(Prefetch("score_params", queryset=ranking_spv_qs))
+            .prefetch_related(
+                "seq", "biodatabase", Prefetch("score_params", queryset=ranking_spv_qs)
+            )
             .distinct()
         )
 
@@ -1994,6 +2012,7 @@ class ProteinListView(View):
             effective_sort_dir,
             selected_parameters,
             needed_score_param_names,
+            user=request.user,
         )
 
         filtered_protein_count = len(ranked_proteins)
@@ -2009,6 +2028,7 @@ class ProteinListView(View):
                 coefficient_by_param,
                 expression=formula_expression or None,
                 zero_cache=zero_cache,
+                user=request.user,
             )
             headers = [
                 "Rank",
@@ -2096,6 +2116,7 @@ class ProteinListView(View):
             coefficient_by_param,
             expression=formula_expression or None,
             zero_cache=zero_cache,
+            user=request.user,
         )
         page_tdatas = {pid: tdatas.get(pid, {}) for pid in proteins_ids_paginated}
 

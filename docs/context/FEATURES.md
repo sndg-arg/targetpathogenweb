@@ -8,13 +8,21 @@ separately, but a hand-curated TSV (produced outside the app, by BLAST/sequence-
 comparison) says which proteins across them are 100% identical at the amino-acid level — e.g.
 useful so a structure predicted for one strain's copy is visibly cross-linked from the other
 strains' identical copies, instead of silently redone per-strain.
-- **Display-only, structures for now**: `tpweb/models/IdenticalSequence.py`
-  (`IdenticalSequenceGroup` + `IdenticalSequenceMember`) just records the mapping; nothing gets
-  copied between members (no formula/binder/score sharing) — see
-  `tpweb/services/identical_sequences.py:identical_siblings_for_bioentry`, which the protein
-  detail page calls to show a cross-strain chip list and, when this protein itself has no
-  structure, a direct link to a sibling's structure if one exists. Scope was deliberately kept
-  to structures-only for v1; broader evidence sharing would be a separate, bigger change.
+- **Live shared evidence**: `tpweb/services/shared_sequence_evidence.py` reads the
+  original evidence rows through `IdenticalSequenceGroup`/`IdenticalSequenceMember`.
+  KP13 and ATCC43816 are the curated sources, ahead of a recipient's automatic
+  results. Structures/pockets share the original PDB object and source file;
+  EC/GO/UniProt, sequence-specific scores, and ligands reuse their source records.
+  Conservation (including soft core) and metabolic context stay on each strain.
+  Missing curated fields fall back to local results; pocket score/structure/ID
+  bundles remain on the same source. Conflicting curated scalar values surface
+  a notice with deterministic KP13 precedence. Source-genome and custom-column
+  permissions are checked before sharing. The protein page, protein table,
+  ranking, filters, structure viewer and downloads resolve this live evidence.
+  No evidence rows are copied, so source edits appear on the next request.
+  Structures are available in both directions, including uploads on VA569 or
+  a later strain. When curated evidence is absent, local evidence takes
+  precedence over other accessible identical occurrences.
 - **Members don't require the sibling genome to exist yet** — `bioentry` starts null at import
   time. `python manage.py load_identical_sequence_groups <tsv> [--overwrite]` accepts
   `id_representativo` and `identicos_en_otras_cepas` (optional leading row ID).
@@ -26,6 +34,11 @@ strains' identical copies, instead of silently redone per-strain.
   Biodatabase — safe to re-run, only touches still-unlinked rows. `--all-loaded` can
   resolve all strains when each matches exactly one loaded proteome; ambiguous
   genomes require explicit arguments. Backfill rejects groups whose loaded sequences differ.
+- `sync_genome_metadata` calls backfill with `--match-sequences` after loading
+  a genome, covering both direct and Parsl pipelines at stage 3.
+  A new strain can join an existing table-defined group by exact sequence,
+  provided its loaded members agree and the sequence identifies one group.
+  Original KP13/ATCC43816/VA569 occurrences follow Sol's explicit table rows.
 - **Cleanup**: deleting a genome's workspace does not currently prune its
   `IdenticalSequenceMember.bioentry` links back to null — `on_delete=SET_NULL` means a deleted
   Bioentry just leaves the FK null again next time (effectively self-healing on a future

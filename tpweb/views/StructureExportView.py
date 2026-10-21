@@ -77,12 +77,12 @@ class StructureExportView(View):
 
     @staticmethod
     def _resolve_link(request, pdb):
+        from tpweb.services.shared_sequence_evidence import shared_structure_link
+
         links = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(pdb=pdb)
         requested_protein_id = str(request.GET.get("protein_id") or "").strip()
         if requested_protein_id.isdigit():
-            link = links.filter(bioentry_id=int(requested_protein_id)).first()
-            if link:
-                return link
+            return shared_structure_link(request.user, int(requested_protein_id), pdb.pk)
         return links.first()
 
 
@@ -99,6 +99,10 @@ class ProteinStructuresExportView(View):
         genome_name = protein.biodatabase.name.replace(BioIO.GENOME_PROT_POSTFIX, "")
         if not user_can_access_genome_name(request.user, genome_name):
             raise Http404("Protein not found")
+
+        from tpweb.services.shared_sequence_evidence import apply_shared_sequence_evidence
+
+        apply_shared_sequence_evidence([protein], request.user)
 
         source = request.GET.get("source") or DOWNLOAD_SOURCE_ALL
         if source != DOWNLOAD_SOURCE_ALL and source not in DOWNLOAD_SOURCE_FOLDERS:

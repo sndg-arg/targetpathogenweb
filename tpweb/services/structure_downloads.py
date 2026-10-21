@@ -264,9 +264,10 @@ def build_structures_zip(protein, source=DOWNLOAD_SOURCE_ALL):
     """ZIP bytes with every structure of `protein` from `source` (or all):
     <folder>/<code>.<pdb|cif>, <code>_pockets.tsv and <code>.pml. Returns
     (bytes, n_structures); n_structures is 0 when nothing could be read."""
-    links = sort_structures_by_preference(
-        protein.structures.select_related("pdb", "bioentry__biodatabase")
-    )
+    links = protein.structures.all()
+    if not getattr(protein, "shared_sequence_evidence", None):
+        links = links.select_related("pdb", "bioentry__biodatabase")
+    links = sort_structures_by_preference(links)
     stream = io.BytesIO()
     written = 0
     with zipfile.ZipFile(stream, mode="w", compression=zipfile.ZIP_DEFLATED) as zip_file:

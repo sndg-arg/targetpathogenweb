@@ -713,7 +713,16 @@ def selected_parameters_to_filter_map(selected_parameters):
     return parameter_map
 
 
-def _condition_q(parameter, param_name_by_id):
+def _score_q(param_id, effective_fields=None, **lookups):
+    if effective_fields and param_id in effective_fields:
+        return Q(**{f"_shared_score_{param_id}_{key}": value for key, value in lookups.items()})
+    return Q(
+        score_params__score_param_id=param_id,
+        **{f"score_params__{key}": value for key, value in lookups.items()},
+    )
+
+
+def _condition_q(parameter, param_name_by_id, effective_fields=None):
     """Build a single Q object for one selected_parameters condition, for use
     OR-combining conditions within an explicit "any" advanced-filter group
     (see apply_selected_parameter_filters). Only covers categorical and
@@ -734,27 +743,20 @@ def _condition_q(parameter, param_name_by_id):
         if operation == ">=":
             if value is None:
                 return None
-            return Q(score_params__score_param_id=param_id, score_params__numeric_value__gte=value)
+            return _score_q(param_id, effective_fields, numeric_value__gte=value)
         if operation == "<=":
             if value is None:
                 return None
-            return Q(score_params__score_param_id=param_id, score_params__numeric_value__lte=value)
+            return _score_q(param_id, effective_fields, numeric_value__lte=value)
         if operation == "between":
             if value is None and value_max is None:
                 return None
             if value is None:
-                return Q(
-                    score_params__score_param_id=param_id,
-                    score_params__numeric_value__lte=value_max,
-                )
+                return _score_q(param_id, effective_fields, numeric_value__lte=value_max)
             if value_max is None:
-                return Q(
-                    score_params__score_param_id=param_id, score_params__numeric_value__gte=value
-                )
-            return Q(
-                score_params__score_param_id=param_id,
-                score_params__numeric_value__gte=value,
-                score_params__numeric_value__lte=value_max,
+                return _score_q(param_id, effective_fields, numeric_value__gte=value)
+            return _score_q(
+                param_id, effective_fields, numeric_value__gte=value, numeric_value__lte=value_max
             )
         return None
 
@@ -768,10 +770,10 @@ def _condition_q(parameter, param_name_by_id):
         if value_name == "Accessory":
             return Q(score_params__score_param_id=param_id, score_params__numeric_value__lt=0.5)
         return None
-    return Q(score_params__score_param_id=param_id, score_params__value=value_name)
+    return _score_q(param_id, effective_fields, value=value_name)
 
 
-def apply_selected_parameter_filters(queryset, selected_parameters):
+def apply_selected_parameter_filters(queryset, selected_parameters, user=None):
     """Apply every filter in selected_parameters to queryset.
 
     Each item optionally carries `group_id` / `group_mode` ("all" default /
@@ -786,6 +788,16 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
     call, so combining unrelated AND'd conditions into one call would wrongly
     require them to match the same related row -- each group therefore gets
     its own call, same as every ungrouped condition already does below)."""
+    effective_fields = set()
+    if user is not None:
+        from tpweb.services.shared_sequence_evidence import annotate_shared_score_values
+
+        param_ids = {
+            pid
+            for p in selected_parameters
+            if (pid := _coerce_score_param_id(p.get("score_param_id"))) is not None
+        }
+        queryset, effective_fields = annotate_shared_score_values(queryset, param_ids, user)
     or_groups = {}
     and_items = []
     for parameter in selected_parameters:
@@ -825,7 +837,7 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
     filtered_queryset = queryset
     for bucket_key in and_bucket_order:
         filtered_queryset = _apply_and_selected_parameter_filters(
-            filtered_queryset, and_buckets[bucket_key]
+            filtered_queryset, and_buckets[bucket_key], effective_fields, user
         )
 
     if or_groups:
@@ -839,7 +851,7 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
             group_q = Q()
             has_condition = False
             for parameter in items:
-                condition = _condition_q(parameter, param_name_by_id)
+                condition = _condition_q(parameter, param_name_by_id, effective_fields)
                 if condition is None:
                     continue
                 group_q |= condition
@@ -850,8 +862,21 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
     return filtered_queryset
 
 
-def _apply_and_selected_parameter_filters(queryset, selected_parameters):
+def _apply_and_selected_parameter_filters(
+    queryset, selected_parameters, effective_fields=None, user=None
+):
     filtered_queryset = queryset
+
+    def shared_condition(condition, override_condition=None):
+        nonlocal filtered_queryset
+        if user is not None:
+            from tpweb.services.shared_sequence_evidence import shared_relation_condition
+
+            filtered_queryset, condition = shared_relation_condition(
+                filtered_queryset, condition, user, override_condition
+            )
+        return condition
+
     parameter_map = selected_parameters_to_filter_map(selected_parameters)
     param_name_by_id = {}
     for parameter in selected_parameters:
@@ -875,7 +900,7 @@ def _apply_and_selected_parameter_filters(queryset, selected_parameters):
                 filtered_queryset = filtered_queryset.filter(core_q)
             continue
         filtered_queryset = filtered_queryset.filter(
-            Q(score_params__score_param_id=param_id) & Q(score_params__value__in=values)
+            _score_q(param_id, effective_fields, value__in=values)
         )
     special_groups = {}
     for parameter in selected_parameters:
@@ -890,16 +915,33 @@ def _apply_and_selected_parameter_filters(queryset, selected_parameters):
     structure_values = [value.lower() for value in special_groups.get("structure_source", [])]
     if structure_values:
         structure_query = Q()
-        if "none" in structure_values:
+        if "none" in structure_values and user is None:
             structure_query |= Q(structures__isnull=True)
         if "experimental" in structure_values:
-            structure_query |= Q(structures__isnull=False) & ~Q(
-                structures__pdb__experiment__in=PDB_MODEL_EXPERIMENTS
-            )
+            if user is not None:
+                from tpweb.models.BioentryStructure import BioentryStructure
+
+                structure_query |= Q(
+                    Exists(
+                        BioentryStructure.objects.filter(
+                            bioentry_id=OuterRef("pk"),
+                        ).exclude(pdb__experiment__in=PDB_MODEL_EXPERIMENTS)
+                    )
+                )
+            else:
+                structure_query |= Q(structures__isnull=False) & ~Q(
+                    structures__pdb__experiment__in=PDB_MODEL_EXPERIMENTS
+                )
         if "alphafold" in structure_values:
             structure_query |= Q(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
         if "colabfold" in structure_values:
             structure_query |= Q(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD)
+        if user is not None:
+            if structure_query:
+                structure_query = shared_condition(structure_query)
+            if "none" in structure_values:
+                has_structure = shared_condition(Q(structures__isnull=False))
+                structure_query |= ~has_structure
         filtered_queryset = filtered_queryset.filter(structure_query)
 
     ligand_values = [value.lower() for value in special_groups.get("ligand_filter", [])]
@@ -907,23 +949,32 @@ def _apply_and_selected_parameter_filters(queryset, selected_parameters):
         wants_ligands = "yes" in ligand_values
         wants_no_ligands = "no" in ligand_values
         if wants_ligands != wants_no_ligands:
-            filtered_queryset = filtered_queryset.annotate(
-                has_ligand_evidence=Exists(
-                    Binders.objects.filter(locustag_id=OuterRef("accession"))
+            if user is not None:
+                has_ligands = shared_condition(
+                    Q(Exists(Binders.objects.filter(locustag_id=OuterRef("accession"))))
                 )
-            ).filter(has_ligand_evidence=wants_ligands)
+                filtered_queryset = filtered_queryset.filter(
+                    has_ligands if wants_ligands else ~has_ligands
+                )
+            else:
+                filtered_queryset = filtered_queryset.annotate(
+                    has_ligand_evidence=Exists(
+                        Binders.objects.filter(locustag_id=OuterRef("accession"))
+                    )
+                ).filter(has_ligand_evidence=wants_ligands)
 
     ec_values = [value for value in special_groups.get("ec_filter", []) if value]
     if ec_values:
         ec_query = Q()
         for ec_value in ec_values:
             if ec_value == EC_ANY_VALUE:
-                ec_query |= Q(dbxrefs__dbxref__dbname="ec")
+                ec_query |= Q(dbxrefs__dbxref__dbname__in=["ec", "EC"])
                 continue
             ec_query |= Q(
-                dbxrefs__dbxref__dbname="ec",
+                dbxrefs__dbxref__dbname__in=["ec", "EC"],
                 dbxrefs__dbxref__accession__istartswith=ec_value,
             )
+        ec_query = shared_condition(ec_query, Q(dbxrefs__dbxref__dbname__in=["ec", "EC"]))
         filtered_queryset = filtered_queryset.filter(ec_query)
 
     go_values = [value for value in special_groups.get("go_filter", []) if value]
@@ -934,6 +985,7 @@ def _apply_and_selected_parameter_filters(queryset, selected_parameters):
                 dbxrefs__dbxref__dbname__in=["go", "GO"],
                 dbxrefs__dbxref__accession__iexact=go_value,
             )
+        go_query = shared_condition(go_query, Q(dbxrefs__dbxref__dbname__in=["go", "GO"]))
         filtered_queryset = filtered_queryset.filter(go_query)
 
     pathway_values = [
@@ -952,48 +1004,9 @@ def _apply_and_selected_parameter_filters(queryset, selected_parameters):
     for parameter in selected_parameters:
         if _selected_parameter_kind(parameter) != "numeric":
             continue
-        param_id = _coerce_score_param_id(parameter.get("score_param_id"))
-        if param_id is None:
-            continue
-        operation = _normalize_numeric_operation(parameter.get("operation"))
-        if operation is None:
-            continue
-        value = _coerce_numeric_filter_value(parameter.get("value"))
-        value_max = _coerce_numeric_filter_value(parameter.get("value_max"))
-        if operation == ">=":
-            if value is None:
-                continue
-            filtered_queryset = filtered_queryset.filter(
-                score_params__score_param_id=param_id,
-                score_params__numeric_value__gte=value,
-            )
-        elif operation == "<=":
-            if value is None:
-                continue
-            filtered_queryset = filtered_queryset.filter(
-                score_params__score_param_id=param_id,
-                score_params__numeric_value__lte=value,
-            )
-        elif operation == "between":
-            if value is None and value_max is None:
-                continue
-            if value is None:
-                filtered_queryset = filtered_queryset.filter(
-                    score_params__score_param_id=param_id,
-                    score_params__numeric_value__lte=value_max,
-                )
-                continue
-            if value_max is None:
-                filtered_queryset = filtered_queryset.filter(
-                    score_params__score_param_id=param_id,
-                    score_params__numeric_value__gte=value,
-                )
-                continue
-            filtered_queryset = filtered_queryset.filter(
-                score_params__score_param_id=param_id,
-                score_params__numeric_value__gte=value,
-                score_params__numeric_value__lte=value_max,
-            )
+        condition = _condition_q(parameter, param_name_by_id, effective_fields)
+        if condition is not None:
+            filtered_queryset = filtered_queryset.filter(condition)
     return filtered_queryset
 
 

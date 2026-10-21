@@ -2,13 +2,23 @@ import unittest
 
 from django.core.management.base import CommandError
 from tpweb.management.commands.load_identical_sequence_groups import _table_members
-from tpweb.management.commands.backfill_identical_sequence_links import _validate_group_sequences
+from tpweb.management.commands.backfill_identical_sequence_links import (
+    _validate_group_sequences,
+    _sequence_group_index,
+)
 
 
 HEADER = ["id_representativo", "identicos_en_otras_cepas"]
 
 
 class IdenticalSequenceImportTests(unittest.TestCase):
+    def test_sequence_index_excludes_inconsistent_table_groups(self):
+        index = _sequence_group_index([(1, "MAU"), (1, "MAX"), (2, "MAC"), (2, "MAC")])
+        self.assertEqual(index, {"MAC": {2}})
+
+    def test_sequence_index_does_not_choose_between_duplicate_groups(self):
+        self.assertEqual(_sequence_group_index([(1, "MAU"), (2, "MAU")]), {"MAU": {1, 2}})
+
     def test_actual_two_column_format(self):
         groups, skipped = _table_members(
             [

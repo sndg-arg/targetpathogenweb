@@ -637,6 +637,23 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     overflow: hidden;
 }
 
+.shared-sequence-banner {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+    margin-block: var(--tp-space-3);
+    padding: var(--tp-space-3);
+    background: var(--tp-color-surface);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+}
+
+.shared-sequence-notice {
+    margin-top: var(--tp-space-3);
+    color: var(--tp-color-text-muted);
+}
+
 .identical-sequence-item {
     display: flex;
     align-items: center;

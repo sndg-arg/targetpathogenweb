@@ -13,7 +13,6 @@ from django.core.cache import cache
 from django.urls import reverse
 
 from bioseq.models.Biodatabase import Biodatabase
-from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.Metabolism import GeneReactionLink, MetabolicImportRun, ReactionParticipant
 from tpweb.services.assembly_workspace import OVERVIEW_CACHE_TTL_SECONDS
@@ -1213,9 +1212,14 @@ def build_protein_executive_context(
     passing those in here avoids re-querying/recomputing them a second time.
     Callers that don't have them yet (explain_target) get the exact same
     behavior as before by leaving them as the defaults."""
-    score_param_values = list(
-        ScoreParamValue.objects.filter(bioentry=protein).select_related("score_param")
-    )
+    from tpweb.services.shared_sequence_evidence import apply_shared_sequence_evidence
+
+    apply_shared_sequence_evidence([protein], user)
+    shared = getattr(protein, "shared_sequence_evidence", None)
+    score_values = protein.score_params.all()
+    if shared is None:
+        score_values = score_values.select_related("score_param")
+    score_param_values = list(score_values)
     raw_scores = {
         spv.score_param.name: spv.value
         if spv.value
@@ -1223,7 +1227,10 @@ def build_protein_executive_context(
         for spv in score_param_values
     }
     if structures is None:
-        structures = list(BioentryStructure.objects.filter(bioentry=protein).select_related("pdb"))
+        links = protein.structures.all()
+        if shared is None:
+            links = links.select_related("pdb")
+        structures = list(links)
     if structure_summary is None:
         structure_summary = summarize_structure_sources(structures)
 

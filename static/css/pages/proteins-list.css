@@ -3450,3 +3450,10 @@ body.is-resizing-column * {
         display: none;
     }
 }
+.shared-strain-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+    margin-top: var(--tp-space-1);
+    font-size: var(--tp-font-size-sm);
+}

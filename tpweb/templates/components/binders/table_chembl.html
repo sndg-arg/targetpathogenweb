@@ -21,6 +21,7 @@
                     data-score="{{ binder.score|default:'' }}">
                     <td class="binder-tbl__name">
                         <a href="{% url 'tpwebapp:binder_detail' binder_id=binder.id %}" class="binder-tbl__name-main" onclick="event.stopPropagation()">{{ binder.name }}</a>
+                        {% if binder.shared_from_accession %}<a class="tp-chip binder-tbl__source-link" href="{% url 'tpwebapp:protein' binder.source_protein_id %}" onclick="event.stopPropagation()">{% trans "From" %} {{ binder.shared_from_accession }} ↗</a>{% endif %}
                         {% if binder.external_url %}
                         <a href="{{ binder.external_url }}" class="tp-chip binder-tbl__source-link" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="{% trans 'Open compound in ChEMBL' %}">{{ binder.external_label }}</a>
                         {% endif %}

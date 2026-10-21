@@ -19,6 +19,58 @@ def _validate_group_sequences(group_sequences, strain_label):
         )
 
 
+def _sequence_group_index(rows):
+    groups = {}
+    for group_id, sequence in rows:
+        groups.setdefault(group_id, set()).add(str(sequence).strip().upper().rstrip("*"))
+    result = {}
+    for group_id, sequences in groups.items():
+        if len(sequences) == 1 and "" not in sequences:
+            result.setdefault(next(iter(sequences)), set()).add(group_id)
+    return result
+
+
+def _link_new_strain_sequences(biodatabase, strain_label):
+    """New occurrences may join table-defined groups, never create new groups."""
+    from tpweb.services.shared_sequence_evidence import CURATED_STRAINS
+
+    # The three original strains follow Sol's explicit rows, including '-'.
+    if strain_label in {*CURATED_STRAINS, "ST11_VA569"}:
+        return 0
+    curated_groups = IdenticalSequenceMember.objects.filter(
+        strain_label__in=CURATED_STRAINS,
+        bioentry__isnull=False,
+    ).values("group_id")
+    members = IdenticalSequenceMember.objects.filter(
+        group_id__in=curated_groups,
+        bioentry__isnull=False,
+    ).select_related("bioentry__seq")
+    index = _sequence_group_index((m.group_id, m.bioentry.seq.seq) for m in members)
+    if not index:
+        return 0
+    linked = 0
+    with transaction.atomic():
+        for protein in Bioentry.objects.filter(biodatabase=biodatabase).select_related("seq"):
+            groups = index.get(str(protein.seq.seq).strip().upper().rstrip("*"), set())
+            if len(groups) != 1:
+                continue
+            group_id = next(iter(groups))
+            member, created = IdenticalSequenceMember.objects.get_or_create(
+                strain_label=strain_label,
+                locus_tag=protein.accession,
+                defaults={"group_id": group_id, "bioentry": protein},
+            )
+            if member.group_id != group_id or member.bioentry_id not in {None, protein.pk}:
+                raise CommandError(f"Existing identity member conflicts with {protein.accession}")
+            if member.bioentry_id is None:
+                member.bioentry = protein
+                member.save(update_fields=["bioentry"])
+                linked += 1
+            elif created:
+                linked += 1
+    return linked
+
+
 class Command(BaseCommand):
     help = (
         "Resolves IdenticalSequenceMember.bioentry for one strain, once that "
@@ -40,6 +92,11 @@ class Command(BaseCommand):
             "--all-loaded",
             action="store_true",
             help="Resolve every unambiguous loaded strain in the mapping.",
+        )
+        parser.add_argument(
+            "--match-sequences",
+            action="store_true",
+            help="Link a new strain to existing table groups by exact sequence.",
         )
 
     def handle(self, *args, **options):
@@ -72,6 +129,25 @@ class Command(BaseCommand):
             for genome, label in plans:
                 call_command("backfill_identical_sequence_links", genome, label, stdout=self.stdout)
             return
+        if options["genome_name"] and not options["strain_label"]:
+            loci = Bioentry.objects.filter(
+                biodatabase__name=options["genome_name"] + Biodatabase.PROT_POSTFIX,
+            ).values("accession")
+            labels = list(
+                IdenticalSequenceMember.objects.filter(locus_tag__in=loci)
+                .order_by()
+                .values_list("strain_label", flat=True)
+                .distinct()
+            )
+            if len(labels) > 1:
+                raise CommandError(f"Multiple strain labels for this genome: {labels}")
+            if labels:
+                options["strain_label"] = labels[0]
+            elif options["match_sequences"]:
+                options["strain_label"] = options["genome_name"]
+            else:
+                self.stdout.write("No table members for this genome.")
+                return
         if not options["genome_name"] or not options["strain_label"]:
             raise CommandError("Specify genome_name and strain_label, or --all-loaded")
         genome_name = options["genome_name"]
@@ -87,6 +163,10 @@ class Command(BaseCommand):
         )
         total = unresolved.count()
         if total == 0:
+            if options["match_sequences"]:
+                linked = _link_new_strain_sequences(biodatabase, strain_label)
+                self.stdout.write(f"Linked {linked} new exact-sequence matches for {strain_label}.")
+                return
             self.stdout.write(f"Nothing to backfill for strain '{strain_label}'.")
             return
 
@@ -124,3 +204,6 @@ class Command(BaseCommand):
         self.stdout.write(
             f"Linked {linked}/{total} '{strain_label}' members to {prots_name} proteins."
         )
+        if options["match_sequences"]:
+            linked = _link_new_strain_sequences(biodatabase, strain_label)
+            self.stdout.write(f"Linked {linked} additional exact-sequence matches.")

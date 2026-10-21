@@ -12,6 +12,7 @@ from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
 from tpweb.services.structure_summary import pdb_structure
 from tpweb.services.identical_sequences import identical_siblings_for_bioentry
+from tpweb.services.shared_sequence_evidence import apply_shared_sequence_evidence
 from tpweb.services.protein_annotations import (
     annotation_dbnames,
     annotation_name as _annotation_name,
@@ -471,7 +472,11 @@ class ProteinBindersPanelsView(View):
         assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
         if not user_can_access_genome_name(request.user, assembly_name):
             raise Http404("Protein not found")
-        structures = _sort_structures_by_preference(protein.structures.select_related("pdb"))
+        apply_shared_sequence_evidence([protein], request.user)
+        links = protein.structures.all()
+        if not getattr(protein, "shared_sequence_evidence", None):
+            links = links.select_related("pdb")
+        structures = _sort_structures_by_preference(links)
         binders = create_binders_dict(
             protein,
             search_query=request.GET.get("binder_search", "").strip(),
@@ -519,6 +524,7 @@ class ProteinView(View):
         assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
         if not user_can_access_genome_name(request.user, assembly_name):
             raise Http404("Protein not found")
+        apply_shared_sequence_evidence([protein], request.user)
         proteinDTO, features, annotations, graphic_features = serialize_prot(protein)
         # No consumer of `structures` in this view or the services it calls
         # (_build_experimental_structures, _sort_structures_by_preference,
@@ -530,6 +536,9 @@ class ProteinView(View):
         # structure, on every protein page load.
         structures = protein.structures.all()
         structures = _sort_structures_by_preference(structures)
+        shared_evidence = getattr(protein, "shared_sequence_evidence", None)
+        if shared_evidence:
+            structures.sort(key=lambda link: link.pk not in shared_evidence.curated_structure_ids)
         experimental_structures = _build_experimental_structures(protein, structures)
         binders_search_query = request.GET.get("binder_search", "").strip()
         binders = create_binders_dict(
@@ -555,7 +564,7 @@ class ProteinView(View):
         pipeline_status = annotate_pipeline_status_for_genome(
             get_pipeline_status(), proteinDTO["assembly_name"]
         )
-        identical_sequence_siblings = identical_siblings_for_bioentry(protein)
+        identical_sequence_siblings = identical_siblings_for_bioentry(protein, request.user)
 
         # structures/structure_summary/binders were already fetched above with
         # this request's search query and sort order -- passing them in lets
@@ -736,6 +745,7 @@ class ProteinView(View):
             "structure_download_sources": available_download_sources(structures),
             "experimental_structures": experimental_structures,
             "identical_sequence_siblings": identical_sequence_siblings,
+            "shared_sequence_evidence": shared_evidence,
             "target_profile": target_profile,
             "target_summary": target_summary,
             "score_breakdown": score_breakdown,
@@ -767,7 +777,15 @@ class ProteinView(View):
                 if (getattr(s.pdb, "experiment", "") or "").upper() in _PDB_MODEL_EXPERIMENTS
             ]
 
-            if experimental:
+            curated_structures = [
+                s
+                for s in structures
+                if shared_evidence and s.pk in shared_evidence.curated_structure_ids
+            ]
+            if curated_structures:
+                primary_link = curated_structures[0]
+                alt_link = next((s for s in structures if s.pdb_id != primary_link.pdb_id), None)
+            elif experimental:
                 primary_link = experimental[0]
                 alt_link = (
                     predicted[0]
@@ -790,6 +808,11 @@ class ProteinView(View):
                 target_chain=(primary_link.chain or "").strip() or None,
             )
             dto["viewer_structure_id"] = primary_display.id
+            if primary_link.bioentry_id != protein.pk:
+                dto["shared_primary_protein"] = {
+                    "id": primary_link.bioentry_id,
+                    "accession": primary_link.bioentry.accession,
+                }
             dto["primary_structure_label"] = primary_viewer["short_label"]
             dto["primary_structure_detail_label"] = primary_viewer["detail_label"]
             dto["primary_structure_source_name"] = primary_viewer["source_name"]

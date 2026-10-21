@@ -506,8 +506,22 @@ def create_binders_dict(protein, search_query="", structures=None):
     - chembl_homolog→ ChEMBL hit brought in by homology.
     - zinc          → ZINC virtual-screening candidate (tanimoto-scored).
     """
-    binders_qs = Binders.objects.filter(locustag=protein).order_by(
-        "source", "is_direct", "ccd_id", "id"
+    shared = getattr(protein, "shared_sequence_evidence", None)
+    source_filter = Q(locustag=protein)
+    if shared:
+        curated = shared.curated_binder_accessions
+        curated_kinds = (
+            Binders.objects.filter(locustag_id__in=curated)
+            .values_list("source", flat=True)
+            .distinct()
+        )
+        source_filter = Q(locustag_id__in=curated) | (
+            Q(locustag_id__in=shared.binder_accessions) & ~Q(source__in=curated_kinds)
+        )
+    binders_qs = (
+        Binders.objects.filter(source_filter)
+        .select_related("locustag")
+        .order_by("source", "is_direct", "ccd_id", "id")
     )
     loaded_ex_structures = _loaded_experimental_structure_map(structures)
     pdb_resolution_map = {
@@ -530,8 +544,25 @@ def create_binders_dict(protein, search_query="", structures=None):
     chembl_homolog = []
     zinc = []
 
+    seen = set()
     for binder in binders_qs:
+        identity = (
+            binder.source,
+            binder.ccd_id,
+            binder.pdb_id,
+            binder.smiles,
+            binder.score,
+            binder.notes,
+            binder.is_direct,
+        )
+        if identity in seen:
+            continue
+        seen.add(identity)
         dto = _binder_to_dto(binder, loaded_ex_structures, pdb_resolution_map)
+        dto["shared_from_accession"] = (
+            binder.locustag_id if binder.locustag_id != protein.accession else ""
+        )
+        dto["source_protein_id"] = binder.locustag.pk
         if binder.source == Binders.SOURCE_PDB:
             if binder.is_direct:
                 pdb_direct.append(dto)

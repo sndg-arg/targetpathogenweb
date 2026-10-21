@@ -3,6 +3,7 @@ from django.http import Http404
 from django.views import View
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.BioentryStructure import BioentryStructure
+from tpweb.services.shared_sequence_evidence import shared_structure_link
 from tpweb.models.pdb import PDB
 from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
 from tpweb.services.structure_files import (
@@ -176,13 +177,8 @@ class StructureView(View):
     def _resolve_source_bioentry(request, structure):
         requested_protein_id = str(request.GET.get("protein_id") or "").strip()
         if requested_protein_id.isdigit():
-            link = (
-                BioentryStructure.objects.select_related("bioentry__biodatabase")
-                .filter(pdb=structure, bioentry_id=int(requested_protein_id))
-                .first()
-            )
-            if link and link.bioentry:
-                return link.bioentry
+            link = shared_structure_link(request.user, int(requested_protein_id), structure.pk)
+            return link.bioentry if link else None
 
         first_link = (
             BioentryStructure.objects.select_related("bioentry__biodatabase")
