@@ -1413,42 +1413,6 @@
                 display: none;
             }
 
-            /* Gear shortcut to Settings, same ghost-icon look as the theme switch. */
-            .tp-topbar-desktop-settings {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                flex: 0 0 auto;
-                padding: var(--tp-space-2);
-                border-radius: var(--tp-radius-sm);
-                color: rgba(231, 244, 249, 0.72);
-                transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-                            color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-            }
-
-            .tp-topbar-desktop-settings:hover,
-            .tp-topbar-desktop-settings:focus-visible,
-            .tp-topbar-desktop-settings.active {
-                background: rgba(255, 255, 255, 0.12);
-                color: rgba(255, 255, 255, 0.95);
-            }
-
-            .tp-topbar-desktop-settings-icon {
-                display: inline-flex;
-                width: 16px;
-                height: 16px;
-            }
-
-            .tp-topbar-desktop-settings-icon svg {
-                width: 100%;
-                height: 100%;
-                transition: transform 0.4s var(--tp-ui-ease-standard);
-            }
-
-            .tp-topbar-desktop-settings:hover .tp-topbar-desktop-settings-icon svg {
-                transform: rotate(60deg);
-            }
-
             .tp-main {
                 max-width: none;
                 margin: 0;
@@ -1536,20 +1500,31 @@
             background: var(--tp-nav-fill);
         }
 
+        /* Group label inside a top-bar menu ("Admin"). */
+        .tp-topbar-desktop-account-heading {
+            margin: 0;
+            padding: var(--tp-space-1) var(--tp-space-3);
+            color: var(--tp-nav-ink-muted);
+            font-size: var(--tp-font-size-2xs);
+            font-weight: 500;
+            letter-spacing: var(--tp-tracking-label);
+            text-transform: uppercase;
+        }
+
         @media (prefers-reduced-motion: reduce) {
             .btn,
             a,
-            .tp-topbar-desktop-link,
-            .tp-topbar-desktop-settings-icon svg {
+            .tp-topbar-desktop-link {
                 transition: none;
             }
         }
 
-        /* 992-1280px: the full link row (icons + labels + account name) used
-           to wrap onto a second line here. Drop the link icons and tighten the
-           spacing first; below 1100px also shrink the wordmark and hide the
-           account name (the account icon stays). */
-        @media (min-width: 992px) and (max-width: 1279.98px) {
+        /* 992-1440px: the full link row (icons + labels + account name)
+           wraps onto a second line once Human Targets + Upload genome show
+           (admins/collaborators). Drop the link icons and tighten the spacing
+           first; below 1100px also shrink the wordmark and hide the account
+           name (the account icon stays). */
+        @media (min-width: 992px) and (max-width: 1439.98px) {
             .tp-topbar-desktop-nav {
                 gap: 0;
                 margin-right: var(--tp-space-2);
@@ -1899,19 +1874,25 @@
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span>
                 <span>{% trans "Genomes" %}</span>
             </a>
-            {% if perms.tpweb.can_upload_genome %}
-            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genome_upload' %}active{% endif %}" aria-label="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
-                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
-                <span>{% trans "Upload" %}</span>
+            {% if perms.tpweb.can_view_human_targets %}
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.app_name == 'human_target' %}active{% endif %}" aria-label="{% trans 'Human Targets' %}" href="{% url 'human_target:human_protein_list' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span>
+                <span>{% trans "Human Targets" %}</span>
             </a>
             {% endif %}
             <a class="tp-topbar-desktop-link {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" aria-label="{% trans 'BLAST genome' %}" title="{% trans 'Nucleotide or protein BLAST against a genome you choose.' %}" href="{% url 'tpwebapp:form' %}">
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
                 <span>{% trans "BLAST genome" %}</span>
             </a>
+            {% if perms.tpweb.can_upload_genome %}
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genome_upload' %}active{% endif %}" aria-label="{% trans 'Upload genome' %}" href="{% url 'tpwebapp:genome_upload' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
+                <span>{% trans "Upload genome" %}</span>
+            </a>
+            {% endif %}
             {% with url_name=request.resolver_match.url_name %}
             <div class="dropdown tp-topbar-desktop-about">
-                <button class="tp-topbar-desktop-link tp-topbar-desktop-link--menu {% if url_name == 'data_sources' or url_name == 'about_us' %}active{% endif %}" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button class="tp-topbar-desktop-link tp-topbar-desktop-link--menu {% if url_name == 'data_sources' or url_name == 'about_us' or url_name == 'design_system' %}active{% endif %}" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/info.html" %}</span>
                     <span>{% trans "About" %}</span>
                     <span class="tp-topbar-desktop-account-caret" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
@@ -1925,6 +1906,12 @@
                         <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/info.html" %}</span>
                         {% trans "About us" %}
                     </a>
+                    {% if user.is_superuser or user.role == "gates_collaborator" %}
+                    <a class="dropdown-item tp-topbar-desktop-account-item {% if url_name == 'design_system' %}active{% endif %}" href="{% url 'tpwebapp:design_system' %}">
+                        <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/columns.html" %}</span>
+                        {% trans "Design" %}
+                    </a>
+                    {% endif %}
                 </div>
             </div>
             {% endwith %}
@@ -1942,23 +1929,23 @@
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
                             {% trans "My profile" %}
                         </a>
-                        {% if perms.tpweb.can_view_human_targets %}
-                        <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.app_name == 'human_target' %}active{% endif %}" href="{% url 'human_target:human_protein_list' %}">
-                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span>
-                            {% trans "Human Targets" %}
-                        </a>
-                        {% endif %}
-                        {% if user.is_superuser or user.role == "gates_collaborator" %}
-                        <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'design_system' %}active{% endif %}" href="{% url 'tpwebapp:design_system' %}">
-                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/columns.html" %}</span>
-                            {% trans "Design" %}
+                        {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
+                        <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" href="{% url 'tpwebapp:settings' %}" title="{% trans 'Who can see your formulas and data' %}">
+                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/gear.html" %}</span>
+                            {% trans "Settings" %}
                         </a>
                         {% endif %}
                         {% if user.is_superuser %}
+                        <div class="tp-topbar-desktop-account-divider"></div>
+                        <p class="tp-topbar-desktop-account-heading">{% trans "Admin" %}</p>
+                        {% endif %}
+                        {% if perms.tpweb.can_view_activity %}
                         <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'activity_dashboard' %}active{% endif %}" href="{% url 'tpwebapp:activity_dashboard' %}">
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/eye.html" %}</span>
                             {% trans "Activity" %}
                         </a>
+                        {% endif %}
+                        {% if user.is_superuser %}
                         <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}" href="{% url 'tpwebapp:user_management' %}">
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user_plus.html" %}</span>
                             {% trans "Manage users" %}
@@ -1987,11 +1974,6 @@
                     <span class="tp-topbar-desktop-login-icon" aria-hidden="true">{% include "components/icons/log_in.html" %}</span>
                     {% trans "Sign in" %}
                 </a>
-            {% endif %}
-            {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
-            <a class="tp-topbar-desktop-settings {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" href="{% url 'tpwebapp:settings' %}" aria-label="{% trans 'Settings' %}" title="{% trans 'Settings: who can see your formulas and data' %}">
-                <span class="tp-topbar-desktop-settings-icon" aria-hidden="true">{% include "components/icons/gear.html" %}</span>
-            </a>
             {% endif %}
             <span class="tp-topbar-desktop-divider" aria-hidden="true"></span>
             <button id="tp-theme-toggle" class="tp-theme-toggle tp-theme-toggle--icon-only" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
@@ -2027,20 +2009,30 @@
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' or url_name == 'formula_form' or url_name == 'customparam' or url_name == 'uploaded_data' %} is-active{% endif %}" {% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
                 </li>
-                {% if perms.tpweb.can_upload_genome %}
+                {% if perms.tpweb.can_view_human_targets %}
                 <li class="nav-item">
-                    <a class="nav-link{% if url_name == 'genome_upload' %} is-active{% endif %}" {% if url_name == 'genome_upload' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genome_upload' %}">{% trans "Upload" %}</a>
+                    <a class="nav-link{% if request.resolver_match.app_name == 'human_target' %} is-active{% endif %}" href="{% url 'human_target:human_protein_list' %}">{% trans "Human Targets" %}</a>
                 </li>
                 {% endif %}
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'form' or url_name == 'blast_res' %} is-active{% endif %}" {% if url_name == 'form' or url_name == 'blast_res' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:form' %}">{% trans "BLAST genome" %}</a>
                 </li>
+                {% if perms.tpweb.can_upload_genome %}
+                <li class="nav-item">
+                    <a class="nav-link{% if url_name == 'genome_upload' %} is-active{% endif %}" {% if url_name == 'genome_upload' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genome_upload' %}">{% trans "Upload genome" %}</a>
+                </li>
+                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'data_sources' %} is-active{% endif %}" {% if url_name == 'data_sources' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:data_sources' %}">{% trans "Methodology" %}</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'about_us' %} is-active{% endif %}" {% if url_name == 'about_us' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:about_us' %}">{% trans "About us" %}</a>
                 </li>
+                {% if user.is_superuser or user.role == "gates_collaborator" %}
+                <li class="nav-item">
+                    <a class="nav-link{% if url_name == 'design_system' %} is-active{% endif %}" {% if url_name == 'design_system' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:design_system' %}">{% trans "Design" %}</a>
+                </li>
+                {% endif %}
                 <li class="nav-item">
                     {# Phones had no theme control at all (only the desktop topbar has one). #}
                     <button id="tp-theme-toggle-mobile" class="nav-link tp-theme-toggle-mobile" type="button" aria-label="{% trans 'Toggle theme' %}">
@@ -2064,19 +2056,19 @@
                         </a>
                         <div id="user_dropdown_menu" class="dropdown-menu">
                             <a class="dropdown-item" href="{% url 'tpwebapp:profile' %}">{% trans "My profile" %}</a>
-                            {% if perms.tpweb.can_view_human_targets %}
-                            <a class="dropdown-item" href="{% url 'human_target:human_protein_list' %}">{% trans "Human Targets" %}</a>
-                            {% endif %}
-                            {% if user.is_superuser or user.role == "gates_collaborator" %}
-                            <a class="dropdown-item" href="{% url 'tpwebapp:design_system' %}">{% trans "Design" %}</a>
-                            {% endif %}
                             {% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %}
                             <a class="dropdown-item" href="{% url 'tpwebapp:settings' %}">{% trans "Settings" %}</a>
                             {% endif %}
                             {% if user.is_superuser %}
-                                <a class="dropdown-item" href="{% url 'tpwebapp:activity_dashboard' %}">{% trans "Activity" %}</a>
-                                <a class="dropdown-item" href="{% url 'tpwebapp:user_management' %}">{% trans "Manage users" %}</a>
-                                <a class="dropdown-item" href="{% url 'admin:index' %}">{% trans "Admin panel" %}</a>
+                            <div class="dropdown-divider"></div>
+                            <h6 class="dropdown-header">{% trans "Admin" %}</h6>
+                            {% endif %}
+                            {% if perms.tpweb.can_view_activity %}
+                            <a class="dropdown-item" href="{% url 'tpwebapp:activity_dashboard' %}">{% trans "Activity" %}</a>
+                            {% endif %}
+                            {% if user.is_superuser %}
+                            <a class="dropdown-item" href="{% url 'tpwebapp:user_management' %}">{% trans "Manage users" %}</a>
+                            <a class="dropdown-item" href="{% url 'admin:index' %}">{% trans "Admin panel" %}</a>
                             {% endif %}
                             <div class="dropdown-divider"></div>
                             <form method="post" action="{% url 'account_logout' %}">
