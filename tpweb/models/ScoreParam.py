@@ -459,16 +459,19 @@ class ScoreParam(models.Model):
 
     @staticmethod
     def initialize_custom_param(tsv, user=None):
+        from tpweb.services.score_param_types import is_boolean_score_series
+
         # Ensure the DataFrame has exactly two columns (excluding the index)
         if len(tsv.columns) != 2:
             raise ValueError("The DataFrame should contain exactly two columns.")
         sp_name = tsv.columns[1]
         value_series = tsv.iloc[:, 1]
         numeric_series = None
-        try:
-            numeric_series = value_series.astype(float)
-        except (TypeError, ValueError):
-            numeric_series = None
+        if not is_boolean_score_series(value_series):
+            try:
+                numeric_series = value_series.astype(float)
+            except (TypeError, ValueError):
+                numeric_series = None
 
         score_param_type = "N" if numeric_series is not None else "C"
         sp = ScoreParam.objects.get_or_create(
