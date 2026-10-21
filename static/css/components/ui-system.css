@@ -608,6 +608,14 @@
     overflow-y: auto;
 }
 
+/* Inside a dialog (custom-select.js sets top/bottom/left/width). Above the
+   dialog (2000), below the site tooltip (3000). */
+.tp-select-menu.is-floating {
+    position: fixed;
+    right: auto;
+    z-index: 2100;
+}
+
 .tp-select-group-label {
     font-size: var(--tp-font-size-xs);
     font-weight: 500;

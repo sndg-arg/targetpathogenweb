@@ -25,7 +25,31 @@
         const menu = wrapper.querySelector(".tp-select-menu");
         wrapper.classList.remove("is-open");
         if (trigger) trigger.setAttribute("aria-expanded", "false");
-        if (menu) menu.hidden = true;
+        if (menu) {
+            menu.hidden = true;
+            menu.classList.remove("is-floating");
+            menu.style.top = menu.style.bottom = menu.style.left = menu.style.width = "";
+        }
+    }
+
+    // Inside a dialog the body scrolls (overflow: auto), which clipped the
+    // menu into a tiny scroll box. There it floats over the dialog instead:
+    // fixed, under the field, or above it when there's no room below.
+    function floatMenuInDialog(wrapper, trigger, menu) {
+        if (!wrapper.closest(".tp-modal")) return;
+        const rect = trigger.getBoundingClientRect();
+        const gap = 6;
+        menu.classList.add("is-floating");
+        menu.style.left = rect.left + "px";
+        menu.style.width = rect.width + "px";
+        const below = window.innerHeight - rect.bottom - gap;
+        if (menu.offsetHeight > below && rect.top > below) {
+            menu.style.top = "";
+            menu.style.bottom = (window.innerHeight - rect.top + gap) + "px";
+        } else {
+            menu.style.bottom = "";
+            menu.style.top = (rect.bottom + gap) + "px";
+        }
     }
 
     function closeAllSelects(exceptWrapper) {
@@ -69,6 +93,7 @@
         wrapper.classList.add("is-open");
         trigger.setAttribute("aria-expanded", "true");
         menu.hidden = false;
+        floatMenuInDialog(wrapper, trigger, menu);
         window.requestAnimationFrame(function () {
             const selected = menu.querySelector(".tp-select-option.is-selected[aria-disabled='false']");
             if (selected) {
@@ -360,6 +385,18 @@
         childList: true,
         subtree: true
     });
+
+    // A floating (in-dialog) menu would stay behind when the dialog scrolls
+    // or the window resizes; close it instead. Scrolling the menu's own
+    // option list is fine.
+    function closeFloatingSelects(event) {
+        document.querySelectorAll(".tp-select-menu.is-floating").forEach(function (menu) {
+            if (event && event.target instanceof Node && menu.contains(event.target)) return;
+            closeSelect(menu.closest(".tp-select"));
+        });
+    }
+    window.addEventListener("scroll", closeFloatingSelects, true);
+    window.addEventListener("resize", closeFloatingSelects);
 
     window.tpEnhanceSelects = initEnhancedSelects;
 })();
