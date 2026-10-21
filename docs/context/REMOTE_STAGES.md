@@ -97,6 +97,11 @@ Moved out of `CLAUDE.md` so it only loads when needed.
   tests udocker 1.3.17 in PRoot mode P1 via SLURM, in a separate user venv/repository.
   It only checks PSORT startup and SCLBlast module loading; this is an experimental
   alternative, not an enabled pipeline backend or proof of full prediction support.
+- After that probe passes, submit the actual 50-protein prediction test from nodo0:
+  `bash scripts/cluster/test_psort_udocker.sh public__ACCESSION n tpw_psort_probe_JOBID`.
+  The helper prepares unique remote input/validator files, prints the submitted ID,
+  and requires exact coverage and valid localizations before reporting success.
+  It does not load scores or modify an active pipeline/recovery.
 
 ## InterProScan
 Runs remotely over SSH on the QB cluster. Config in `pipeline/settings.ini` (SSH vars).
