@@ -29,15 +29,33 @@ def _record_event(message, payload):
 
 def _build_script(config, workdir, gram):
     quote = shlex.quote
-    runtime = os.getenv("TPW_PSORT_APPTAINER_BIN") or (
-        config.ssh_rootfolder.rstrip("/") + "/work/conda_envs/tpw_apptainer/bin/apptainer"
-    )
-    image = os.getenv("TPW_PSORT_IMAGE") or (
-        config.ssh_rootfolder.rstrip("/") + "/tpw_images/psortb_1.0.2.sif"
-    )
-    python = os.getenv("TPW_PSORT_REMOTE_PYTHON") or (
-        config.ssh_rootfolder.rstrip("/") + "/work/conda_envs/tpw_apptainer/bin/python"
-    )
+    engine = os.getenv("TPW_PSORT_ENGINE") or "udocker"
+    root = config.ssh_rootfolder.rstrip("/")
+    if engine == "udocker":
+        runtime = os.getenv("TPW_PSORT_UDOCKER_BIN") or root + "/work/venvs/tpw_udocker/bin/udocker"
+        python = os.getenv("TPW_PSORT_REMOTE_PYTHON") or root + "/work/venvs/tpw_udocker/bin/python"
+        image = os.getenv("TPW_PSORT_IMAGE") or "brinkmanlab/psortb_commandline:1.0.2"
+        repository = os.getenv("TPW_PSORT_UDOCKER_DIR") or root + "/tpw_psort_udocker"
+        preparation = ["export UDOCKER_DIR=" + quote(repository)]
+        setup = "scripts/cluster/setup_psort_udocker.sh"
+    elif engine == "apptainer":
+        runtime = (
+            os.getenv("TPW_PSORT_APPTAINER_BIN")
+            or root + "/work/conda_envs/tpw_apptainer/bin/apptainer"
+        )
+        python = (
+            os.getenv("TPW_PSORT_REMOTE_PYTHON")
+            or root + "/work/conda_envs/tpw_apptainer/bin/python"
+        )
+        image = os.getenv("TPW_PSORT_IMAGE") or root + "/tpw_images/psortb_1.0.2.sif"
+        preparation = [
+            "test -s " + quote(image) + " || { echo 'PSORT SIF image missing' >&2; exit 1; }"
+        ]
+        setup = "scripts/cluster/setup_psort.sh"
+    else:
+        raise ValueError(
+            "Remote PSORT requires udocker or apptainer; Docker is only an explicit local recovery option"
+        )
     batch_size = int(os.getenv("TPW_PSORT_BATCH_SIZE") or "50")
     timeout = int(os.getenv("TPW_PSORT_BATCH_TIMEOUT_SEC") or "1800")
     if gram not in {"n", "p", "a"} or min(batch_size, timeout, config.cpus_per_task) < 1:
@@ -54,6 +72,8 @@ def _build_script(config, workdir, gram):
         config.ssh_rootfolder.rstrip("/") + "/tpw_psort/cache",
         "--runtime",
         runtime,
+        "--engine",
+        engine,
         "--image",
         image,
         "--gram",
@@ -81,8 +101,8 @@ def _build_script(config, workdir, gram):
             "set -u",
             "cd " + quote(workdir),
             "command -v " + quote(runtime) + " >/dev/null || { "
-            "echo 'PSORT runtime missing; run scripts/cluster/setup_psort.sh via sbatch' >&2; exit 1; }",
-            "test -s " + quote(image) + " || { echo 'PSORT SIF image missing' >&2; exit 1; }",
+            f"echo 'PSORT runtime missing; run {setup} via sbatch' >&2; exit 1; }}",
+            *preparation,
             " ".join(map(quote, command)),
             "touch DONE",
             "",

@@ -4,6 +4,7 @@ import gzip
 import os
 import sys
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -198,6 +199,93 @@ class PredictionsTests(unittest.TestCase):
                 )
         self.assertEqual(len(calls), 1)
 
+    def test_udocker_uses_private_parallel_instances_and_cleans_them_on_resume(self):
+        created, removed, used = [], [], []
+        barrier = threading.Barrier(2)
+        metadata = ['{"RootFS": {"diff_ids": ["sha256:image-layer"]}}']
+
+        def fake_output(command, **kwargs):
+            if command[2] == "inspect":
+                return metadata[0]
+            self.assertIn("--entrypoint=cat", command)
+            self.assertIn(command[-2], created)
+            return "my $bres = $brep->next_result();"
+
+        def fake_run(command, **kwargs):
+            operation = command[2]
+            if operation == "create":
+                created.append(command[3].removeprefix("--name="))
+            elif operation == "setup":
+                self.assertIn("--execmode=P1", command)
+            elif operation == "rm":
+                removed.append(command[-1])
+            elif operation == "run":
+                flag = "--entrypoint=/usr/local/psortb/bin/psort"
+                used.append(command[command.index(flag) + 1])
+                batch = Path(command[command.index("--volume") + 1].removesuffix(":/tmp"))
+                records = worker.read_fasta(batch / "input.faa")
+                barrier.wait(timeout=5)
+                raw = "SeqID\tLocalization\n" + "".join(f"{name}\tUnknown\n" for name, _ in records)
+                (batch / "results" / "date_psortb_gramneg.txt").write_text(raw, encoding="utf-8")
+            else:
+                self.fail(f"Unexpected udocker operation: {command}")
+            return SimpleNamespace(returncode=0)
+
+        with (
+            patch.object(worker.subprocess, "check_output", side_effect=fake_output),
+            patch.object(worker.subprocess, "run", side_effect=fake_run),
+        ):
+            for _ in range(2):
+                worker.run_batches(
+                    self.fasta,
+                    self.root / "psort.tsv",
+                    self.root / "cache",
+                    "udocker",
+                    "image:tag",
+                    "n",
+                    workers=2,
+                    batch_size=1,
+                    engine="udocker",
+                )
+            self.assertEqual(len(used), 2)
+            metadata[0] = '{"RootFS": {"diff_ids": ["sha256:changed-layer"]}}'
+            worker.run_batches(
+                self.fasta,
+                self.root / "psort.tsv",
+                self.root / "cache",
+                "udocker",
+                "image:tag",
+                "n",
+                workers=2,
+                batch_size=1,
+                engine="udocker",
+            )
+        self.assertEqual(len(used), 4)
+        self.assertEqual(len(set(used)), 4)
+        self.assertEqual(len(created), 6)
+        self.assertEqual(set(created), set(removed))
+        self.assertEqual(
+            worker.validate_psort_file(self.root / "psort.tsv", self.fasta),
+            {"A": "Unknown", "B": "Unknown"},
+        )
+
+    def test_udocker_partial_setup_failure_cleans_only_its_created_instance(self):
+        import subprocess
+
+        with patch.object(
+            worker.subprocess,
+            "run",
+            side_effect=[
+                SimpleNamespace(returncode=0),
+                subprocess.CalledProcessError(1, "udocker setup"),
+                SimpleNamespace(returncode=0),
+            ],
+        ) as run:
+            with self.assertRaises(subprocess.CalledProcessError):
+                worker._create_udocker_containers("udocker", "image:tag", 2)
+        created = run.call_args_list[0].args[0][3].removeprefix("--name=")
+        self.assertEqual(run.call_args.args[0], ["udocker", "--quiet", "rm", created])
+
     def test_parallel_batches_resume_and_image_change_invalidates_cache(self):
         image = self.root / "psort.sif"
         image.write_bytes(b"version-one")
@@ -268,8 +356,22 @@ class RemoteTests(unittest.TestCase):
         self.assertIn("#SBATCH --cpus-per-task=4", script)
         self.assertIn("--workers 4", script)
         self.assertIn("--gram n", script)
-        self.assertIn("setup_psort.sh", script)
+        self.assertIn("setup_psort_udocker.sh", script)
+        self.assertIn("--engine udocker", script)
+        self.assertIn("export UDOCKER_DIR=/home/test/tpw_psort_udocker", script)
+        self.assertNotIn("PSORT SIF image missing", script)
         self.assertLess(script.index("conda activate"), script.index("set -u"))
+
+    def test_apptainer_remains_explicitly_available(self):
+        with patch.dict(os.environ, {"TPW_PSORT_ENGINE": "apptainer"}, clear=True):
+            script = remote._build_script(config(), "/home/test/job", "n")
+        self.assertIn("--engine apptainer", script)
+        self.assertIn("PSORT SIF image missing", script)
+
+    def test_remote_docker_engine_is_rejected(self):
+        with patch.dict(os.environ, {"TPW_PSORT_ENGINE": "docker"}, clear=True):
+            with self.assertRaisesRegex(ValueError, "explicit local recovery"):
+                remote._build_script(config(), "/home/test/job", "n")
 
     def test_completed_without_done_is_failure(self):
         adapter = SimpleNamespace(

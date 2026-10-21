@@ -7,7 +7,10 @@ import hashlib
 import json
 import os
 import subprocess
+import sys
 import tempfile
+import uuid
+from queue import Queue
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -135,6 +138,11 @@ def _container_command(runtime, image, engine, program, arguments, batch=None, m
                 f"{module}:{SCLBLAST_MODULE}:ro",
             ]
         return command + [image, program] + arguments
+    if engine == "udocker":
+        command = [runtime, "--quiet", "run"]
+        if batch is not None:
+            command += ["--volume", f"{batch}:/tmp", "--volume", f"{module}:{SCLBLAST_MODULE}"]
+        return command + ["--entrypoint=" + program, image] + arguments
     if engine != "docker":
         raise ValueError(f"Unsupported PSORT container engine: {engine}")
     command = [runtime, "run", "--rm", "--pull=never", "--network=none", "--cpus=1", "--memory=2g"]
@@ -152,7 +160,9 @@ def _container_command(runtime, image, engine, program, arguments, batch=None, m
     return command + ["--entrypoint", program, image] + arguments
 
 
-def _run_batch(index, records, root, runtime, image, gram, module, timeout, engine="apptainer"):
+def _run_batch(
+    index, records, root, runtime, image, gram, module, timeout, engine="apptainer", containers=None
+):
     cache = root / (f"batch-{index:05d}.tsv")
     expected = {name for name, _ in records}
     if cache.exists():
@@ -166,6 +176,8 @@ def _run_batch(index, records, root, runtime, image, gram, module, timeout, engi
     with (batch / "input.faa").open("w", encoding="utf-8") as handle:
         for name, seq in records:
             handle.write(f">{name}\n{seq}\n")
+    if containers is not None:
+        image = containers.get()
     command = _container_command(
         runtime,
         image,
@@ -204,6 +216,43 @@ def _run_batch(index, records, root, runtime, image, gram, module, timeout, engi
         # Preserve raw output, input and logs to reproduce the failing batch.
         details = log.read_text(encoding="utf-8", errors="replace")[-1500:]
         raise RuntimeError(f"PSORT batch {index} failed; files: {batch}: {exc}\n{details}") from exc
+    finally:
+        if containers is not None:
+            containers.put(image)
+
+
+def _remove_udocker_containers(runtime, names):
+    for name in names:
+        try:
+            subprocess.run(
+                [runtime, "--quiet", "rm", name], check=True, capture_output=True, timeout=120
+            )
+        except (subprocess.SubprocessError, OSError) as exc:
+            print(f"Could not remove temporary PSORT container {name}: {exc}", file=sys.stderr)
+
+
+def _create_udocker_containers(runtime, image, count):
+    names = []
+    try:
+        for _ in range(count):
+            name = "tpw_psort_job_" + uuid.uuid4().hex
+            subprocess.run(
+                [runtime, "--quiet", "create", "--name=" + name, image],
+                capture_output=True,
+                check=True,
+                timeout=300,
+            )
+            names.append(name)
+            subprocess.run(
+                [runtime, "--quiet", "setup", "--execmode=P1", name],
+                capture_output=True,
+                check=True,
+                timeout=60,
+            )
+        return names
+    except BaseException:
+        _remove_udocker_containers(runtime, names)
+        raise
 
 
 def run_batches(
@@ -230,54 +279,74 @@ def run_batches(
         ).strip()
         if not image.startswith("sha256:"):
             raise ValueError("Cannot resolve local PSORT Docker image ID")
-    elif engine != "apptainer":
+    elif engine not in {"apptainer", "udocker"}:
         raise ValueError(f"Unsupported PSORT container engine: {engine}")
     # Include image contents and worker code, not just filenames, in cache identity.
     digest = hashlib.sha256()
+    if engine == "udocker":
+        metadata = subprocess.check_output(
+            [runtime, "--quiet", "inspect", image], universal_newlines=True, timeout=60
+        )
+        # Metadata includes layer IDs; changing the image invalidates checkpoints.
+        digest.update(json.dumps(json.loads(metadata), sort_keys=True).encode())
     for path in (image, __file__) if engine == "apptainer" else (__file__,):
         with open(path, "rb") as handle:
             for block in iter(lambda: handle.read(1024 * 1024), b""):
                 digest.update(block)
     digest.update(
         json.dumps(
-            [records, gram, batch_size, engine, image if engine == "docker" else ""]
+            [records, gram, batch_size, engine, image if engine != "apptainer" else ""]
         ).encode()
     )
     root = Path(cache_dir).resolve() / digest.hexdigest()
     root.mkdir(parents=True, exist_ok=True)
-    source = subprocess.check_output(
-        _container_command(runtime, image, engine, "cat", [SCLBLAST_MODULE]),
-        universal_newlines=True,
-        timeout=60,
-    )
-    module = root / "SCLBlast.pm"
-    module.write_text(instrument_module(source), encoding="utf-8")
-    rows = {}
-    with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = [
-            executor.submit(
-                _run_batch,
-                i,
-                records[start : start + batch_size],
-                root,
-                runtime,
-                image,
-                gram,
-                module,
-                timeout,
-                engine,
-            )
-            for i, start in enumerate(range(0, len(records), batch_size))
-        ]
-        try:
-            for future in as_completed(futures):
-                rows.update(future.result())
-                print(f"PSORT: {len(rows)}/{len(records)} proteins", flush=True)
-        except Exception:
-            for future in futures:
-                future.cancel()
-            raise
-    write_predictions(output, rows, records)
+    owned = []
+    try:
+        containers = None
+        source_image = image
+        if engine == "udocker":
+            count = min(workers, (len(records) + batch_size - 1) // batch_size)
+            owned = _create_udocker_containers(runtime, image, count)
+            containers = Queue()
+            for name in owned:
+                containers.put(name)
+            source_image = owned[0]
+        source = subprocess.check_output(
+            _container_command(runtime, source_image, engine, "cat", [SCLBLAST_MODULE]),
+            universal_newlines=True,
+            timeout=60,
+        )
+        module = root / "SCLBlast.pm"
+        module.write_text(instrument_module(source), encoding="utf-8")
+        rows = {}
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = [
+                executor.submit(
+                    _run_batch,
+                    i,
+                    records[start : start + batch_size],
+                    root,
+                    runtime,
+                    image,
+                    gram,
+                    module,
+                    timeout,
+                    engine,
+                    containers,
+                )
+                for i, start in enumerate(range(0, len(records), batch_size))
+            ]
+            try:
+                for future in as_completed(futures):
+                    rows.update(future.result())
+                    print(f"PSORT: {len(rows)}/{len(records)} proteins", flush=True)
+            except Exception:
+                for future in futures:
+                    future.cancel()
+                raise
+        write_predictions(output, rows, records)
+    finally:
+        _remove_udocker_containers(runtime, owned)
 
 
 if __name__ == "__main__":
@@ -286,7 +355,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", required=True)
     parser.add_argument("--cache", required=True)
     parser.add_argument("--runtime", default="apptainer")
-    parser.add_argument("--engine", choices=["apptainer", "docker"], default="apptainer")
+    parser.add_argument("--engine", choices=["apptainer", "docker", "udocker"], default="apptainer")
     parser.add_argument("--image", required=True)
     parser.add_argument("--gram", choices=["n", "p", "a"], required=True)
     parser.add_argument("--workers", type=int, default=4)

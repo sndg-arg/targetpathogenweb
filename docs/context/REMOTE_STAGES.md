@@ -56,22 +56,31 @@ Moved out of `CLAUDE.md` so it only loads when needed.
 - Cluster Compose defaults to `TPW_PSORT_USE_REMOTE=1` for web and queue. Stage 20
   is now blocked by `--no-local-heavy` unless remote mode is enabled. Nodo0 only
   transfers FASTA/TSV and loads scores; all PSORT/BLAST work runs inside SLURM.
-- One-time setup on the cluster: copy `scripts/cluster/setup_psort.sh`, then run
-  `sbatch setup_psort.sh`. It installs Apptainer into a separate user environment,
-  pulls `brinkmanlab/psortb_commandline:1.0.2` as a SIF and tests execution. If user
-  namespaces are disabled, the cluster administrator must provide a supported
-  container runtime; the script does not alter kernel settings or use sudo.
-- `TPW_PSORT_APPTAINER_BIN` and `TPW_PSORT_IMAGE` default under `SSH_WORKDIR` to
-  `work/conda_envs/tpw_apptainer/bin/apptainer` and `tpw_images/psortb_1.0.2.sif`.
+- Default engine is `TPW_PSORT_ENGINE=udocker` in PRoot mode P1, which does not
+  require user namespaces. A real 50-protein SLURM test on this cluster completed
+  with exact coverage (job 38296). The integrated parallel worker must also be
+  smoke-tested after updates before trusting a full-proteome run.
+- One-time setup: `sbatch scripts/cluster/setup_psort_udocker.sh` on the cluster.
+  It installs udocker 1.3.17 in a separate venv, stages the existing PSORTb image
+  and tests startup. It does not alter kernel settings or use sudo. The successful
+  probe already created the same venv/image repository, so setup can reuse them.
+- Under `SSH_WORKDIR`, `TPW_PSORT_UDOCKER_BIN` defaults to
+  `work/venvs/tpw_udocker/bin/udocker`, `TPW_PSORT_REMOTE_PYTHON` to that venv's
+  Python, and `TPW_PSORT_UDOCKER_DIR` to `tpw_psort_udocker`. `TPW_PSORT_IMAGE`
+  defaults to `brinkmanlab/psortb_commandline:1.0.2`, staged during setup. Worker
+  jobs never pull images. Each worker has a dedicated temporary P1 container,
+  reused across batches and removed on exit; probe containers remain untouched.
+- `TPW_PSORT_ENGINE=apptainer` remains available for compatible clusters. Its
+  optional setup is `scripts/cluster/setup_psort.sh`; default executable/image
+  paths under `SSH_WORKDIR` are `work/conda_envs/tpw_apptainer/bin/apptainer` and
+  `tpw_images/psortb_1.0.2.sif`. Set `TPW_PSORT_IMAGE` for the chosen engine.
   `TPW_PSORT_REMOTE_SETUP` optionally loads modules/environment before the job.
-  `TPW_PSORT_REMOTE_PYTHON` defaults to the Python 3.10 interpreter installed in
-  the same `tpw_apptainer` environment, avoiding dependence on system Python.
   Setup uses `$HOME` by default; override the same paths if `SSH_WORKDIR` differs.
 - One SLURM job, four parallel 50-protein batches by default. Each container gets
   isolated `/tmp`; FASTA sequences are preserved. The SCLBlast diagnostic reports
   the query ID if BioPerl returns no BLAST result, without suppressing the error.
 - Complete batches are cached under `SSH_WORKDIR/tpw_psort/cache`, keyed by input,
-  Gram type, batch size, image contents and worker code. Resume from stage 20
+  Gram type, batch size, image identity and worker code. Resume from stage 20
   reuses validated batches. Failed batches keep input, raw output and logs.
 - Stage 20 requires successful SLURM exit plus a completion marker, downloads to
   a temporary file and validates exact protein coverage before replacing
@@ -93,12 +102,12 @@ Moved out of `CLAUDE.md` so it only loads when needed.
   stages 22/23 are explicitly skipped. A host lock prevents concurrent recoveries,
   and the script refuses to start while a pipeline is running. Cluster defaults
   remain remote; this exception does not change `.env` or disable heavy-stage guards.
-- If user namespaces block Apptainer, `scripts/cluster/probe_psort_udocker.sh`
-  tests udocker 1.3.17 in PRoot mode P1 via SLURM, in a separate user venv/repository.
-  It only checks PSORT startup and SCLBlast module loading; this is an experimental
-  alternative, not an enabled pipeline backend or proof of full prediction support.
-- After that probe passes, submit the actual 50-protein prediction test from nodo0:
-  `bash scripts/cluster/test_psort_udocker.sh public__ACCESSION n tpw_psort_probe_JOBID`.
+- `scripts/cluster/probe_psort_udocker.sh` only checks startup/SCLBlast imports.
+  The integrated 50-protein test from nodo0 is:
+  `bash scripts/cluster/test_psort_udocker.sh public__ACCESSION n`.
+  It exercises the actual worker in two parallel 25-protein batches, including
+  diagnostics, cache, container cleanup and final coverage validation. An optional
+  third argument `tpw_psort_probe_JOBID` retains the original direct-container test.
   The helper prepares unique remote input/validator files, prints the submitted ID,
   and requires exact coverage and valid localizations before reporting success.
   It does not load scores or modify an active pipeline/recovery.

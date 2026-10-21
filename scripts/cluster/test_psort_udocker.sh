@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# From nodo0: bash scripts/cluster/test_psort_udocker.sh public__ACCESSION n CONTAINER
+# From nodo0: bash scripts/cluster/test_psort_udocker.sh public__ACCESSION n [CONTAINER]
+# Without CONTAINER, tests the full batch worker with two isolated udocker instances.
 # Prepares 50 proteins, submits this script to SLURM, validates exact coverage.
 #SBATCH --job-name=psort_test50
 #SBATCH --partition=cpu
@@ -12,7 +13,7 @@ set -euo pipefail
 if [ -z "${SLURM_JOB_ID:-}" ]; then
   genome="${1:?Usage: test_psort_udocker.sh INTERNAL_ACCESSION n|p UDOCKER_CONTAINER}"
   gram="${2:?Specify n or p}"
-  container="${3:?Specify the container name from the successful udocker probe}"
+  container="${3:-}"
   if [[ "$genome" == *[!a-zA-Z0-9_.-]* || "$container" == *[!a-zA-Z0-9_.-]* ]] ||
      [[ "$gram" != n && "$gram" != p ]]; then
     echo "Invalid genome, container name or Gram type" >&2
@@ -47,7 +48,7 @@ if [ -z "${SLURM_JOB_ID:-}" ]; then
 fi
 
 base="${TPW_PSORT_TEST_DIR:?Missing test directory}"
-container="${TPW_PSORT_TEST_CONTAINER:?Missing udocker container}"
+container="${TPW_PSORT_TEST_CONTAINER:-}"
 gram="${TPW_PSORT_TEST_GRAM:?Missing Gram type}"
 export UDOCKER_DIR="$HOME/tpw_psort_udocker"
 cd "$base"
@@ -55,10 +56,18 @@ if [ "$(grep -c '^>' input.faa)" -ne 50 ]; then
   echo "Test requires exactly 50 input proteins" >&2
   exit 1
 fi
-mkdir -p results
-"$HOME/work/venvs/tpw_udocker/bin/udocker" run \
-  -v "$base:/tmp" --entrypoint=/usr/local/psortb/bin/psort \
-  "$container" "-$gram" -o terse -i /tmp/input.faa
+if [ -n "$container" ]; then
+  mkdir -p results
+  "$HOME/work/venvs/tpw_udocker/bin/udocker" run \
+    -v "$base:/tmp" --entrypoint=/usr/local/psortb/bin/psort \
+    "$container" "-$gram" -o terse -i /tmp/input.faa
+else
+  "$HOME/work/venvs/tpw_udocker/bin/python" psort_worker.py \
+    --engine udocker --runtime "$HOME/work/venvs/tpw_udocker/bin/udocker" \
+    --image brinkmanlab/psortb_commandline:1.0.2 --gram "$gram" \
+    --fasta input.faa --output psort.tsv --cache "$base/cache" \
+    --workers 2 --batch-size 25
+fi
 
 "$HOME/.conda/envs/fasttarget/bin/python" - <<'PY'
 from pathlib import Path
@@ -67,10 +76,14 @@ from psort_worker import read_fasta, read_predictions, write_predictions
 records = read_fasta("input.faa")
 if len(records) != 50:
     raise RuntimeError(f"Expected 50 proteins, found {len(records)}")
-files = list(Path("results").glob("*_psortb_*.txt"))
-if len(files) != 1:
-    raise RuntimeError(f"Expected one raw PSORT output, found {len(files)}")
-rows = read_predictions(files[0], {name for name, _ in records})
+expected = {name for name, _ in records}
+if Path("psort.tsv").exists():
+    rows = read_predictions("psort.tsv", expected, normalized=True)
+else:
+    files = list(Path("results").glob("*_psortb_*.txt"))
+    if len(files) != 1:
+        raise RuntimeError(f"Expected one raw PSORT output, found {len(files)}")
+    rows = read_predictions(files[0], expected)
 write_predictions("psort.tsv", rows, records)
 print(f"PREDICTION TEST OK: {len(rows)}/50 predictions validated")
 PY
