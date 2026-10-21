@@ -312,7 +312,7 @@ a.filter-pill .filter-pill-remove {
 
 .search-suggestions {
     position: absolute;
-    top: calc(100% + 6px);
+    top: calc(100% + var(--tp-space-2));
     left: 0;
     right: 0;
     z-index: 30;
@@ -764,7 +764,7 @@ a.filter-pill .filter-pill-remove {
 /* Shared CSS tooltip */
 .cell-tooltip {
     position: absolute;
-    bottom: calc(100% + 8px);
+    bottom: calc(100% + var(--tp-space-2));
     left: 50%;
     transform: translateX(-50%);
     padding: var(--tp-space-2) var(--tp-space-3);
@@ -827,7 +827,7 @@ a.filter-pill .filter-pill-remove {
 /* First body row: flip tooltip below the cell so it clears the sticky header */
 .protein-table tbody tr:first-child .cell-tooltip {
     bottom: auto;
-    top: calc(100% + 8px);
+    top: calc(100% + var(--tp-space-2));
 }
 
 .protein-table tbody tr:first-child .cell-tooltip::after {
@@ -929,7 +929,7 @@ a.filter-pill .filter-pill-remove {
 .th-sort-link:hover { color: var(--tp-color-text-primary); text-decoration: none; }
 
 .th-sort-link .cell-tooltip {
-    top: calc(100% + 8px);
+    top: calc(100% + var(--tp-space-2));
     bottom: auto;
     z-index: 1500;
 }
@@ -1221,7 +1221,7 @@ a.filter-pill .filter-pill-remove {
 
 .toolbar-presets-dropdown {
     position: absolute;
-    top: calc(100% + 6px);
+    top: calc(100% + var(--tp-space-2));
     left: 0;
     z-index: 920;
     min-width: min(290px, calc(100vw - 32px));
@@ -1697,7 +1697,7 @@ a.filter-pill .filter-pill-remove {
    where the code block is near the top of its own card, so there's
    rarely room above it; below is the side with actual space. */
 .scoring-formula-help {
-    top: calc(100% + 8px);
+    top: calc(100% + var(--tp-space-2));
     bottom: auto;
     width: max-content;
     max-width: 340px;

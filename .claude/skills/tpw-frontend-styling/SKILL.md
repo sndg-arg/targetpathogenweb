@@ -106,7 +106,11 @@ Components (all on /design). There is no `.tp-ui-panel`/`.tp-ui-panel-head` any 
 - Uppercase label = xs, 500, `--tp-tracking-label`, text-muted — the only uppercase style. Line
   heights only 1 / 1.1 / 1.2 / 1.35 / 1.5 / 1.6. Fields and file pickers are 38px, sm radius, regular weight;
   pages never resize them. Keyboard focus is never removed (`outline: none` needs a focus box-shadow).
-- Layers: drawers 1050–1200 < dialogs (`.tp-modal`, 2000) < site tooltip (3000) < page loader (5000).
+- Layers: drawers 1050–1200 < dialogs (`.tp-modal`, 2000) < a select menu floating over its dialog
+  (`.tp-select-menu.is-floating`, 2100) < site tooltip (3000) < page loader (5000).
+- A menu, popover or tooltip sits `var(--tp-space-2)` from its trigger (`calc(100% + var(--tp-space-2))`).
+  Inside a dialog, `custom-select.js` floats the select menu over it (fixed) instead of letting the
+  scrolling dialog body clip it.
 - Dark mode is only the token swap; a `.tp-dark` rule is for third-party/Bootstrap colors or the viewer, never a re-tint.
 - `.tp-card` only for repeated grid items (border, no shadow). Sections are never boxed.
 - `.tp-metrics` > `.metric-pill` (+ `--success|--warning|--danger|--link`) for every "number in a pill".

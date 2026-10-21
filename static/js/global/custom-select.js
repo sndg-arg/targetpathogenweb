@@ -38,7 +38,8 @@
     function floatMenuInDialog(wrapper, trigger, menu) {
         if (!wrapper.closest(".tp-modal")) return;
         const rect = trigger.getBoundingClientRect();
-        const gap = 6;
+        // Same separation as the in-flow menu: calc(100% + var(--tp-space-2)).
+        const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--tp-space-2")) || 8;
         menu.classList.add("is-floating");
         menu.style.left = rect.left + "px";
         menu.style.width = rect.width + "px";

@@ -288,7 +288,7 @@
 .ds-menu {
     position: static;
     width: 200px;
-    margin-top: var(--tp-space-1);
+    margin-top: var(--tp-space-2);
 }
 
 .ds-metric {

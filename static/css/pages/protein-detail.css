@@ -1482,7 +1482,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .structure-picker-menu {
     position: absolute;
-    top: calc(100% + 6px);
+    top: calc(100% + var(--tp-space-2));
     left: 0;
     z-index: 70;
     list-style: none;
