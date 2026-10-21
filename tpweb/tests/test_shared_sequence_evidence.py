@@ -23,6 +23,23 @@ from tpweb.services.shared_sequence_evidence import (
 
 
 class SharedSequenceEvidenceTests(TestCase):
+    def test_colabfold_score_does_not_mix_in_automatic_pocket_id(self):
+        for anchor, pocket in (
+            ("colabfold_p2rank_probability", "colabfold_p2rank_pocket"),
+            ("colabfold_druggability_score", "colabfold_fpocket_pocket"),
+        ):
+            param = ScoreParam.objects.create(
+                name=anchor, category="Pocket", type="N", default_operation=">=", default_value="0"
+            )
+            reference = ScoreParam.objects.create(
+                name=pocket, category="Pocket", type="C", default_operation="=", default_value=""
+            )
+            self.value(self.curated, 0.8, param=param)
+            ScoreParamValue.objects.create(bioentry=self.target, score_param=reference, value="4")
+            protein = self.fresh()
+            apply_shared_sequence_evidence([protein], self.user)
+            self.assertNotIn(pocket, [row.score_param.name for row in protein.score_params.all()])
+
     def test_column_coverage_reports_empty_columns_and_live_shared_values_in_order(self):
         import csv
         from io import StringIO

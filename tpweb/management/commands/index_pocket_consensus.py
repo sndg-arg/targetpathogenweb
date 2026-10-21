@@ -20,12 +20,16 @@ residues independently, so this reflects exactly the same geometry the page
 itself would show -- not a second, potentially-diverging computation.
 """
 
+import math
+from collections import defaultdict
+
 from django.core.management.base import BaseCommand, CommandError
 from tqdm import tqdm
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import BioentryStructure
+from tpweb.models.pdb import PDBResidueSet
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.pocket_consensus import POCKET_CONSENSUS_DISTANCE, nearest_named_center
 from tpweb.services.score_params import ensure_system_score_param
@@ -38,24 +42,40 @@ P2RANK_HIGH_THRESHOLD = 0.5
 _ALL_POCKETS_LIMIT = 100000
 
 
-def _has_high_score_consensus(pdbobj):
+def _valid_score(value):
+    return value is not None and math.isfinite(value) and 0 <= value <= 1
+
+
+def _has_high_score_consensus(pdbobj, target_chain=None):
     context = pdb_structure(
-        pdbobj, [], pocket_limit=_ALL_POCKETS_LIMIT, p2rank_limit=_ALL_POCKETS_LIMIT
+        pdbobj,
+        [],
+        pocket_limit=_ALL_POCKETS_LIMIT,
+        p2rank_limit=_ALL_POCKETS_LIMIT,
+        target_chain=target_chain,
+    )
+    if not context["pockets"] or not context["p2_pockets"]:
+        return None
+    missing_scores = any(not _valid_score(p.druggability) for p in context["pockets"]) or any(
+        not _valid_score(p.probability) for p in context["p2_pockets"]
     )
     high_p2_centers = [
         (f"P2Rank {p2.name}", p2.geometric_center)
         for p2 in context["p2_pockets"]
-        if (p2.probability or 0) >= P2RANK_HIGH_THRESHOLD
+        if _valid_score(p2.probability) and p2.probability >= P2RANK_HIGH_THRESHOLD
     ]
     if not high_p2_centers:
-        return False
+        return None if missing_scores else False
+    missing_geometry = missing_scores or any(center is None for _, center in high_p2_centers)
     for p in context["pockets"]:
-        if (p.druggability or 0) < FPOCKET_HIGH_THRESHOLD:
+        if not _valid_score(p.druggability) or p.druggability < FPOCKET_HIGH_THRESHOLD:
             continue
+        if p.geometric_center is None:
+            missing_geometry = True
         nearest = nearest_named_center(p.geometric_center, high_p2_centers)
         if nearest and nearest[1] <= POCKET_CONSENSUS_DISTANCE:
             return True
-    return False
+    return None if missing_geometry else False
 
 
 class Command(BaseCommand):
@@ -85,22 +105,53 @@ class Command(BaseCommand):
         # to more than one protein) -- cache the per-structure verdict so we
         # only run pdb_structure() once per distinct PDB row.
         consensus_cache = {}
+        methods = defaultdict(set)
+        pdb_ids = BioentryStructure.objects.filter(bioentry__biodatabase=genome).values("pdb_id")
+        for pdb_id, method in (
+            PDBResidueSet.objects.filter(
+                pdb_id__in=pdb_ids,
+                residue_set__name__in=["FPocketPocket", "P2RankPocket"],
+            )
+            .values_list("pdb_id", "residue_set__name")
+            .distinct()
+        ):
+            methods[pdb_id].add(method)
 
-        def consensus_for(pdbobj):
-            if pdbobj.id not in consensus_cache:
-                consensus_cache[pdbobj.id] = _has_high_score_consensus(pdbobj)
-            return consensus_cache[pdbobj.id]
+        def consensus_for(link):
+            key = (link.pdb_id, link.chain or "")
+            if len(methods[link.pdb_id]) != 2:
+                return None
+            if key not in consensus_cache:
+                consensus_cache[key] = _has_high_score_consensus(link.pdb, target_chain=link.chain)
+            return consensus_cache[key]
 
-        proteins = Bioentry.objects.filter(biodatabase=genome)
+        proteins = Bioentry.objects.filter(biodatabase=genome).prefetch_related("structures__pdb")
+        existing = {
+            row.bioentry_id: row
+            for row in ScoreParamValue.objects.filter(
+                bioentry__biodatabase=genome, score_param=score_param
+            )
+        }
         flagged = 0
         skipped = 0
+        preserved = 0
         for protein in tqdm(proteins, total=proteins.count()):
-            links = list(BioentryStructure.objects.filter(bioentry=protein).select_related("pdb"))
+            previous = existing.get(protein.pk)
+            if previous and (
+                str(previous.value or "").strip() or previous.numeric_value is not None
+            ):
+                preserved += 1
+                continue
+            links = list(protein.structures.all())
             if not links:
                 skipped += 1
                 continue
 
-            has_consensus = any(consensus_for(link.pdb) for link in links)
+            results = [consensus_for(link) for link in links]
+            has_consensus = any(result is True for result in results)
+            if not has_consensus and any(result is None for result in results):
+                skipped += 1
+                continue
             ScoreParamValue.objects.update_or_create(
                 bioentry=protein,
                 score_param=score_param,
@@ -111,5 +162,5 @@ class Command(BaseCommand):
 
         self.stdout.write(
             f"Done. {flagged} proteins flagged with a high-score consensus pocket, "
-            f"{skipped} skipped (no linked structure)."
+            f"{skipped} skipped (missing structure, pockets or geometry), {preserved} existing values preserved."
         )

@@ -88,6 +88,9 @@ class Command(BaseCommand):
         )  # Save the DataFrame to a CSV file without including the index column
         print(f"DataFrame saved to {csv_path} ({len(df)} rows)")
         call_command("index_p2rank_scores", accession, apply=True, stdout=self.stdout)
+        call_command("index_colabfold_scores", accession, apply=True, stdout=self.stdout)
+        call_command("index_pocket_size_outlier", accession, stdout=self.stdout)
+        call_command("index_pocket_consensus", accession, stdout=self.stdout)
 
     def _druggability_values(self, links, property_instance):
         # Looped per-link rather than one combined pdb_id__in=[...] query --

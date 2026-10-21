@@ -14,6 +14,8 @@ LOCAL_SCORE_PREFIXES = ("core_", "soft_core", "softcore", "ptools_", "metabolic_
 POCKET_SCORE_BUNDLES = {
     "p2rank_probability": {"p2rank_probability", "best_p2rank_structure", "p2rank_pocket"},
     "Druggability": {"Druggability", "best_fpocket_structure", "fpocket_pocket"},
+    "colabfold_druggability_score": {"colabfold_druggability_score", "colabfold_fpocket_pocket"},
+    "colabfold_p2rank_probability": {"colabfold_p2rank_probability", "colabfold_p2rank_pocket"},
 }
 
 

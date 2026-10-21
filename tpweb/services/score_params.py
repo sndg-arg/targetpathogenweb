@@ -111,7 +111,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "description": (
             "FPocket druggability score for the best ColabFold predicted structure (0–1). "
             "≥ 0.7 highly druggable · ≥ 0.4 moderately druggable · < 0.4 low druggability. "
-            "Only available for genomes with imported expert-reviewed results."
+            "Imported from curated results or indexed from a uniquely linked ColabFold model."
         ),
         "type": "N",
         "default_operation": ">=",
@@ -122,7 +122,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "description": (
             "P2Rank binding-site probability for the best pocket in the ColabFold model (0–1). "
             "Higher values mean a more likely ligand-binding site. "
-            "Only available for genomes with imported expert-reviewed results."
+            "Imported from curated results or indexed from a uniquely linked ColabFold model."
         ),
         "type": "N",
         "default_operation": ">=",
@@ -146,7 +146,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
             "ColabFold model confidence score (pLDDT, 0–100). "
             "Values ≥ 70 indicate reliable local structure; low values mean the predicted "
             "structure — and its pocket predictions — may be unreliable. "
-            "Only available for genomes with imported expert-reviewed results."
+            "Imported from curated results or averaged over C-alpha atoms in a uniquely linked ColabFold model."
         ),
         "type": "N",
         "default_operation": ">=",
