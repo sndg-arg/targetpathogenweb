@@ -1,9 +1,19 @@
 import unittest
 
-from tpweb.services.score_param_types import is_boolean_score_series
+from tpweb.services.score_param_types import canonical_score_column_name, is_boolean_score_series
 
 
 class BooleanScoreSeriesTests(unittest.TestCase):
+    def test_softcore_spelling_variants_share_one_column(self):
+        self.assertEqual(canonical_score_column_name("softcore_roary"), "soft_core_roary")
+        self.assertEqual(
+            canonical_score_column_name("softcore_corecruncher"), "soft_core_corecruncher"
+        )
+
+    def test_other_conservation_columns_are_not_renamed(self):
+        for name in ("core_roary", "core_corecruncher", "soft_core_roary"):
+            self.assertEqual(canonical_score_column_name(name), name)
+
     def test_native_booleans_are_categorical(self):
         self.assertTrue(is_boolean_score_series([True, False, True]))
 

@@ -1,5 +1,13 @@
 NUMERIC_SCORE_PARAM_TYPES = {"N", "NUMERIC"}
 CATEGORICAL_SCORE_PARAM_TYPES = {"C", "CATEGORICAL", ""}
+SOFTCORE_COLUMN_ALIASES = {
+    "softcore_roary": "soft_core_roary",
+    "softcore_corecruncher": "soft_core_corecruncher",
+}
+
+
+def canonical_score_column_name(name):
+    return SOFTCORE_COLUMN_ALIASES.get(name, name)
 
 
 def is_boolean_score_series(values):

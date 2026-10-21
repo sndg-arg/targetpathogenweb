@@ -12,7 +12,7 @@ from bioseq.models.Bioentry import Bioentry
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.score_params import resolve_score_param_for_import
-from tpweb.services.score_param_types import is_numeric_score_param
+from tpweb.services.score_param_types import canonical_score_column_name, is_numeric_score_param
 
 
 class Command(BaseCommand):
@@ -42,6 +42,9 @@ class Command(BaseCommand):
         genome = genome.get()
 
         df = pd.read_csv(options["score_tsv"], sep=options["separator"], index_col=False)
+        df = df.rename(columns=canonical_score_column_name)
+        if df.columns.duplicated().any():
+            raise CommandError("The file repeats a column after normalizing soft-core names")
 
         assert "gene" in df.columns, "'gene' is not in the column list"
 

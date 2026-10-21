@@ -121,7 +121,9 @@ def uploaded_column_names(uploaded_file):
     if isinstance(first_line, bytes):
         first_line = first_line.decode("utf-8-sig", errors="replace")
     header = [column.strip() for column in first_line.strip().split(separator)]
-    return [column for column in header[1:] if column]
+    from tpweb.services.score_param_types import canonical_score_column_name
+
+    return [canonical_score_column_name(column) for column in header[1:] if column]
 
 
 def apply_upload_sharing(owner, genome_name, column_names, visibility, description=""):
