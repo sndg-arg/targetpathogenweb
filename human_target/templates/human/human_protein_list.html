@@ -1,6 +1,7 @@
 {% extends "base/masterpage.html" %}
 {% load i18n %}
 {% load static %}
+{% load custom_tags %}
 
 {% block title %}{% trans "Human Targets" %} · {% trans "Target Pathogen" %}{% endblock %}
 
@@ -30,9 +31,9 @@
                 </div>
             </div>
             <div class="hero-chips tp-chip-group">
-                <span class="tp-chip">{% blocktrans count count=dashboard.total_proteins %}{{ count }} protein{% plural %}{{ count }} proteins{% endblocktrans %}</span>
-                <span class="tp-chip">{% trans "With ligand evidence" %}: {{ dashboard.proteins_with_ligands }}</span>
-                <span class="tp-chip">{% trans "Ligand records" %}: {{ dashboard.total_ligand_records }}</span>
+                <span class="tp-chip">{% blocktrans with shown=dashboard.total_proteins|thousands count count=dashboard.total_proteins %}{{ shown }} protein{% plural %}{{ shown }} proteins{% endblocktrans %}</span>
+                <span class="tp-chip">{% trans "With ligand evidence" %}: {{ dashboard.proteins_with_ligands|thousands }}</span>
+                <span class="tp-chip">{% trans "Ligand records" %}: {{ dashboard.total_ligand_records|thousands }}</span>
             </div>
             {% if dashboard.ligand_coverage_is_sparse %}
                 <p class="tp-state-note tp-state-note--empty">{% trans "Ligand, structure, pathway and expression data are still being loaded, so some columns and sections may be empty for now." %}</p>
@@ -83,9 +84,9 @@
                 {% else %}
                 <p class="protein-table-results" role="status">
                     {% if query %}
-                        {% blocktrans with filtered=total_count total=all_count %}<strong>{{ filtered }}</strong> of {{ total }} proteins match the current search{% endblocktrans %}
+                        {% blocktrans with filtered=total_count|thousands total=all_count|thousands %}<strong>{{ filtered }}</strong> of {{ total }} proteins match the current search{% endblocktrans %}
                     {% else %}
-                        {% blocktrans with total=total_count %}Showing all <strong>{{ total }}</strong> proteins{% endblocktrans %}
+                        {% blocktrans with total=total_count|thousands %}Showing all <strong>{{ total }}</strong> proteins{% endblocktrans %}
                     {% endif %}
                 </p>
                 <section class="table-wrap tp-table-shell">
@@ -142,7 +143,7 @@
                         {% else %}
                             1
                         {% endif %}
-                        {% trans "of" %} {{ proteins.paginator.num_pages }} · {{ total_count }} {% trans "matching proteins" %}
+                        {% trans "of" %} {{ proteins.paginator.num_pages|thousands }} · {{ total_count|thousands }} {% trans "matching proteins" %}
                     </form>
                     {% if proteins.paginator.num_pages > 1 %}
                     <ul class="pagination tp-pagination">
@@ -159,7 +160,7 @@
                         {% for p in page_numbers %}
                             {% if p %}
                                 <li class="page-item {% if p == proteins.number %}active{% endif %}">
-                                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ p }}">{{ p }}</a>
+                                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ p }}">{{ p|thousands }}</a>
                                 </li>
                             {% else %}
                                 <li class="page-item disabled"><span class="page-link">…</span></li>
