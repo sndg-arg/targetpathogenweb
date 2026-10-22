@@ -24,7 +24,7 @@ from tpweb.models.pdb import (
 from tpweb.management.commands.index_colabfold_scores import Command as ColabFoldCommand
 from tpweb.management.commands import index_pocket_consensus as consensus
 from tpweb.management.commands import index_pocket_size_outlier as outlier
-from tpweb.services.microbiome_counts import read_counts
+from tpweb.services.microbiome_counts import read_counts, read_normalization
 from tpweb.management.commands.recover_microbiome_counts import Command as MicrobiomeCommand
 from tpweb.management.commands.recover_cached_functional_annotations import matching_entries
 from tpweb.management.commands.load_verified_colabfold_model import (
@@ -78,6 +78,29 @@ def ensure_param(name):
 
 
 class MicrobiomeCountParserTests(SimpleTestCase):
+    def test_original_normalization_is_checked_against_counts(self):
+        totals, fractions = read_normalization(
+            {"A": 1469, "B": 0},
+            StringIO("gene\ttotal\nA\t4744\nB\t4744\n"),
+            StringIO("gene\tgut_microbiome_offtarget_norm\nA\t0.30965430016863404\nB\t0\n"),
+        )
+        self.assertEqual(totals, {"A": 4744, "B": 4744})
+        self.assertEqual(fractions["B"], 0)
+
+    def test_inconsistent_or_incomplete_normalization_is_rejected(self):
+        for totals, fractions in (
+            ("A\t4\n", "A\t0.3\n"),
+            ("A\t0\n", "A\t0\n"),
+            ("A\t4\n", "A\tnan\n"),
+            ("A\t4\n", ""),
+        ):
+            with self.subTest(totals=totals, fractions=fractions), self.assertRaises(ValueError):
+                read_normalization(
+                    {"A": 1},
+                    StringIO("gene\ttotal\n" + totals),
+                    StringIO("gene\tgut_microbiome_offtarget_norm\n" + fractions),
+                )
+
     def test_zero_and_integer_numeric_counts_are_retained(self):
         self.assertEqual(read_counts(StringIO("gene\tcounts\nA\t0\nB\t3.0\n")), {"A": 0, "B": 3})
 
@@ -188,6 +211,57 @@ class ConsensusGeometryTests(SimpleTestCase):
 
 
 class StructureColumnRecoveryTests(TestCase):
+    def test_nested_microbiome_companions_are_validated_and_recovered_atomically(self):
+        with TemporaryDirectory() as temp:
+            folder = Path(temp)
+            source = folder / "fasttarget_remote/output/offtarget/species_blast_results"
+            source.mkdir(parents=True)
+            counts = source / "gut_microbiome_offtarget_counts.tsv"
+            counts.write_text("gene\tcounts\nRECOVER_1\t1\n", encoding="utf-8")
+            (source / "gut_microbiome_genomes_analyzed.tsv").write_text(
+                "gene\ttotal\nRECOVER_1\t4\n", encoding="utf-8"
+            )
+            fraction = source / "gut_microbiome_offtarget_norm.tsv"
+            fraction.write_text(
+                "gene\tgut_microbiome_offtarget_norm\nRECOVER_1\t0.5\n", encoding="utf-8"
+            )
+            options = dict(
+                genome_name=self.genome, datadir=temp, apply=True, include_normalization=True
+            )
+            with (
+                patch(
+                    "tpweb.management.commands.recover_microbiome_counts.compute_folder_path",
+                    return_value=temp,
+                ),
+                patch(
+                    "tpweb.services.score_params.ensure_system_score_param",
+                    side_effect=ensure_param,
+                ),
+            ):
+                with self.assertRaises(CommandError):
+                    MicrobiomeCommand(stdout=StringIO()).handle(**options)
+                self.assertEqual(ScoreParamValue.objects.count(), 0)
+                fraction.write_text(
+                    "gene\tgut_microbiome_offtarget_norm\nRECOVER_1\t0.25\n", encoding="utf-8"
+                )
+                MicrobiomeCommand(stdout=StringIO()).handle(**options)
+                MicrobiomeCommand(stdout=StringIO()).handle(**options)
+                values = self.values()
+                self.assertEqual(len(values), 3)
+                self.assertEqual(values["gut_microbiome_offtarget_counts"].numeric_value, 1)
+                self.assertEqual(values["gut_microbiome_genomes_analyzed"].numeric_value, 4)
+                self.assertEqual(values["gut_microbiome_offtarget_norm"].numeric_value, 0.25)
+                ScoreParamValue.objects.all().delete()
+                ScoreParamValue.objects.create(
+                    bioentry=self.protein,
+                    score_param=ensure_param("gut_microbiome_offtarget_counts"),
+                    value="0",
+                    numeric_value=0,
+                )
+                MicrobiomeCommand(stdout=StringIO()).handle(**options)
+                self.assertEqual(ScoreParamValue.objects.count(), 1)
+                self.assertEqual(self.values()["gut_microbiome_offtarget_counts"].numeric_value, 0)
+
     def test_microbiome_counts_recovery_preserves_zero_and_does_not_invent_normalization(self):
         with TemporaryDirectory() as temp:
             path = Path(temp) / "counts.tsv"
