@@ -50,14 +50,13 @@ curl -L --fail "https://rest.kegg.jp/link/pathway/hsa" \
   -o "$DEST_DIR/kegg/hsa_pathway_links.tsv"
 wc -l "$DEST_DIR/kegg/hsa_pathway_links.tsv"
 
-echo "== Bgee: bulk per-species gene-expression-calls TSV =="
-echo "NOT AUTOMATED YET -- the exact current download link for Homo sapiens"
-echo "was not confirmed this session (the download page returned 403 to an"
-echo "automated fetch). Open https://www.bgee.org/download/gene-expression-calls"
-echo "by hand, find the Homo sapiens row, and either:"
-echo "  (a) add the real URL to this script's Bgee section and re-run, or"
-echo "  (b) download it locally and scp it to $DEST_DIR/bgee/ yourself."
-echo "Do NOT guess/hardcode a Bgee URL here until confirmed by hand."
+echo "== Bgee: bulk Homo sapiens expression calls (confirmed 2026-10-22, ~170MB) =="
+# One row per (Ensembl gene, anatomical entity); load with
+#   python manage.py load_human_expression_bulk --bgee-tsv <this file>
+curl -L --fail \
+  "https://www.bgee.org/ftp/current/download/calls/expr_calls/Homo_sapiens_expr_simple.tsv.gz" \
+  -o "$DEST_DIR/bgee/Homo_sapiens_expr_simple.tsv.gz"
+ls -lh "$DEST_DIR/bgee/Homo_sapiens_expr_simple.tsv.gz"
 
 echo "== Done. Raw bulk data staged under $DEST_DIR =="
 du -sh "$DEST_DIR"/* 2>/dev/null || true

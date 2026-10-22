@@ -71,9 +71,12 @@ shared components) — zero data/functionality crossover.
     extracted unchanged from `import_human_curated_proteins.py`'s old `_parse_kgml` (still
     importable under that name there, aliased) so both the pilot's local-file path and this
     live-fetch path share one parser.
-  - **Bgee**: bulk per-species TSV exists at `bgee.org/download/gene-expression-calls`, but the
-    exact current Homo sapiens download link was **not** confirmed this session (403 on an
-    automated fetch) — get it by hand before running that part of the pipeline.
+  - **Bgee — implemented**: `https://www.bgee.org/ftp/current/download/calls/expr_calls/Homo_sapiens_expr_simple.tsv.gz`
+    (confirmed 2026-10-22, ~170MB, Bgee 15.2; fetched by `fetch_human_proteome_bulk.sh`). Load with
+    `python manage.py load_human_expression_bulk --bgee-tsv PATH [--accession ...|--accession-file PATH]
+    [--dry-run]`: streams the gzipped file one gene at a time, matches Ensembl gene ids through the
+    proteins' stored UniProt `Bgee`/`Ensembl` cross-references, and writes `expression_json` in the
+    same shape as the pilot's per-protein heatmap loader (anatomical entity as "tissue").
   - **AlphaFill**: no bulk path found — deferred entirely for now rather than ~20,400 sequential
     rate-limited calls for a secondary enrichment layer; would be its own opt-in command later.
   - One-time bulk download: `scripts/cluster/fetch_human_proteome_bulk.sh`, run by hand over SSH on
