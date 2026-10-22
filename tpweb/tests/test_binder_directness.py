@@ -51,7 +51,7 @@ class BinderDirectnessTests(TestCase):
             source=Binders.SOURCE_CHEMBL,
             is_direct=False,
         )
-        call_command("reclassify_binder_directness", "public__VA569", stdout=StringIO())
+        call_command("recompute_binder_directness", "public__VA569", stdout=StringIO())
         same.refresh_from_db()
         other.refresh_from_db()
         self.assertTrue(same.is_direct)
@@ -67,7 +67,7 @@ class BinderDirectnessTests(TestCase):
             is_direct=False,
         )
         call_command(
-            "reclassify_binder_directness", "public__VA569", dry_run=True, stdout=StringIO()
+            "recompute_binder_directness", "public__VA569", dry_run=True, stdout=StringIO()
         )
         record.refresh_from_db()
         self.assertFalse(record.is_direct)

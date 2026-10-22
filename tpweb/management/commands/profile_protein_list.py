@@ -49,7 +49,10 @@ class Command(BaseCommand):
         path = f"/genome/{options['genome']}/proteins"
         if options["query"]:
             path += "?" + options["query"]
-        request = RequestFactory().get(path)
+        from django.conf import settings
+
+        host = next((h.lstrip(".") for h in settings.ALLOWED_HOSTS if h and h != "*"), "localhost")
+        request = RequestFactory(HTTP_HOST=host).get(path, secure=True)
         request.user = user
         SessionMiddleware(lambda r: None).process_request(request)
 
