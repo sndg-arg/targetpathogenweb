@@ -147,6 +147,25 @@ class SharedSequenceEvidenceTests(TestCase):
     def fresh(self, protein=None):
         return Bioentry.objects.select_related("biodatabase").get(pk=(protein or self.target).pk)
 
+    def test_identical_protein_shows_the_curated_product_name_without_saving_it(self):
+        Bioentry.objects.filter(pk=self.curated.pk).update(
+            description="Chromosomal replication initiator protein dnaA"
+        )
+        Bioentry.objects.filter(pk=self.target.pk).update(
+            description="chromosomal replication initiator protein DnaA"
+        )
+        protein = self.fresh()
+        apply_shared_sequence_evidence([protein], self.user)
+        self.assertEqual(protein.description, "Chromosomal replication initiator protein dnaA")
+        self.assertEqual(
+            protein.shared_sequence_evidence.local_description,
+            "chromosomal replication initiator protein DnaA",
+        )
+        self.assertEqual(
+            Bioentry.objects.get(pk=self.target.pk).description,
+            "chromosomal replication initiator protein DnaA",
+        )
+
     def test_curated_value_overrides_pipeline_without_copying_rows(self):
         original = self.value(self.curated, 0.9)
         self.value(self.target, 0.2)

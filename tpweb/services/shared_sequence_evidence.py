@@ -96,6 +96,7 @@ class SharedSequenceEvidence:
     conflicts: list = field(default_factory=list)
     curated_structure_ids: set = field(default_factory=set)
     binder_accessions: list = field(default_factory=list)
+    local_description: str = ""
     curated_binder_accessions: list = field(default_factory=list)
 
 
@@ -183,6 +184,19 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
             key=lambda m: (CURATED_STRAINS[m.strain_label], m.locus_tag),
         )
         evidence = SharedSequenceEvidence()
+        # Same protein, same name: the curated strain's product name is shown for
+        # every identical occurrence (in memory only; the GenBank record is kept).
+        curated_name = next(
+            (
+                (m.bioentry.description or "").strip()
+                for m in donors
+                if (m.bioentry.description or "").strip()
+            ),
+            "",
+        )
+        if curated_name and curated_name != (protein.description or "").strip():
+            evidence.local_description = protein.description or ""
+            protein.description = curated_name
         evidence.siblings = [
             {
                 "strain_label": STRAIN_LABELS.get(m.strain_label, m.strain_label.split("__")[-1]),
