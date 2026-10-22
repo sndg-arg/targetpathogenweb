@@ -388,9 +388,48 @@
         });
     }
 
+    // "Show its variants on the protein map": keep that disease's variants
+    // lit on the map, dim the rest, and bring the map into view.
+    function initDiseaseVariants() {
+        var map = document.getElementById("protein-map");
+        var filter = document.getElementById("protein-map-filter");
+        var buttons = document.querySelectorAll("[data-show-disease]");
+        if (!map || !buttons.length) return;
+        var ticks = map.querySelectorAll(".ha-row--variants .ha-tick");
+        var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        function show(acronym) {
+            var hits = 0;
+            ticks.forEach(function (tick) {
+                var diseases = (tick.dataset.diseases || "").split(" ");
+                var hit = Boolean(acronym) && diseases.indexOf(acronym) !== -1;
+                tick.classList.toggle("is-hit", hit);
+                if (hit) hits += 1;
+            });
+            map.classList.toggle("is-filtered", Boolean(acronym));
+            if (filter) {
+                filter.hidden = !acronym;
+                filter.querySelector("span").textContent = acronym
+                    ? hits + " variant" + (hits === 1 ? "" : "s") + " reported in " + acronym + "."
+                    : "";
+            }
+        }
+
+        buttons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                var acronym = button.getAttribute("data-show-disease");
+                show(acronym);
+                if (acronym) {
+                    map.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+                }
+            });
+        });
+    }
+
     ready(function () {
         initCopySequence();
         initArchitectureMap();
+        initDiseaseVariants();
         initStructureViewer();
         initBindersTabs();
         initBinderRowNavigation();

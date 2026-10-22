@@ -525,6 +525,345 @@
     }
 }
 
+/* ── Subcellular location: schematic cell + list ─────────────────────── */
+.hc-layout {
+    display: grid;
+    grid-template-columns: minmax(200px, 300px) minmax(0, 1fr);
+    gap: var(--tp-space-5);
+    align-items: center;
+}
+
+.hc-cell {
+    width: 100%;
+    height: auto;
+}
+
+.hc-part {
+    color: var(--tp-color-border-strong);
+    transition: color var(--tp-ui-motion-base) var(--human-ease);
+}
+
+.hc-part .hc-fill {
+    fill: var(--tp-color-surface-soft);
+}
+
+.hc-part--cytoplasm .hc-fill {
+    fill: var(--tp-color-surface);
+}
+
+.hc-part .hc-line,
+.hc-part circle:not(.hc-fill) {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+}
+
+.hc-part.hc-part--secreted circle {
+    fill: currentColor;
+    stroke: none;
+}
+
+.hc-line--thick {
+    stroke-width: 3;
+}
+
+.hc-part.is-on {
+    color: var(--human-accent);
+}
+
+.hc-part.is-on .hc-fill {
+    fill: color-mix(in srgb, var(--human-accent) 16%, var(--tp-color-surface));
+}
+
+.hc-part--cytoplasm.is-on .hc-fill {
+    fill: color-mix(in srgb, var(--human-accent) 7%, var(--tp-color-surface));
+}
+
+.hc-part.is-on .hc-line--thick {
+    stroke-width: 4;
+}
+
+.hc-list {
+    display: grid;
+    gap: var(--tp-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.hc-list li {
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+}
+
+.hc-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--human-accent);
+}
+
+/* ── Keywords by UniProt category ─────────────────────────────────────── */
+.hk-groups {
+    display: grid;
+    margin: 0;
+}
+
+.hk-group {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: var(--tp-space-4);
+    padding: var(--tp-space-2) 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.hk-group:last-child {
+    border-bottom: 0;
+}
+
+.hk-group dt {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+}
+
+.hk-group dd {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.hk-group dd span + span::before {
+    content: "·";
+    margin: 0 var(--tp-space-2);
+    color: var(--tp-color-text-soft);
+}
+
+/* ── Publications as citations, newest first ──────────────────────────── */
+.hb-count {
+    margin-left: 4px;
+    color: var(--tp-color-text-soft);
+    font-family: var(--tp-font-mono);
+    letter-spacing: 0;
+}
+
+.hb-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hb-item {
+    display: grid;
+    grid-template-columns: 4.5ch minmax(0, 1fr);
+    gap: var(--tp-space-4);
+    padding: var(--tp-space-3) 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.hb-year {
+    padding-top: 1px;
+    color: var(--tp-color-text-muted);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+}
+
+.hb-title {
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    line-height: 1.45;
+    text-decoration: none;
+}
+
+.hb-title:hover {
+    color: var(--tp-color-link);
+    text-decoration: underline;
+}
+
+.hb-meta {
+    margin: 2px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.hb-all {
+    display: inline-block;
+    margin-top: var(--tp-space-3);
+}
+
+/* ── Pharmacology ─────────────────────────────────────────────────────── */
+.hph-lede {
+    align-items: center;
+}
+
+.hph-links {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.hph-link {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-2) var(--tp-space-1);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+        background var(--tp-ui-motion-fast) var(--human-ease),
+        padding var(--tp-ui-motion-base) var(--human-ease);
+}
+
+.hph-link:hover {
+    padding-left: var(--tp-space-3);
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-link);
+}
+
+.hph-link-id {
+    color: var(--tp-color-text-muted);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 400;
+}
+
+.hph-note {
+    margin-top: var(--tp-space-3);
+}
+
+.hph-drugs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr));
+    gap: 0 var(--tp-space-5);
+    margin: var(--tp-space-4) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hph-drugs a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-2) 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    text-decoration: none;
+}
+
+.hph-drug-name {
+    overflow: hidden;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hph-drug-id {
+    color: var(--tp-color-text-soft);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-2xs);
+}
+
+.hph-drugs a:hover .hph-drug-name {
+    color: var(--tp-color-link);
+}
+
+/* ── Disease rows: variant count and jump to the map ──────────────────── */
+.hd-variants {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.hd-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2) var(--tp-space-4);
+}
+
+.hd-map-link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.hd-map-link:hover {
+    text-decoration: underline;
+}
+
+.ha-filter {
+    margin: 0 0 var(--tp-space-1);
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+}
+
+.ha-map.is-filtered .ha-row--variants .ha-tick {
+    opacity: 0.2;
+}
+
+.ha-map.is-filtered .ha-row--variants .ha-tick.is-hit {
+    height: 16px;
+    opacity: 1;
+    background: var(--human-accent);
+    animation: ha-hit 500ms var(--human-ease) both;
+}
+
+@keyframes ha-hit {
+    from {
+        transform: scaleY(0.2);
+        transform-origin: bottom;
+    }
+}
+
+/* PDB coverage heat strip: four steps of the neutral ink. */
+.ha-coverage {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ha-cov {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    background: var(--tp-color-text-secondary);
+}
+
+.ha-cov--1 { opacity: 0.18; }
+.ha-cov--2 { opacity: 0.38; }
+.ha-cov--3 { opacity: 0.6; }
+.ha-cov--4 { opacity: 0.85; }
+
+.ha-key--coverage {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--tp-color-text-secondary) 18%, transparent), var(--tp-color-text-secondary));
+}
+
+@media (max-width: 700px) {
+    .hc-layout,
+    .hk-group {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--tp-space-2);
+    }
+
+    .hc-cell {
+        max-width: 280px;
+    }
+}
+
 /* ── Diseases: an editorial list, one hairline row per disease ───────── */
 .hd-list {
     border-top: 1px solid var(--tp-color-border-soft);
@@ -1313,6 +1652,8 @@
 @media (prefers-reduced-motion: reduce) {
     .hd-summary,
     .hd-chevron,
+    .hc-part,
+    .hph-link,
     .hl-dot,
     .ha-domain,
     .ha-tick,
@@ -1329,6 +1670,7 @@
     }
 
     .hs-stage.is-loading .hs-loading,
+    .ha-map.is-filtered .ha-row--variants .ha-tick.is-hit,
     .hseq mark,
     .human-expression-panel:not(.is-hidden) {
         animation: none !important;
