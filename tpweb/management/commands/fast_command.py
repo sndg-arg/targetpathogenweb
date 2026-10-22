@@ -106,7 +106,7 @@ class Command(BaseCommand):
             config["offtarget"]["enabled"] = True
             config["offtarget"]["human"] = True
             config["offtarget"]["microbiome"] = True
-            config["offtarget"].setdefault("microbiome_identity_filter", 40)
+            config["offtarget"].setdefault("microbiome_identity_filter", 50)
             config["offtarget"].setdefault("microbiome_coverage_filter", 70)
             config["offtarget"].setdefault("foldseek_human", False)
 

@@ -57,8 +57,8 @@ from slurm_remote_command import (
     _resolve_ssh_options,
 )
 
-# fasttarget's own config.py defaults (fast_command.py never overrides these).
-MICROBIOME_IDENTITY_FILTER = 40
+# Target's microbiome cutoffs; DEG retains its separate essentiality cutoffs.
+MICROBIOME_IDENTITY_FILTER = 50
 MICROBIOME_COVERAGE_FILTER = 70
 DEG_IDENTITY_FILTER = 40
 DEG_COVERAGE_FILTER = 70

@@ -49,7 +49,7 @@ offtarget:
   enabled: True
   human: True
   microbiome: True
-  microbiome_identity_filter: 40
+  microbiome_identity_filter: 50
   microbiome_coverage_filter: 70
   foldseek_human: False
 
