@@ -12,7 +12,7 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-live">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261022-dossier">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261022-wow">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -63,26 +63,19 @@
                     </a>
                 </div>
             </div>
-            <div class="tp-metrics protein-metrics" aria-label="{% trans "Protein summary" %}">
-                {% for fact in overview.quick_facts %}
-                <div class="metric-pill">
-                    <span class="metric-label">{{ fact.label }}</span>
-                    <span class="metric-value">{% if fact.meter %}<span class="hm-meter" aria-hidden="true">{% for on in fact.meter %}<i{% if on %} class="is-on"{% endif %}></i>{% endfor %}</span>{% endif %}{{ fact.value }}</span>
-                </div>
+            {% if glance %}
+            {# Target at a glance: what kind of evidence exists, each tile a jump to its section. #}
+            <div class="hg-glance" aria-label="{% trans 'Target at a glance' %}">
+                {% for tile in glance %}
+                <a class="hg-tile" href="{{ tile.href }}">
+                    <span class="hg-label">{{ tile.label }}</span>
+                    <span class="hg-value">{% if tile.prefix %}{{ tile.prefix }}{% endif %}<span data-count="{{ tile.value|unlocalize }}">{{ tile.value }}</span></span>
+                    <span class="hg-note">{{ tile.note }}</span>
+                    <span class="hg-arrow" aria-hidden="true">→</span>
+                </a>
                 {% endfor %}
-                {% if binders.total %}
-                <div class="metric-pill">
-                    <span class="metric-label" title="{% trans 'Ligand evidence records currently loaded for this protein.' %}">{% trans "Ligand records" %}</span>
-                    <span class="metric-value">{{ binders.total }}</span>
-                </div>
-                {% endif %}
-                {% if structure.has_structure %}
-                <div class="metric-pill">
-                    <span class="metric-label">{% trans "3D structures" %}</span>
-                    <span class="metric-value">{{ structure.sub_tabs|length }} {% trans "sources" %}</span>
-                </div>
-                {% endif %}
             </div>
+            {% endif %}
         </section>
 
         <nav class="quick-nav" data-quick-nav aria-label="{% trans "Protein sections" %}">
@@ -130,7 +123,17 @@
                         <dd class="target-profile-value">{{ overview.chromosome }}</dd>
                     </div>
                     {% endif %}
+                    {% for fact in overview.quick_facts %}
+                    <div class="target-profile-item">
+                        <dt class="target-profile-label">{{ fact.label }}</dt>
+                        <dd class="target-profile-value">{% if fact.meter %}<span class="hm-meter" aria-hidden="true">{% for on in fact.meter %}<i{% if on %} class="is-on"{% endif %}></i>{% endfor %}</span>{% endif %}{{ fact.value }}</dd>
+                    </div>
+                    {% endfor %}
                 </dl>
+                {# Prose beside the cell diagram, instead of a narrow column above it. #}
+                <div class="hov-pair">
+                {% if overview.subunit_text or overview.polymorphism_text %}
+                <div class="hov-prose">
                 {% if overview.subunit_text %}
                 <div class="cross-reference-group">
                     <h3 class="cross-reference-group-label">{% trans "Subunit structure" %}</h3>
@@ -143,8 +146,10 @@
                     <p class="human-text">{{ overview.polymorphism_text }}</p>
                 </div>
                 {% endif %}
+                </div>
+                {% endif %}
                 {% if overview.subcellular_locations %}
-                <div class="cross-reference-group">
+                <div class="cross-reference-group hov-cell">
                     <h3 class="cross-reference-group-label">{% trans "Subcellular location" %}</h3>
                     <div class="hc-layout">
                         {% include "human/_cell_diagram.html" with compartments=dossier.compartments %}
@@ -154,6 +159,7 @@
                     </div>
                 </div>
                 {% endif %}
+                </div>
                 {% if dossier.keyword_groups %}
                 <div class="cross-reference-group">
                     <h3 class="cross-reference-group-label">{% trans "Keywords" %}</h3>
@@ -221,7 +227,7 @@
                     </div>
                 </div>
                 {% if function.function_text %}
-                <p class="human-text">{{ function.function_text|linebreaksbr }}</p>
+                <p class="human-text human-text--columns">{{ function.function_text|linebreaksbr }}</p>
                 {% endif %}
                 {% if function.catalytic_activity or function.go_cards %}
                 <div class="annotation-panels">
@@ -435,10 +441,10 @@
                     </div>
                 </div>
                 {% if sequence.feature_lanes %}
-                <details class="data-details js-smooth-details" open>
-                    <summary>{% trans "Feature table" %}</summary>
+                <details class="data-details js-smooth-details">
+                    <summary>{% trans "Feature table" %} <span class="data-details-summary-meta">{{ sequence.feature_lanes|length }} {% trans "types" %}</span></summary>
                     <div class="table-shell tp-table-shell">
-                        <table class="table tp-table">
+                        <table class="table tp-table tp-table--compact">
                             <thead>
                             <tr>
                                 <th scope="col">{% trans "Type" %}</th>
@@ -681,8 +687,13 @@
 
                 <div class="human-expression-panel" data-expression-panel="system" role="tabpanel">
                     {% for group in expression.system_groups %}
-                    <div class="hx-group" id="hx-system-{{ group.slug }}">
-                        <h3 class="hx-group-title">{{ group.system }} <span class="tp-count">{{ group.rows|length }}</span></h3>
+                    <details class="hx-group js-smooth-details" id="hx-system-{{ group.slug }}"{% if group.top == expression.peak %} open{% endif %}>
+                        <summary class="hx-group-title">
+                            <span class="hx-group-name">{{ group.system }} <span class="tp-count">{{ group.rows|length }}</span></span>
+                            <span class="hx-group-top">{{ group.top.tissue|default:"—"|capfirst }}</span>
+                            <span class="hx-row-score">{{ group.max_score|floatformat:0 }}</span>
+                            <span class="hd-chevron" aria-hidden="true"></span>
+                        </summary>
                         <div class="hx-rows">
                             {% for row in group.rows|slice:":5" %}
                             <div class="hx-row{% if row == expression.peak %} is-peak{% endif %}{% if row.state == 'absent' %} is-absent{% endif %}">
@@ -706,7 +717,7 @@
                             </details>
                             {% endif %}
                         </div>
-                    </div>
+                    </details>
                     {% endfor %}
                 </div>
 
@@ -846,6 +857,6 @@
 
 {% block jsloaded %}
     <script src="{% static 'js/global/quick-nav.js' %}?v=20261022"></script>
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261022-dossier"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261022-wow"></script>
     <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261022-premium"></script>
 {% endblock %}

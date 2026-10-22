@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.views import View
 
 from human_target.services.human_disease_summary import build_human_disease_context
-from human_target.services.human_dossier import build_human_dossier
+from human_target.services.human_dossier import build_glance, build_human_dossier
 from human_target.services.human_expression_summary import build_human_expression_context
 from human_target.services.human_protein_summary import (
     build_human_function_context,
@@ -66,6 +66,10 @@ class HumanProteinView(PermissionLockedMixin, View):
                 disease.get("acronym") or "", 0
             )
 
+        pathways = build_human_pathway_context(human_protein)
+        structure = build_human_structure_context(bioentry)
+        glance = build_glance(dossier, diseases, structure, binders, expression, pathways)
+
         context = {
             "bioentry": bioentry,
             "human_protein": human_protein,
@@ -80,10 +84,11 @@ class HumanProteinView(PermissionLockedMixin, View):
             "diseases": diseases,
             "dossier": dossier,
             "expression": expression,
-            "pathways": build_human_pathway_context(human_protein),
+            "pathways": pathways,
+            "glance": glance,
             "sequence": sequence,
             "xrefs": build_human_xref_context(human_protein),
-            "structure": build_human_structure_context(bioentry),
+            "structure": structure,
             "binders": binders,
             "ec_badges": list(iter_protein_annotations(bioentry, "ec"))[:6],
             "go_badges": list(iter_protein_annotations(bioentry, "go"))[:6],

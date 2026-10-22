@@ -174,6 +174,7 @@
                 var group = document.getElementById("hx-system-" + tile.getAttribute("data-expression-system"));
                 if (!group) return;
                 showPanel("system");
+                group.open = true;
                 group.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
                 group.classList.add("is-flashed");
                 setTimeout(function () { group.classList.remove("is-flashed"); }, 1200);
@@ -426,7 +427,36 @@
         });
     }
 
+    // Hero "at a glance" numbers count up once on load (ease-out, ~0.9 s).
+    function initGlanceCountUp() {
+        var targets = document.querySelectorAll(".hg-glance [data-count]");
+        if (!targets.length) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var duration = 900;
+        var start = null;
+        var items = Array.prototype.map.call(targets, function (el) {
+            var raw = el.getAttribute("data-count");
+            var decimals = raw.indexOf(".") === -1 ? 0 : raw.split(".")[1].length;
+            el.textContent = (0).toFixed(decimals);
+            return { el: el, end: parseFloat(raw), decimals: decimals };
+        });
+        function frame(now) {
+            if (start === null) start = now;
+            var t = Math.min(1, (now - start) / duration);
+            var eased = 1 - Math.pow(1 - t, 3);
+            items.forEach(function (item) {
+                var value = item.end * eased;
+                item.el.textContent = item.decimals
+                    ? value.toFixed(item.decimals)
+                    : Math.round(value).toLocaleString("en-US");
+            });
+            if (t < 1) window.requestAnimationFrame(frame);
+        }
+        window.requestAnimationFrame(frame);
+    }
+
     ready(function () {
+        initGlanceCountUp();
         initCopySequence();
         initArchitectureMap();
         initDiseaseVariants();

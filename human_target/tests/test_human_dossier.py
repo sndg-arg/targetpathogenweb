@@ -129,3 +129,32 @@ class HumanDossierTests(SimpleTestCase):
         dossier = build_human_dossier(protein)
         self.assertEqual(dossier["variants"], [])
         self.assertIsNone(dossier["pdb_coverage"])
+
+
+class GlanceTests(SimpleTestCase):
+    def test_one_tile_per_kind_of_evidence_that_exists(self):
+        from human_target.services.human_dossier import build_glance
+
+        dossier = {
+            "pharmacology": {"drugs": [{"id": "DB1", "name": "A"}]},
+            "disease_variant_counts": {"GIST": 3},
+        }
+        tiles = build_glance(
+            dossier,
+            {"diseases": [{"name": "GIST"}]},
+            {"sub_tabs": [{"key": "alphafold", "count": 1}, {"key": "xray", "count": 4}]},
+            {"total": 0},
+            {"has_expression": True, "tau": 0.2, "specificity_label": "Broadly expressed"},
+            {"pathways": []},
+        )
+        self.assertEqual(
+            [(t["label"], t["value"]) for t in tiles],
+            [
+                ("Clinical precedent", 1),
+                ("Disease links", 1),
+                ("3D structures", 5),
+                ("Expression", "0.20"),
+            ],
+        )
+        self.assertEqual(tiles[1]["note"], "3 disease variants")
+        self.assertEqual(tiles[2]["note"], "4 experimental")

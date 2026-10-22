@@ -266,6 +266,79 @@ def compartments_for(locations):
     return found
 
 
+def build_glance(dossier, diseases, structure, binders, expression, pathways):
+    """The hero's "target at a glance" tiles: one per kind of evidence that
+    exists, each linking to its section. Values are plain numbers so the page
+    can count them up."""
+    tiles = []
+    drugs = len(dossier["pharmacology"]["drugs"])
+    if drugs:
+        tiles.append(
+            {
+                "label": "Clinical precedent",
+                "value": drugs,
+                "note": "DrugBank compound" + ("s" if drugs != 1 else ""),
+                "href": "#section-pharmacology",
+            }
+        )
+    disease_list = diseases.get("diseases") or []
+    if disease_list:
+        variants = sum(dossier["disease_variant_counts"].values())
+        tiles.append(
+            {
+                "label": "Disease links",
+                "value": len(disease_list),
+                "note": f"{variants} disease variant{'s' if variants != 1 else ''}"
+                if variants
+                else "UniProt curated",
+                "href": "#section-diseases",
+            }
+        )
+    tabs = structure.get("sub_tabs") or []
+    if tabs:
+        experimental = sum(tab["count"] for tab in tabs if tab["key"] in ("xray", "nmr"))
+        tiles.append(
+            {
+                "label": "3D structures",
+                "value": sum(tab["count"] for tab in tabs),
+                "note": f"{experimental} experimental" if experimental else "predicted models",
+                "href": "#section-structure",
+            }
+        )
+    total = binders.get("total") or 0
+    if total:
+        direct = (binders.get("summary") or {}).get("direct_count") or 0
+        tiles.append(
+            {
+                "label": "Ligand evidence",
+                "value": total,
+                "note": f"{direct} on this exact protein",
+                "href": "#section-binders",
+            }
+        )
+    if expression.get("has_expression") and expression.get("tau") is not None:
+        tiles.append(
+            {
+                "label": "Expression",
+                "value": f"{expression['tau']:.2f}",
+                "prefix": "τ ",
+                "note": expression["specificity_label"],
+                "href": "#section-expression",
+            }
+        )
+    pathway_list = pathways.get("pathways") or []
+    if pathway_list:
+        tiles.append(
+            {
+                "label": "Pathways",
+                "value": len(pathway_list),
+                "note": "KEGG pathway" + ("s" if len(pathway_list) != 1 else ""),
+                "href": "#section-pathways",
+            }
+        )
+    return tiles
+
+
 def build_human_dossier(human_protein):
     raw = human_protein.uniprot_raw or {}
     length = human_protein.sequence_length or len(human_protein.sequence or "")
