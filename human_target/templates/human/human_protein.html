@@ -12,7 +12,7 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-live">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261022-dossier2">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261022-prio">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -66,13 +66,12 @@
             </div>
             {% if glance %}
             {# Target at a glance: what kind of evidence exists, each tile a jump to its section. #}
-            <div class="hg-glance" aria-label="{% trans 'Target at a glance' %}">
+            {# Design-system Metrics, link variant: each pill jumps to its section. #}
+            <div class="tp-metrics protein-metrics human-glance" aria-label="{% trans 'Target at a glance' %}">
                 {% for tile in glance %}
-                <a class="hg-tile" href="{{ tile.href }}">
-                    <span class="hg-label">{{ tile.label }}</span>
-                    <span class="hg-value">{% if tile.prefix %}{{ tile.prefix }}{% endif %}<span data-count="{{ tile.value|unlocalize }}">{{ tile.value }}</span></span>
-                    <span class="hg-note">{{ tile.note }}</span>
-                    <span class="hg-arrow" aria-hidden="true">→</span>
+                <a class="metric-pill metric-pill--link" href="{{ tile.href }}" title="{{ tile.note }}">
+                    <span class="metric-label">{{ tile.label }}</span>
+                    <span class="metric-value">{% if tile.prefix %}{{ tile.prefix }}{% endif %}<span data-count="{{ tile.value|unlocalize }}">{{ tile.value }}</span> <span class="metric-pill-jump">{% trans "See evidence" %}</span></span>
                 </a>
                 {% endfor %}
             </div>
@@ -872,6 +871,6 @@
 
 {% block jsloaded %}
     <script src="{% static 'js/global/quick-nav.js' %}?v=20261022"></script>
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261022-wow"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261022-prio"></script>
     <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261022-premium"></script>
 {% endblock %}

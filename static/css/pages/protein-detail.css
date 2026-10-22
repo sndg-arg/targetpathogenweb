@@ -2145,3 +2145,179 @@ body.residue-modal-open {
     color: var(--tp-color-link-hover);
     text-decoration: underline;
 }
+
+/* ── Prioritization evidence: one block per question ─────────────────────
+   Head (question + verdict chip) beside its values; the left edge carries the
+   verdict tone, never a filled background. Structure and pockets get their own
+   block with a table per structure source. */
+.pe-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+    margin: 0 0 var(--tp-space-5);
+    padding: 0;
+    list-style: none;
+}
+
+.pe-summary-label {
+    color: var(--tp-color-text-muted);
+    font-weight: 600;
+}
+
+.pe-stack {
+    display: grid;
+    gap: var(--tp-space-4);
+}
+
+.pe-group {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    border: 1px solid var(--tp-color-border-soft);
+    border-left: 3px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface);
+    overflow: hidden;
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 72px);
+}
+
+.pe-group--success {
+    border-left-color: var(--tp-color-success-border);
+}
+
+.pe-group--warning {
+    border-left-color: var(--tp-color-warning-border);
+}
+
+.pe-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-4);
+    border-right: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-soft);
+}
+
+.pe-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2);
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-lg);
+    font-weight: 600;
+    letter-spacing: var(--tp-tracking-tight);
+}
+
+.pe-question {
+    margin: 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.4;
+}
+
+.pe-items {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    margin: 0;
+}
+
+.pe-item {
+    display: grid;
+    align-content: start;
+    gap: var(--tp-space-1);
+    min-width: 0;
+    padding: var(--tp-space-4);
+}
+
+.pe-item + .pe-item {
+    border-left: 1px solid var(--tp-color-border-soft);
+}
+
+.pe-item dd {
+    margin: 0;
+}
+
+.pe-value,
+.pe-score {
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-sm);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.pe-detail,
+.pe-note,
+.pe-cell-sub {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.4;
+}
+
+.pe-note,
+.pe-cell-sub {
+    display: block;
+    margin-top: var(--tp-space-1);
+}
+
+.pe-body {
+    min-width: 0;
+    padding: var(--tp-space-4);
+}
+
+.pe-body > .pe-note {
+    max-width: 90ch;
+    margin: 0 0 var(--tp-space-3);
+}
+
+.pe-table td {
+    vertical-align: top;
+}
+
+.pe-cell-title {
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+}
+
+.pe-mono {
+    font-family: var(--tp-font-mono);
+}
+
+.pe-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-1);
+}
+
+.pe-viewer-actions {
+    margin-top: var(--tp-space-3);
+}
+
+@media (max-width: 860px) {
+    .pe-group {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .pe-head {
+        border-right: 0;
+        border-bottom: 1px solid var(--tp-color-border-soft);
+    }
+
+    .pe-items {
+        grid-auto-flow: row;
+    }
+
+    .pe-item + .pe-item {
+        border-left: 0;
+        border-top: 1px solid var(--tp-color-border-soft);
+    }
+
+    .pe-table-shell {
+        overflow-x: auto;
+    }
+}

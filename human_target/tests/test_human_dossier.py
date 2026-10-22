@@ -150,10 +150,10 @@ class GlanceTests(SimpleTestCase):
         self.assertEqual(
             [(t["label"], t["value"]) for t in tiles],
             [
-                ("Clinical precedent", 1),
-                ("Disease links", 1),
+                ("DrugBank compounds", 1),
+                ("Diseases", 1),
                 ("3D structures", 5),
-                ("Expression", "0.20"),
+                ("Tissue specificity", "0.20"),
             ],
         )
         self.assertEqual(tiles[1]["note"], "3 disease variants")

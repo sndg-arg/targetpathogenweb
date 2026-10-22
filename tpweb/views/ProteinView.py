@@ -748,6 +748,7 @@ class ProteinView(View):
             "shared_sequence_evidence": shared_evidence,
             "shared_score_sources": shared_evidence.score_sources if shared_evidence else {},
             "target_profile": target_profile,
+            "prioritization": executive_context["prioritization"],
             "target_summary": target_summary,
             "score_breakdown": score_breakdown,
             "selected_pocket_evidence": selected_pocket_evidence,

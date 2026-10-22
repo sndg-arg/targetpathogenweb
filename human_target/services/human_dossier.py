@@ -275,7 +275,7 @@ def build_glance(dossier, diseases, structure, binders, expression, pathways):
     if drugs:
         tiles.append(
             {
-                "label": "Clinical precedent",
+                "label": "DrugBank compounds",
                 "value": drugs,
                 "note": "DrugBank compound" + ("s" if drugs != 1 else ""),
                 "href": "#section-pharmacology",
@@ -286,7 +286,7 @@ def build_glance(dossier, diseases, structure, binders, expression, pathways):
         variants = sum(dossier["disease_variant_counts"].values())
         tiles.append(
             {
-                "label": "Disease links",
+                "label": "Diseases",
                 "value": len(disease_list),
                 "note": f"{variants} disease variant{'s' if variants != 1 else ''}"
                 if variants
@@ -310,7 +310,7 @@ def build_glance(dossier, diseases, structure, binders, expression, pathways):
         direct = (binders.get("summary") or {}).get("direct_count") or 0
         tiles.append(
             {
-                "label": "Ligand evidence",
+                "label": "Ligand records",
                 "value": total,
                 "note": f"{direct} on this exact protein",
                 "href": "#section-binders",
@@ -319,7 +319,7 @@ def build_glance(dossier, diseases, structure, binders, expression, pathways):
     if expression.get("has_expression") and expression.get("tau") is not None:
         tiles.append(
             {
-                "label": "Expression",
+                "label": "Tissue specificity",
                 "value": f"{expression['tau']:.2f}",
                 "prefix": "τ ",
                 "note": expression["specificity_label"],
@@ -330,7 +330,7 @@ def build_glance(dossier, diseases, structure, binders, expression, pathways):
     if pathway_list:
         tiles.append(
             {
-                "label": "Pathways",
+                "label": "KEGG pathways",
                 "value": len(pathway_list),
                 "note": "KEGG pathway" + ("s" if len(pathway_list) != 1 else ""),
                 "href": "#section-pathways",

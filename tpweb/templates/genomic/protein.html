@@ -5,7 +5,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-live">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261022-human">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261022-prio">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -245,87 +245,81 @@
                         <p class="section-subtitle">{% trans "Selectivity, essentiality, structural confidence, conservation, and predicted binding-site evidence." %}</p>
                     </div>
                 </div>
-                <div class="target-profile-groups">
-                    {% regroup target_profile by category as profile_by_category %}
-                    {% for group in profile_by_category %}
-                    {% if group.grouper != "localization" %}
-                    <section class="target-profile-group">
-                    <h3 class="target-profile-group-label">
-                        {% if group.grouper == "off_target" %}{% trans "Off-target risk" %}
-                        {% elif group.grouper == "essentiality" %}{% trans "Essentiality" %}
-                        {% elif group.grouper == "structure" %}{% trans "Structure confidence" %}
-                        {% else %}{{ group.grouper }}{% endif %}
-                    </h3>
-                    <dl class="target-profile-group-grid">
-                    {% for item in group.list %}
-                    <div class="target-profile-item target-profile-item--{{ item.tone }}"{% if item.tooltip %} title="{{ item.tooltip }}"{% endif %}>
-                        <dt class="target-profile-label">{{ item.label }}{% with src=shared_score_sources|dictkey:item.key %}{% if src %} <span class="shared-value-source" title="{% trans 'Read from the identical protein in this strain' %}">{% blocktrans %}from {{ src }}{% endblocktrans %}</span>{% endif %}{% endwith %}</dt>
-                        {% if item.key == "human_identity" or item.key == "deg_identity" or item.key == "colabfold_plddt" %}
-                        <dd class="target-profile-value">
-                            {{ item.value }}
-                            <span class="target-profile-bar" aria-hidden="true"><span class="target-profile-bar-fill" style="width: {{ item.value }}%;"></span></span>
-                            {% if item.key == "human_identity" %}
-                            <span class="target-profile-scale">{% trans "Lower values reduce human off-target concern." %}</span>
-                            {% elif item.key == "deg_identity" %}
-                            <span class="target-profile-scale">{% trans "Higher values support similarity to known essential genes." %}</span>
-                            {% elif item.key == "colabfold_plddt" %}
-                            <span class="target-profile-scale">{% trans "0-100 confidence; >70 supports local structural interpretation." %}</span>
-                            {% endif %}
-                        </dd>
-                        {% elif item.display_kind == "prevalence" %}
-                        <dd class="target-profile-value">
-                            {{ item.value }}
-                            <span class="target-profile-bar" aria-hidden="true"><span class="target-profile-bar-fill" style="width: {{ item.percentage }}%;"></span></span>
-                            <span class="target-profile-scale">{% trans "Lower prevalence suggests narrower overlap with the screened gut microbiome." %}</span>
-                        </dd>
-                        {% elif item.tone == "good" or item.tone == "bad" %}
-                        <dd class="target-profile-value">
-                            {# Same tones as the protein table: an off-target hit is a risk (red); a gene #}
-                            {# that is not essential is just "No" (neutral), not an alarm. #}
-                            <span class="tp-chip{% if item.tone == 'good' %} tp-chip--success{% elif item.key != 'hit_in_deg' %} tp-chip--danger{% endif %}">
-                                {% if item.tone == "good" %}
-                                {% include "components/icons/check.html" %}
-                                {% elif item.key != "hit_in_deg" %}
-                                <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L13.8 12.5H2.2L8 2.5Z"/><line x1="8" y1="6.3" x2="8" y2="9"/><circle cx="8" cy="10.6" r="0.6" fill="currentColor" stroke="none"/></svg>
-                                {% endif %}
-                                {{ item.value|capfirst }}
-                            </span>
-                        </dd>
-                        {% else %}
-                        <dd class="target-profile-value">
-                            {{ item.value }}
-                            {% if item.key == "deg_evalue" %}
-                            <span class="target-profile-scale">{% trans "Smaller values mean stronger essential-gene similarity." %}</span>
-                            {% endif %}
-                        </dd>
-                        {% endif %}
-                    </div>
+                {% if prioritization %}
+                {# One block per question, each with its verdict; structure and pockets kept apart. #}
+                <ul class="pe-summary" aria-label="{% trans 'Verdicts' %}">
+                    {% for verdict in prioritization.summary %}
+                    <li class="tp-chip{% if verdict.tone == 'success' %} tp-chip--success{% elif verdict.tone == 'warning' %} tp-chip--warning{% elif verdict.tone == 'danger' %} tp-chip--danger{% endif %}"><span class="pe-summary-label">{{ verdict.label }}</span> {{ verdict.value }}</li>
                     {% endfor %}
-                    </dl>
+                </ul>
+                <div class="pe-stack">
+                    {% for group in prioritization.groups %}
+                    <section class="pe-group pe-group--{{ group.tone }}" id="pe-{{ group.key }}">
+                        <header class="pe-head">
+                            <h3 class="pe-title">{{ group.title }}{% if group.badge %} <span class="tp-chip">{% if gates_viewer %}{% trans "Gates curated" %}{% else %}{{ group.badge }}{% endif %}</span>{% endif %}</h3>
+                            <p class="pe-question">{{ group.question }}</p>
+                            <span class="tp-chip pe-verdict{% if group.tone == 'success' %} tp-chip--success{% elif group.tone == 'warning' %} tp-chip--warning{% elif group.tone == 'danger' %} tp-chip--danger{% endif %}">{{ group.verdict }}</span>
+                        </header>
+                        <dl class="pe-items">
+                            {% for item in group.items %}
+                            <div class="pe-item"{% if item.tooltip %} title="{{ item.tooltip }}"{% endif %}>
+                                <dt class="target-profile-label">{{ item.label }}{% if item.key %}{% with src=shared_score_sources|dictkey:item.key %}{% if src %} <span class="shared-value-source" title="{% trans 'Read from the identical protein in this strain' %}">{% blocktrans %}from {{ src }}{% endblocktrans %}</span>{% endif %}{% endwith %}{% endif %}</dt>
+                                <dd>
+                                    {% if item.kind == "chip" %}
+                                    <span class="tp-chip{% if item.tone == 'success' %} tp-chip--success{% elif item.tone == 'warning' %} tp-chip--warning{% elif item.tone == 'danger' %} tp-chip--danger{% endif %}">{{ item.value }}</span>
+                                    {% else %}
+                                    <span class="pe-value">{{ item.value }}</span>{% if item.detail %} <span class="pe-detail">{{ item.detail }}</span>{% endif %}
+                                    {% if item.kind == "bar" %}<span class="target-profile-bar" aria-hidden="true"><span class="target-profile-bar-fill" style="width: {{ item.percent }}%;"></span></span>{% endif %}
+                                    {% endif %}
+                                    {% if item.note %}<span class="pe-note">{{ item.note }}</span>{% endif %}
+                                </dd>
+                            </div>
+                            {% endfor %}
+                        </dl>
                     </section>
-                    {% endif %}
                     {% endfor %}
-                </div>
 
-                {% if selected_pocket_evidence %}
-                <div class="target-evidence-block" id="binding-site-evidence">
-                    <div class="target-evidence-head">
-                        <h3>{% trans "Binding-site evidence" %}</h3>
-                        {% if selected_pocket_evidence.selected_source_kind %}<span class="tp-chip">{{ selected_pocket_evidence.selected_source_kind }}</span>{% endif %}
-                    </div>
-                    <p class="target-evidence-note">{% trans "Two independent tools estimate pocket quality on the 3D structure: FPocket (druggability, 0–1) and P2Rank (binding-site probability, 0–1). Neither is experimental binding evidence. The 3D viewer may show a different structure, so its pockets can differ." %}</p>
-                    <div class="target-evidence-grid">
-                        {% trans "P2Rank is a machine-learning predictor of ligand-binding sites. Probability 0-1; higher values support the pocket hypothesis but do not prove binding." as p2rank_tooltip %}
-                        {% trans "Structure used to compute this P2Rank score" as p2rank_structure_tooltip %}
-                        {% trans "Best-ranked pocket identifier from P2Rank" as p2rank_pocket_tooltip %}
-                        {% trans "Binding-site probability (P2Rank)" as p2rank_label %}
-                        {% include "components/structure/pocket_evidence_card.html" with tool_key="p2rank" shared_from=shared_score_sources.p2rank_probability tool_label=p2rank_label tool_tooltip=p2rank_tooltip score=selected_pocket_evidence.p2rank.score structure=selected_pocket_evidence.p2rank.structure pocket=selected_pocket_evidence.p2rank.pocket structure_tooltip=p2rank_structure_tooltip pocket_tooltip=p2rank_pocket_tooltip %}
-
-                        {% trans "FPocket predicts geometric cavities on a 3D structure. Score 0-1; higher values suggest a better small-molecule pocket but do not prove binding." as fpocket_tooltip %}
-                        {% trans "Structure used to compute this FPocket score" as fpocket_structure_tooltip %}
-                        {% trans "Best-ranked pocket identifier from FPocket" as fpocket_pocket_tooltip %}
-                        {% trans "Druggability (FPocket)" as fpocket_label %}
-                        {% include "components/structure/pocket_evidence_card.html" with tool_key="fpocket" shared_from=shared_score_sources.Druggability tool_label=fpocket_label tool_tooltip=fpocket_tooltip score=selected_pocket_evidence.fpocket.score structure=selected_pocket_evidence.fpocket.structure pocket=selected_pocket_evidence.fpocket.pocket structure_tooltip=fpocket_structure_tooltip pocket_tooltip=fpocket_pocket_tooltip %}
+                    {% with st=prioritization.structure %}{% if st %}
+                    <section class="pe-group pe-group--{{ st.tone }}" id="binding-site-evidence">
+                        <header class="pe-head">
+                            <h3 class="pe-title">{% trans "Structure and pockets" %}</h3>
+                            <p class="pe-question">{% trans "Is there a cavity a small molecule could bind?" %}</p>
+                            <span class="tp-chip pe-verdict{% if st.tone == 'success' %} tp-chip--success{% elif st.tone == 'warning' %} tp-chip--warning{% elif st.tone == 'danger' %} tp-chip--danger{% endif %}">{{ st.verdict }}</span>
+                        </header>
+                        <div class="pe-body">
+                            <p class="pe-note">{% trans "Best pocket each tool finds on each structure. FPocket scores druggability and P2Rank binding-site probability, both 0–1. Neither is experimental binding evidence; the 3D viewer may show a different structure." %}</p>
+                            {% if st.rows %}
+                            <div class="tp-table-shell pe-table-shell">
+                                <table class="table tp-table tp-table--compact pe-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">{% trans "Structure" %}</th>
+                                            <th scope="col">{% trans "Model confidence" %}</th>
+                                            <th scope="col">{% trans "Best pocket · P2Rank" %}</th>
+                                            <th scope="col">{% trans "Best pocket · FPocket" %}</th>
+                                            <th scope="col">{% trans "Checks" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in st.rows %}
+                                        <tr>
+                                            <td><strong class="pe-cell-title">{{ row.name }}</strong>{% for code in row.ids %}<span class="pe-cell-sub pe-mono">{{ code }}</span>{% endfor %}</td>
+                                            <td>{% if row.plddt %}<span class="pe-score">{{ row.plddt }}</span><span class="pe-cell-sub">{% trans "pLDDT, 0–100" %}</span>{% else %}<span class="metric-na">—</span><span class="pe-cell-sub">{% trans "Not loaded" %}</span>{% endif %}</td>
+                                            <td>{% if row.p2rank.score %}<span class="pe-score">{{ row.p2rank.score }}</span><span class="pe-cell-sub">{{ row.p2rank.pocket|default:"" }}{% if row.is_selected and shared_score_sources.p2rank_probability %} · {% blocktrans with src=shared_score_sources.p2rank_probability %}from {{ src }}{% endblocktrans %}{% endif %}</span>{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                            <td>{% if row.fpocket.score %}<span class="pe-score">{{ row.fpocket.score }}</span><span class="pe-cell-sub">{{ row.fpocket.pocket|default:"" }}{% if row.is_selected and shared_score_sources.Druggability %} · {% blocktrans with src=shared_score_sources.Druggability %}from {{ src }}{% endblocktrans %}{% endif %}</span>{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                            <td class="pe-checks">
+                                                {% if row.consensus == "agree" %}<span class="tp-chip tp-chip--success">{% trans "Tools agree on the site" %}</span>{% elif row.consensus == "differ" %}<span class="tp-chip tp-chip--warning">{% trans "Top pockets differ" %}</span>{% endif %}
+                                                {% if row.outlier %}<span class="tp-chip tp-chip--warning" title="{% trans 'This pocket is unusually large or diffuse compared with the protein’s other pockets; it may reflect a low-confidence model region.' %}">{% trans "Unusually large pocket" %}</span>{% endif %}
+                                                {% if not row.consensus and not row.outlier %}<span class="metric-na">—</span>{% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% endif %}
+                            {% if selected_pocket_evidence %}
+                            <div class="target-evidence-grid pe-viewer-actions">
                         {% if selected_pocket_evidence.fpocket.viewer_pdb_id and not selected_pocket_evidence.selected_source_visible %}
                         {# The best FPocket pocket can sit on a structure other than the one #}
                         {# shown below (that one is picked by sequence coverage) -- give a #}
@@ -344,119 +338,30 @@
                             </a>
                         </div>
                         {% endif %}
-                        {% if selected_pocket_evidence.colabfold.fpocket_score or selected_pocket_evidence.colabfold.p2rank_score %}
-                        <div class="target-evidence-card target-evidence-card--secondary" title="{% trans "Pocket scores computed on the ColabFold-predicted model. Compare with the selected scores above to assess consistency across structure sources." %}">
-                            <span class="target-evidence-label">{% trans "ColabFold model" %}</span>
-                            <div class="target-evidence-meta target-evidence-meta--top">
-                                {% if selected_pocket_evidence.colabfold.p2rank_score %}
-                                <div class="target-evidence-meta-row">
-                                    <span class="target-evidence-meta-key" title="{% trans "P2Rank binding site probability on the ColabFold model" %}">P2Rank</span>
-                                    <span class="target-evidence-meta-val"><strong>{{ selected_pocket_evidence.colabfold.p2rank_score }}</strong>{% if selected_pocket_evidence.colabfold.p2rank_pocket %} &middot; {{ selected_pocket_evidence.colabfold.p2rank_pocket }}{% endif %}</span>
-                                </div>
-                                {% endif %}
-                                {% if selected_pocket_evidence.colabfold.fpocket_score %}
-                                <div class="target-evidence-meta-row">
-                                    <span class="target-evidence-meta-key" title="{% trans "FPocket druggability score on the ColabFold model" %}">FPocket</span>
-                                    <span class="target-evidence-meta-val"><strong>{{ selected_pocket_evidence.colabfold.fpocket_score }}</strong>{% if selected_pocket_evidence.colabfold.fpocket_pocket %} &middot; {{ selected_pocket_evidence.colabfold.fpocket_pocket }}{% endif %}</span>
-                                </div>
-                                {% endif %}
                             </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
+                    </section>
+                    {% endif %}{% endwith %}
 
-                {% if conservation_profile or microbiome_context or score_breakdown %}
-                <div class="target-evidence-grid target-evidence-grid--compact">
                     {% if score_breakdown %}
-                    <div class="target-evidence-card" title="{% trans "Composite score under the active score formula, combining every weighted signal below (including off-target risk) into one number." %}">
-                        <span class="target-evidence-label">{% trans "Composite score" %}</span>
-                        <strong class="target-evidence-value">{{ score_breakdown.score }}</strong>
-                        <span class="target-evidence-subtext">{{ score_breakdown.formula_name }}</span>
-                        {% if score_breakdown.top_factors %}
-                        <div class="target-evidence-meta target-evidence-meta--top">
+                    <section class="pe-group pe-group--idle" id="pe-score" title="{% trans 'Composite score under the active score formula, combining every weighted signal into one number.' %}">
+                        <header class="pe-head">
+                            <h3 class="pe-title">{% trans "Composite score" %}</h3>
+                            <p class="pe-question">{{ score_breakdown.formula_name }}</p>
+                            <span class="tp-chip pe-verdict">{{ score_breakdown.score }}</span>
+                        </header>
+                        <dl class="pe-items">
                             {% for factor in score_breakdown.top_factors %}
-                            <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key"{% if factor.is_off_target %} title="{% trans "Off-target signal" %}"{% endif %}>{{ factor.name }}</span>
-                                <span class="target-evidence-meta-val">{% if factor.contribution >= 0 %}+{% endif %}{{ factor.contribution }}</span>
+                            <div class="pe-item">
+                                <dt class="target-profile-label">{{ factor.name }}</dt>
+                                <dd><span class="pe-value">{% if factor.contribution >= 0 %}+{% endif %}{{ factor.contribution }}</span>{% if factor.is_off_target %}<span class="pe-note">{% trans "Off-target signal" %}</span>{% endif %}</dd>
                             </div>
+                            {% empty %}
+                            <div class="pe-item"><dd><span class="pe-note">{% trans "This formula uses a custom expression; no per-factor breakdown is available." %}</span></dd></div>
                             {% endfor %}
-                        </div>
-                        {% elif not score_breakdown.has_breakdown %}
-                        <span class="target-evidence-subtext">{% trans "This formula uses a custom expression; no per-factor breakdown is available." %}</span>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                    {% if conservation_profile %}
-                    <div class="target-evidence-card" title="{% trans "Conservation across the strains analyzed for this species. A gene is flagged as core only when both Roary and CoreCruncher agree." %}">
-                        <span class="target-evidence-label">{% trans "Core conservation" %}{% with src=shared_score_sources|dictkey:"core_roary" %}{% if src %} <span class="shared-value-source" title="{% trans 'Read from the identical protein in this strain' %}">{% blocktrans %}from {{ src }}{% endblocktrans %}</span>{% endif %}{% endwith %}</span>
-                        {% if conservation_profile.is_core %}
-                        <span class="tp-chip tp-chip--success">
-                            {% include "components/icons/check.html" %}
-                            {% trans "Conserved core gene" %}
-                        </span>
-                        {% else %}
-                        <span class="tp-chip" title="{% trans 'Not present in all analyzed genomes. Found only in a subset of strains — may be plasmid-borne, mobile element, or strain-specific acquisition.' %}">{% trans "Accessory gene" %}</span>
-                        {% endif %}
-                        <div class="target-evidence-meta target-evidence-meta--top">
-                            <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key" title="{% trans "Pan-genome analysis by Roary. 'core' = present in ≥99% of analyzed genomes." %}">Roary</span>
-                                <span class="target-evidence-meta-val">{{ conservation_profile.roary_label }}</span>
-                            </div>
-                            <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key" title="{% trans "Stricter core-genome detection by CoreCruncher, adding phylogenetic evidence." %}">CoreCruncher</span>
-                                <span class="target-evidence-meta-val">{{ conservation_profile.corecruncher_label }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% if gates_metabolic_priority %}
-                    <div class="target-evidence-card" title="{{ gates_metabolic_priority.help.card }}">
-                        <span class="target-evidence-label">{% trans "Metabolic priority" %} <span class="tp-chip">{% if gates_viewer %}{% trans "Gates curated" %}{% else %}{% trans "curated" %}{% endif %}</span></span>
-                        <span class="tp-chip{% if gates_metabolic_priority.tone == 'success' %} tp-chip--success{% elif gates_metabolic_priority.tone == 'warning' %} tp-chip--warning{% endif %}" title="{{ gates_metabolic_priority.help.priority }}">{{ gates_metabolic_priority.priority }}</span>
-                        {% if gates_metabolic_priority.quadrant %}
-                        <span class="target-evidence-subtext" title="{{ gates_metabolic_priority.help.quadrant }}">{{ gates_metabolic_priority.quadrant }}</span>
-                        {% endif %}
-                        <div class="target-evidence-meta target-evidence-meta--top">
-                            <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key" title="{{ gates_metabolic_priority.help.S_gene }}">{% trans "Gene support" %}</span>
-                                <span class="target-evidence-meta-val">{{ gates_metabolic_priority.s_gene|default:"—" }}</span>
-                            </div>
-                            <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key" title="{{ gates_metabolic_priority.help.reaction_support }}">{% trans "Reaction support" %}</span>
-                                <span class="target-evidence-meta-val">{{ gates_metabolic_priority.reaction_support|default:"—" }}</span>
-                            </div>
-                            <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key" title="{{ gates_metabolic_priority.help.n_reactions }}">{% trans "Reactions" %}</span>
-                                <span class="target-evidence-meta-val">{{ gates_metabolic_priority.n_reactions|default:"—" }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% if microbiome_context %}
-                    <div class="target-evidence-card" title="{% if microbiome_context.total %}{% blocktrans with total=microbiome_context.total %}Sequence similarity to {{ total }} gut microbiome reference genomes. Fewer hits mean less risk of affecting commensal bacteria.{% endblocktrans %}{% else %}{% trans "Sequence similarity to gut microbiome reference genomes. Fewer hits mean less risk of affecting commensal bacteria." %}{% endif %}">
-                        <span class="target-evidence-label">{% trans "Gut microbiome" %}</span>
-                        {% if microbiome_context.count or microbiome_context.total %}
-                        <strong class="target-evidence-value">{{ microbiome_context.count|default:"0" }}<span class="target-evidence-value-denom"> / {{ microbiome_context.total }}</span></strong>
-                        <span class="target-evidence-subtext">{% trans "genomes with a hit" %}</span>
-                        {% endif %}
-                        {% if microbiome_context.percentage is not None %}
-                        <div class="target-evidence-meta">
-                            <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key" title="{% trans "Percentage of screened genomes with a significant sequence-similarity hit. Lower values mean fewer gut microbiome matches." %}">{% trans "Prevalence" %}</span>
-                                <span class="target-evidence-meta-val">{{ microbiome_context.percentage }}%</span>
-                            </div>
-                        </div>
-                        {% elif microbiome_context.norm %}
-                        <div class="target-evidence-meta">
-                            <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key">{% trans "Normalized fraction" %}</span>
-                                <span class="target-evidence-meta-val">{{ microbiome_context.norm }}</span>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
+                        </dl>
+                    </section>
                     {% endif %}
                 </div>
                 {% endif %}

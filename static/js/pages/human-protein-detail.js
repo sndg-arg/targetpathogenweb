@@ -429,7 +429,7 @@
 
     // Hero "at a glance" numbers count up once on load (ease-out, ~0.9 s).
     function initGlanceCountUp() {
-        var targets = document.querySelectorAll(".hg-glance [data-count]");
+        var targets = document.querySelectorAll(".human-glance [data-count]");
         if (!targets.length) return;
         if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
         var duration = 900;

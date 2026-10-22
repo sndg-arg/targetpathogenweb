@@ -112,78 +112,6 @@
     margin-top: var(--tp-space-2);
 }
 
-/* ── Hero: target at a glance ─────────────────────────────────────────── */
-/* Hairline-divided tiles, each a jump to its section; numbers count up. */
-.hg-glance {
-    display: flex;
-    flex-wrap: wrap;
-    row-gap: var(--tp-space-4);
-    margin: var(--tp-space-5) 0 0 calc(-1 * var(--tp-space-5));
-    overflow: hidden;
-}
-
-.hg-tile {
-    position: relative;
-    flex: 1 1 150px;
-    display: grid;
-    align-content: start;
-    gap: 2px;
-    margin-left: -1px;
-    padding: var(--tp-space-1) var(--tp-space-6) var(--tp-space-1) var(--tp-space-5);
-    border-left: 1px solid var(--tp-color-border-soft);
-    color: inherit;
-    text-decoration: none;
-}
-
-.hg-label {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-}
-
-.hg-value {
-    color: var(--tp-color-text-primary);
-    font-family: var(--tp-font-head);
-    font-size: clamp(1.6rem, 1.1rem + 1.2vw, 2.2rem);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: var(--tp-tracking-tight);
-    line-height: 1.15;
-}
-
-.hg-note {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-}
-
-.hg-arrow {
-    position: absolute;
-    top: var(--tp-space-1);
-    right: var(--tp-space-3);
-    color: var(--tp-color-link);
-    opacity: 0;
-    transform: translateX(-4px);
-    transition:
-        opacity var(--tp-ui-motion-fast) var(--human-ease),
-        transform var(--tp-ui-motion-base) var(--human-ease);
-}
-
-.hg-tile:hover .hg-value {
-    color: var(--human-accent);
-}
-
-.hg-tile:hover .hg-arrow,
-.hg-tile:focus-visible .hg-arrow {
-    opacity: 1;
-    transform: none;
-}
-
-.hg-tile:focus-visible {
-    outline: none;
-    box-shadow: var(--tp-focus-outline);
-}
 
 /* ── Overview layout: prose beside the cell diagram ──────────────────── */
 .hov-pair {
@@ -1099,14 +1027,9 @@
 }
 
 @media (max-width: 700px) {
-    .hg-glance {
-        margin-left: calc(-1 * var(--tp-space-4));
-    }
 
-    .hg-tile {
-        flex-basis: 130px;
-        padding: var(--tp-space-1) var(--tp-space-4);
-    }
+
+
 
     .hc-layout,
     .hk-group {
@@ -1442,7 +1365,8 @@
     margin: var(--tp-space-2) 0 var(--tp-space-1);
     color: var(--tp-color-text-primary);
     font-family: var(--tp-font-head);
-    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.3rem);
+    /* Design "Subtitle" size: never larger than the section title. */
+    font-size: var(--tp-font-size-lg);
     font-weight: 600;
     letter-spacing: var(--tp-tracking-tight);
     line-height: 1.1;
@@ -1489,7 +1413,7 @@
 .hx-fact-value {
     color: var(--tp-color-text-primary);
     font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-lg);
+    font-size: var(--tp-font-size-md);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
 }
@@ -1952,7 +1876,6 @@
     .hd-chevron,
     .ta-row,
     .ta-link span,
-    .hg-arrow,
     .hx-group-title,
     .hc-part,
     .hph-link,
