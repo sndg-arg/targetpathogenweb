@@ -284,13 +284,14 @@ class RunRemoteColabfoldJobBatchTests(unittest.TestCase):
 
 
 class RunRemoteColabfoldBatchSwitchTests(unittest.TestCase):
-    def _run(self, batch_size, batch_result=None):
+    def _run(self, batch_size, batch_result=None, reused=()):
         candidates = [("P1", "A" * 10), ("P2", "A" * 20)]
         with (
             mock.patch.object(
                 cfr, "_build_colabfold_config", return_value=_config(batch_size=batch_size)
             ),
             mock.patch.object(cfr, "_find_candidates", return_value=candidates),
+            mock.patch.object(cfr, "reusable_loci", return_value=set(reused)),
             mock.patch.object(cfr, "_assert_ssh_reachable"),
             mock.patch.object(
                 cfr, "_recover_remote_outputs", side_effect=lambda c, f, g, cands: cands
@@ -309,6 +310,12 @@ class RunRemoteColabfoldBatchSwitchTests(unittest.TestCase):
         batched.assert_not_called()
         self.assertEqual(per_protein.call_count, 2)
         self.assertEqual(predicted, 2)
+
+    def test_proteins_with_a_structured_identical_curated_copy_are_not_predicted(self):
+        predicted, _, per_protein = self._run(batch_size=1, reused={"P1"})
+
+        self.assertEqual([c.args[1] for c in per_protein.call_args_list], ["P2"])
+        self.assertEqual(predicted, 1)
 
     def test_batch_leftovers_go_through_the_per_protein_pass(self):
         predicted, batched, per_protein = self._run(

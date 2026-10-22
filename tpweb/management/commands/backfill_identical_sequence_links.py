@@ -46,8 +46,6 @@ def _link_new_strain_sequences(biodatabase, strain_label):
         bioentry__isnull=False,
     ).select_related("bioentry__seq")
     index = _sequence_group_index((m.group_id, m.bioentry.seq.seq) for m in members)
-    if not index:
-        return 0
     linked = 0
     with transaction.atomic():
         for protein in Bioentry.objects.filter(biodatabase=biodatabase).select_related("seq"):
@@ -68,6 +66,75 @@ def _link_new_strain_sequences(biodatabase, strain_label):
                 linked += 1
             elif created:
                 linked += 1
+        linked += _group_with_ungrouped_curated(biodatabase, strain_label)
+    return linked
+
+
+def _normalized(sequence):
+    return str(sequence or "").strip().upper().rstrip("*")
+
+
+def _group_with_ungrouped_curated(biodatabase, strain_label):
+    """A curated protein that Sol's table left out of every group (no copy in
+    the other original strains) can still have an identical copy in a new
+    strain: start a group for the pair, matched by exact sequence."""
+    from tpweb.models import IdenticalSequenceGroup
+    from tpweb.services.shared_sequence_evidence import CURATED_STRAINS
+
+    curated_labels = {}
+    for database_id, label in (
+        IdenticalSequenceMember.objects.filter(
+            strain_label__in=CURATED_STRAINS, bioentry__isnull=False
+        )
+        .order_by()
+        .values_list("bioentry__biodatabase_id", "strain_label")
+        .distinct()
+    ):
+        curated_labels.setdefault(database_id, set()).add(label)
+    curated_labels = {db: labels.pop() for db, labels in curated_labels.items() if len(labels) == 1}
+    curated_labels.pop(biodatabase.pk, None)
+    if not curated_labels:
+        return 0
+    taken = set(IdenticalSequenceMember.objects.values_list("strain_label", "locus_tag"))
+    ungrouped = {}
+    for pk, accession, database_id, sequence in (
+        Bioentry.objects.filter(biodatabase_id__in=curated_labels)
+        .exclude(identical_sequence_memberships__isnull=False)
+        .values_list("pk", "accession", "biodatabase_id", "seq__seq")
+    ):
+        sequence = _normalized(sequence)
+        if sequence and (curated_labels[database_id], accession) not in taken:
+            ungrouped.setdefault(sequence, []).append((pk, accession, curated_labels[database_id]))
+    linked = 0
+    groups = {}
+    for protein in (
+        Bioentry.objects.filter(biodatabase=biodatabase)
+        .exclude(identical_sequence_memberships__isnull=False)
+        .select_related("seq")
+    ):
+        sequence = _normalized(protein.seq.seq)
+        if not sequence or (strain_label, protein.accession) in taken:
+            continue
+        if sequence not in groups:
+            curated = ungrouped.get(sequence)
+            if not curated:
+                continue
+            group = IdenticalSequenceGroup.objects.create(source_note="exact sequence match")
+            IdenticalSequenceMember.objects.bulk_create(
+                IdenticalSequenceMember(
+                    group=group, strain_label=label, locus_tag=accession, bioentry_id=pk
+                )
+                for pk, accession, label in curated
+            )
+            groups[sequence] = group
+        IdenticalSequenceMember.objects.create(
+            group=groups[sequence],
+            strain_label=strain_label,
+            locus_tag=protein.accession,
+            bioentry=protein,
+        )
+        taken.add((strain_label, protein.accession))
+        linked += 1
     return linked
 
 

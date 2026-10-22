@@ -340,3 +340,43 @@ def get_binders_cmd(working_dir, genome):
 
 def load_binders_cmd(working_dir, genome):
     return f"{PYTHON_BIN} {working_dir}/manage.py load_binders {genome} --datadir {_data_dir(working_dir)}"
+
+
+# --- Completion steps: fill evidence the main loaders can miss ---
+# Each one only adds what is missing and leaves loaded values alone, so they are
+# safe on any genome and on re-runs. They were manual recoveries for VA569.
+
+
+def genbank_ec_cmd(working_dir, genome, folder_path):
+    gbk_path = os.path.join(folder_path, f"{genome}.gbk.gz")
+    return f"{PYTHON_BIN} {working_dir}/manage.py load_genbank_ec {genome} --genbank {gbk_path} --apply"
+
+
+def microbiome_counts_cmd(working_dir, genome):
+    """Counts plus their normalization; counts alone when the companion tables
+    are missing or incomplete."""
+    base = (
+        f"{PYTHON_BIN} {working_dir}/manage.py recover_microbiome_counts {genome}"
+        f" --apply --datadir {_data_dir(working_dir)}"
+    )
+    return f"{base} --include-normalization || {base}"
+
+
+def experimental_by_sequence_cmd(working_dir, genome):
+    """UniProt/PDB links by exact sequence, for proteins the UniProt mapping missed."""
+    return (
+        f"{PYTHON_BIN} {working_dir}/scripts/recover_experimental_by_sequence.py {genome}"
+        f" --datadir {_data_dir(working_dir)}"
+    )
+
+
+def cached_annotations_cmd(working_dir, genome):
+    """EC/GO from the UniProt entries the sequence recovery downloaded."""
+    return (
+        f"{PYTHON_BIN} {working_dir}/manage.py recover_cached_functional_annotations {genome}"
+        f" --datadir {_data_dir(working_dir)} --apply"
+    )
+
+
+def binder_directness_cmd(working_dir, genome):
+    return f"{PYTHON_BIN} {working_dir}/manage.py recompute_binder_directness {genome}"

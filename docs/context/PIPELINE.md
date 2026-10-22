@@ -35,5 +35,15 @@ Moved out of `CLAUDE.md` so it only loads when needed.
 5. psort → load_score
 6. get_binders → load_binders
 
+Completion steps (non-fatal, recorded as `info` if they fail; each only fills what is missing):
+GenBank EC after stage 3, microbiome counts/normalization after 6, UniProt/PDB by exact sequence
+plus cached EC/GO after 13, binder directness after 24 — the manual VA569 recoveries.
+
+## Identical curated copies
+Stage 3 links each protein to an identical KP13/KPATCC protein (Sol's groups, or a new
+exact-sequence group). Stages 16 (ColabFold), 17 (pockets) and 24 (LigQ_2) then skip proteins whose
+public curated copy already has that evidence; the page reads it live. Metabolism is never shared.
+`TPW_REUSE_IDENTICAL_EVIDENCE=0` recomputes everything.
+
 ## PSORTb
 Runs via Docker-in-Docker (`/var/run/docker.sock` mounted). Has fallback to `tpweb_psort_fallback` management command when Docker is unavailable.

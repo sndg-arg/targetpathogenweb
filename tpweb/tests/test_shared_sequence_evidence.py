@@ -455,6 +455,42 @@ class SharedSequenceEvidenceTests(TestCase):
         self.assertEqual(list(protein.score_params.all())[0].pk, original.pk)
         self.assertEqual(_link_new_strain_sequences(new.biodatabase, "NEW_STRAIN"), 0)
 
+    def test_new_strain_starts_a_group_with_an_ungrouped_curated_protein(self):
+        from tpweb.management.commands.backfill_identical_sequence_links import (
+            _link_new_strain_sequences,
+        )
+
+        lone = self.protein("KP13", "KP13_2")
+        IdenticalSequenceMember.objects.filter(bioentry=lone).delete()
+        for protein in (self.curated, self.target):
+            sequence = protein.seq
+            sequence.seq = "MXX"
+            sequence.save()
+        new = self.protein("NEW_STRAIN", "NEW_1")
+        IdenticalSequenceMember.objects.filter(bioentry=new).delete()
+        self.assertEqual(_link_new_strain_sequences(new.biodatabase, "NEW_STRAIN"), 1)
+        member = IdenticalSequenceMember.objects.get(bioentry=new)
+        self.assertEqual(
+            set(member.group.members.values_list("strain_label", "locus_tag")),
+            {("KP13", "KP13_2"), ("NEW_STRAIN", "NEW_1")},
+        )
+        self.assertEqual(_link_new_strain_sequences(new.biodatabase, "NEW_STRAIN"), 0)
+
+    def test_pipeline_reuses_only_evidence_the_curated_copy_has(self):
+        from tpweb.services.shared_sequence_evidence import loci_covered_by_curated_copy
+
+        genome = "public__test_ST11_VA569"
+        self.assertEqual(loci_covered_by_curated_copy(genome, "structure"), set())
+        BioentryStructure.objects.create(
+            bioentry=self.curated, pdb=PDB.objects.create(code="AFTEST", experiment="AF")
+        )
+        self.assertEqual(loci_covered_by_curated_copy(genome, "structure"), {"MO417_1"})
+        self.assertEqual(loci_covered_by_curated_copy(genome, "pockets"), set())
+        self.value(self.curated, 0.7)
+        self.assertEqual(loci_covered_by_curated_copy(genome, "pockets"), {"MO417_1"})
+        self.allowed.remove("public__test_KP13")
+        self.assertEqual(loci_covered_by_curated_copy(genome, "structure"), set())
+
     def test_new_strain_does_not_join_an_inconsistent_table_group(self):
         from tpweb.management.commands.backfill_identical_sequence_links import (
             _link_new_strain_sequences,

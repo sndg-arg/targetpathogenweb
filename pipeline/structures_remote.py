@@ -19,6 +19,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 
+from identical_reuse import reusable_loci
 from pipeline_commands import (
     fpocket2json_cmd,
     load_af_model_cmd,
@@ -446,7 +447,8 @@ def run_remote_structures(cfg_dict, folder_path, genome, working_dir):
     config = _build_structures_config(cfg_dict)
     run_id_raw = str(os.getenv("TPW_PIPELINE_RUN_ID") or "").strip()
 
-    proteins = _protein_pdbs(folder_path)
+    reused = reusable_loci(genome, "pockets")
+    proteins = [p for p in _protein_pdbs(folder_path) if p[0] not in reused]
     if not proteins:
         print("No protein structures found to process remotely.")
         return 0

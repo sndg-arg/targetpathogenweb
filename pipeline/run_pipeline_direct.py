@@ -53,7 +53,13 @@ from pipeline_commands import (
     psort_cmd,
     get_binders_cmd,
     load_binders_cmd,
+    genbank_ec_cmd,
+    microbiome_counts_cmd,
+    experimental_by_sequence_cmd,
+    cached_annotations_cmd,
+    binder_directness_cmd,
 )
+from identical_reuse import reusable_loci
 from interproscan_remote import run_remote_interproscan
 from colabfold_remote import run_remote_colabfold
 from fasttarget_remote import run_remote_fasttarget
@@ -89,6 +95,29 @@ def _run_stage(stage_number, app_name, command_str):
         raise RuntimeError(f"{app_name} failed (rc={result.returncode}): {error_msg[:500]}")
     _record_pipeline_stage(stage_number, app_name, status="completed")
     return result
+
+
+def _run_completion_step(stage_number, app_name, command_str):
+    """Fill-missing step after a stage's main load. A failure is recorded and
+    printed but does not stop the run: the stage's own data is already loaded."""
+    _record_pipeline_stage(stage_number, app_name, status="submitted")
+    env = os.environ.copy()
+    env_bin = os.path.dirname(sys.executable)
+    if env_bin and env_bin not in env.get("PATH", "").split(os.pathsep):
+        env["PATH"] = env_bin + os.pathsep + env.get("PATH", "")
+    result = subprocess.run(["bash", "-c", command_str], capture_output=True, text=True, env=env)
+    output = (result.stdout or "")[-1000:]
+    if result.returncode != 0:
+        message = (result.stderr or result.stdout or "")[-1000:]
+        print(f"Completion step {app_name} failed; continuing: {message}")
+        # "info", not "failed": the run itself is fine.
+        _record_pipeline_stage(
+            stage_number, app_name, status="info", message=f"Not completed: {message}"
+        )
+        return False
+    print(output)
+    _record_pipeline_stage(stage_number, app_name, status="completed")
+    return True
 
 
 def _run_python_stage(stage_number, app_name, fn, *args, **kwargs):
@@ -237,9 +266,12 @@ def _run_structures_chain(stage, working_dir, folder_path, genome):
         print("No protein structures found to load.")
         return
 
+    reused = reusable_loci(genome, "pockets")
     proteins_with_pdb = []
     for locus_tag in sorted(os.listdir(alphafold_dir)):
         pdb_path = os.path.join(alphafold_dir, locus_tag, f"{locus_tag}_af.pdb")
+        if locus_tag in reused:
+            continue
         if os.path.exists(pdb_path) and os.path.getsize(pdb_path) > 0:
             proteins_with_pdb.append(locus_tag)
 
@@ -319,6 +351,7 @@ def run_genome(
         _run_stage(
             3, "sync_genome_metadata", sync_genome_metadata_cmd(working_dir, folder_path, genome)
         )
+        _run_completion_step(3, "genbank_ec", genbank_ec_cmd(working_dir, genome, folder_path))
     if not _skip(4):
         if os.environ.get("TPW_FASTTARGET_USE_REMOTE", "").strip() == "1":
             _run_python_stage(
@@ -346,6 +379,7 @@ def run_genome(
         _run_stage(5, "load_score", load_score_cmd(working_dir, genome, "human_offtarget"))
     if not _skip(6):
         _run_stage(6, "load_score", load_score_cmd(working_dir, genome, "micro_offtarget"))
+        _run_completion_step(6, "microbiome_counts", microbiome_counts_cmd(working_dir, genome))
     if not _skip(7):
         _run_stage(7, "load_score", load_score_cmd(working_dir, genome, "essenciality"))
     if not _skip(8):
@@ -376,6 +410,10 @@ def run_genome(
             "fetch_experimental_structures",
             fetch_exp_structures_cmd(working_dir, genome, folder_path),
         )
+        _run_completion_step(
+            13, "experimental_by_sequence", experimental_by_sequence_cmd(working_dir, genome)
+        )
+        _run_completion_step(13, "cached_annotations", cached_annotations_cmd(working_dir, genome))
     if not _skip(14) or not _skip(15):
         protein_list = _run_python_stage(14, "get_unipslst", _read_unips, folder_path, genome)
         if not _skip(15):
@@ -489,6 +527,10 @@ def run_genome(
         else:
             _assert_heavy_stage_allowed(24, "ligq_remote", allow_local_heavy)
             print("LigQ_2 stage 24 skipped: set TPW_LIGQ_USE_REMOTE=1 to enable.")
+    if not _skip(23) or not _skip(24):
+        # Direct vs. homolog also counts identical copies' UniProt entries,
+        # which may only exist after the stage 13 sequence recovery.
+        _run_completion_step(24, "binder_directness", binder_directness_cmd(working_dir, genome))
 
 
 def _clear_folder(folder_path):

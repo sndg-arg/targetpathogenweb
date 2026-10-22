@@ -467,6 +467,78 @@ def inherited_score_param_ids(genome_name, user):
     return result
 
 
+REUSABLE_EVIDENCE = ("structure", "pockets", "ligands")
+
+
+def loci_covered_by_curated_copy(genome_name, evidence):
+    """Locus tags of this genome whose identical copy in a curated strain already
+    has `evidence`, so the pipeline can skip recomputing it: apply_shared_sequence_evidence
+    reads the copy's data live. Only public curated copies count, since the new
+    genome's viewers must be able to see what is reused.
+
+    structure: the copy has a 3D structure. pockets: it has a pocket score.
+    ligands: its genome went through ligand search (a copy without ligands then
+    truly has none)."""
+    from django.contrib.auth.models import AnonymousUser
+    from bioseq.models.Biodatabase import Biodatabase
+    from tpweb.models import IdenticalSequenceMember
+    from tpweb.models.Binders import Binders
+    from tpweb.services.genome_workspace import user_can_access_genome_name
+
+    if evidence not in REUSABLE_EVIDENCE:
+        raise ValueError(f"Unknown evidence {evidence!r}")
+    proteome = genome_name + Biodatabase.PROT_POSTFIX
+    local = list(
+        IdenticalSequenceMember.objects.filter(bioentry__biodatabase__name=proteome).values_list(
+            "group_id", "bioentry__accession", "bioentry__seq__seq"
+        )
+    )
+    if not local:
+        return set()
+    donors = (
+        IdenticalSequenceMember.objects.filter(
+            group_id__in={group for group, _, _ in local},
+            strain_label__in=CURATED_STRAINS,
+            bioentry__isnull=False,
+        )
+        .exclude(bioentry__biodatabase__name=proteome)
+        .order_by()
+    )
+    if evidence == "structure":
+        donors = donors.filter(bioentry__structures__isnull=False)
+    elif evidence == "pockets":
+        donors = donors.filter(
+            bioentry__score_params__score_param__name__in=["p2rank_probability", "Druggability"]
+        )
+    anonymous = AnonymousUser()
+    allowed = {}
+    ligand_genomes = {}
+    sequences = {}
+    for group, database_id, database, sequence in donors.values_list(
+        "group_id", "bioentry__biodatabase_id", "bioentry__biodatabase__name", "bioentry__seq__seq"
+    ).distinct():
+        if database not in allowed:
+            allowed[database] = user_can_access_genome_name(
+                anonymous, database.removesuffix(Biodatabase.PROT_POSTFIX)
+            )
+        if not allowed[database]:
+            continue
+        if evidence == "ligands":
+            if database_id not in ligand_genomes:
+                ligand_genomes[database_id] = Binders.objects.filter(
+                    locustag__biodatabase_id=database_id
+                ).exists()
+            if not ligand_genomes[database_id]:
+                continue
+        sequences.setdefault(group, set()).add(str(sequence or "").strip().upper().rstrip("*"))
+    covered = set()
+    for group, accession, sequence in local:
+        sequence = str(sequence or "").strip().upper().rstrip("*")
+        if sequence and sequence in sequences.get(group, ()):
+            covered.add(accession)
+    return covered
+
+
 def shared_relation_condition(queryset, condition, user, override_condition=None):
     """Include live shared structures/annotations in the corresponding filters."""
     from django.db.models import Exists, F, Func, OuterRef, Q, Subquery, TextField, Value

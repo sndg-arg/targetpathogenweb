@@ -10,7 +10,7 @@ import os
 import sys
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 _PIPELINE_DIR = Path(__file__).resolve().parents[1]
 if str(_PIPELINE_DIR) not in sys.path:
@@ -167,10 +167,11 @@ class PsortRoutingTests(unittest.TestCase):
         local.assert_not_called()
         self.assertEqual(record.call_args.kwargs["status"], "failed")
 
+    @patch("run_pipeline_direct._run_completion_step")
     @patch("run_pipeline_direct._record_pipeline_stage")
     @patch("run_pipeline_direct._run_python_stage")
     @patch("run_pipeline_direct._run_stage")
-    def test_ligq_replaces_legacy_binders_when_enabled(self, local, remote, record):
+    def test_ligq_replaces_legacy_binders_when_enabled(self, local, remote, record, completion):
         with patch.dict(os.environ, {"TPW_LIGQ_USE_REMOTE": "1"}, clear=True):
             rpd.run_genome(
                 "G", "n", working_dir="/app", cfg_dict=None, start_stage=22, allow_local_heavy=False
@@ -178,6 +179,24 @@ class PsortRoutingTests(unittest.TestCase):
         local.assert_not_called()
         self.assertEqual(remote.call_args.args[:3], (24, "ligq_remote", rpd.run_remote_ligq))
         self.assertEqual([call.args[0] for call in record.call_args_list], [22, 23])
+        self.assertEqual(completion.call_args.args[:2], (24, "binder_directness"))
+
+
+class CompletionStepTests(unittest.TestCase):
+    @patch("run_pipeline_direct._record_pipeline_stage")
+    @patch("run_pipeline_direct.subprocess.run")
+    def test_failure_is_recorded_as_info_and_does_not_stop_the_run(self, subprocess_run, record):
+        subprocess_run.return_value = MagicMock(returncode=1, stdout="", stderr="no cache")
+        self.assertFalse(rpd._run_completion_step(13, "cached_annotations", "false"))
+        self.assertEqual(record.call_args.kwargs["status"], "info")
+        self.assertIn("no cache", record.call_args.kwargs["message"])
+
+    @patch("run_pipeline_direct._record_pipeline_stage")
+    @patch("run_pipeline_direct.subprocess.run")
+    def test_success_is_recorded_as_completed(self, subprocess_run, record):
+        subprocess_run.return_value = MagicMock(returncode=0, stdout="ok", stderr="")
+        self.assertTrue(rpd._run_completion_step(3, "genbank_ec", "true"))
+        self.assertEqual(record.call_args.kwargs["status"], "completed")
 
     @patch("run_pipeline_direct._record_pipeline_stage")
     def test_skipped_ligq_does_not_silently_omit_binders(self, record):

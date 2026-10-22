@@ -23,6 +23,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 
+from identical_reuse import reusable_loci
 from slurm_remote_command import (
     REMOTE_FAILURE_PREFIXES,
     _assert_ssh_reachable,
@@ -273,6 +274,13 @@ def run_remote_ligq(cfg_dict, folder_path, genome):
             f"{len(skipped_loci)} problematic loci from FASTA: "
             f"{', '.join(skipped_loci)}"
         )
+    reused = reusable_loci(genome, "ligands")
+    if reused:
+        _filter_fasta_loci(local_fasta, reused)
+    with open(local_fasta, encoding="utf-8") as handle:
+        if not any(line.startswith(">") for line in handle):
+            print("LigQ_2 remote: every protein reuses an identical curated copy; nothing to run.")
+            return
 
     _assert_ssh_reachable(config.ssh_host, config.ssh_port, config.ssh_connect_timeout)
 

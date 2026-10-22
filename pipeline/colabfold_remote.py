@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 import paramiko
+from identical_reuse import reusable_loci
 from slurm_remote_command import (
     REMOTE_FAILURE_PREFIXES,
     _assert_ssh_reachable,
@@ -760,6 +761,8 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
     config = _build_colabfold_config(cfg_dict)
 
     candidates = _find_candidates(folder_path, genome)
+    reused = reusable_loci(genome, "structure")
+    candidates = [candidate for candidate in candidates if candidate[0] not in reused]
     if not candidates:
         print("ColabFold remote: no candidates to predict.")
         return 0
