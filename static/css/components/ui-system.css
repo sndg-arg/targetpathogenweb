@@ -190,9 +190,11 @@
     flex-wrap: wrap;
 }
 
+/* Basis auto + a min width instead of a 320px basis: pages that stack the
+   head into a column on phones would turn that basis into 320px of height. */
 .tp-view-head-copy {
-    min-width: 0;
-    flex: 1 1 320px;
+    min-width: min(320px, 100%);
+    flex: 1 1 auto;
 }
 
 /* Page header type (see /design): one eyebrow, title and lead for every
