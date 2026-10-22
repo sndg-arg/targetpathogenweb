@@ -55,7 +55,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
 from human_target.services.human_targets import human_proteins_queryset
-from tpweb.models.BioentryStructure import ExperimentalStructureXref
+from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
 from tpweb.models.pdb import PDB
 
 RCSB_CIF_URL = "https://files.rcsb.org/download/{pdb_id}.cif"
@@ -207,14 +207,34 @@ class Command(BaseCommand):
         )
 
     def _load_experimental(self, rows, options):
+        completed = set()
+        if not options["overwrite"]:
+            bioentry_ids = {bioentry_id for _, _, bioentry_id in rows}
+            completed = set(
+                ExperimentalStructureXref.objects.filter(bioentry_id__in=bioentry_ids)
+                .values_list("bioentry_id", "pdb_id")
+                .iterator(chunk_size=2000)
+            )
+            # An xref alone is not proof that load_af_model succeeded.
+            completed.intersection_update(
+                BioentryStructure.objects.filter(bioentry_id__in=bioentry_ids, pdb__experiment="EX")
+                .values_list("bioentry_id", "pdb__code")
+                .iterator(chunk_size=2000)
+            )
+
         pdb_to_accessions = {}
-        for accession, cross_refs, _bioentry_id in rows:
-            for pdb_id in _pdb_ids_from_cross_references(cross_refs):
+        skipped = 0
+        for accession, cross_refs, bioentry_id in rows:
+            for pdb_id in dict.fromkeys(_pdb_ids_from_cross_references(cross_refs)):
+                if (bioentry_id, pdb_id) in completed:
+                    skipped += 1
+                    continue
                 pdb_to_accessions.setdefault(pdb_id, []).append(accession)
 
+        self.stdout.write(f"Experimental: skipped {skipped} already-linked protein-PDB pairs.")
         if not pdb_to_accessions:
             self.stdout.write(
-                self.style.WARNING("No PDB cross-references found -- nothing to load.")
+                self.style.SUCCESS("No pending PDB cross-references -- nothing to load.")
             )
             return
 

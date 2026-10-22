@@ -8,6 +8,7 @@ from django.test import SimpleTestCase, TestCase
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from human_target.management.commands.load_human_structures_bulk import (
+    Command,
     _guess_experimental_method,
     _index_alphafold_dir,
     _pdb_ids_from_cross_references,
@@ -17,6 +18,53 @@ from tpweb.models.BioentryStructure import ExperimentalStructureXref
 from tpweb.models.pdb import PDB
 
 _FAKE_CIF_WITH_METHOD = "_exptl.method   'X-RAY DIFFRACTION'\n"
+
+
+class ExperimentalResumeTests(SimpleTestCase):
+    def test_resume_requires_both_xref_and_structure_link(self):
+        rows = [
+            ("P1", [{"database": "PDB", "id": "1ABC"}], 1),
+            ("P2", [{"database": "PDB", "id": "1ABC"}], 2),
+            ("P3", [{"database": "PDB", "id": "2ABC"}], 3),
+        ]
+        module = "human_target.management.commands.load_human_structures_bulk"
+        for overwrite in (False, True):
+            with (
+                self.subTest(overwrite=overwrite),
+                patch(f"{module}.ExperimentalStructureXref.objects.filter") as xrefs,
+                patch(f"{module}.BioentryStructure.objects.filter") as links,
+                patch.object(
+                    Command, "_process_one_experimental_entry", return_value=(1, 0)
+                ) as process,
+            ):
+                xrefs.return_value.values_list.return_value.iterator.return_value = [
+                    (1, "1ABC"),
+                    (2, "1ABC"),
+                ]
+                links.return_value.values_list.return_value.iterator.return_value = [
+                    (1, "1ABC"),
+                    (3, "2ABC"),
+                ]
+                Command()._load_experimental(rows, {"overwrite": overwrite, "workers": 1})
+                pending = {call.args[0]: call.args[1] for call in process.call_args_list}
+                self.assertEqual(
+                    pending, {"1ABC": ["P1", "P2"] if overwrite else ["P2"], "2ABC": ["P3"]}
+                )
+
+    def test_completed_run_submits_no_work(self):
+        module = "human_target.management.commands.load_human_structures_bulk"
+        with (
+            patch(f"{module}.ExperimentalStructureXref.objects.filter") as xrefs,
+            patch(f"{module}.BioentryStructure.objects.filter") as links,
+            patch(f"{module}.ThreadPoolExecutor") as pool,
+        ):
+            for query in (xrefs, links):
+                query.return_value.values_list.return_value.iterator.return_value = [(1, "1ABC")]
+            Command()._load_experimental(
+                [("P1", [{"database": "PDB", "id": "1ABC"}], 1)],
+                {"overwrite": False, "workers": 1},
+            )
+            pool.assert_not_called()
 
 
 class IndexAlphafoldDirTests(SimpleTestCase):
