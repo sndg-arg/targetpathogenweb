@@ -65,7 +65,7 @@
                     {% if hp.is_reviewed %}<span class="tp-chip">{% trans "Reviewed" %}</span>{% endif %}
                 </div>
                 <h3>{{ hp.protein_name|default:hp.uniprot_accession }}</h3>
-                <p class="human-protein-card__gene">{{ hp.gene_symbol|default:"—" }}</p>
+                {% if hp.gene_symbol %}<p class="human-protein-card__gene">{{ hp.gene_symbol }}</p>{% endif %}
                 <div class="human-protein-card__meta">
                     {% if hp.sequence_length %}<span>{{ hp.sequence_length }} aa</span>{% endif %}
                 </div>

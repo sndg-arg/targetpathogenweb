@@ -120,7 +120,16 @@
 
             var nglStage = getStage();
             nglStage.removeAllComponents();
-            nglStage.loadFile(entry.url, { ext: "cif", defaultRepresentation: false }).then(function (component) {
+            // NGL 0.10's mmCIF parser crashes on the secondary-structure block of
+            // current AlphaFold DB files (_struct_conf); drop it and NGL computes
+            // the helices/sheets itself.
+            fetch(entry.url, { credentials: "same-origin" }).then(function (response) {
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                return response.text();
+            }).then(function (text) {
+                var cleaned = text.replace(/(^|\n)(loop_\n)?_struct_conf(_type)?\.[\s\S]*?(?=\n#)/g, "$1");
+                return nglStage.loadFile(new Blob([cleaned], { type: "text/plain" }), { ext: "cif", defaultRepresentation: false });
+            }).then(function (component) {
                 component.addRepresentation("cartoon", { colorScheme: colorSchemeFor(source) });
                 component.addRepresentation("ball+stick", { sele: "hetero and not water", colorScheme: "element" });
                 component.autoView();
