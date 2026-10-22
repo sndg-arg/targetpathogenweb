@@ -204,6 +204,20 @@ class SharedSequenceEvidenceTests(TestCase):
         apply_shared_sequence_evidence([protein], self.user)
         self.assertEqual(list(protein.score_params.all())[0].pk, curated.pk)
 
+    def test_ranking_pass_with_light_rows_picks_the_same_curated_value(self):
+        from tpweb.services.shared_sequence_evidence import attach_score_rows
+
+        original = self.value(self.curated, 0.9)
+        self.value(self.target, 0.2)
+        protein = self.fresh()
+        attach_score_rows([protein], {self.param.name})
+        apply_shared_sequence_evidence(
+            [protein], self.user, details=False, score_param_names={self.param.name}
+        )
+        rows = list(protein.score_params.all())
+        self.assertEqual([(row.pk, row.numeric_value) for row in rows], [(original.pk, 0.9)])
+        self.assertEqual(rows[0].score_param.name, self.param.name)
+
     def test_zero_curated_value_does_not_fall_back_to_automatic(self):
         self.value(self.curated, 0)
         self.value(self.target, 0.8)

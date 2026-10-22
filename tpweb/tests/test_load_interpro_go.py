@@ -114,7 +114,13 @@ class GenBankECImportTests(TestCase):
     setUp = InterproGoImportTests.setUp
 
     def run_import(self, sequence="MAU", apply=True, extra=None):
-        record = SeqRecord(Seq("ATG"), id="TEST", annotations={"molecule_type": "DNA"})
+        try:  # Biopython < 1.78 (the cluster image) writes GenBank only with an alphabet
+            from Bio.Alphabet import generic_dna
+
+            seq = Seq("ATG", generic_dna)
+        except ImportError:
+            seq = Seq("ATG")
+        record = SeqRecord(seq, id="TEST", annotations={"molecule_type": "DNA"})
         record.features = [
             SeqFeature(
                 FeatureLocation(0, 3),

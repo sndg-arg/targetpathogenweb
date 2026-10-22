@@ -112,6 +112,47 @@ def _sequence(protein):
     return str(protein.seq.seq).strip().upper().rstrip("*")
 
 
+class ScoreRow:
+    """Read-only stand-in for a ScoreParamValue with the same attributes, built
+    from values_list: ranking a whole genome otherwise spends most of its time
+    creating ~100k model instances."""
+
+    __slots__ = ("pk", "bioentry_id", "score_param_id", "score_param", "value", "numeric_value")
+
+    def __init__(self, pk, bioentry_id, score_param, value, numeric_value):
+        self.pk = pk
+        self.bioentry_id = bioentry_id
+        self.score_param_id = score_param.pk
+        self.score_param = score_param
+        self.value = value
+        self.numeric_value = numeric_value
+
+
+def attach_score_rows(proteins, score_param_names=None):
+    """Cache each protein's score values as ScoreRow, read through
+    protein.score_params.all() like a prefetch (nothing is saved)."""
+    from tpweb.models.ScoreParam import ScoreParam
+    from tpweb.models.ScoreParamValue import ScoreParamValue
+
+    proteins = list(proteins)
+    if not proteins:
+        return
+    rows = ScoreParamValue.objects.filter(bioentry_id__in=[p.pk for p in proteins])
+    if score_param_names is not None:
+        rows = rows.filter(score_param__name__in=score_param_names)
+    rows = list(
+        rows.order_by().values_list("pk", "bioentry_id", "score_param_id", "value", "numeric_value")
+    )
+    params = ScoreParam.objects.in_bulk({row[2] for row in rows})
+    by_protein = {}
+    for pk, bioentry_id, param_id, value, numeric_value in rows:
+        by_protein.setdefault(bioentry_id, []).append(
+            ScoreRow(pk, bioentry_id, params[param_id], value, numeric_value)
+        )
+    for protein in proteins:
+        _cache_relation(protein, "score_params", by_protein.get(protein.pk, []))
+
+
 def _cache_relation(protein, relation, rows):
     # Cache only this request's projection, using a QuerySet to preserve
     # related-manager .all(), .count(), and iteration. No model row is saved.
@@ -149,7 +190,8 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
     scores = ScoreParamValue.objects.select_related("score_param")
     if score_param_names is not None:
         scores = scores.filter(score_param__name__in=score_param_names)
-    relations = [Prefetch("score_params", queryset=scores)]
+    # The ranking pass (details=False) reads scores as light rows, see attach_score_rows.
+    relations = [Prefetch("score_params", queryset=scores)] if details else []
     if details:
         relations += [
             "structures__pdb",
@@ -173,6 +215,8 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
         .select_related("biodatabase", "seq")
         .prefetch_related(*relations)
     }
+    if not details:
+        attach_score_rows(others.values(), score_param_names)
     for member in members:
         member.bioentry = loaded.get(member.bioentry_id) or others.get(member.bioentry_id)
     members = [m for m in members if m.bioentry is not None]

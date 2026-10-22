@@ -1540,9 +1540,13 @@ class ProteinListView(View):
         needed_score_param_names,
         user=None,
     ):
-        from tpweb.services.shared_sequence_evidence import apply_shared_sequence_evidence
+        from tpweb.services.shared_sequence_evidence import (
+            apply_shared_sequence_evidence,
+            attach_score_rows,
+        )
 
         ranking_queryset = list(ranking_queryset)
+        attach_score_rows(ranking_queryset, needed_score_param_names)
         apply_shared_sequence_evidence(
             ranking_queryset, user, details=False, score_param_names=needed_score_param_names
         )
@@ -1967,10 +1971,6 @@ class ProteinListView(View):
                     "p2rank_probability",
                 }
 
-        ranking_spv_qs = ScoreParamValue.objects.select_related("score_param")
-        if needed_score_param_names is not None:
-            ranking_spv_qs = ranking_spv_qs.filter(score_param__name__in=needed_score_param_names)
-
         ranking_queryset = (
             proteins.only(
                 "bioentry_id",
@@ -1979,9 +1979,7 @@ class ProteinListView(View):
                 "name",
                 "description",
             )
-            .prefetch_related(
-                "seq", "biodatabase", Prefetch("score_params", queryset=ranking_spv_qs)
-            )
+            .prefetch_related("seq", "biodatabase")
             .distinct()
         )
 
