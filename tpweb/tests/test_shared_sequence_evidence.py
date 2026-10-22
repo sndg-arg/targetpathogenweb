@@ -169,15 +169,15 @@ class SharedSequenceEvidenceTests(TestCase):
         apply_shared_sequence_evidence([second], self.user)
         self.assertEqual(list(second.score_params.all())[0].numeric_value, 0.95)
 
-    def test_conservation_remains_strain_specific(self):
+    def test_conservation_is_shared_from_the_curated_strain(self):
         self.param.name = "soft_core_roary"
         self.param.category = "Conservation"
         self.param.save()
-        self.value(self.curated, 1)
-        local = self.value(self.target, 0)
+        curated = self.value(self.curated, 1)
+        self.value(self.target, 0)
         protein = self.fresh()
         apply_shared_sequence_evidence([protein], self.user)
-        self.assertEqual(list(protein.score_params.all())[0].pk, local.pk)
+        self.assertEqual(list(protein.score_params.all())[0].pk, curated.pk)
 
     def test_zero_curated_value_does_not_fall_back_to_automatic(self):
         self.value(self.curated, 0)
@@ -330,11 +330,11 @@ class SharedSequenceEvidenceTests(TestCase):
             queryset.filter(**{f"_shared_score_{self.param.pk}_numeric_value__gte": 0.8}).exists()
         )
 
-    def test_sql_filter_keeps_conservation_local(self):
+    def test_sql_filter_shares_conservation(self):
         self.param.category = "Conservation"
         self.param.save()
         _, fields = annotate_shared_score_values(Bioentry.objects.all(), {self.param.pk}, self.user)
-        self.assertEqual(fields, set())
+        self.assertNotEqual(fields, set())
 
     def test_curated_pocket_score_does_not_inherit_automatic_pocket_reference(self):
         self.value(self.curated, 0.9)

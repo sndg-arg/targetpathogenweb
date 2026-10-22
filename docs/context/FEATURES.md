@@ -13,7 +13,8 @@ strains' identical copies, instead of silently redone per-strain.
   KP13 and ATCC43816 are the curated sources, ahead of a recipient's automatic
   results. Structures/pockets share the original PDB object and source file;
   EC/GO/UniProt, sequence-specific scores, and ligands reuse their source records.
-  Conservation (including soft core) and metabolic context stay on each strain.
+  Conservation (core and soft core) is shared too; only metabolic context (network
+  topology and the curated metabolic priority) stays on each strain.
   Missing curated fields fall back to local results; pocket score/structure/ID
   bundles remain on the same source. Conflicting curated scalar values surface
   a notice with deterministic KP13 precedence. Source-genome and custom-column
