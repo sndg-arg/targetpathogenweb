@@ -84,7 +84,7 @@
             </div>
         </section>
 
-        <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
+        <nav class="quick-nav" data-quick-nav aria-label="{% trans "Protein sections" %}">
             <a href="#section-overview" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
             <a href="#section-function" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Function" %}</a>
             {% if diseases.has_diseases %}<a href="#section-diseases" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Diseases" %}</a>{% endif %}
@@ -611,6 +611,7 @@
 {% endblock %}
 
 {% block jsloaded %}
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261021-human"></script>
+    <script src="{% static 'js/global/quick-nav.js' %}?v=20261022"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261022-nav"></script>
     <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261017-system"></script>
 {% endblock %}

@@ -15,7 +15,7 @@
                 <p class="tp-view-lead home-lead">
                     {% trans "Target Pathogen integrates genomic annotation, structural evidence, functional annotation, and project-specific scoring to support the identification and prioritization of candidate protein targets." %}
                 </p>
-                <p class="home-hero-figures">{{ total_genomes }} {% trans "genomes" %} <span aria-hidden="true">·</span> {{ total_proteins_display }} {% trans "proteins" %}</p>
+                <p class="home-hero-figures">{% blocktrans count total=total_genomes %}{{ total }} genome{% plural %}{{ total }} genomes{% endblocktrans %} <span aria-hidden="true">·</span> {{ total_proteins_display }} {% trans "proteins" %}</p>
                 <div class="home-hero-actions">
                     {% url 'tpwebapp:genomes_list' as open_genomes_href %}
                     {% trans "Browse genomes" as open_genomes_label %}

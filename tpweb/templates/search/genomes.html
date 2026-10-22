@@ -52,11 +52,11 @@
                 </div>
             {% endif %}
             <div class="genomes-meta" role="list" aria-label="{% trans "Genome summary" %}">
-                <span class="genomes-meta-chip tp-chip" role="listitem">{{ total_genomes }} {% trans "genomes" %}</span>
-                <span class="genomes-meta-chip tp-chip" role="listitem">{{ total_proteins }} {% trans "proteins" %}</span>
-                <span class="genomes-meta-chip tp-chip" role="listitem" title="{% trans 'Experimental 3D structures downloaded from the PDB and shown in the viewer.' %}">{{ total_experimental }} {% trans "experimental structures downloaded" %}</span>
-                <span class="genomes-meta-chip tp-chip" role="listitem" title="{% trans 'PDB entries that UniProt lists for these proteins, whether or not they were downloaded.' %}">{{ total_pdb_xrefs }} {% trans "PDB entries cited by UniProt" %}</span>
-                <span class="genomes-meta-chip tp-chip" role="listitem">{{ total_ec_annotated }} {% trans "EC-annotated proteins" %}</span>
+                <span class="genomes-meta-chip tp-chip" role="listitem">{% blocktrans count total=total_genomes %}{{ total }} genome{% plural %}{{ total }} genomes{% endblocktrans %}</span>
+                <span class="genomes-meta-chip tp-chip" role="listitem">{{ total_proteins|thousands }} {% trans "proteins" %}</span>
+                <span class="genomes-meta-chip tp-chip" role="listitem" title="{% trans 'Experimental 3D structures downloaded from the PDB and shown in the viewer.' %}">{{ total_experimental|thousands }} {% trans "experimental structures downloaded" %}</span>
+                <span class="genomes-meta-chip tp-chip" role="listitem" title="{% trans 'PDB entries that UniProt lists for these proteins, whether or not they were downloaded.' %}">{{ total_pdb_xrefs|thousands }} {% trans "PDB entries cited by UniProt" %}</span>
+                <span class="genomes-meta-chip tp-chip" role="listitem">{{ total_ec_annotated|thousands }} {% trans "EC-annotated proteins" %}</span>
             </div>
             {% if hidden_restricted_count %}
                 <p class="genomes-restricted-note">
