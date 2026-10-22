@@ -99,6 +99,9 @@ def build_human_structure_context(bioentry):
             "url": _structure_url(pdb.id, bioentry.bioentry_id),
             "ligands": _ligand_summary_for_pdb(pdb.id),
         }
+        if experiment in (EXPERIMENT_ALPHAFOLD, EXPERIMENT_ALPHAFILL):
+            # Predicted models carry a placeholder resolution, not a measured one.
+            entry["resolution"] = None
         if experiment == EXPERIMENT_ALPHAFOLD:
             entry["label"] = _SOURCE_LABELS[EXPERIMENT_ALPHAFOLD]
             entry["mean_plddt"] = _mean_plddt_for_pdb(pdb.id)

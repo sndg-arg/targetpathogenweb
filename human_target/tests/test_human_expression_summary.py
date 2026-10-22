@@ -60,3 +60,16 @@ class BuildHumanExpressionContextTests(SimpleTestCase):
         self.assertEqual(context["gold_count"], 2)
         self.assertEqual((context["tissue_count"], context["expressed_count"]), (2, 1))
         self.assertEqual(context["specificity_label"], "Intermediate specificity")
+
+    def test_kidney_cortex_is_urinary_not_nervous(self):
+        rows = [
+            {"tissue": "cortex of kidney", "score": 80.0},
+            {"tissue": "cerebral cortex", "score": 70.0},
+        ]
+        context = build_human_expression_context(_FakeHumanProtein(rows))
+        systems = {
+            group["system"]: [r["tissue"] for r in group["rows"]]
+            for group in context["system_groups"]
+        }
+        self.assertEqual(systems["Urinary"], ["cortex of kidney"])
+        self.assertEqual(systems["Nervous"], ["cerebral cortex"])

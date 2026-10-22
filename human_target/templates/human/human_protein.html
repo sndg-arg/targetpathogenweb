@@ -10,8 +10,8 @@
     styling this page deliberately reuses verbatim (same markup, same tokens) --
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-human">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261022-premium">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-live">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261022-live">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -222,13 +222,26 @@
                             <span class="tp-count">{{ card.terms|length }}</span>
                         </div>
                         <ul class="annotation-entries">
-                            {% for term in card.terms %}
+                            {% for term in card.terms|slice:":8" %}
                             <li class="annotation-entry">
                                 <a href="https://www.ebi.ac.uk/QuickGO/term/{{ term.id }}" target="_blank" rel="noopener" class="annotation-entry-id">{{ term.id }}</a>
                                 <span class="annotation-entry-name" title="{{ term.name }}">{{ term.name|default:"—" }}</span>
                             </li>
                             {% endfor %}
                         </ul>
+                        {% if card.terms|length > 8 %}
+                        <details class="list-more js-smooth-details">
+                            <summary>{% blocktrans with count=card.terms|length|add:"-8" %}Show {{ count }} more{% endblocktrans %}</summary>
+                            <ul class="annotation-entries">
+                                {% for term in card.terms|slice:"8:" %}
+                            <li class="annotation-entry">
+                                <a href="https://www.ebi.ac.uk/QuickGO/term/{{ term.id }}" target="_blank" rel="noopener" class="annotation-entry-id">{{ term.id }}</a>
+                                <span class="annotation-entry-name" title="{{ term.name }}">{{ term.name|default:"—" }}</span>
+                            </li>
+                                {% endfor %}
+                            </ul>
+                        </details>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -546,13 +559,27 @@
                     <div class="hx-group" id="hx-system-{{ group.slug }}">
                         <h3 class="hx-group-title">{{ group.system }} <span class="tp-count">{{ group.rows|length }}</span></h3>
                         <div class="hx-rows">
-                            {% for row in group.rows|slice:":15" %}
+                            {% for row in group.rows|slice:":5" %}
                             <div class="hx-row{% if row == expression.peak %} is-peak{% endif %}{% if row.state == 'absent' %} is-absent{% endif %}">
                                 <span class="hx-row-label" title="{{ row.tissue }}{% if row.cell_type %} · {{ row.cell_type }}{% endif %}">{{ row.tissue|default:row.cell_type|capfirst }}</span>
                                 <span class="hx-bar" aria-hidden="true"><span class="hx-bar-fill" style="width: {{ row.score }}%"></span></span>
                                 <span class="hx-row-score">{{ row.score|floatformat:0 }}</span>
                             </div>
                             {% endfor %}
+                            {% if group.rows|length > 5 %}
+                            <details class="list-more hx-more js-smooth-details">
+                                <summary>{% blocktrans with count=group.rows|length|add:"-5" %}Show {{ count }} more{% endblocktrans %}</summary>
+                                <div class="hx-rows">
+                                {% for row in group.rows|slice:"5:" %}
+                            <div class="hx-row{% if row == expression.peak %} is-peak{% endif %}{% if row.state == 'absent' %} is-absent{% endif %}">
+                                <span class="hx-row-label" title="{{ row.tissue }}{% if row.cell_type %} · {{ row.cell_type }}{% endif %}">{{ row.tissue|default:row.cell_type|capfirst }}</span>
+                                <span class="hx-bar" aria-hidden="true"><span class="hx-bar-fill" style="width: {{ row.score }}%"></span></span>
+                                <span class="hx-row-score">{{ row.score|floatformat:0 }}</span>
+                            </div>
+                            {% endfor %}
+                                </div>
+                            </details>
+                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}
@@ -650,13 +677,26 @@
                 <div class="cross-reference-group">
                     <h3 class="cross-reference-group-label">{{ group.label }}</h3>
                     <div class="cross-reference-chip-list">
-                        {% for item in group.items %}
+                        {% for item in group.items|slice:":16" %}
                         <span class="hero-chip tp-chip">
                             <span class="tp-chip-db">{{ item.database }}</span>
                             <span class="tp-chip-acc">{{ item.id }}</span>
                         </span>
                         {% endfor %}
                     </div>
+                    {% if group.items|length > 16 %}
+                    <details class="list-more js-smooth-details">
+                        <summary>{% blocktrans with count=group.items|length|add:"-16" %}Show {{ count }} more{% endblocktrans %}</summary>
+                        <div class="cross-reference-chip-list">
+                            {% for item in group.items|slice:"16:" %}
+                        <span class="hero-chip tp-chip">
+                            <span class="tp-chip-db">{{ item.database }}</span>
+                            <span class="tp-chip-acc">{{ item.id }}</span>
+                        </span>
+                            {% endfor %}
+                        </div>
+                    </details>
+                    {% endif %}
                 </div>
                 {% empty %}
                 <p class="tp-state-note tp-state-note--empty">{% trans "No cross-references loaded for this protein." %}</p>

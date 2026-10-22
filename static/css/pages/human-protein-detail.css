@@ -59,6 +59,59 @@
     text-transform: uppercase;
 }
 
+/* "Show N more": long lists open in place (smooth-details animates them). */
+.list-more > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-2) 0;
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    list-style: none;
+    cursor: pointer;
+}
+
+.list-more > summary::-webkit-details-marker {
+    display: none;
+}
+
+.list-more > summary::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+    transition: transform var(--tp-ui-motion-base) var(--human-ease);
+}
+
+.list-more[open] > summary::after {
+    transform: translateY(1px) rotate(225deg);
+}
+
+.list-more > summary:hover {
+    text-decoration: underline;
+}
+
+.list-more > summary:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+.annotation-panel .list-more > summary {
+    padding: var(--tp-space-2) var(--tp-space-4);
+}
+
+.annotation-panel .list-more[open] > summary {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.cross-reference-group .list-more > .cross-reference-chip-list,
+.hx-more > .hx-rows {
+    margin-top: var(--tp-space-2);
+}
+
 /* ── Diseases: an editorial list, one hairline row per disease ───────── */
 .hd-list {
     border-top: 1px solid var(--tp-color-border-soft);
@@ -847,6 +900,7 @@
 @media (prefers-reduced-motion: reduce) {
     .hd-summary,
     .hd-chevron,
+    .list-more > summary::after,
     .hs-entry,
     .hs-plddt-scale i,
     .hx-system,

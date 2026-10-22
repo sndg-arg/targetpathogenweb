@@ -101,7 +101,7 @@ _SYSTEM_KEYWORDS = [
         ),
     ),
     ("Respiratory", ("lung", "bronch", "trachea", "alveol", "nasal", "pharynx", "larynx")),
-    ("Urinary", ("kidney", "bladder", "ureter", "urethra", "renal")),
+    ("Urinary", ("kidney", "bladder", "ureter", "urethra", "renal", "metanephros", "nephron")),
     (
         "Musculoskeletal",
         ("muscle", "bone", "cartilage", "tendon", "ligament", "skeletal", "joint"),
@@ -114,9 +114,14 @@ _SYSTEM_KEYWORDS = [
 _SYSTEM_ORDER = [system for system, _ in _SYSTEM_KEYWORDS] + ["Other"]
 
 
+# Checked first: "cortex of kidney" must not fall into Nervous via "cortex".
+_PRIORITY_SYSTEMS = ("Urinary",)
+
+
 def _system_for_tissue(tissue):
     needle = (tissue or "").lower()
-    for system, keywords in _SYSTEM_KEYWORDS:
+    ordered = sorted(_SYSTEM_KEYWORDS, key=lambda item: item[0] not in _PRIORITY_SYSTEMS)
+    for system, keywords in ordered:
         if any(keyword in needle for keyword in keywords):
             return system
     return "Other"

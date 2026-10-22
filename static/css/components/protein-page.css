@@ -1352,3 +1352,18 @@ body.binder-mol-modal-open {
     border-radius: 0;
     box-shadow: none;
 }
+
+/* Long ligand lists scroll inside the panel (header stays put) instead of
+   stretching the page by hundreds of rows. */
+.binders-panel .binder-table-wrap:not(.tp-table-shell--with-export),
+.binders-panel .binder-table-wrap .tp-table-shell__scroll {
+    max-height: min(640px, 70vh);
+    overflow: auto;
+}
+
+.binders-panel .binder-tbl thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--tp-color-surface-soft);
+}
