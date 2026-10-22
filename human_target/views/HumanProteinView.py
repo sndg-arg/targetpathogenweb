@@ -5,7 +5,11 @@ from django.urls import reverse
 from django.views import View
 
 from human_target.services.human_disease_summary import build_human_disease_context
-from human_target.services.human_dossier import build_glance, build_human_dossier
+from human_target.services.human_dossier import (
+    build_assessment,
+    build_glance,
+    build_human_dossier,
+)
 from human_target.services.human_expression_summary import build_human_expression_context
 from human_target.services.human_protein_summary import (
     build_human_function_context,
@@ -69,6 +73,7 @@ class HumanProteinView(PermissionLockedMixin, View):
         pathways = build_human_pathway_context(human_protein)
         structure = build_human_structure_context(bioentry)
         glance = build_glance(dossier, diseases, structure, binders, expression, pathways)
+        assessment = build_assessment(dossier, diseases, structure, binders, expression)
 
         context = {
             "bioentry": bioentry,
@@ -86,6 +91,7 @@ class HumanProteinView(PermissionLockedMixin, View):
             "expression": expression,
             "pathways": pathways,
             "glance": glance,
+            "assessment": assessment,
             "sequence": sequence,
             "xrefs": build_human_xref_context(human_protein),
             "structure": structure,

@@ -212,6 +212,146 @@
     column-gap: var(--tp-space-7, 32px);
 }
 
+/* ── Hero lede: what the protein is, in one sentence ─────────────────── */
+.hg-lede {
+    max-width: 92ch;
+    margin: var(--tp-space-3) 0 var(--tp-space-3);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-md);
+    line-height: 1.6;
+}
+
+/* ── Target assessment: one line per drug-discovery question ─────────── */
+.ta-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ta-row {
+    display: grid;
+    grid-template-columns: 22px 170px 190px minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: var(--tp-space-4);
+    padding: var(--tp-space-3) var(--tp-space-2);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    transition: background var(--tp-ui-motion-fast) var(--human-ease);
+}
+
+.ta-row:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+/* Three-step signal: strong = three, moderate = two, weak = one. */
+.ta-signal {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 12px;
+}
+
+.ta-signal i {
+    width: 4px;
+    border-radius: 1px;
+    background: var(--tp-color-border-soft);
+}
+
+.ta-signal i:nth-child(1) { height: 5px; }
+.ta-signal i:nth-child(2) { height: 8px; }
+.ta-signal i:nth-child(3) { height: 12px; }
+
+.ta-row--weak .ta-signal i:nth-child(1),
+.ta-row--moderate .ta-signal i:nth-child(-n + 2) {
+    background: var(--tp-color-text-muted);
+}
+
+.ta-row--strong .ta-signal i {
+    background: var(--human-accent);
+}
+
+.ta-label {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+.ta-status {
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-md);
+    font-weight: 600;
+}
+
+.ta-row--weak .ta-status {
+    color: var(--tp-color-text-muted);
+}
+
+.ta-finding {
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.ta-link {
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ta-link span {
+    display: inline-block;
+    transition: transform var(--tp-ui-motion-base) var(--human-ease);
+}
+
+.ta-row:hover .ta-link span {
+    transform: translateX(3px);
+}
+
+/* ── Biology section spacing ──────────────────────────────────────────── */
+.hbio-function {
+    margin-bottom: var(--tp-space-5);
+}
+
+.hbio-function + .human-identifiers,
+.human-identifiers + .hov-pair {
+    margin-top: var(--tp-space-4);
+}
+
+#section-sequence > .data-details {
+    margin-top: var(--tp-space-4);
+}
+
+@media (max-width: 900px) {
+    .ta-row {
+        grid-template-columns: 22px minmax(0, 1fr) auto;
+        gap: 2px var(--tp-space-3);
+    }
+
+    .ta-label {
+        grid-column: 2;
+    }
+
+    .ta-status {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    .ta-finding {
+        grid-column: 2 / -1;
+        grid-row: 3;
+    }
+
+    .ta-link {
+        grid-column: 3;
+        grid-row: 1;
+    }
+}
+
 /* ── Annotation score: five dots before the value ────────────────────── */
 .hm-meter {
     display: inline-flex;
@@ -1810,6 +1950,8 @@
 @media (prefers-reduced-motion: reduce) {
     .hd-summary,
     .hd-chevron,
+    .ta-row,
+    .ta-link span,
     .hg-arrow,
     .hx-group-title,
     .hc-part,

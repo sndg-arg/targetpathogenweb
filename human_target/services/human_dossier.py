@@ -339,6 +339,163 @@ def build_glance(dossier, diseases, structure, binders, expression, pathways):
     return tiles
 
 
+_SURFACE = {"membrane", "secreted"}
+
+
+def build_assessment(dossier, diseases, structure, binders, expression):
+    """One line per drug-discovery question, read off the evidence on the page:
+    tone is strong / moderate / weak. A reading aid, not a score."""
+    rows = []
+
+    drugs = dossier["pharmacology"]["drugs"]
+    examples = ", ".join(drug["name"] for drug in drugs[:3])
+    rows.append(
+        {
+            "label": "Clinical precedent",
+            "tone": "strong" if drugs else "weak",
+            "status": "Precedented" if drugs else "None listed",
+            "finding": f"{len(drugs)} DrugBank compound{'s' if len(drugs) != 1 else ''}, e.g. {examples}."
+            if drugs
+            else "No DrugBank compound is linked to this protein.",
+            "href": "#section-pharmacology" if drugs else "",
+        }
+    )
+
+    disease_list = diseases.get("diseases") or []
+    variants = sum(dossier["disease_variant_counts"].values())
+    acronyms = ", ".join(d.get("acronym") or d.get("name", "") for d in disease_list[:4])
+    rows.append(
+        {
+            "label": "Genetic evidence",
+            "tone": "strong" if variants else ("moderate" if disease_list else "weak"),
+            "status": "Disease-linked" if disease_list else "None curated",
+            "finding": (
+                f"{len(disease_list)} disease association{'s' if len(disease_list) != 1 else ''}"
+                f" ({acronyms}){f'; {variants} disease variants mapped' if variants else ''}."
+            )
+            if disease_list
+            else "UniProt lists no disease for this protein.",
+            "href": "#section-diseases" if disease_list else "",
+        }
+    )
+
+    tabs = structure.get("sub_tabs") or []
+    experimental = sum(tab["count"] for tab in tabs if tab["key"] in ("xray", "nmr"))
+    coverage = dossier.get("pdb_coverage")
+    plddt = next(
+        (
+            entry.get("mean_plddt")
+            for tab in tabs
+            if tab["key"] == "alphafold"
+            for entry in tab["entries"]
+            if entry.get("mean_plddt")
+        ),
+        None,
+    )
+    if experimental:
+        finding = f"{experimental} experimental structure{'s' if experimental != 1 else ''}"
+        if coverage:
+            finding += f" covering ~{coverage['covered_percent']}% of the sequence"
+        rows.append(
+            {
+                "label": "Structure",
+                "tone": "strong",
+                "status": "Structurally enabled",
+                "finding": finding + ".",
+                "href": "#section-structure",
+            }
+        )
+    elif tabs:
+        rows.append(
+            {
+                "label": "Structure",
+                "tone": "moderate",
+                "status": "Predicted only",
+                "finding": "AlphaFold model"
+                + (f", mean pLDDT {plddt:.0f}" if plddt else "")
+                + "; no experimental structure.",
+                "href": "#section-structure",
+            }
+        )
+    else:
+        rows.append(
+            {
+                "label": "Structure",
+                "tone": "weak",
+                "status": "No structure",
+                "finding": "No experimental or predicted structure is loaded.",
+                "href": "",
+            }
+        )
+
+    total = binders.get("total") or 0
+    summary = binders.get("summary") or {}
+    direct = summary.get("direct_count") or 0
+    rows.append(
+        {
+            "label": "Ligandability",
+            "tone": "strong" if direct else ("moderate" if total else "weak"),
+            "status": "Ligands on this protein"
+            if direct
+            else ("Via similar proteins" if total else "No ligand evidence"),
+            "finding": (
+                f"{summary.get('bioactive_count') or 0} measured bioactivities and"
+                f" {summary.get('structural_count') or 0} structural ligands;"
+                f" {direct} record{'s' if direct != 1 else ''} on this exact protein."
+            )
+            if total
+            else "No co-crystal, ChEMBL or similarity-based ligand is loaded.",
+            "href": "#section-binders" if total else "",
+        }
+    )
+
+    tau = expression.get("tau")
+    if expression.get("has_expression") and tau is not None:
+        peak = expression.get("peak") or {}
+        tissue = peak.get("tissue") or peak.get("cell_type") or "one tissue"
+        if tau >= 0.8:
+            row = ("strong", "Tissue-restricted", f"Mostly in {tissue} (τ {tau:.2f}).")
+        elif tau >= 0.3:
+            row = (
+                "moderate",
+                "Partly selective",
+                f"Highest in {tissue}; τ {tau:.2f} across {expression['tissue_count']} tissues.",
+            )
+        else:
+            row = (
+                "weak",
+                "Broadly expressed",
+                f"Clearly expressed in {expression['expressed_count']} of"
+                f" {expression['tissue_count']} tissues (τ {tau:.2f}): expect effects"
+                " outside the disease tissue.",
+            )
+        rows.append(
+            {
+                "label": "Tissue selectivity",
+                "tone": row[0],
+                "status": row[1],
+                "finding": row[2],
+                "href": "#section-expression",
+            }
+        )
+
+    compartments = dossier.get("compartments") or []
+    if compartments:
+        surface = bool(_SURFACE.intersection(compartments))
+        rows.append(
+            {
+                "label": "Accessibility",
+                "tone": "strong" if surface else "moderate",
+                "status": "Extracellular access" if surface else "Intracellular",
+                "finding": "Cell surface or secreted: reachable by antibodies as well as small molecules."
+                if surface
+                else "Inside the cell: needs cell-permeable modalities.",
+                "href": "#section-biology",
+            }
+        )
+    return rows
+
+
 def build_human_dossier(human_protein):
     raw = human_protein.uniprot_raw or {}
     length = human_protein.sequence_length or len(human_protein.sequence or "")

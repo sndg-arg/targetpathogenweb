@@ -158,3 +158,35 @@ class GlanceTests(SimpleTestCase):
         )
         self.assertEqual(tiles[1]["note"], "3 disease variants")
         self.assertEqual(tiles[2]["note"], "4 experimental")
+
+
+class AssessmentTests(SimpleTestCase):
+    def test_reads_each_question_off_the_evidence(self):
+        from human_target.services.human_dossier import build_assessment
+
+        dossier = {
+            "pharmacology": {"drugs": [{"id": "DB1", "name": "Imatinib"}]},
+            "disease_variant_counts": {},
+            "pdb_coverage": {"covered_percent": 80},
+            "compartments": ["membrane", "cytoplasm"],
+        }
+        rows = build_assessment(
+            dossier,
+            {"diseases": [{"acronym": "GIST"}]},
+            {"sub_tabs": [{"key": "xray", "count": 3, "entries": []}]},
+            {"total": 0},
+            {
+                "has_expression": True,
+                "tau": 0.1,
+                "peak": {"tissue": "testis"},
+                "expressed_count": 90,
+                "tissue_count": 100,
+            },
+        )
+        by_label = {row["label"]: row for row in rows}
+        self.assertEqual(by_label["Clinical precedent"]["tone"], "strong")
+        self.assertEqual(by_label["Genetic evidence"]["tone"], "moderate")
+        self.assertIn("~80%", by_label["Structure"]["finding"])
+        self.assertEqual(by_label["Ligandability"]["status"], "No ligand evidence")
+        self.assertEqual(by_label["Tissue selectivity"]["status"], "Broadly expressed")
+        self.assertEqual(by_label["Accessibility"]["status"], "Extracellular access")
