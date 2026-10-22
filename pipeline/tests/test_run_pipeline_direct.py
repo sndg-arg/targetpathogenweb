@@ -128,6 +128,9 @@ class PsortRoutingTests(unittest.TestCase):
             rpd.run_genome(
                 "G",
                 "n",
+                custom=None,
+                source_genome=None,
+                is_test=False,
                 working_dir="/app",
                 cfg_dict=None,
                 start_stage=20,
@@ -143,6 +146,9 @@ class PsortRoutingTests(unittest.TestCase):
             rpd.run_genome(
                 "G",
                 "n",
+                custom=None,
+                source_genome=None,
+                is_test=False,
                 working_dir="/app",
                 cfg_dict=None,
                 start_stage=20,
@@ -159,6 +165,9 @@ class PsortRoutingTests(unittest.TestCase):
             rpd.run_genome(
                 "G",
                 "n",
+                custom=None,
+                source_genome=None,
+                is_test=False,
                 working_dir="/app",
                 cfg_dict=None,
                 start_stage=21,
@@ -174,12 +183,39 @@ class PsortRoutingTests(unittest.TestCase):
     def test_ligq_replaces_legacy_binders_when_enabled(self, local, remote, record, completion):
         with patch.dict(os.environ, {"TPW_LIGQ_USE_REMOTE": "1"}, clear=True):
             rpd.run_genome(
-                "G", "n", working_dir="/app", cfg_dict=None, start_stage=22, allow_local_heavy=False
+                "G",
+                "n",
+                None,
+                None,
+                False,
+                working_dir="/app",
+                cfg_dict=None,
+                start_stage=22,
+                allow_local_heavy=False,
             )
         local.assert_not_called()
         self.assertEqual(remote.call_args.args[:3], (24, "ligq_remote", rpd.run_remote_ligq))
         self.assertEqual([call.args[0] for call in record.call_args_list], [22, 23])
         self.assertEqual(completion.call_args.args[:2], (24, "binder_directness"))
+
+    @patch("run_pipeline_direct._record_pipeline_stage")
+    def test_skipped_ligq_does_not_silently_omit_binders(self, record):
+        with patch.dict(os.environ, {"TPW_LIGQ_USE_REMOTE": "1"}, clear=True):
+            with self.assertRaisesRegex(RuntimeError, "stage 22"):
+                rpd.run_genome(
+                    "G",
+                    "n",
+                    custom=None,
+                    source_genome=None,
+                    is_test=False,
+                    working_dir="/app",
+                    cfg_dict=None,
+                    start_stage=22,
+                    skip_stages={24},
+                    allow_local_heavy=False,
+                )
+        self.assertEqual(record.call_args.args[0], 22)
+        self.assertEqual(record.call_args.kwargs["status"], "failed")
 
 
 class CompletionStepTests(unittest.TestCase):
@@ -197,22 +233,6 @@ class CompletionStepTests(unittest.TestCase):
         subprocess_run.return_value = MagicMock(returncode=0, stdout="ok", stderr="")
         self.assertTrue(rpd._run_completion_step(3, "genbank_ec", "true"))
         self.assertEqual(record.call_args.kwargs["status"], "completed")
-
-    @patch("run_pipeline_direct._record_pipeline_stage")
-    def test_skipped_ligq_does_not_silently_omit_binders(self, record):
-        with patch.dict(os.environ, {"TPW_LIGQ_USE_REMOTE": "1"}, clear=True):
-            with self.assertRaisesRegex(RuntimeError, "stage 22"):
-                rpd.run_genome(
-                    "G",
-                    "n",
-                    working_dir="/app",
-                    cfg_dict=None,
-                    start_stage=22,
-                    skip_stages={24},
-                    allow_local_heavy=False,
-                )
-        self.assertEqual(record.call_args.args[0], 22)
-        self.assertEqual(record.call_args.kwargs["status"], "failed")
 
 
 class ComputeFolderPathTests(unittest.TestCase):
