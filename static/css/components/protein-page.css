@@ -1043,3 +1043,13 @@ body.binder-mol-modal-open {
 #binding-site-evidence {
     scroll-margin-top: 96px;
 }
+
+/* "from KP13": the value next to it was read from the identical protein in
+   another strain. Quiet, lowercase, never a chip. */
+.shared-value-source {
+    margin-left: var(--tp-space-1);
+    color: var(--tp-color-text-muted);
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+}

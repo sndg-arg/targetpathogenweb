@@ -746,6 +746,7 @@ class ProteinView(View):
             "experimental_structures": experimental_structures,
             "identical_sequence_siblings": identical_sequence_siblings,
             "shared_sequence_evidence": shared_evidence,
+            "shared_score_sources": shared_evidence.score_sources if shared_evidence else {},
             "target_profile": target_profile,
             "target_summary": target_summary,
             "score_breakdown": score_breakdown,

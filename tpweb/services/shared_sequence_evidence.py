@@ -97,6 +97,8 @@ class SharedSequenceEvidence:
     curated_structure_ids: set = field(default_factory=set)
     binder_accessions: list = field(default_factory=list)
     local_description: str = ""
+    # score_param name -> strain label, for values read from another occurrence
+    score_sources: dict = field(default_factory=dict)
     curated_binder_accessions: list = field(default_factory=list)
 
 
@@ -251,6 +253,15 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
             donor_scores[: len(sources)],
             donor_scores[len(sources) :],
         )
+        strain_of = {
+            m.bioentry_id: STRAIN_LABELS.get(m.strain_label, m.strain_label.split("__")[-1])
+            for m in peers
+        }
+        evidence.score_sources = {
+            row.score_param.name: strain_of.get(row.bioentry_id, "")
+            for row in evidence.scores
+            if row.bioentry_id != protein.pk
+        }
         evidence.binder_accessions = list(dict.fromkeys(p.accession for p in all_sources))
         evidence.curated_binder_accessions = list(dict.fromkeys(p.accession for p in sources))
         relations_to_share = (

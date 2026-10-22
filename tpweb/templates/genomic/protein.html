@@ -1,9 +1,10 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
 {% load static %}
+{% load custom_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261021-split">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-from">
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261022-identical">
 {% endblock %}
 
@@ -257,7 +258,7 @@
                     <dl class="target-profile-group-grid">
                     {% for item in group.list %}
                     <div class="target-profile-item target-profile-item--{{ item.tone }}"{% if item.tooltip %} title="{{ item.tooltip }}"{% endif %}>
-                        <dt class="target-profile-label">{{ item.label }}</dt>
+                        <dt class="target-profile-label">{{ item.label }}{% with src=shared_score_sources|dictkey:item.key %}{% if src %} <span class="shared-value-source" title="{% trans 'Read from the identical protein in this strain' %}">{% blocktrans %}from {{ src }}{% endblocktrans %}</span>{% endif %}{% endwith %}</dt>
                         {% if item.key == "human_identity" or item.key == "deg_identity" or item.key == "colabfold_plddt" %}
                         <dd class="target-profile-value">
                             {{ item.value }}
@@ -317,13 +318,13 @@
                         {% trans "Structure used to compute this P2Rank score" as p2rank_structure_tooltip %}
                         {% trans "Best-ranked pocket identifier from P2Rank" as p2rank_pocket_tooltip %}
                         {% trans "Binding-site probability (P2Rank)" as p2rank_label %}
-                        {% include "components/structure/pocket_evidence_card.html" with tool_key="p2rank" tool_label=p2rank_label tool_tooltip=p2rank_tooltip score=selected_pocket_evidence.p2rank.score structure=selected_pocket_evidence.p2rank.structure pocket=selected_pocket_evidence.p2rank.pocket structure_tooltip=p2rank_structure_tooltip pocket_tooltip=p2rank_pocket_tooltip %}
+                        {% include "components/structure/pocket_evidence_card.html" with tool_key="p2rank" shared_from=shared_score_sources.p2rank_probability tool_label=p2rank_label tool_tooltip=p2rank_tooltip score=selected_pocket_evidence.p2rank.score structure=selected_pocket_evidence.p2rank.structure pocket=selected_pocket_evidence.p2rank.pocket structure_tooltip=p2rank_structure_tooltip pocket_tooltip=p2rank_pocket_tooltip %}
 
                         {% trans "FPocket predicts geometric cavities on a 3D structure. Score 0-1; higher values suggest a better small-molecule pocket but do not prove binding." as fpocket_tooltip %}
                         {% trans "Structure used to compute this FPocket score" as fpocket_structure_tooltip %}
                         {% trans "Best-ranked pocket identifier from FPocket" as fpocket_pocket_tooltip %}
                         {% trans "Druggability (FPocket)" as fpocket_label %}
-                        {% include "components/structure/pocket_evidence_card.html" with tool_key="fpocket" tool_label=fpocket_label tool_tooltip=fpocket_tooltip score=selected_pocket_evidence.fpocket.score structure=selected_pocket_evidence.fpocket.structure pocket=selected_pocket_evidence.fpocket.pocket structure_tooltip=fpocket_structure_tooltip pocket_tooltip=fpocket_pocket_tooltip %}
+                        {% include "components/structure/pocket_evidence_card.html" with tool_key="fpocket" shared_from=shared_score_sources.Druggability tool_label=fpocket_label tool_tooltip=fpocket_tooltip score=selected_pocket_evidence.fpocket.score structure=selected_pocket_evidence.fpocket.structure pocket=selected_pocket_evidence.fpocket.pocket structure_tooltip=fpocket_structure_tooltip pocket_tooltip=fpocket_pocket_tooltip %}
                         {% if selected_pocket_evidence.fpocket.viewer_pdb_id and not selected_pocket_evidence.selected_source_visible %}
                         {# The best FPocket pocket can sit on a structure other than the one #}
                         {# shown below (that one is picked by sequence coverage) -- give a #}
@@ -388,7 +389,7 @@
                     {% endif %}
                     {% if conservation_profile %}
                     <div class="target-evidence-card" title="{% trans "Conservation across the strains analyzed for this species. A gene is flagged as core only when both Roary and CoreCruncher agree." %}">
-                        <span class="target-evidence-label">{% trans "Core conservation" %}</span>
+                        <span class="target-evidence-label">{% trans "Core conservation" %}{% with src=shared_score_sources|dictkey:"core_roary" %}{% if src %} <span class="shared-value-source" title="{% trans 'Read from the identical protein in this strain' %}">{% blocktrans %}from {{ src }}{% endblocktrans %}</span>{% endif %}{% endwith %}</span>
                         {% if conservation_profile.is_core %}
                         <span class="tp-chip tp-chip--success">
                             {% include "components/icons/check.html" %}
@@ -600,7 +601,7 @@
                         <dl class="target-profile-group-grid">
                         {% for item in loc_group.list %}
                             <div class="target-profile-item target-profile-item--{{ item.tone }}"{% if item.tooltip %} title="{{ item.tooltip }}"{% endif %}>
-                                <dt class="target-profile-label">{{ item.label }}</dt>
+                                <dt class="target-profile-label">{{ item.label }}{% with src=shared_score_sources|dictkey:item.key %}{% if src %} <span class="shared-value-source" title="{% trans 'Read from the identical protein in this strain' %}">{% blocktrans %}from {{ src }}{% endblocktrans %}</span>{% endif %}{% endwith %}</dt>
                                 <dd class="target-profile-value">{{ item.value }}</dd>
                             </div>
                         {% endfor %}

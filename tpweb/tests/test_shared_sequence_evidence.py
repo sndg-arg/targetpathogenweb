@@ -166,6 +166,12 @@ class SharedSequenceEvidenceTests(TestCase):
             "chromosomal replication initiator protein DnaA",
         )
 
+    def test_score_sources_name_the_strain_each_shared_value_came_from(self):
+        self.value(self.curated, 0.9)
+        protein = self.fresh()
+        apply_shared_sequence_evidence([protein], self.user)
+        self.assertEqual(protein.shared_sequence_evidence.score_sources, {self.param.name: "KP13"})
+
     def test_curated_value_overrides_pipeline_without_copying_rows(self):
         original = self.value(self.curated, 0.9)
         self.value(self.target, 0.2)
