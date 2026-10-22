@@ -13,6 +13,10 @@ from bioseq.models.BioentryDbxref import BioentryDbxref
 from bioseq.models.Dbxref import Dbxref
 from bioseq.models.Ontology import Ontology
 from tpweb.management.commands.load_interpro_go import Command, collect_go
+from tpweb.management.commands.load_genbank_ec import Command as GenBankECCommand
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio.SeqFeature import SeqFeature, FeatureLocation
 
 
 CHECKSUM = hashlib.md5(b"MAU").hexdigest()
@@ -104,3 +108,63 @@ class InterproGoImportTests(TestCase):
             self.run_import([row(), row(checksum="0" * 32)])
         self.assertEqual(Dbxref.objects.count(), 0)
         self.assertEqual(BioentryDbxref.objects.count(), 0)
+
+
+class GenBankECImportTests(TestCase):
+    setUp = InterproGoImportTests.setUp
+
+    def run_import(self, sequence="MAU", apply=True, extra=None):
+        record = SeqRecord(Seq("ATG"), id="TEST", annotations={"molecule_type": "DNA"})
+        record.features = [
+            SeqFeature(
+                FeatureLocation(0, 3),
+                type="CDS",
+                qualifiers={
+                    "locus_tag": ["LOC1"],
+                    "translation": [sequence],
+                    "EC_number": ["2.7.1.-", "2.7.1.-", "2.7.7.7"],
+                },
+            )
+        ]
+        if extra:
+            record.features.append(extra)
+        from Bio import SeqIO
+
+        with TemporaryDirectory() as temp:
+            path = Path(temp) / "genome.gbk"
+            SeqIO.write([record], path, "genbank")
+            output = StringIO()
+            GenBankECCommand(stdout=output).handle(
+                genome_name=self.genome, genbank=str(path), apply=apply
+            )
+            return output.getvalue()
+
+    def test_preview_does_not_write(self):
+        self.assertIn("1/1 proteins", self.run_import(apply=False))
+        self.assertEqual(Dbxref.objects.count(), 0)
+
+    def test_partial_ec_and_existing_annotations_are_preserved_on_repeat(self):
+        old = Dbxref.objects.create(dbname="ec", accession="1.1.1.1", version=0)
+        BioentryDbxref.objects.create(bioentry=self.protein, dbxref=old, rank=0)
+        self.run_import()
+        self.run_import()
+        self.assertEqual(BioentryDbxref.objects.count(), 3)
+        self.assertTrue(BioentryDbxref.objects.filter(dbxref=old).exists())
+        self.assertTrue(Dbxref.objects.filter(dbname=Ontology.EC, accession="2.7.1.-").exists())
+
+    def test_mismatched_sequence_or_late_invalid_ec_rolls_back_all(self):
+        with self.assertRaises(CommandError):
+            self.run_import(sequence="MAX")
+        extra = SeqFeature(
+            FeatureLocation(0, 3),
+            type="CDS",
+            qualifiers={
+                "locus_tag": ["LOC1"],
+                "translation": ["MAU"],
+                "EC_number": ["bad"],
+            },
+        )
+        with self.assertRaises(CommandError):
+            self.run_import(extra=extra)
+        self.assertEqual(BioentryDbxref.objects.count(), 0)
+        self.assertEqual(Dbxref.objects.count(), 0)
