@@ -127,6 +127,7 @@ def _cache_relation(protein, relation, rows):
 def apply_shared_sequence_evidence(proteins, user, details=True, score_param_names=None):
     """Batch resolution with current-sequence validation and source access checks."""
     from django.db.models import Prefetch
+    from bioseq.models.Bioentry import Bioentry
     from tpweb.models import IdenticalSequenceMember
     from tpweb.models.ScoreParam import ScoreParam
     from tpweb.models.ScoreParamValue import ScoreParamValue
@@ -148,22 +149,39 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
     scores = ScoreParamValue.objects.select_related("score_param")
     if score_param_names is not None:
         scores = scores.filter(score_param__name__in=score_param_names)
-    relations = [Prefetch("bioentry__score_params", queryset=scores)]
+    relations = [Prefetch("score_params", queryset=scores)]
     if details:
         relations += [
-            "bioentry__structures__pdb",
-            "bioentry__experimental_structure_xrefs",
-            "bioentry__dbxrefs__dbxref__terms__term",
+            "structures__pdb",
+            "experimental_structure_xrefs",
+            "dbxrefs__dbxref__terms__term",
         ]
     members = list(
         IdenticalSequenceMember.objects.filter(
             group_id__in=set(group_by_protein.values()),
             bioentry__isnull=False,
-        )
-        .select_related("bioentry__biodatabase", "bioentry__seq")
-        .prefetch_related(*relations)
-        .order_by("strain_label", "locus_tag")
+        ).order_by("strain_label", "locus_tag")
     )
+    # Proteins already in hand (the whole genome when ranking) are reused as
+    # members instead of being loaded a second time; their own score rows are
+    # read before any of them is overwritten with merged evidence below.
+    loaded = {p.pk: p for p in proteins}
+    own_scores = {p.pk: list(p.score_params.all()) for p in proteins}
+    others = {
+        b.pk: b
+        for b in Bioentry.objects.filter(pk__in={m.bioentry_id for m in members} - loaded.keys())
+        .select_related("biodatabase", "seq")
+        .prefetch_related(*relations)
+    }
+    for member in members:
+        member.bioentry = loaded.get(member.bioentry_id) or others.get(member.bioentry_id)
+    members = [m for m in members if m.bioentry is not None]
+
+    def score_rows(source):
+        if source.pk in own_scores:
+            return own_scores[source.pk]
+        return list(source.score_params.all())
+
     by_group = {}
     visibility = {}
     access = {}
@@ -246,10 +264,10 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
                     ).values_list("pk", flat=True)
                 )
             donor_scores.append(
-                [r for r in source.score_params.all() if r.score_param_id in visibility[genome]]
+                [r for r in score_rows(source) if r.score_param_id in visibility[genome]]
             )
         evidence.scores, evidence.conflicts = choose_scores(
-            list(protein.score_params.all()),
+            score_rows(protein),
             donor_scores[: len(sources)],
             donor_scores[len(sources) :],
         )
@@ -433,8 +451,9 @@ def inherited_score_param_ids(genome_name, user):
         bioentry__isnull=False,
     )
     by_genome = {}
-    for member in sources.select_related("bioentry__biodatabase"):
-        by_genome.setdefault(_genome(member.bioentry), []).append(member.bioentry_id)
+    for proteome, bioentry_id in sources.values_list("bioentry__biodatabase__name", "bioentry_id"):
+        source_genome = proteome.removesuffix(Biodatabase.PROT_POSTFIX)
+        by_genome.setdefault(source_genome, []).append(bioentry_id)
     result = set()
     for source_genome, ids in by_genome.items():
         if not user_can_access_genome_name(user, source_genome):

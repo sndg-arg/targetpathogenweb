@@ -82,4 +82,7 @@ class Command(BaseCommand):
         out = io.StringIO()
         stats = pstats.Stats(profiler, stream=out).sort_stats("cumulative")
         stats.print_stats(r"tpweb|human_target", options["top"])
+        # Where the hot spots spend their time, Django internals included.
+        stats.print_callees(r"apply_shared_sequence_evidence|_rank_and_sort_proteins")
+        stats.sort_stats("tottime").print_stats(15)
         self.stdout.write(out.getvalue())
