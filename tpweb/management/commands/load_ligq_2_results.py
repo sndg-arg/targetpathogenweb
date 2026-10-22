@@ -461,7 +461,11 @@ class Command(BaseCommand):
             affinity_rows["_locustag"].unique()
         )
         bioentry_map = self._bioentry_map(all_locustags)
-        uniprot_map = self._uniprot_map(all_locustags)
+        # Own UniProt entries plus those of identical copies in other strains,
+        # so a strain without its own mapping still gets direct ligands right.
+        from tpweb.services.binder_directness import protein_uniprot_map
+
+        uniprot_map = protein_uniprot_map(all_locustags)
 
         with transaction.atomic():
             self._write_known_rows(
