@@ -122,7 +122,7 @@ class GenBankECImportTests(TestCase):
                 qualifiers={
                     "locus_tag": ["LOC1"],
                     "translation": [sequence],
-                    "EC_number": ["2.7.1.-", "2.7.1.-", "2.7.7.7"],
+                    "EC_number": ["2.7.1.-", "2.7.1.-", "2.7.7.7", "3.5.1.n3"],
                 },
             )
         ]
@@ -148,9 +148,10 @@ class GenBankECImportTests(TestCase):
         BioentryDbxref.objects.create(bioentry=self.protein, dbxref=old, rank=0)
         self.run_import()
         self.run_import()
-        self.assertEqual(BioentryDbxref.objects.count(), 3)
+        self.assertEqual(BioentryDbxref.objects.count(), 4)
         self.assertTrue(BioentryDbxref.objects.filter(dbxref=old).exists())
         self.assertTrue(Dbxref.objects.filter(dbname=Ontology.EC, accession="2.7.1.-").exists())
+        self.assertTrue(Dbxref.objects.filter(dbname=Ontology.EC, accession="3.5.1.n3").exists())
 
     def test_mismatched_sequence_or_late_invalid_ec_rolls_back_all(self):
         with self.assertRaises(CommandError):

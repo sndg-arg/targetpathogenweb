@@ -9,7 +9,8 @@ from Bio import SeqIO
 from django.core.management.base import BaseCommand, CommandError
 
 
-EC_NUMBER = re.compile(r"[1-7]\.(?:\d+|-)\.(?:\d+|-)\.(?:\d+|-)")
+# ENZYME also assigns preliminary serials such as 3.5.1.n3.
+EC_NUMBER = re.compile(r"[1-7]\.(?:\d+|-)\.(?:\d+|-)\.(?:n?\d+|-)")
 
 
 def collect_ec(records, expected):
