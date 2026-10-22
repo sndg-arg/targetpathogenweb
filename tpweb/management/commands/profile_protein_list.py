@@ -12,6 +12,7 @@ import cProfile
 import io
 import pstats
 import time
+from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -21,6 +22,7 @@ from django.db import connection, reset_queries
 from django.test import RequestFactory
 from django.test.utils import CaptureQueriesContext
 
+from tpweb.views import ProteinListView as protein_list_view
 from tpweb.views.ProteinListView import ProteinListView
 
 
@@ -57,16 +59,29 @@ class Command(BaseCommand):
         SessionMiddleware(lambda r: None).process_request(request)
 
         view = ProteinListView.as_view()
-        reset_queries()
-        profiler = cProfile.Profile()
-        with CaptureQueriesContext(connection) as queries:
+
+        def render():
             started = time.perf_counter()
-            profiler.enable()
             response = view(request, genome=options["genome"])
             if hasattr(response, "render"):
                 response.render()
+            return response, time.perf_counter() - started
+
+        reset_queries()
+        profiler = cProfile.Profile()
+        # Profile the full ranking: the cached order is bypassed for this run.
+        with (
+            mock.patch.object(protein_list_view, "_ranking_cache_key", return_value=None),
+            CaptureQueriesContext(connection) as queries,
+        ):
+            profiler.enable()
+            response, elapsed = render()
             profiler.disable()
-            elapsed = time.perf_counter() - started
+        # Real times without profiler overhead: first render ranks and caches,
+        # the second (another page, a new page size) reuses the order.
+        _, cold = render()
+        _, warm = render()
+        self.stdout.write(f"without profiler: first {cold:.2f}s, cached order {warm:.2f}s")
 
         sql_time = sum(float(q.get("time") or 0) for q in queries.captured_queries)
         self.stdout.write(

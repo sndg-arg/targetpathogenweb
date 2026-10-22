@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.cache import cache
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.views import View
@@ -108,6 +109,7 @@ from tpweb.services.structure_sources import (
 from tpweb.services.workspace import resolve_workspace_user
 from tpweb.models.FilterPreset import FilterPreset
 from pathlib import Path
+import hashlib
 import json
 import logging
 
@@ -457,6 +459,41 @@ class ProteinAdvancedFiltersView(View):
             messages.info(request, "No se aplicó ningún grupo de filtros (vacío o inválido).")
 
         return redirect(reverse("tpwebapp:protein_list", kwargs={"genome": genome}))
+
+
+# Ranking a whole genome (with identical-strain evidence) takes seconds; paging,
+# page size and row rendering don't change the order, so it is reused. The key
+# holds every input of the ranking plus the newest score/identity row ids, so new
+# data is picked up at once; edits in place show up within the TTL.
+RANKING_CACHE_TTL_SECONDS = 600
+
+
+def _ranking_cache_key(user, queryset, *inputs):
+    from django.core.exceptions import EmptyResultSet
+    from django.db.models import Max
+    from tpweb.models import IdenticalSequenceMember
+
+    try:
+        sql = str(queryset.query)
+    except EmptyResultSet:
+        return None
+    stamp = (
+        ScoreParamValue.objects.aggregate(Max("id"))["id__max"],
+        IdenticalSequenceMember.objects.aggregate(Max("id"))["id__max"],
+    )
+    payload = json.dumps(_stable([getattr(user, "pk", None), sql, stamp, inputs]))
+    return "Target:protein_ranking:" + hashlib.sha1(payload.encode("utf-8")).hexdigest()
+
+
+def _stable(value):
+    """Same structure -> same JSON, whatever the dict/set order or key types."""
+    if isinstance(value, dict):
+        return sorted([str(key), _stable(item)] for key, item in value.items())
+    if isinstance(value, set | frozenset):
+        return sorted(str(item) for item in value)
+    if isinstance(value, list | tuple):
+        return [_stable(item) for item in value]
+    return value if isinstance(value, str | int | float | bool | type(None)) else str(value)
 
 
 class ProteinListView(View):
@@ -1998,20 +2035,35 @@ class ProteinListView(View):
         effective_sort_col = sort_by_param or ("Score" if sort_by_score else "__accession__")
         effective_sort_dir = raw_sort_dir or ("asc" if sort_by_accession else "desc")
 
-        ranked_proteins = self._rank_and_sort_proteins(
+        ranking_key = _ranking_cache_key(
+            request.user,
             ranking_queryset,
             formula_expression,
-            zero_cache,
             coefficient_by_param,
             _drugg_default,
             sort_by_param,
             sort_by_score,
-            effective_sort_col,
             effective_sort_dir,
-            selected_parameters,
             needed_score_param_names,
-            user=request.user,
         )
+        ranked_proteins = cache.get(ranking_key) if ranking_key else None
+        if ranked_proteins is None:
+            ranked_proteins = self._rank_and_sort_proteins(
+                ranking_queryset,
+                formula_expression,
+                zero_cache,
+                coefficient_by_param,
+                _drugg_default,
+                sort_by_param,
+                sort_by_score,
+                effective_sort_col,
+                effective_sort_dir,
+                selected_parameters,
+                needed_score_param_names,
+                user=request.user,
+            )
+            if ranking_key:
+                cache.set(ranking_key, ranked_proteins, RANKING_CACHE_TTL_SECONDS)
 
         filtered_protein_count = len(ranked_proteins)
 
