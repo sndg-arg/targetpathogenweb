@@ -5,97 +5,181 @@
 {% block title %}{% trans "Human Targets" %} · {% trans "Target Pathogen" %}{% endblock %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-list.css' %}?v=20261021-phone">
+    {# Same page CSS as the pathogen protein table: same hero, toolbar, table and pagination. #}
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261022-idcol">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Human Targets" as crumb_human %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_human %}
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}
-    <div class="human-list-page">
-        <section class="tp-page-hero">
-        <div class="tp-view-head">
-            <div class="tp-view-head-copy">
-                <p class="tp-view-eyebrow">{% trans "Human Targets" %}</p>
-                <h1 class="tp-view-title">{% trans "Curated human proteins" %}</h1>
-                <p class="tp-view-lead">{% trans "Human proteins studied as drug targets in their own right, with the same kind of evidence as the pathogen side: sequence, 3D structure, ligands, pathways and expression." %}</p>
+    <div class="proteins-page">
+        <section class="tp-page-hero proteins-hero">
+            <div class="hero-top tp-view-head">
+                <div class="tp-view-head-copy">
+                    <span class="tp-view-eyebrow">{% trans "Human Targets" %}</span>
+                    <h1 class="tp-view-title">{% trans "Human proteins" %}</h1>
+                    <p class="tp-view-lead">{% trans "Curated human proteins with sequence, 3D structure, ligand, expression and pathway evidence." %}</p>
+                </div>
             </div>
-        </div>
+            <div class="hero-chips tp-chip-group">
+                <span class="tp-chip">{% blocktrans count count=dashboard.total_proteins %}{{ count }} protein{% plural %}{{ count }} proteins{% endblocktrans %}</span>
+                <span class="tp-chip">{% trans "With ligand evidence" %}: {{ dashboard.proteins_with_ligands }}</span>
+                <span class="tp-chip">{% trans "Ligand records" %}: {{ dashboard.total_ligand_records }}</span>
+            </div>
+            {% if dashboard.ligand_coverage_is_sparse %}
+                <p class="tp-state-note tp-state-note--empty">{% trans "Ligand, structure, pathway and expression data are still being loaded, so some columns and sections may be empty for now." %}</p>
+            {% endif %}
         </section>
 
-        <div class="tp-metrics" aria-label="{% trans "Ligand coverage summary" %}">
-            <div class="metric-pill">
-                <span class="metric-label">{% trans "Curated proteins" %}</span>
-                <span class="metric-value">{{ dashboard.total_proteins }}</span>
-            </div>
-            <div class="metric-pill">
-                <span class="metric-label">{% trans "Ligand evidence records" %}</span>
-                <span class="metric-value">{{ dashboard.total_ligand_records }}</span>
-            </div>
-            <div class="metric-pill">
-                <span class="metric-label">{% trans "Proteins with ligand evidence" %}</span>
-                <span class="metric-value">{{ dashboard.proteins_with_ligands }} / {{ dashboard.total_proteins }}</span>
-            </div>
-            <div class="metric-pill">
-                <span class="metric-label">{% trans "Direct vs. homolog evidence" %}</span>
-                <span class="metric-value">{{ dashboard.by_evidence.direct }} / {{ dashboard.by_evidence.homolog }}</span>
-            </div>
-            <div class="metric-pill">
-                <span class="metric-label">{% trans "PDB · ChEMBL · ZINC" %}</span>
-                <span class="metric-value">{{ dashboard.by_source.pdb }} · {{ dashboard.by_source.chembl }} · {{ dashboard.by_source.zinc }}</span>
-            </div>
-        </div>
-        {% if dashboard.ligand_coverage_is_sparse %}
-        <p class="tp-state-note tp-state-note--warning">{% trans "Ligand, structure, pathway and expression data are still being loaded for these proteins, so some figures and sections may be empty for now." %}</p>
-        {% endif %}
-
-        <form method="GET" class="human-list-search" role="search">
-            <input type="search" class="form-control tp-ui-control" name="q" value="{{ query }}" placeholder="{% trans 'Search by accession, gene, or name…' %}" aria-label="{% trans 'Search human proteins' %}">
-            <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
-                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
-                <span>{% trans "Search" %}</span>
-            </button>
-            {% if query %}<a href="{% url 'human_target:human_protein_list' %}" class="btn tp-btn tp-btn--ghost">{% trans "Clear" %}</a>{% endif %}
-        </form>
-
-        <p class="human-list-count">{% blocktrans count count=total_count %}{{ count }} protein{% plural %}{{ count }} proteins{% endblocktrans %}</p>
-
-        <div class="human-protein-grid">
-            {% for hp in proteins %}
-            <a class="human-protein-card tp-card" href="{% url 'human_target:human_protein' hp.uniprot_accession %}">
-                <div class="human-protein-card__head">
-                    <span class="human-protein-card__acc">{{ hp.uniprot_accession }}</span>
-                    {% if hp.is_reviewed %}<span class="tp-chip">{% trans "Reviewed" %}</span>{% endif %}
+        <section class="toolbar-card">
+            <form method="GET" action="{{ request.path }}" class="search-form tp-ui-toolbar-form" role="search">
+                <div class="toolbar-search-row tp-ui-search-row tp-ui-toolbar-row tp-ui-toolbar-row--stack-sm">
+                    <div class="search-autocomplete tp-ui-search">
+                        <input type="text"
+                               class="form-control search-input tp-ui-search-input"
+                               name="q"
+                               placeholder="{% trans 'Search by accession, gene or name...' %}"
+                               value="{{ query }}"
+                               aria-label="{% trans 'Search human proteins' %}">
+                    </div>
+                    <div class="toolbar-search-actions tp-ui-search-actions tp-ui-group">
+                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
+                            <span>{% trans "Search" %}</span>
+                        </button>
+                        {% trans "Clear search" as clear_search_label %}
+                        {% if query %}
+                            {% include "components/buttons/clear_action.html" with label=clear_search_label href=request.path %}
+                        {% else %}
+                            {% include "components/buttons/clear_action.html" with label=clear_search_label disabled="1" %}
+                        {% endif %}
+                    </div>
                 </div>
-                <h3>{{ hp.protein_name|default:hp.uniprot_accession }}</h3>
-                {% if hp.gene_symbol %}<p class="human-protein-card__gene">{{ hp.gene_symbol }}</p>{% endif %}
-                <div class="human-protein-card__meta">
-                    {% if hp.sequence_length %}<span>{{ hp.sequence_length }} aa</span>{% endif %}
-                </div>
-            </a>
-            {% empty %}
-            <p class="tp-state-note tp-state-note--empty">{% trans "No human proteins match this search." %}</p>
-            {% endfor %}
-        </div>
+            </form>
+        </section>
 
-        {% if proteins.paginator.num_pages > 1 %}
-        <nav class="human-list-pagination" aria-label="{% trans 'Protein list pagination' %}">
-            <span>{% blocktrans with current=proteins.number total=proteins.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktrans %}</span>
-            <ul class="pagination tp-pagination">
-                <li class="page-item{% if not proteins.has_previous %} disabled{% endif %}">
-                    {% if proteins.has_previous %}
-                    <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page={{ proteins.previous_page_number }}" aria-label="{% trans 'Previous' %}"><span class="tp-chevron tp-chevron--left" aria-hidden="true"></span></a>
-                    {% else %}
-                    <span class="page-link" aria-hidden="true"><span class="tp-chevron tp-chevron--left"></span></span>
+        <section class="protein-workspace">
+            <div class="protein-table-panel">
+                {% if not rows %}
+                <div class="tp-empty protein-empty-state">
+                    <p class="tp-empty-title">{% if query %}{% trans "No human proteins match this search" %}{% else %}{% trans "No human proteins loaded yet" %}{% endif %}</p>
+                    {% if query %}
+                    <div class="tp-empty-actions">
+                        <a href="{{ request.path }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+                            <span>{% trans "Clear search" %}</span>
+                        </a>
+                    </div>
                     {% endif %}
-                </li>
-                <li class="page-item active" aria-current="page"><span class="page-link">{{ proteins.number }}</span></li>
-                <li class="page-item{% if not proteins.has_next %} disabled{% endif %}">
-                    {% if proteins.has_next %}
-                    <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page={{ proteins.next_page_number }}" aria-label="{% trans 'Next' %}"><span class="tp-chevron tp-chevron--right" aria-hidden="true"></span></a>
+                </div>
+                {% else %}
+                <p class="protein-table-results" role="status">
+                    {% if query %}
+                        {% blocktrans with filtered=total_count total=all_count %}<strong>{{ filtered }}</strong> of {{ total }} proteins match the current search{% endblocktrans %}
                     {% else %}
-                    <span class="page-link" aria-hidden="true"><span class="tp-chevron tp-chevron--right"></span></span>
+                        {% blocktrans with total=total_count %}Showing all <strong>{{ total }}</strong> proteins{% endblocktrans %}
                     {% endif %}
-                </li>
-            </ul>
-        </nav>
-        {% endif %}
+                </p>
+                <section class="table-wrap tp-table-shell">
+                    <table class="table tp-table tp-table--compact protein-table">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>{% trans "Protein" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th>{% trans "Gene" %}</th>
+                            <th>{% trans "Length" %}</th>
+                            <th>{% trans "Structure" %}</th>
+                            <th title="{% trans 'Ligand evidence records: same-protein (direct) out of all, including those transferred from similar proteins.' %}">{% trans "Ligands" %}</th>
+                            <th>{% trans "UniProt" %}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for row in rows %}
+                            {% with hp=row.protein %}
+                            <tr class="protein-row">
+                                <td class="rank-col">{{ proteins.start_index|add:forloop.counter0 }}</td>
+                                <td class="acc-col"><a href="{% url 'human_target:human_protein' hp.uniprot_accession %}">{{ hp.uniprot_accession }}</a></td>
+                                <td class="desc-col">{{ hp.protein_name|default:"—" }}</td>
+                                <td class="gene-col">{{ hp.gene_symbol|default:"—" }}</td>
+                                <td>{% if hp.sequence_length %}{{ hp.sequence_length }} aa{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td data-col="structure-source">
+                                    {% if row.structure.has_structure %}
+                                        <span class="tp-chip">{{ row.structure.label }}</span>
+                                    {% else %}
+                                        <span class="tp-chip structure-unavailable">{{ row.structure.label }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if row.ligands.total %}
+                                        <a href="{% url 'human_target:human_protein' hp.uniprot_accession %}#section-binders" class="tp-chip tp-chip--code" title="{% trans 'Direct / all ligand evidence records' %}">{{ row.ligands.direct }} / {{ row.ligands.total }}</a>
+                                    {% else %}
+                                        <span class="metric-na" title="{% trans 'No ligand evidence loaded for this protein.' %}">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>{% if hp.is_reviewed %}<span class="tp-chip">{% trans "Reviewed" %}</span>{% else %}<span class="tp-chip tp-chip--muted">{% trans "Unreviewed" %}</span>{% endif %}</td>
+                            </tr>
+                            {% endwith %}
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+
+                <div class="pagination-row">
+                    <form method="GET" action="{{ request.path }}" class="pagination-label">
+                        {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+                        {% trans "Page" %}
+                        {% if proteins.paginator.num_pages > 1 %}
+                            <input type="number" name="page" class="page-jump-input" value="{{ proteins.number }}" min="1" max="{{ proteins.paginator.num_pages }}" aria-label="{% trans 'Go to page' %}">
+                        {% else %}
+                            1
+                        {% endif %}
+                        {% trans "of" %} {{ proteins.paginator.num_pages }} · {{ total_count }} {% trans "matching proteins" %}
+                    </form>
+                    {% if proteins.paginator.num_pages > 1 %}
+                    <ul class="pagination tp-pagination">
+                        <li class="page-item {% if not proteins.has_previous %}disabled{% endif %}">
+                            {% if proteins.has_previous %}
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ proteins.previous_page_number }}">
+                                    <span class="sr-only">{% trans "Previous page" %}</span>
+                                    <span class="tp-chevron tp-chevron--left" aria-hidden="true"></span>
+                                </a>
+                            {% else %}
+                                <span class="page-link" aria-hidden="true"><span class="tp-chevron tp-chevron--left"></span></span>
+                            {% endif %}
+                        </li>
+                        {% for p in page_numbers %}
+                            {% if p %}
+                                <li class="page-item {% if p == proteins.number %}active{% endif %}">
+                                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ p }}">{{ p }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        <li class="page-item {% if not proteins.has_next %}disabled{% endif %}">
+                            {% if proteins.has_next %}
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ proteins.next_page_number }}">
+                                    <span class="sr-only">{% trans "Next page" %}</span>
+                                    <span class="tp-chevron tp-chevron--right" aria-hidden="true"></span>
+                                </a>
+                            {% else %}
+                                <span class="page-link" aria-hidden="true"><span class="tp-chevron tp-chevron--right"></span></span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </section>
     </div>
 {% endblock %}

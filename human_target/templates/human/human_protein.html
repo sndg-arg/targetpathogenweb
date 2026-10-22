@@ -10,8 +10,8 @@
     styling this page deliberately reuses verbatim (same markup, same tokens) --
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-from">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261018-labels">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-human">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261022-human">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -86,9 +86,10 @@
 
         <nav class="quick-nav" data-quick-nav aria-label="{% trans "Protein sections" %}">
             <a href="#section-overview" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
-            <a href="#section-function" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Function" %}</a>
+            <a href="#section-function" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotations" %}</a>
             {% if diseases.has_diseases %}<a href="#section-diseases" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Diseases" %}</a>{% endif %}
             <a href="#section-sequence" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
+            {% if sequence.feature_lanes %}<a href="#section-features" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Features" %}</a>{% endif %}
             {% if structure.has_structure %}<a href="#section-structure" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "3D structure" %}</a>{% endif %}
             {% if binders.total %}<a href="#section-binders" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Ligands" %}</a>{% endif %}
             {% if expression.has_expression %}<a href="#section-expression" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Expression" %}</a>{% endif %}
@@ -105,113 +106,134 @@
                         <p class="section-subtitle">{{ overview.summary_sentence|default:"—" }}</p>
                     </div>
                 </div>
-                <div class="human-overview-grid">
-                    <div class="human-overview-main">
-                        {% if overview.caution_text %}
-                        <p class="tp-state-note tp-state-note--warning human-caution">{{ overview.caution_text }}</p>
-                        {% endif %}
-                        {% if overview.subunit_text %}
-                        <div class="human-overview-block">
-                            <h3>{% trans "Subunit structure" %}</h3>
-                            <p>{{ overview.subunit_text }}</p>
-                        </div>
-                        {% endif %}
-                        {% if overview.polymorphism_text %}
-                        <div class="human-overview-block">
-                            <h3>{% trans "Polymorphism" %}</h3>
-                            <p>{{ overview.polymorphism_text }}</p>
-                        </div>
-                        {% endif %}
-                        {% if overview.publications %}
-                        <div class="human-overview-block">
-                            <h3>{% trans "Publications" %}</h3>
-                            <ul class="human-publication-list">
-                                {% for pub in overview.publications|slice:":8" %}
-                                <li><a href="https://pubmed.ncbi.nlm.nih.gov/{{ pub.pubmed }}/" target="_blank" rel="noopener">{{ pub.title|default:pub.pubmed }}</a></li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        {% endif %}
+                {% if overview.caution_text %}
+                <p class="tp-state-note tp-state-note--warning">{{ overview.caution_text }}</p>
+                {% endif %}
+                <dl class="target-profile-group-grid human-identifiers">
+                    <div class="target-profile-item">
+                        <dt class="target-profile-label">{% trans "Gene" %}</dt>
+                        <dd class="target-profile-value">{{ human_protein.gene_symbol|default:"—" }}</dd>
                     </div>
-                    <aside class="human-overview-aside">
-                        <div class="human-identifiers-card">
-                            <h3>{% trans "Identifiers" %}</h3>
-                            <dl class="human-kv-list">
-                                <dt>{% trans "Gene" %}</dt><dd>{{ human_protein.gene_symbol|default:"—" }}</dd>
-                                <dt>{% trans "UniProt" %}</dt><dd>{{ human_protein.uniprot_accession }}</dd>
-                                <dt>{% trans "Organism" %}</dt><dd>{{ human_protein.organism_name|default:"Homo sapiens" }}{% if human_protein.taxon_id %} (taxon {{ human_protein.taxon_id }}){% endif %}</dd>
-                                {% if overview.chromosome %}<dt>{% trans "Chromosome" %}</dt><dd>{{ overview.chromosome }}</dd>{% endif %}
-                            </dl>
-                            {% if overview.lineage %}
-                            <p class="human-lineage">{{ overview.lineage|join:" › " }}</p>
-                            {% endif %}
-                        </div>
-                        {% if overview.subcellular_locations %}
-                        <div class="human-pill-block">
-                            <h3>{% trans "Subcellular location" %}</h3>
-                            <div class="tp-chip-group">
-                                {% for loc in overview.subcellular_locations %}
-                                <span class="tp-chip">{{ loc }}</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-                        {% if overview.keywords %}
-                        <div class="human-pill-block">
-                            <h3>{% trans "Keywords" %}</h3>
-                            <div class="tp-chip-group">
-                                {% for kw in overview.keywords %}
-                                <span class="tp-chip">{{ kw }}</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-                    </aside>
+                    <div class="target-profile-item">
+                        <dt class="target-profile-label">{% trans "UniProt" %}</dt>
+                        <dd class="target-profile-value">{{ human_protein.uniprot_accession }}</dd>
+                    </div>
+                    <div class="target-profile-item">
+                        <dt class="target-profile-label">{% trans "Organism" %}</dt>
+                        <dd class="target-profile-value">{{ human_protein.organism_name|default:"Homo sapiens" }}{% if human_protein.taxon_id %} ({{ human_protein.taxon_id }}){% endif %}</dd>
+                    </div>
+                    {% if overview.chromosome %}
+                    <div class="target-profile-item">
+                        <dt class="target-profile-label">{% trans "Chromosome" %}</dt>
+                        <dd class="target-profile-value">{{ overview.chromosome }}</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+                {% if overview.subunit_text %}
+                <div class="cross-reference-group">
+                    <h3 class="cross-reference-group-label">{% trans "Subunit structure" %}</h3>
+                    <p class="human-text">{{ overview.subunit_text }}</p>
                 </div>
+                {% endif %}
+                {% if overview.polymorphism_text %}
+                <div class="cross-reference-group">
+                    <h3 class="cross-reference-group-label">{% trans "Polymorphism" %}</h3>
+                    <p class="human-text">{{ overview.polymorphism_text }}</p>
+                </div>
+                {% endif %}
+                {% if overview.subcellular_locations %}
+                <div class="cross-reference-group">
+                    <h3 class="cross-reference-group-label">{% trans "Subcellular location" %}</h3>
+                    <div class="cross-reference-chip-list">
+                        {% for loc in overview.subcellular_locations %}<span class="tp-chip">{{ loc }}</span>{% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if overview.keywords %}
+                <div class="cross-reference-group">
+                    <h3 class="cross-reference-group-label">{% trans "Keywords" %}</h3>
+                    <div class="cross-reference-chip-list">
+                        {% for kw in overview.keywords %}<span class="tp-chip">{{ kw }}</span>{% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if overview.lineage %}
+                <div class="cross-reference-group">
+                    <h3 class="cross-reference-group-label">{% trans "Lineage" %}</h3>
+                    <p class="human-text">{{ overview.lineage|join:" › " }}</p>
+                </div>
+                {% endif %}
+                {% if overview.publications %}
+                <div class="annotation-panels">
+                    <div class="annotation-panel">
+                        <div class="annotation-panel-head">
+                            <h3>{% trans "Publications" %}</h3>
+                            <span class="tp-count">{{ overview.publications|length }}</span>
+                        </div>
+                        <ul class="annotation-entries">
+                            {% for pub in overview.publications|slice:":8" %}
+                            <li class="annotation-entry">
+                                <a href="https://pubmed.ncbi.nlm.nih.gov/{{ pub.pubmed }}/" target="_blank" rel="noopener" class="annotation-entry-id">{{ pub.pubmed }}</a>
+                                <span class="annotation-entry-name" title="{{ pub.title }}">{{ pub.title|default:"—" }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
             </section>
 
             <section class="protein-card" id="section-function">
                 <div class="section-head">
                     <div>
-                        <h2>{% trans "Function" %}</h2>
-                        <p class="section-subtitle">{% trans "Molecular function, catalytic activity, and Gene Ontology annotations." %}</p>
+                        <h2>{% trans "Functional annotations" %}</h2>
+                        <p class="section-subtitle">{% trans "Molecular function, enzyme classification and Gene Ontology terms." %}</p>
                     </div>
                     <div class="section-tools">
-                        <span class="tp-chip">{{ ec_badges|length }} EC</span>
-                        <span class="tp-chip">{{ go_badges|length }} GO</span>
+                        {% if ec_badges %}<span class="tp-chip">{{ ec_badges|length }} EC</span>{% endif %}
+                        {% if go_badges %}<span class="tp-chip">{{ go_badges|length }} GO</span>{% endif %}
                     </div>
                 </div>
                 {% if function.function_text %}
-                <p class="human-function-text">{{ function.function_text|linebreaksbr }}</p>
-                {% else %}
-                <p class="tp-state-note tp-state-note--empty">{% trans "No function description loaded for this protein." %}</p>
+                <p class="human-text">{{ function.function_text|linebreaksbr }}</p>
                 {% endif %}
-
-                {% if function.catalytic_activity %}
-                <div class="human-catalytic-list">
-                    {% for cat in function.catalytic_activity %}
-                    <div class="human-catalytic-card">
-                        {% if cat.ec %}<span class="tp-chip tp-chip--code">EC {{ cat.ec }}</span>{% endif %}
-                        {% if cat.rhea %}<span class="tp-chip">{{ cat.rhea }}</span>{% endif %}
-                        {% if cat.reaction %}<p class="human-reaction-eq">{{ cat.reaction }}</p>{% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                {% if function.go_cards %}
-                <div class="human-go-grid">
-                    {% for card in function.go_cards %}
-                    <div class="human-go-card">
-                        <h3>{{ card.label }}</h3>
-                        <div class="tp-chip-group">
-                            {% for term in card.terms %}
-                            <span class="tp-chip tp-chip--code" title="{{ term.id }}">{{ term.name|default:term.id }}</span>
-                            {% endfor %}
+                {% if function.catalytic_activity or function.go_cards %}
+                <div class="annotation-panels">
+                    {% if function.catalytic_activity %}
+                    <div class="annotation-panel annotation-panel--ec">
+                        <div class="annotation-panel-head">
+                            <h3>{% trans "Catalytic activity" %}</h3>
+                            <span class="tp-count">{{ function.catalytic_activity|length }}</span>
                         </div>
+                        <ul class="annotation-entries">
+                            {% for cat in function.catalytic_activity %}
+                            <li class="annotation-entry">
+                                <span class="annotation-entry-id">{% if cat.ec %}EC {{ cat.ec }}{% else %}{{ cat.rhea|default:"—" }}{% endif %}</span>
+                                <span class="annotation-entry-name" title="{{ cat.reaction }}">{{ cat.reaction|default:"—" }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% for card in function.go_cards %}
+                    <div class="annotation-panel annotation-panel--go">
+                        <div class="annotation-panel-head">
+                            <h3>{{ card.label }}</h3>
+                            <span class="tp-count">{{ card.terms|length }}</span>
+                        </div>
+                        <ul class="annotation-entries">
+                            {% for term in card.terms %}
+                            <li class="annotation-entry">
+                                <a href="https://www.ebi.ac.uk/QuickGO/term/{{ term.id }}" target="_blank" rel="noopener" class="annotation-entry-id">{{ term.id }}</a>
+                                <span class="annotation-entry-name" title="{{ term.name }}">{{ term.name|default:"—" }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
                     </div>
                     {% endfor %}
                 </div>
+                {% elif not function.function_text %}
+                <p class="tp-state-note tp-state-note--empty">{% trans "No function, EC or GO annotations are currently loaded for this protein." %}</p>
                 {% endif %}
             </section>
 
@@ -226,22 +248,22 @@
                         <span class="tp-chip">{{ diseases.diseases|length }}</span>
                     </div>
                 </div>
-                <div class="human-disease-grid">
-                    {% for disease in diseases.diseases %}
-                    <div class="human-disease-card">
-                        <div class="human-disease-card__head">
-                            <h3>{{ disease.name|default:"—" }}</h3>
-                            {% if disease.acronym %}<span class="tp-chip">{{ disease.acronym }}</span>{% endif %}
-                        </div>
-                        {% if disease.description %}<p>{{ disease.description }}</p>{% endif %}
-                        {% if disease.mim %}
-                        <a class="tp-chip tp-chip--link" href="https://omim.org/entry/{{ disease.mim|cut:"MIM:" }}" target="_blank" rel="noopener" title="{% trans 'View on OMIM' %}">
-                            <span class="tp-chip-db">{{ disease.mim }}</span>
-                            <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
-                        </a>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
+                <div class="annotation-panel">
+                    <ul class="annotation-entries">
+                        {% for disease in diseases.diseases %}
+                        <li class="annotation-entry human-disease-entry">
+                            {% if disease.mim %}
+                            <a href="https://omim.org/entry/{{ disease.mim|cut:"MIM:" }}" target="_blank" rel="noopener" class="annotation-entry-id" title="{% trans 'View on OMIM' %}">{{ disease.acronym|default:disease.mim }}</a>
+                            {% else %}
+                            <span class="annotation-entry-id">{{ disease.acronym|default:"—" }}</span>
+                            {% endif %}
+                            <span class="annotation-entry-name">
+                                <strong>{{ disease.name|default:"—" }}</strong>
+                                {% if disease.description %}<span class="human-disease-entry__text">{{ disease.description }}</span>{% endif %}
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </section>
             {% endif %}
@@ -252,36 +274,56 @@
                         <h2>{% trans "Sequence" %}</h2>
                         <p class="section-subtitle">{% blocktrans with length=sequence.sequence_length %}{{ length }} amino acids{% endblocktrans %}</p>
                     </div>
-                    <div class="section-tools">
-                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" id="copy-human-sequence" data-default-label="{% trans "Copy sequence" %}" data-copied-label="{% trans "Copied" %}">
-                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
-                            <span data-copy-label>{% trans "Copy sequence" %}</span>
-                        </button>
-                    </div>
+                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" id="copy-human-sequence" data-default-label="{% trans "Copy sequence" %}" data-copied-label="{% trans "Copied" %}">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
+                        <span data-copy-label>{% trans "Copy sequence" %}</span>
+                    </button>
                 </div>
                 <textarea id="human-raw-sequence" hidden>{{ sequence.sequence }}</textarea>
                 {% if sequence.sequence %}
-                <pre class="human-sequence-block">{{ sequence.sequence }}</pre>
+                <div class="sequence-shell">
+                    <pre class="protein-sequence-fallback">{{ sequence.sequence }}</pre>
+                </div>
                 {% else %}
                 <p class="tp-state-note tp-state-note--empty">{% trans "No sequence loaded for this protein." %}</p>
                 {% endif %}
+            </section>
 
-                {% if sequence.feature_lanes %}
-                <div class="human-feature-lanes">
-                    {% for lane in sequence.feature_lanes %}
-                    <div class="human-feature-lane">
-                        <span class="human-feature-lane__label">{{ lane.type }}</span>
-                        <div class="human-feature-lane__items">
-                            {% for feature in lane.features %}
-                            <div class="human-feature-item">
-                                <span class="human-feature-item__pos">{{ feature.start }}{% if feature.end and feature.end != feature.start %}–{{ feature.end }}{% endif %}</span>
-                                <span class="human-feature-item__desc">{{ feature.description|default:"—" }}</span>
-                            </div>
-                            {% endfor %}
-                        </div>
+            <section class="protein-card" id="section-features">
+                <div class="section-head">
+                    <div>
+                        <h2>{% trans "Sequence domains and features" %}</h2>
+                        <p class="section-subtitle">{% trans "Domains, sites and regions annotated on the UniProt record." %}</p>
                     </div>
-                    {% endfor %}
                 </div>
+                {% if sequence.feature_lanes %}
+                <details class="data-details js-smooth-details" open>
+                    <summary>{% trans "Feature table" %}</summary>
+                    <div class="table-shell tp-table-shell">
+                        <table class="table tp-table">
+                            <thead>
+                            <tr>
+                                <th scope="col">{% trans "Type" %}</th>
+                                <th scope="col">{% trans "Start" %}</th>
+                                <th scope="col">{% trans "End" %}</th>
+                                <th scope="col">{% trans "Description" %}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for lane in sequence.feature_lanes %}{% for feature in lane.features %}
+                            <tr>
+                                <td>{{ lane.type }}</td>
+                                <td>{{ feature.start }}</td>
+                                <td>{{ feature.end|default:feature.start }}</td>
+                                <td>{{ feature.description|default:"—" }}</td>
+                            </tr>
+                            {% endfor %}{% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+                {% else %}
+                <p class="tp-state-note tp-state-note--empty">{% trans "No sequence features are currently loaded for this protein." %}</p>
                 {% endif %}
             </section>
 
@@ -576,22 +618,21 @@
                         <p class="section-subtitle">{% trans "External database identifiers grouped by category." %}</p>
                     </div>
                 </div>
-                {% if xrefs.groups %}
-                <div class="human-xref-grid">
-                    {% for group in xrefs.groups %}
-                    <div class="human-xref-card">
-                        <h3>{{ group.label }}</h3>
-                        <ul class="human-xref-list">
-                            {% for item in group.items %}
-                            <li><span class="human-xref-db">{{ item.database }}</span><span class="human-xref-id">{{ item.id }}</span></li>
-                            {% endfor %}
-                        </ul>
+                {% for group in xrefs.groups %}
+                <div class="cross-reference-group">
+                    <h3 class="cross-reference-group-label">{{ group.label }}</h3>
+                    <div class="cross-reference-chip-list">
+                        {% for item in group.items %}
+                        <span class="hero-chip tp-chip">
+                            <span class="tp-chip-db">{{ item.database }}</span>
+                            <span class="tp-chip-acc">{{ item.id }}</span>
+                        </span>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
-                {% else %}
+                {% empty %}
                 <p class="tp-state-note tp-state-note--empty">{% trans "No cross-references loaded for this protein." %}</p>
-                {% endif %}
+                {% endfor %}
             </section>
         </div>
 

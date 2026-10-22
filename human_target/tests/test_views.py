@@ -101,3 +101,13 @@ class HumanProteinListViewPaginationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["proteins"].number, 2)
+
+    def test_list_is_the_shared_protein_table_with_structure_and_ligand_columns(self):
+        self._make_human_proteins(2)
+
+        response = self.client.get(reverse("human_target:human_protein_list"))
+
+        self.assertContains(response, 'class="table tp-table tp-table--compact protein-table"')
+        self.assertContains(response, reverse("human_target:human_protein", args=["P00000"]))
+        self.assertEqual([row["ligands"]["total"] for row in response.context["rows"]], [0, 0])
+        self.assertFalse(response.context["rows"][0]["structure"]["has_structure"])
