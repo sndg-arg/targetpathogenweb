@@ -93,6 +93,10 @@ def build_human_overview_context(human_protein):
             {
                 "label": "Annotation score",
                 "value": f"{score:.0f}/5" if hp.annotation_score is not None else "—",
+                # UniProt's 1-5 annotation score, drawn as five dots.
+                "meter": [i < round(score) for i in range(5)]
+                if hp.annotation_score is not None
+                else None,
             },
             {"label": "Entry version", "value": hp.entry_version or "—"},
         ],
@@ -101,6 +105,7 @@ def build_human_overview_context(human_protein):
         "polymorphism_text": hp.polymorphism_text,
         "publications": hp.publications or [],
         "lineage": hp.lineage or [],
+        "lineage_rail": [*(hp.lineage or []), hp.organism_name or "Homo sapiens"],
         "keywords": hp.keywords or [],
         "subcellular_locations": hp.subcellular_locations or [],
         "is_reviewed": hp.is_reviewed,
@@ -134,6 +139,131 @@ def build_human_function_context(human_protein):
     }
 
 
+# Feature types drawn on the architecture map, by row. Anything else stays
+# in the feature table only.
+_TOPOLOGY_TYPES = {"Topological domain", "Transmembrane", "Intramembrane"}
+_DOMAIN_TYPES = {"Domain", "Repeat", "Zinc finger"}
+_SITE_TYPES = {"Active site", "Binding site", "Site"}
+_PTM_TYPES = {"Modified residue", "Glycosylation", "Lipidation", "Cross-link", "Disulfide bond"}
+_VARIANT_TYPES = {"Natural variant"}
+SEQUENCE_LINE = 60
+SEQUENCE_BLOCK = 10
+
+
+def _int(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _topology_kind(feature):
+    if feature.get("type") != "Topological domain":
+        return "membrane"
+    text = (feature.get("description") or "").lower()
+    if "extracell" in text or "lumenal" in text:
+        return "outside"
+    if "cytoplasm" in text:
+        return "inside"
+    return "other"
+
+
+def _ruler(length):
+    for step in (10, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000, 10000):
+        if length / step <= 10:
+            break
+    return [
+        {"position": position, "left": round(position / length * 100, 3)}
+        for position in range(step, length, step)
+    ]
+
+
+def build_human_architecture(features, length):
+    """Positions (as % of the sequence) for the protein architecture map:
+    topology and signal peptide on the backbone, domains on top, and one tick
+    row each for sites, modifications and natural variants."""
+    length = _int(length)
+    if not length:
+        return None
+
+    def placed(feature):
+        start, end = _int(feature.get("start")), _int(feature.get("end"))
+        if start is None:
+            return None
+        start = max(1, start)
+        end = max(start, min(end if end is not None else start, length))
+        return {
+            "type": feature.get("type", ""),
+            "description": feature.get("description") or feature.get("type", ""),
+            "start": start,
+            "end": end,
+            "left": round((start - 1) / length * 100, 3),
+            "width": round((end - start + 1) / length * 100, 3),
+        }
+
+    rows = {"topology": [], "signal": [], "domains": [], "sites": [], "ptms": [], "variants": []}
+    for feature in features or []:
+        kind = feature.get("type", "")
+        item = placed(feature)
+        if item is None:
+            continue
+        if kind in _TOPOLOGY_TYPES:
+            item["kind"] = _topology_kind(feature)
+            rows["topology"].append(item)
+        elif kind == "Signal":
+            rows["signal"].append(item)
+        elif kind in _DOMAIN_TYPES:
+            rows["domains"].append(item)
+        elif kind in _SITE_TYPES:
+            rows["sites"].append(item)
+        elif kind in _PTM_TYPES:
+            rows["ptms"].append(item)
+        elif kind in _VARIANT_TYPES:
+            rows["variants"].append(item)
+    if not any(rows.values()):
+        return None
+    tick_rows = [
+        {"key": key, "label": label, "items": rows[key]}
+        for key, label in (
+            ("sites", "Sites"),
+            ("ptms", "Modifications"),
+            ("variants", "Natural variants"),
+        )
+        if rows[key]
+    ]
+    return {
+        "length": length,
+        "topology": rows["topology"],
+        "signal": rows["signal"],
+        "domains": rows["domains"],
+        "tick_rows": tick_rows,
+        "ruler": _ruler(length),
+        "has_topology": bool(rows["topology"]),
+    }
+
+
+def format_sequence(sequence):
+    """UniProt-style layout: lines of 60 residues in blocks of 10, each block
+    tagged with its first position (1-based) so a range can be highlighted."""
+    sequence = (sequence or "").strip()
+    lines = []
+    for line_start in range(0, len(sequence), SEQUENCE_LINE):
+        line = sequence[line_start : line_start + SEQUENCE_LINE]
+        lines.append(
+            {
+                "start": line_start + 1,
+                "blocks": [
+                    {
+                        "start": line_start + offset + 1,
+                        "text": line[offset : offset + SEQUENCE_BLOCK],
+                    }
+                    for offset in range(0, len(line), SEQUENCE_BLOCK)
+                ],
+            }
+        )
+    return lines
+
+
 def build_human_sequence_context(human_protein):
     hp = human_protein
     lanes = {"Signal": [], "Chain": [], "Domain": [], "Region": [], "Disulfide bond": []}
@@ -141,9 +271,12 @@ def build_human_sequence_context(human_protein):
         ftype = feature.get("type", "")
         if ftype in lanes:
             lanes[ftype].append(feature)
+    length = hp.sequence_length or len(hp.sequence or "")
     return {
         "sequence": hp.sequence,
         "sequence_length": hp.sequence_length,
+        "sequence_lines": format_sequence(hp.sequence),
+        "architecture": build_human_architecture(hp.features_raw, length),
         "feature_lanes": [
             {"type": ftype, "features": features} for ftype, features in lanes.items() if features
         ],

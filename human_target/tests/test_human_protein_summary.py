@@ -27,3 +27,39 @@ class BuildHumanXrefContextTests(SimpleTestCase):
 
         other_group = next(g for g in context["groups"] if g["label"] == "Other")
         self.assertEqual(other_group["items"], [{"database": "SomeObscureDB", "id": "X1"}])
+
+
+class HumanArchitectureTests(SimpleTestCase):
+    def test_places_features_on_rows_as_percent_of_the_sequence(self):
+        from human_target.services.human_protein_summary import build_human_architecture
+
+        features = [
+            {"type": "Signal", "start": 1, "end": 25},
+            {"type": "Topological domain", "start": 26, "end": 50, "description": "Extracellular"},
+            {"type": "Transmembrane", "start": 51, "end": 70},
+            {"type": "Topological domain", "start": 71, "end": 100, "description": "Cytoplasmic"},
+            {"type": "Domain", "start": 30, "end": 45, "description": "Ig-like"},
+            {"type": "Binding site", "start": 80, "end": 80},
+            {"type": "Natural variant", "start": 90, "end": 90},
+            {"type": "Chain", "start": 26, "end": 100},
+        ]
+        arch = build_human_architecture(features, 100)
+        self.assertEqual([t["kind"] for t in arch["topology"]], ["outside", "membrane", "inside"])
+        self.assertEqual(arch["domains"][0]["left"], 29)
+        self.assertEqual(arch["domains"][0]["width"], 16)
+        self.assertEqual([row["key"] for row in arch["tick_rows"]], ["sites", "variants"])
+        self.assertEqual([tick["position"] for tick in arch["ruler"]], list(range(10, 100, 10)))
+
+    def test_no_map_without_length_or_drawable_features(self):
+        from human_target.services.human_protein_summary import build_human_architecture
+
+        self.assertIsNone(build_human_architecture([{"type": "Domain", "start": 1}], 0))
+        self.assertIsNone(build_human_architecture([{"type": "Chain", "start": 1, "end": 9}], 9))
+
+    def test_sequence_lines_of_sixty_in_blocks_of_ten(self):
+        from human_target.services.human_protein_summary import format_sequence
+
+        lines = format_sequence("A" * 65)
+        self.assertEqual([line["start"] for line in lines], [1, 61])
+        self.assertEqual([block["start"] for block in lines[0]["blocks"]], [1, 11, 21, 31, 41, 51])
+        self.assertEqual(lines[1]["blocks"], [{"start": 61, "text": "AAAAA"}])

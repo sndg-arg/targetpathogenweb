@@ -1,6 +1,7 @@
 {% extends "base/masterpage.html" %}
 {% load i18n %}
 {% load static %}
+{% load l10n %}
 
 {% block title %}{{ human_protein.uniprot_accession }} · {% trans "Human Targets" %}{% endblock %}
 
@@ -11,7 +12,7 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-live">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261022-live">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261022-arch">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -66,7 +67,7 @@
                 {% for fact in overview.quick_facts %}
                 <div class="metric-pill">
                     <span class="metric-label">{{ fact.label }}</span>
-                    <span class="metric-value">{{ fact.value }}</span>
+                    <span class="metric-value">{% if fact.meter %}<span class="hm-meter" aria-hidden="true">{% for on in fact.meter %}<i{% if on %} class="is-on"{% endif %}></i>{% endfor %}</span>{% endif %}{{ fact.value }}</span>
                 </div>
                 {% endfor %}
                 {% if binders.total %}
@@ -160,7 +161,15 @@
                 {% if overview.lineage %}
                 <div class="cross-reference-group">
                     <h3 class="cross-reference-group-label">{% trans "Lineage" %}</h3>
-                    <p class="human-text">{{ overview.lineage|join:" › " }}</p>
+                    {# Taxonomy rail: root to species; genus and species set in italics. #}
+                    <ol class="hl-rail" aria-label="{% trans 'Taxonomic lineage' %}">
+                        {% for taxon in overview.lineage_rail %}
+                        <li class="hl-node{% if forloop.last %} is-leaf{% endif %}{% if forloop.revcounter <= 2 %} is-binomial{% endif %}">
+                            <span class="hl-dot" aria-hidden="true"></span>
+                            <span class="hl-name">{{ taxon }}</span>
+                        </li>
+                        {% endfor %}
+                    </ol>
                 </div>
                 {% endif %}
                 {% if overview.publications %}
@@ -293,9 +302,51 @@
                     </button>
                 </div>
                 <textarea id="human-raw-sequence" hidden>{{ sequence.sequence }}</textarea>
+                {% with arch=sequence.architecture %}{% if arch %}
+                {% localize off %}
+                <figure class="ha-map" aria-label="{% trans 'Protein architecture' %}">
+                    <div class="ha-row ha-row--main">
+                        <span class="ha-row-label">{% trans "Architecture" %}</span>
+                        <div class="ha-row-track">
+                            <span class="ha-backbone" aria-hidden="true"></span>
+                            {% for seg in arch.topology %}<span class="ha-topo ha-topo--{{ seg.kind }}" style="left: {{ seg.left }}%; width: {{ seg.width }}%" data-tip="{{ seg.description }} · {{ seg.start }}–{{ seg.end }}"></span>{% endfor %}
+                            {% for seg in arch.signal %}<span class="ha-signal" style="left: {{ seg.left }}%; width: {{ seg.width }}%" data-tip="{% trans 'Signal peptide' %} · {{ seg.start }}–{{ seg.end }}"></span>{% endfor %}
+                            {% for d in arch.domains %}<button type="button" class="ha-domain{% if d.width < 7 %} is-narrow{% endif %}" style="left: {{ d.left }}%; width: {{ d.width }}%" data-start="{{ d.start }}" data-end="{{ d.end }}" data-tip="{{ d.description }} · {{ d.start }}–{{ d.end }}"><span class="ha-domain-label">{{ d.description }}</span></button>{% endfor %}
+                        </div>
+                    </div>
+                    {% for row in arch.tick_rows %}
+                    <div class="ha-row">
+                        <span class="ha-row-label">{{ row.label }} <span class="ha-row-count">{{ row.items|length }}</span></span>
+                        <div class="ha-row-track ha-row-track--ticks">
+                            {% for t in row.items %}<span class="ha-tick" style="left: {{ t.left }}%" data-tip="{{ t.description }} · {{ t.start }}{% if t.end != t.start %}–{{ t.end }}{% endif %}"></span>{% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="ha-row ha-row--axis" aria-hidden="true">
+                        <span class="ha-row-label"></span>
+                        <div class="ha-row-track ha-axis">
+                            <span style="left: 0%">1</span>
+                            {% for tick in arch.ruler %}<span style="left: {{ tick.left }}%">{{ tick.position }}</span>{% endfor %}
+                            <span class="ha-axis-end" style="left: 100%">{{ arch.length }}</span>
+                        </div>
+                    </div>
+                    <figcaption class="ha-legend">
+                        {% if arch.has_topology %}
+                        <span><i class="ha-key ha-key--outside"></i>{% trans "Extracellular" %}</span>
+                        <span><i class="ha-key ha-key--membrane"></i>{% trans "Membrane" %}</span>
+                        <span><i class="ha-key ha-key--inside"></i>{% trans "Cytoplasmic" %}</span>
+                        {% endif %}
+                        {% if arch.signal %}<span><i class="ha-key ha-key--signal"></i>{% trans "Signal peptide" %}</span>{% endif %}
+                        {% if arch.domains %}<span><i class="ha-key ha-key--domain"></i>{% trans "Domain · click to find it in the sequence" %}</span>{% endif %}
+                    </figcaption>
+                </figure>
+                {% endlocalize %}
+                {% endif %}{% endwith %}
                 {% if sequence.sequence %}
-                <div class="sequence-shell">
-                    <pre class="protein-sequence-fallback">{{ sequence.sequence }}</pre>
+                <div class="hseq" id="human-sequence" aria-label="{% trans 'Amino-acid sequence' %}">
+                    {% for line in sequence.sequence_lines %}
+                    <div class="hseq-line"><span class="hseq-pos">{{ line.start }}</span>{% for block in line.blocks %}<span class="hseq-block" data-start="{{ block.start }}">{{ block.text }}</span>{% endfor %}</div>
+                    {% endfor %}
                 </div>
                 {% else %}
                 <p class="tp-state-note tp-state-note--empty">{% trans "No sequence loaded for this protein." %}</p>
@@ -721,6 +772,6 @@
 
 {% block jsloaded %}
     <script src="{% static 'js/global/quick-nav.js' %}?v=20261022"></script>
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261022-premium"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261022-arch"></script>
     <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261022-premium"></script>
 {% endblock %}
