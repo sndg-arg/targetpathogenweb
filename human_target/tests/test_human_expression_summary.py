@@ -40,3 +40,23 @@ class BuildHumanExpressionContextTests(SimpleTestCase):
         self.assertIn("Cardiovascular", systems)
         self.assertIn("Urinary", systems)
         self.assertIn("Other", systems)
+
+    def test_tau_is_zero_for_even_and_one_for_single_tissue_expression(self):
+        from human_target.services.human_expression_summary import tissue_specificity
+
+        self.assertEqual(tissue_specificity([50, 50, 50]), 0)
+        self.assertEqual(tissue_specificity([90, 0, 0]), 1)
+        self.assertIsNone(tissue_specificity([90]))
+
+    def test_absent_calls_do_not_count_as_expression_and_bulk_gold_is_recognised(self):
+        rows = [
+            {"tissue": "testis", "score": 95.0, "quality": "gold quality", "state": "present"},
+            {"tissue": "liver", "score": 99.0, "quality": "gold quality", "state": "absent"},
+            {"tissue": "heart", "score": 20.0, "quality": "silver quality", "state": "present"},
+        ]
+        context = build_human_expression_context(_FakeHumanProtein(rows))
+        self.assertEqual(context["peak"]["tissue"], "testis")
+        self.assertTrue(context["peak_is_gold"])
+        self.assertEqual(context["gold_count"], 2)
+        self.assertEqual((context["tissue_count"], context["expressed_count"]), (2, 1))
+        self.assertEqual(context["specificity_label"], "Intermediate specificity")

@@ -62,6 +62,19 @@ def _ligand_summary_for_pdb(pdb_id):
     ]
 
 
+def plddt_band(plddt):
+    """AlphaFold DB's own confidence bands for a (mean) pLDDT."""
+    if plddt is None:
+        return ""
+    if plddt >= 90:
+        return "Very high"
+    if plddt >= 70:
+        return "Confident"
+    if plddt >= 50:
+        return "Low"
+    return "Very low"
+
+
 def build_human_structure_context(bioentry):
     links = list(bioentry.structures.select_related("pdb").all())
     xrefs_by_pdb_id = {
@@ -89,6 +102,7 @@ def build_human_structure_context(bioentry):
         if experiment == EXPERIMENT_ALPHAFOLD:
             entry["label"] = _SOURCE_LABELS[EXPERIMENT_ALPHAFOLD]
             entry["mean_plddt"] = _mean_plddt_for_pdb(pdb.id)
+            entry["plddt_band"] = plddt_band(entry["mean_plddt"])
             alphafold.append(entry)
         elif experiment == EXPERIMENT_ALPHAFILL:
             entry["label"] = _SOURCE_LABELS[EXPERIMENT_ALPHAFILL]

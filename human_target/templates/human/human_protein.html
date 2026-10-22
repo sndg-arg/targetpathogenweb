@@ -11,7 +11,7 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-human">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261022-human">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261022-premium">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -242,28 +242,28 @@
                 <div class="section-head">
                     <div>
                         <h2>{% trans "Diseases" %}</h2>
-                        <p class="section-subtitle">{% trans "Disease associations annotated on this protein's UniProt record." %}</p>
+                        <p class="section-subtitle">{% trans "Disease associations curated on this protein's UniProt record." %}</p>
                     </div>
                     <div class="section-tools">
                         <span class="tp-chip">{{ diseases.diseases|length }}</span>
                     </div>
                 </div>
-                <div class="annotation-panel">
-                    <ul class="annotation-entries">
-                        {% for disease in diseases.diseases %}
-                        <li class="annotation-entry human-disease-entry">
+                <div class="hd-list">
+                    {% for disease in diseases.diseases %}
+                    <details class="hd-item js-smooth-details"{% if forloop.first %} open{% endif %}>
+                        <summary class="hd-summary">
+                            <span class="hd-name">{{ disease.name|default:"—" }}</span>
+                            {% if disease.acronym %}<span class="hd-acronym">{{ disease.acronym }}</span>{% endif %}
+                            <span class="hd-chevron" aria-hidden="true"></span>
+                        </summary>
+                        <div class="hd-body">
+                            {% if disease.description %}<p>{{ disease.description }}</p>{% endif %}
                             {% if disease.mim %}
-                            <a href="https://omim.org/entry/{{ disease.mim|cut:"MIM:" }}" target="_blank" rel="noopener" class="annotation-entry-id" title="{% trans 'View on OMIM' %}">{{ disease.acronym|default:disease.mim }}</a>
-                            {% else %}
-                            <span class="annotation-entry-id">{{ disease.acronym|default:"—" }}</span>
+                            <a class="hd-source" href="https://omim.org/entry/{{ disease.mim|cut:"MIM:" }}" target="_blank" rel="noopener">OMIM {{ disease.mim|cut:"MIM:" }} <span aria-hidden="true">↗</span></a>
                             {% endif %}
-                            <span class="annotation-entry-name">
-                                <strong>{{ disease.name|default:"—" }}</strong>
-                                {% if disease.description %}<span class="human-disease-entry__text">{{ disease.description }}</span>{% endif %}
-                            </span>
-                        </li>
-                        {% endfor %}
-                    </ul>
+                        </div>
+                    </details>
+                    {% endfor %}
                 </div>
             </section>
             {% endif %}
@@ -332,37 +332,50 @@
                 <div class="section-head">
                     <div>
                         <h2>{% trans "3D structure" %}</h2>
-                        <p class="section-subtitle">{% trans "AlphaFold and AlphaFill predicted models, plus experimental PDB structures when available." %}</p>
+                        <p class="section-subtitle">{% trans "AlphaFold and AlphaFill models, plus experimental PDB structures when available." %}</p>
                     </div>
                 </div>
-                <div class="tp-tabs human-structure-tabs" role="tablist" data-structure-tabs>
-                    {% for tab in structure.sub_tabs %}
-                    <button type="button" class="tp-tab human-structure-tab {% if tab.key == structure.default_tab %}is-active{% endif %}" role="tab" data-structure-tab="{{ tab.key }}">
-                        <span>{{ tab.label }}</span>
-                        <span class="tp-count">{{ tab.count }}</span>
-                    </button>
-                    {% endfor %}
-                </div>
-                <div class="human-structure-body">
-                    <div class="human-structure-list">
+                <div class="hs-layout">
+                    <div class="hs-index">
+                        <div class="tp-tabs human-structure-tabs" role="tablist" data-structure-tabs>
+                            {% for tab in structure.sub_tabs %}
+                            <button type="button" class="tp-tab human-structure-tab {% if tab.key == structure.default_tab %}is-active{% endif %}" role="tab" data-structure-tab="{{ tab.key }}">
+                                <span>{{ tab.label }}</span>
+                                <span class="tp-count">{{ tab.count }}</span>
+                            </button>
+                            {% endfor %}
+                        </div>
                         {% for tab in structure.sub_tabs %}
                         <div class="human-structure-panel {% if tab.key != structure.default_tab %}is-hidden{% endif %}" data-structure-panel="{{ tab.key }}">
                             {% for entry in tab.entries %}
-                            <button type="button" class="human-structure-entry" data-structure-url="{{ entry.url }}" data-structure-source="{{ tab.key }}">
-                                <strong>{{ entry.title|default:entry.code }}</strong>
-                                {% if entry.resolution %}<span>{{ entry.resolution|floatformat:2 }} Å</span>{% endif %}
-                                {% if entry.method %}<span>{{ entry.method }}</span>{% endif %}
-                                {% if entry.mean_plddt %}<span title="{% trans 'Mean pLDDT (AlphaFold confidence)' %}">pLDDT {{ entry.mean_plddt|floatformat:0 }}</span>{% endif %}
-                                {% if entry.ligands %}<span title="{% for lig in entry.ligands %}{{ lig.comp }}{% if not forloop.last %}, {% endif %}{% endfor %}">{{ entry.ligands|length }} {% trans "ligand" %}{{ entry.ligands|length|pluralize }}</span>{% endif %}
+                            <button type="button" class="human-structure-entry hs-entry" data-structure-url="{{ entry.url }}" data-structure-source="{{ tab.key }}">
+                                <span class="hs-entry-code">{{ entry.title|default:entry.code }}</span>
+                                <span class="hs-entry-meta">
+                                    {% if entry.method %}<span>{{ entry.method }}</span>{% endif %}
+                                    {% if entry.resolution %}<span>{{ entry.resolution|floatformat:2 }} Å</span>{% endif %}
+                                    {% if entry.ligands %}<span title="{% for lig in entry.ligands %}{{ lig.comp }}{% if not forloop.last %}, {% endif %}{% endfor %}">{{ entry.ligands|length }} {% trans "ligand" %}{{ entry.ligands|length|pluralize }}</span>{% endif %}
+                                </span>
+                                {% if entry.mean_plddt %}
+                                <span class="hs-plddt" data-band="{{ entry.plddt_band|slugify }}" title="{% trans 'Mean pLDDT: AlphaFold confidence, 0–100' %}">
+                                    <span class="hs-plddt-scale" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                                    <span class="hs-plddt-value">{{ entry.mean_plddt|floatformat:0 }}</span>
+                                    <span class="hs-plddt-band">{{ entry.plddt_band }}</span>
+                                </span>
+                                {% endif %}
                             </button>
                             {% endfor %}
                         </div>
                         {% endfor %}
                     </div>
-                    <div class="human-structure-viewer">
+                    <figure class="human-structure-viewer hs-stage">
                         <div id="human-structure-viewport"></div>
-                        <p class="tp-state-note tp-state-note--empty" id="human-structure-loading">{% trans "Select a structure to load it." %}</p>
-                    </div>
+                        <p class="hs-loading" id="human-structure-loading">{% trans "Select a structure to load it." %}</p>
+                        <figcaption class="hs-caption" id="human-structure-caption"
+                                    data-caption-alphafold="{% trans 'AlphaFold DB model · cartoon colored by per-residue confidence (pLDDT)' %}"
+                                    data-caption-alphafill="{% trans 'AlphaFill model · transplanted ligands shown as sticks' %}"
+                                    data-caption-xray="{% trans 'Experimental structure (X-ray / EM) · colored by chain' %}"
+                                    data-caption-nmr="{% trans 'Experimental structure (NMR) · colored by chain' %}"></figcaption>
+                    </figure>
                 </div>
                 {{ structure.sub_tabs|json_script:"human-structure-data" }}
             </section>
@@ -482,24 +495,45 @@
                 <div class="section-head">
                     <div>
                         <h2>{% trans "Expression" %}</h2>
-                        <p class="section-subtitle">{% trans "Tissue and cell-type expression, from Bgee." %}</p>
-                    </div>
-                    <div class="section-tools">
-                        <span class="tp-chip">{{ expression.total_count }} {% trans "records" %}</span>
+                        <p class="section-subtitle">{% blocktrans with count=expression.tissue_count %}Bgee expression calls across {{ count }} tissues and cell types.{% endblocktrans %}</p>
                     </div>
                 </div>
 
-                <div class="human-expression-summary">
+                <div class="hx-lede">
                     {% if expression.peak %}
-                    <div class="metric-pill">
-                        <span class="metric-label">{% trans "Peak expression" %}</span>
-                        <span class="metric-value">{{ expression.peak.tissue|default:expression.peak.cell_type }} ({{ expression.peak.score|floatformat:0 }})</span>
+                    <div class="hx-lede-lead">
+                        <span class="hx-kicker">{% trans "Highest expression" %}</span>
+                        <p class="hx-headline">{{ expression.peak.tissue|default:expression.peak.cell_type|capfirst }}</p>
+                        <p class="hx-sub">{% blocktrans with score=expression.peak.score|floatformat:0 %}Score {{ score }} of 100{% endblocktrans %}{% if expression.peak_is_gold %} · {% trans "Bgee gold call" %}{% endif %}</p>
                     </div>
                     {% endif %}
-                    <div class="metric-pill">
-                        <span class="metric-label" title="{% trans 'Expression calls that Bgee rates as gold, its highest confidence level.' %}">{% trans "High-confidence calls (Bgee gold)" %}</span>
-                        <span class="metric-value">{{ expression.gold_count }}</span>
-                    </div>
+                    <dl class="hx-facts">
+                        {% if expression.tau is not None %}
+                        <div class="hx-fact" title="{% trans 'Tissue specificity index tau (Yanai et al. 2005): 0 means the same level in every tissue, 1 means a single tissue.' %}">
+                            <dt>{% trans "Tissue specificity" %}</dt>
+                            <dd><span class="hx-fact-value">τ {{ expression.tau|floatformat:2 }}</span><span class="hx-fact-note">{{ expression.specificity_label }}</span></dd>
+                        </div>
+                        {% endif %}
+                        <div class="hx-fact">
+                            <dt>{% trans "Clearly expressed" %}</dt>
+                            <dd><span class="hx-fact-value">{{ expression.expressed_count }} / {{ expression.tissue_count }}</span><span class="hx-fact-note">{% blocktrans with threshold=expression.expressed_threshold %}tissues with score ≥ {{ threshold }}{% endblocktrans %}</span></dd>
+                        </div>
+                        <div class="hx-fact" title="{% trans 'Expression calls that Bgee rates as gold, its highest confidence level.' %}">
+                            <dt>{% trans "High-confidence calls" %}</dt>
+                            <dd><span class="hx-fact-value">{{ expression.gold_count }}</span><span class="hx-fact-note">{% trans "Bgee gold" %}</span></dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <div class="hx-systems" aria-label="{% trans 'Expression by anatomical system' %}">
+                    {% for group in expression.system_groups %}
+                    <button type="button" class="hx-system{% if group.top == expression.peak %} is-peak{% endif %}" data-expression-system="{{ group.slug }}">
+                        <span class="hx-system-name">{{ group.system }}</span>
+                        <span class="hx-system-top">{{ group.top.tissue|default:"—"|capfirst }}</span>
+                        <span class="hx-system-score">{{ group.max_score|floatformat:0 }}</span>
+                        <span class="hx-bar" aria-hidden="true"><span class="hx-bar-fill" style="width: {{ group.max_score }}%"></span></span>
+                    </button>
+                    {% endfor %}
                 </div>
 
                 <div class="tp-tabs human-expression-tabs" role="tablist" data-expression-tabs>
@@ -509,15 +543,14 @@
 
                 <div class="human-expression-panel" data-expression-panel="system" role="tabpanel">
                     {% for group in expression.system_groups %}
-                    <div class="human-expression-system-card">
-                        <h3>{{ group.system }} <span class="tp-chip">{{ group.rows|length }}</span></h3>
-                        <div class="human-expression-bars">
+                    <div class="hx-group" id="hx-system-{{ group.slug }}">
+                        <h3 class="hx-group-title">{{ group.system }} <span class="tp-count">{{ group.rows|length }}</span></h3>
+                        <div class="hx-rows">
                             {% for row in group.rows|slice:":15" %}
-                            <div class="human-expression-bar-row">
-                                <span class="human-expression-bar-row__label" title="{{ row.tissue }}{% if row.cell_type %} · {{ row.cell_type }}{% endif %}">{{ row.tissue|default:row.cell_type }}</span>
-                                <span class="human-expression-bar-track"><span class="human-expression-bar-fill" style="width: {{ row.score }}%"></span></span>
-                                <span class="human-expression-bar-row__score">{{ row.score|floatformat:0 }}</span>
-                                {% if row.quality == "gold" %}<span class="human-expression-bar-row__gold" title="{% trans 'Gold quality' %}">●</span>{% endif %}
+                            <div class="hx-row{% if row == expression.peak %} is-peak{% endif %}{% if row.state == 'absent' %} is-absent{% endif %}">
+                                <span class="hx-row-label" title="{{ row.tissue }}{% if row.cell_type %} · {{ row.cell_type }}{% endif %}">{{ row.tissue|default:row.cell_type|capfirst }}</span>
+                                <span class="hx-bar" aria-hidden="true"><span class="hx-bar-fill" style="width: {{ row.score }}%"></span></span>
+                                <span class="hx-row-score">{{ row.score|floatformat:0 }}</span>
                             </div>
                             {% endfor %}
                         </div>
@@ -564,24 +597,35 @@
                 <div class="section-head">
                     <div>
                         <h2>{% trans "Pathways" %}</h2>
-                        <p class="section-subtitle">{% trans "KEGG pathways this protein participates in." %}</p>
+                        <p class="section-subtitle">{% trans "KEGG pathways this protein takes part in, with its gene and ortholog neighbours." %}</p>
                     </div>
                     <div class="section-tools">
                         <span class="tp-chip">{{ pathways.pathways|length }}</span>
                     </div>
                 </div>
 
-                <div class="tp-tabs human-pathway-tabs" role="tablist" data-pathway-tabs>
-                    {% for pw in pathways.pathways %}
-                    <button type="button" class="tp-tab human-pathway-tab {% if pw.kegg_id == pathways.default_kegg_id %}is-active{% endif %}" role="tab" data-pathway-tab="{{ pw.kegg_id }}">
-                        <span>{{ pw.title|default:pw.kegg_id }}</span>
-                    </button>
-                    {% endfor %}
-                </div>
-
-                <div class="human-pathway-body">
-                    <div class="human-pathway-graph-wrap">
-                        <div id="human-pathway-graph"></div>
+                <div class="hp-layout">
+                    <div class="hp-index" role="tablist" aria-label="{% trans 'Pathways' %}">
+                        {% for pw in pathways.pathways %}
+                        <button type="button" class="hp-index-item {% if pw.kegg_id == pathways.default_kegg_id %}is-active{% endif %}" role="tab" data-pathway-tab="{{ pw.kegg_id }}">
+                            <span class="hp-index-title">{{ pw.title|default:pw.kegg_id }}</span>
+                            <span class="hp-index-meta"><span class="hp-index-id">{{ pw.kegg_id }}</span> · {% blocktrans count count=pw.entry_count|default:0 %}{{ count }} gene{% plural %}{{ count }} genes{% endblocktrans %}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <div class="hp-stage">
+                        {% for pw in pathways.pathways %}
+                        <div class="hp-stage-head human-pathway-meta-panel {% if pw.kegg_id != pathways.default_kegg_id %}is-hidden{% endif %}" data-pathway-meta="{{ pw.kegg_id }}">
+                            <div>
+                                <h3>{{ pw.title|default:pw.kegg_id }}</h3>
+                                <p>{% blocktrans with genes=pw.entry_count relations=pw.relation_count %}{{ genes }} genes · {{ relations }} relations{% endblocktrans %}</p>
+                            </div>
+                            <a class="hp-source" href="https://www.kegg.jp/pathway/{{ pw.kegg_id }}" target="_blank" rel="noopener">KEGG {{ pw.kegg_id }} <span aria-hidden="true">↗</span></a>
+                        </div>
+                        {% endfor %}
+                        <div class="human-pathway-graph-wrap">
+                            <div id="human-pathway-graph"></div>
+                        </div>
                         <div class="human-pathway-legend">
                             <span class="human-pathway-legend-item"><span class="human-pathway-legend-dot human-pathway-legend-dot--focal"></span>{% trans "This protein" %}</span>
                             <span class="human-pathway-legend-item"><span class="human-pathway-legend-dot"></span>{% trans "Other gene/ortholog" %}</span>
@@ -590,22 +634,6 @@
                             <span class="human-pathway-legend-item"><span class="human-pathway-legend-line human-pathway-legend-line--other"></span>{% trans "Other relation" %}</span>
                         </div>
                     </div>
-                    <aside class="human-pathway-meta">
-                        {% for pw in pathways.pathways %}
-                        <div class="human-pathway-meta-panel {% if pw.kegg_id != pathways.default_kegg_id %}is-hidden{% endif %}" data-pathway-meta="{{ pw.kegg_id }}">
-                            <h3>{{ pw.title|default:pw.kegg_id }}</h3>
-                            <dl class="human-kv-list">
-                                <dt>{% trans "KEGG ID" %}</dt><dd>{{ pw.kegg_id }}</dd>
-                                <dt>{% trans "Genes" %}</dt><dd>{{ pw.entry_count }}</dd>
-                                <dt>{% trans "Relations" %}</dt><dd>{{ pw.relation_count }}</dd>
-                            </dl>
-                            <a class="tp-chip tp-chip--link" href="https://www.kegg.jp/pathway/{{ pw.kegg_id }}" target="_blank" rel="noopener">
-                                <span class="tp-chip-db">KEGG</span>
-                                <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
-                            </a>
-                        </div>
-                        {% endfor %}
-                    </aside>
                 </div>
                 {{ pathways.pathways|json_script:"human-pathway-data" }}
             </section>
@@ -653,6 +681,6 @@
 
 {% block jsloaded %}
     <script src="{% static 'js/global/quick-nav.js' %}?v=20261022"></script>
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261022-nav"></script>
-    <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261017-system"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261022-premium"></script>
+    <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261022-premium"></script>
 {% endblock %}

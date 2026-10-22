@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
@@ -62,3 +62,13 @@ class BuildHumanStructureContextTests(TestCase):
         entry = alphafill_tab["entries"][0]
         self.assertNotIn("mean_plddt", entry)
         self.assertEqual(entry["ligands"], [{"comp": "HEM", "chains": ["A"]}])
+
+
+class PlddtBandTests(SimpleTestCase):
+    def test_uses_alphafold_db_confidence_bands(self):
+        from human_target.services.human_structure_summary import plddt_band
+
+        self.assertEqual(
+            [plddt_band(v) for v in (95, 90, 75, 55, 30, None)],
+            ["Very high", "Very high", "Confident", "Low", "Very low", ""],
+        )

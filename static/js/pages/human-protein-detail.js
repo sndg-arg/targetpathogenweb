@@ -71,11 +71,20 @@
             return "chainname";
         }
 
+        var stageEl = viewportEl.closest(".hs-stage");
+        var captionEl = document.getElementById("human-structure-caption");
+
+        function setLoading(isLoading) {
+            if (stageEl) stageEl.classList.toggle("is-loading", isLoading);
+        }
+
         function loadEntry(entry, source, buttonEl) {
             if (loadingEl) {
                 loadingEl.textContent = "Loading structure…";
                 loadingEl.style.display = "flex";
             }
+            setLoading(true);
+            if (captionEl) captionEl.textContent = captionEl.getAttribute("data-caption-" + source) || "";
             document.querySelectorAll(".human-structure-entry.is-active").forEach(function (el) {
                 el.classList.remove("is-active");
             });
@@ -95,9 +104,11 @@
             }).then(function (component) {
                 component.addRepresentation("cartoon", { colorScheme: colorSchemeFor(source) });
                 component.addRepresentation("ball+stick", { sele: "hetero and not water", colorScheme: "element" });
-                component.autoView();
+                component.autoView(600);
                 if (loadingEl) loadingEl.style.display = "none";
+                setLoading(false);
             }).catch(function () {
+                setLoading(false);
                 if (loadingEl) {
                     loadingEl.textContent = "Unable to load 3D structure.";
                     loadingEl.style.display = "flex";
@@ -138,19 +149,49 @@
         var tabs = document.querySelectorAll("[data-expression-tab]");
         var panels = document.querySelectorAll("[data-expression-panel]");
         if (!tabs.length || !panels.length) return;
+
+        function showPanel(target) {
+            tabs.forEach(function (t) {
+                var isActive = t.getAttribute("data-expression-tab") === target;
+                t.classList.toggle("is-active", isActive);
+                t.setAttribute("aria-selected", isActive ? "true" : "false");
+            });
+            panels.forEach(function (panel) {
+                panel.classList.toggle("is-hidden", panel.getAttribute("data-expression-panel") !== target);
+            });
+        }
+
         tabs.forEach(function (tab) {
             tab.addEventListener("click", function () {
-                var target = tab.getAttribute("data-expression-tab");
-                tabs.forEach(function (t) {
-                    var isActive = t === tab;
-                    t.classList.toggle("is-active", isActive);
-                    t.setAttribute("aria-selected", isActive ? "true" : "false");
-                });
-                panels.forEach(function (panel) {
-                    panel.classList.toggle("is-hidden", panel.getAttribute("data-expression-panel") !== target);
-                });
+                showPanel(tab.getAttribute("data-expression-tab"));
             });
         });
+
+        // A system tile jumps to that system's bars and briefly marks it.
+        var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        document.querySelectorAll("[data-expression-system]").forEach(function (tile) {
+            tile.addEventListener("click", function () {
+                var group = document.getElementById("hx-system-" + tile.getAttribute("data-expression-system"));
+                if (!group) return;
+                showPanel("system");
+                group.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+                group.classList.add("is-flashed");
+                setTimeout(function () { group.classList.remove("is-flashed"); }, 1200);
+            });
+        });
+
+        // Bars grow in the first time the section scrolls into view.
+        var section = document.getElementById("section-expression");
+        if (!section || reduceMotion || !("IntersectionObserver" in window)) return;
+        section.classList.add("hx-animate");
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                section.classList.add("is-revealed");
+                observer.disconnect();
+            });
+        }, { threshold: 0.15 });
+        observer.observe(section);
     }
 
     function initBindersTabs() {

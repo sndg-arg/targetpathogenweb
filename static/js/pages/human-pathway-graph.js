@@ -152,16 +152,21 @@
             wheelSensitivity: 0.2,
         });
 
+        // Cross-fade between pathways: hide, swap and lay out, then show.
         function renderPathway(pathway) {
+            container.classList.add("is-switching");
             cy.elements().remove();
             cy.add(buildElements(pathway));
             var layoutOptions = window.TP_CYTOSCAPE_DAGRE_AVAILABLE
                 ? { name: "dagre", rankDir: "LR", nodeSep: 20, rankSep: 60 }
                 : { name: "cose" };
-            cy.layout(layoutOptions).run();
             cy.once("layoutstop", function () {
                 cy.fit(undefined, 24);
+                window.requestAnimationFrame(function () {
+                    container.classList.remove("is-switching");
+                });
             });
+            cy.layout(layoutOptions).run();
         }
 
         var byKeggId = {};
