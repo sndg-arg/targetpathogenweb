@@ -515,55 +515,38 @@ a.hero-chip.tp-chip--link .tp-chip-acc {
     color: var(--tp-color-text-secondary);
 }
 
+/* Identical sequence in other strains: hairline rows, no box. */
 .identical-sequence-list {
     margin: 0;
     padding: 0;
     list-style: none;
-    display: grid;
-    gap: 1px;
-    background: var(--tp-color-border-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-md);
-    overflow: hidden;
-}
-
-.shared-sequence-banner {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2);
-    margin-block: var(--tp-space-3);
-    padding: var(--tp-space-3);
-    background: var(--tp-color-surface);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-md);
-}
-
-.shared-sequence-notice {
-    margin-top: var(--tp-space-3);
-    color: var(--tp-color-text-muted);
 }
 
 .identical-sequence-item {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(120px, max-content) minmax(110px, max-content) 1fr auto;
     align-items: center;
-    flex-wrap: wrap;
-    gap: var(--tp-space-3);
-    padding: var(--tp-space-3) var(--tp-space-4);
-    background: var(--tp-color-surface);
+    gap: var(--tp-space-2) var(--tp-space-4);
+    padding: var(--tp-space-2) 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.identical-sequence-strain {
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
 }
 
 .identical-sequence-locus {
     font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-sm);
-    color: var(--tp-color-text-primary);
+    color: var(--tp-color-text-secondary);
 }
 
 .identical-sequence-link {
-    margin-left: auto;
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-link);
     text-decoration: none;
+    white-space: nowrap;
 }
 
 .identical-sequence-link:hover {
@@ -572,9 +555,25 @@ a.hero-chip.tp-chip--link .tp-chip-acc {
 }
 
 .identical-sequence-pending {
-    margin-left: auto;
     font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-muted);
+}
+
+.shared-sequence-notice {
+    margin-top: var(--tp-space-3);
+}
+
+/* Phones: strain + locus on one line, tags + link on the next. */
+@media (max-width: 640px) {
+    .identical-sequence-item {
+        grid-template-columns: 1fr auto;
+    }
+
+    .identical-sequence-locus,
+    .identical-sequence-link,
+    .identical-sequence-pending {
+        justify-self: end;
+    }
 }
 
 .sequence-shell {

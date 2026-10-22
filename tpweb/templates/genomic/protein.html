@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261021-split">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261021-split">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261022-identical">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -41,13 +41,11 @@
                         <span class="protein-accession-label">{% trans "Accession" %}:</span> {{ protein.accession }}
                     </p>
                     {% if identical_sequence_siblings %}
-                    <div class="shared-sequence-banner">
-                        <strong>{% trans "Identical sequence in" %}</strong>
-                        {% for sibling in identical_sequence_siblings %}
-                        <a class="tp-chip tp-chip--link" href="{% url 'tpwebapp:protein' protein_id=sibling.bioentry_id %}" title="{{ sibling.locus_tag }}">{{ sibling.strain_label }} ↗</a>
-                        {% endfor %}
-                        <a href="#section-identical-sequences">{% trans "Compare strains" %}</a>
-                    </div>
+                    <p class="protein-accession-line shared-sequence-line">
+                        <span class="protein-accession-label">{% trans "Identical sequence in" %}:</span>
+                        {% for sibling in identical_sequence_siblings %}{% if sibling.bioentry_id %}<a href="{% url 'tpwebapp:protein' protein_id=sibling.bioentry_id %}" title="{{ sibling.locus_tag }}">{{ sibling.strain_label }}</a>{% else %}<span title="{% trans 'Genome not loaded in Target yet' %}">{{ sibling.strain_label }}</span>{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        <span aria-hidden="true">·</span> <a href="#section-identical-sequences">{% trans "Compare" %}</a>
+                    </p>
                     {% endif %}
                     <div class="hero-chip-list tp-chip-group">
                         <span class="hero-chip tp-chip hero-chip-gene" title="{% trans 'Gene name or locus tag reported for this protein' %}: {{ protein.gene|default_if_none:'-' }}">
@@ -715,21 +713,20 @@
                     <div class="section-head">
                         <div>
                             <h2>{% trans "Identical sequence in other strains" %}</h2>
-                            <p class="section-subtitle">{% trans "100% identical amino-acid sequence, from a curated cross-strain mapping." %}</p>
-                            {% if shared_sequence_evidence.sources %}
-                            <p class="section-subtitle">{% trans "Shared evidence is read from the curated sources below. Updates appear here automatically. Conservation and metabolic context remain specific to this strain." %}</p>
-                            {% endif %}
+                            <p class="section-subtitle">{% if shared_sequence_evidence.sources %}{% trans "100% identical amino-acid sequence. Evidence from the curated strains is shown on this page; conservation and metabolic context stay specific to this strain." %}{% else %}{% trans "100% identical amino-acid sequence, from a curated cross-strain mapping." %}{% endif %}</p>
                         </div>
                     </div>
                     <ul class="identical-sequence-list">
                         {% for sibling in identical_sequence_siblings %}
                         <li class="identical-sequence-item">
-                            <span class="tp-chip">{{ sibling.strain_label }}</span>
+                            <span class="identical-sequence-strain">{{ sibling.strain_label }}</span>
                             <span class="identical-sequence-locus">{{ sibling.locus_tag }}</span>
-                            {% if sibling.curated %}<span class="tp-chip tp-chip--success">{% trans "Curated source" %}</span>{% endif %}
-                            {% if sibling.has_structure %}
-                                <span class="tp-chip tp-chip--success">{% trans "Has structure" %}</span>
-                            {% endif %}
+                            {% if sibling.curated or sibling.has_structure %}
+                            <span class="identical-sequence-tags tp-chip-group">
+                                {% if sibling.curated %}<span class="tp-chip">{% trans "Curated source" %}</span>{% endif %}
+                                {% if sibling.has_structure %}<span class="tp-chip tp-chip--success">{% trans "Has structure" %}</span>{% endif %}
+                            </span>
+                            {% else %}<span></span>{% endif %}
                             {% if sibling.bioentry_id %}
                                 <a class="identical-sequence-link" href="{% url 'tpwebapp:protein' protein_id=sibling.bioentry_id %}">{% trans "View protein" %} →</a>
                             {% else %}
@@ -739,7 +736,7 @@
                         {% endfor %}
                     </ul>
                     {% if shared_sequence_evidence.conflicts %}
-                    <p class="shared-sequence-notice">{% trans "The curated strains have different values for" %}: {{ shared_sequence_evidence.conflicts|join:", " }}. {% trans "KP13 takes precedence; both source records remain available above." %}</p>
+                    <p class="tp-state-note shared-sequence-notice">{% trans "The curated strains have different values for" %}: {{ shared_sequence_evidence.conflicts|join:", " }}. {% trans "KP13 takes precedence; both source records remain available above." %}</p>
                     {% endif %}
                 </section>
             {% endif %}
