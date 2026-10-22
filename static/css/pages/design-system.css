@@ -3,6 +3,7 @@
 
 .ds-page {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--tp-space-4);
     padding-bottom: var(--tp-space-8);
     color: var(--tp-color-text-primary);

@@ -1,5 +1,6 @@
 .customparam-page {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--tp-space-4);
 }
 

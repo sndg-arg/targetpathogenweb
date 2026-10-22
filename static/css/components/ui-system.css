@@ -149,6 +149,12 @@
     .section-tools {
         width: 100%;
     }
+
+    /* A lone count or chip next to the title keeps its own width. */
+    .section-head > .tp-chip,
+    .section-head > .tp-count {
+        align-self: flex-start;
+    }
 }
 
 .tp-ui-field {

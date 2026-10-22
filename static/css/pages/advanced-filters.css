@@ -2,6 +2,7 @@
 
 .af-page {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--tp-space-6);
     padding-bottom: var(--tp-space-8);
 }
