@@ -80,8 +80,6 @@
     gap: var(--tp-space-2);
 }
 
-.blast-form-inner .form-control,
-
 .blast-seq-input {
     font-family: var(--tp-font-mono) !important;
     font-size: var(--tp-font-size-sm) !important;

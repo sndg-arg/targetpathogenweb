@@ -92,8 +92,6 @@
     margin-bottom: var(--tp-space-4);
 }
 
-.genome-upload-card h2,
-
 .genome-upload-card-note {
     margin: 0 0 var(--tp-space-4);
     max-width: var(--tp-measure);

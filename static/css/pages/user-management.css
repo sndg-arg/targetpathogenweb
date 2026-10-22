@@ -10,8 +10,6 @@
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
-.user-mgmt-page h1,
-
 .user-mgmt-section {
     padding: var(--tp-space-6) var(--tp-space-5);
 }

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20261018-lh">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20261021-dangling">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -127,7 +127,7 @@
                     </button>
                     {% endif %}
                     {% if not approved_user.is_superuser %}
-                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm user-mgmt-revoke-trigger"
+                    <button type="button" class="btn tp-btn tp-btn--danger tp-btn--sm user-mgmt-revoke-trigger"
                             data-user-id="{{ approved_user.pk }}"
                             data-user-name="{{ approved_user.name|default:approved_user.get_username }}"
                             aria-haspopup="dialog" aria-controls="user-revoke-modal">
