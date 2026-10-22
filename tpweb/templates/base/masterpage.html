@@ -1876,7 +1876,7 @@
                 <span>{% trans "Human Targets" %}</span>
             </a>
             {% endif %}
-            <a class="tp-topbar-desktop-link {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" aria-label="{% trans 'BLAST genome' %}" title="{% trans 'Nucleotide or protein BLAST against a genome you choose.' %}" href="{% url 'tpwebapp:form' %}">
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'form' or request.resolver_match.url_name == 'blast_res' %}active{% endif %}" aria-label="{% trans 'BLAST genome' %}" title="{% trans 'Nucleotide or protein BLAST against a genome you choose.' %}" href="{% url 'tpwebapp:form' %}">
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
                 <span>{% trans "BLAST genome" %}</span>
             </a>
