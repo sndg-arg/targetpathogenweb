@@ -1,0 +1,1045 @@
+/* Shared by every page in this family (see split.js history). Page-only rules
+   stay in protein-detail.css. Loaded before the page file. */
+
+.protein-page {
+    font-family: var(--tp-font-body);
+    color: var(--tp-color-text-primary);
+    max-width: none;
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--tp-space-4);
+}
+
+.protein-page h1,
+.protein-page h2,
+.protein-page h3,
+.protein-page h4 {
+    font-family: var(--tp-font-head);
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.protein-page h1 { font-weight: 600; }
+
+/* Base styles from .tp-page-hero in ui-system.css */
+.protein-hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--tp-space-5);
+    /* Top-pinned like every other page's .tp-view-head-actions (assembly,
+   proteins, genomes, annotation_explorer all use the shared flex-start
+   from ui-system.css) -- confirmed live this reads better than centering
+   it against the header, which was this page's own one-off deviation. */
+    align-items: flex-start;
+    margin-top: var(--tp-space-2);
+}
+
+.protein-hero-content {
+    max-width: none;
+    width: 100%;
+}
+
+.protein-hero-eyebrow {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+}
+
+.protein-description {
+    margin: var(--tp-space-3) 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-md);
+    line-height: 1.35;
+    max-width: var(--tp-measure);
+}
+
+.hero-chip-list {
+    margin-top: var(--tp-space-3);
+}
+
+.hero-chip-list .hero-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    color: var(--tp-color-text-secondary);
+}
+
+.hero-chip strong {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+}
+
+a.hero-chip.tp-chip--link .tp-chip-db {
+    color: var(--tp-color-text-muted);
+}
+
+a.hero-chip.tp-chip--link .tp-chip-ext-icon {
+    color: var(--tp-color-text-muted);
+}
+
+/* human_protein.html nests its .protein-card sections directly here (no
+   .protein-grid wrapper) -- 32px matches .protein-grid's gap below so
+   both pages get the same generous section spacing instead of a
+   hairline (each card already opens with its own bold h2). */
+.protein-main {
+    display: grid;
+    gap: var(--tp-space-7);
+    min-width: 0;
+}
+
+.protein-page a.btn,
+.protein-page a.btn:hover,
+.protein-page a.btn:active,
+.quick-nav .quick-nav-link:visited {
+    text-decoration: none !important;
+}
+
+/* Clearance for the sticky .quick-nav when a nav link jumps here: nav height
+   (44px link height + 1px bottom border = 45px) minus its -2px sticky
+   offset, plus ~24px breathing room. Keep this in sync with .quick-nav's
+   own box model if that ever changes. */
+.protein-card {
+    padding: var(--tp-space-4) var(--tp-space-5);
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 68px);
+}
+
+/* No longer boxed via .tp-page-hero -- sits directly on the page
+   background (see tpw-editorial-redesign), so it needs its own padding
+   now instead of inheriting that shared class's. */
+.protein-hero {
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 68px);
+}
+
+.sequence-shell,
+.feature-viewer-shell,
+.table-shell {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    overflow: auto;
+}
+
+.table-shell td {
+    vertical-align: middle;
+}
+
+#viewport {
+    width: 100%;
+    height: clamp(340px, 48vh, 460px);
+    min-height: 0;
+    border-radius: var(--tp-radius-md);
+    border: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-muted);
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+#viewport canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+@keyframes structure-loading-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* === Binders v2 — search + tabs + clickable cards + proposed table === */
+.binder-intel-panel {
+    display: grid;
+    gap: var(--tp-space-3);
+    margin: var(--tp-space-3) 0 var(--tp-space-4);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.binder-intel-lead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--tp-space-4);
+    padding-bottom: 2px;
+}
+
+.binder-intel-kicker {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+.binder-intel-lead p {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    line-height: 1.35;
+    text-align: right;
+}
+
+.binder-intel-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--tp-space-2);
+}
+
+.binder-intel-stat {
+    min-width: 0;
+    padding: var(--tp-space-3);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-sm);
+    background: color-mix(in srgb, var(--tp-color-surface) 82%, var(--tp-color-surface-soft));
+}
+
+.binder-intel-label {
+    display: block;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+.binder-intel-stat strong {
+    display: block;
+    margin-top: var(--tp-space-1);
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-heading-md);
+    line-height: 1;
+}
+
+.binder-intel-stat span:last-child {
+    display: block;
+    margin-top: var(--tp-space-1);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+}
+
+.binder-tbl__name-main {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    color: inherit;
+    text-decoration: none;
+}
+
+.binder-tbl__name-main:hover,
+.binder-tbl__name-main:focus-visible {
+    color: var(--tp-color-text-primary);
+    text-decoration: underline;
+}
+
+.binder-tbl__source-link {
+    margin-left: var(--tp-space-2);
+    font-size: var(--tp-font-size-2xs);
+    vertical-align: middle;
+}
+
+/* Ligand drawing inside the shared .tp-modal (ui-system.css). */
+.binder-mol-modal__body {
+    display: grid;
+    place-items: center;
+    min-height: 460px;
+    padding: var(--tp-space-6);
+    background:
+    linear-gradient(90deg, color-mix(in srgb, var(--tp-color-border-soft) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, var(--tp-color-border-soft) 45%, transparent) 1px, transparent 1px),
+    var(--tp-color-surface);
+    background-size: var(--tp-space-6) var(--tp-space-6);
+}
+
+.binder-mol-modal__body svg {
+    width: min(520px, 78vw);
+    height: min(520px, 78vw);
+    max-height: 62vh;
+}
+
+body.binder-mol-modal-open {
+    overflow: hidden;
+}
+
+.binders-search {
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    margin: var(--tp-space-3) 0 var(--tp-space-4);
+}
+
+.binders-search__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 1px solid var(--tp-color-border);
+    border-radius: var(--tp-radius-sm);
+    padding: var(--tp-space-2) var(--tp-space-4);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    font: inherit;
+    font-size: var(--tp-font-size-sm);
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.binders-search__input::placeholder {
+    color: var(--tp-color-text-soft);
+}
+
+.binders-search__input:focus {
+    outline: none;
+    border-color: var(--tp-focus-color);
+    box-shadow: var(--tp-focus-outline);
+}
+
+.binders-search__clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-muted);
+    text-decoration: none;
+    font-size: var(--tp-font-size-lg);
+    line-height: 1;
+    transition: background 140ms ease, color 140ms ease;
+}
+
+.binders-search__clear:hover,
+.binders-search__clear:focus-visible {
+    background: var(--tp-color-danger-bg);
+    color: var(--tp-color-danger-ink);
+    outline: none;
+}
+
+.binders-search__submit {
+    flex: 0 0 auto;
+}
+
+.binders-panel.is-hidden {
+    display: none;
+}
+
+/* === Binder tables (5-category layout) === */
+.binder-table-wrap {
+    overflow-x: auto;
+}
+
+.binder-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--tp-font-size-sm);
+}
+
+.binder-tbl th {
+    text-align: left;
+    white-space: nowrap;
+}
+
+.binder-tbl tbody tr {
+    transition: background 140ms ease;
+}
+
+.binder-tbl__row {
+    cursor: pointer;
+}
+
+.binder-tbl__row:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.binder-tbl td {
+    vertical-align: middle;
+}
+
+.binder-tbl__name {
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--tp-color-link);
+}
+
+.binder-tbl__row:hover .binder-tbl__name {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+}
+
+.binder-tbl__pdb,
+.binder-tbl__uniprot {
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-secondary);
+    white-space: nowrap;
+}
+
+.binder-tbl__pdb-id {
+    font-family: var(--tp-font-mono);
+    font-weight: 600;
+}
+
+.binder-tbl__score-col {
+    width: 96px;
+}
+
+.binder-tbl__score {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: var(--tp-color-text-secondary);
+}
+
+.binder-tbl__props-col {
+    white-space: nowrap;
+}
+
+.binder-tbl__props {
+    white-space: nowrap;
+}
+
+.binder-prop {
+    display: inline;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-secondary);
+}
+
+.binder-prop + .binder-prop::before {
+    content: " · ";
+    color: var(--tp-color-text-soft);
+    font-size: 0.9em;
+}
+
+.binder-tbl__score-empty {
+    color: var(--tp-color-text-soft);
+    font-weight: 400;
+}
+
+.binder-tbl__score-sub {
+    display: block;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 400;
+    color: var(--tp-color-text-soft);
+}
+
+.binder-tbl__smiles-col {
+    max-width: 260px;
+}
+
+.binder-tbl__smiles {
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+    max-width: 260px;
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-1);
+    cursor: copy;
+    transition: color 140ms ease, background 140ms ease;
+}
+
+.binder-tbl__smiles code {
+    color: inherit;
+    background: none;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.binder-tbl__copy-icon svg,
+.binder-tbl__ext-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.binder-tbl__copy-icon {
+    display: inline-flex;
+    width: 12px;
+    height: 11px;
+    flex-shrink: 0;
+    color: var(--tp-color-text-soft);
+    opacity: 0.35;
+    transition: opacity 140ms ease;
+}
+
+.binder-tbl__smiles[data-smiles]:hover .binder-tbl__copy-icon {
+    opacity: 1;
+}
+
+.binder-tbl__smiles[data-smiles]:hover {
+    color: var(--tp-color-text-primary);
+    background: var(--tp-color-surface-soft);
+    border-radius: var(--tp-radius-xs);
+}
+
+.binder-tbl__smiles--copied {
+    color: var(--tp-color-success-ink) !important;
+    background: var(--tp-color-success-bg) !important;
+    border-radius: var(--tp-radius-xs);
+}
+
+.binder-tbl__pdb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-1);
+    color: inherit;
+    text-decoration: none;
+}
+
+.binder-tbl__pdb-link:hover .binder-tbl__pdb-id {
+    color: var(--tp-color-link-hover);
+}
+
+.binder-tbl__ext-icon {
+    display: inline-flex;
+    width: 11px;
+    height: 11px;
+    color: var(--tp-color-text-muted);
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 140ms ease;
+}
+
+.binder-tbl__pdb-link:hover .binder-tbl__ext-icon {
+    opacity: 1;
+}
+
+/* ── Binder filter bar ─────────────────────────────────────────────── */
+.binder-filter-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-3) var(--tp-space-4);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-soft);
+}
+
+.binder-filter-label {
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+    white-space: nowrap;
+    margin-right: 2px;
+}
+
+.binder-filter-sep {
+    flex: 1;
+}
+
+.binder-filter-count {
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.binders-empty {
+    margin: var(--tp-space-4) 0;
+}
+
+/* Proposed binders shown as a tabular list (no SVG) */
+.binder-table {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--tp-color-border-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-sm);
+    overflow: hidden;
+}
+
+@media (max-width: 720px) {
+    .binder-intel-lead,
+    .binder-intel-main {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .binder-intel-lead {
+        gap: var(--tp-space-2);
+    }
+
+    .binder-intel-lead p {
+        text-align: left;
+    }
+
+    .binder-intel-grid,
+    .binder-molecule-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+#copy-residue-list {
+    min-width: 170px;
+    justify-content: center;
+}
+
+.protein-hero,
+.quick-nav,
+.protein-card {
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) backwards;
+}
+
+.quick-nav {
+    animation-delay: 0.03s;
+}
+
+/* Keep entry motion subtle and deterministic across optional sections. */
+.protein-card:nth-of-type(2) {
+    animation-delay: 0.05s;
+}
+
+.protein-card:nth-of-type(3) {
+    animation-delay: 0.08s;
+}
+
+.protein-card:nth-of-type(4) {
+    animation-delay: 0.11s;
+}
+
+.protein-card:nth-of-type(5) {
+    animation-delay: 0.14s;
+}
+
+.protein-card:nth-of-type(6) {
+    animation-delay: 0.17s;
+}
+
+@media (max-width: 1100px) {
+    .binder-intel-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991px) {
+    .protein-hero-top {
+        flex-direction: column;
+    }
+
+    .protein-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .protein-card {
+        padding: var(--tp-space-3);
+    }
+
+    #viewport {
+        height: clamp(340px, 52vh, 440px);
+    }
+}
+
+@media (max-width: 700px) {
+    .section-tools .btn {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .protein-hero,
+    .quick-nav,
+    .protein-card,
+    .binder-card,
+    .quick-nav a,
+    .quick-nav a::after,
+    .data-details > summary::after,
+    .protein-interpretation-guide summary::after,
+    .structure-color-guide-title::after,
+    .structure-picker-chevron {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+.tp-dark #viewport {
+    background: var(--tp-color-structure-bg);
+    border-color: var(--tp-color-border);
+}
+
+/* ================================================================
+   Premium table overrides — pocket tables, binders, features
+   Same clean look as the structural evidence table.
+   ================================================================ */
+/* ── Binder table ── */
+/* Remove alternating stripe */
+.binder-tbl tbody tr:nth-child(even) {
+    background: transparent;
+}
+
+/* Brand-mix hover */
+.binder-tbl__row:hover {
+    background: var(--tp-color-surface-soft) !important;
+}
+
+/* ── Features table (#features_table, DataTables) ── */
+/* ── Dark mode ── */
+.tp-dark .binder-tbl__row:hover {
+    background: var(--tp-color-surface-soft) !important;
+}
+
+/* Chips inside a card keep their own width. */
+.target-evidence-card > .tp-chip {
+    align-self: flex-start;
+}
+
+.target-evidence-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-3) var(--tp-space-4);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface);
+}
+
+.target-evidence-card--secondary {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border);
+}
+
+.target-evidence-label {
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--tp-tracking-label);
+}
+
+.target-evidence-value {
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-heading-md);
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--tp-color-brand-900);
+}
+
+.target-evidence-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 2px;
+    padding-top: var(--tp-space-2);
+    border-top: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 70%, transparent);
+}
+
+.target-evidence-meta--top {
+    margin-top: var(--tp-space-1);
+    padding-top: 0;
+    border-top: none;
+}
+
+.target-evidence-meta-row {
+    display: flex;
+    gap: var(--tp-space-2);
+    align-items: baseline;
+}
+
+.target-evidence-meta-key {
+    flex: 0 0 auto;
+    min-width: 72px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+}
+
+.target-evidence-meta-val {
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.35;
+}
+
+.target-evidence-meta-val strong {
+    color: var(--tp-color-brand-900);
+    font-weight: 600;
+}
+
+.target-evidence-card[title],
+.target-evidence-meta-key[title] {
+    cursor: help;
+}
+
+.binder-tbl__crystal {
+    min-width: 200px;
+}
+
+.binder-crystal-cell {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2);
+}
+
+.binder-crystal-res {
+    font-size: var(--tp-font-size-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--tp-color-text-muted);
+    white-space: nowrap;
+}
+
+.binder-crystal-res::before {
+    content: "·";
+    margin: 0 var(--tp-space-1);
+    color: var(--tp-color-text-soft);
+}
+
+.binder-crystal-viewer {
+    white-space: nowrap;
+}
+
+.metabolic-score-card,
+.metabolic-sidebar-block,
+.metabolic-inspector {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-color-surface);
+}
+
+.metabolic-sidebar-block,
+.metabolic-inspector {
+    padding: var(--tp-space-3) var(--tp-space-4);
+}
+
+.metabolic-pathway-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+}
+
+.metabolic-no-pathway-note {
+    margin: 0;
+    padding: var(--tp-space-2) var(--tp-space-3);
+    border-left: 2px solid var(--tp-color-border-strong);
+    color: var(--tp-color-text-soft);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.5;
+}
+
+.metabolic-inspector strong {
+    display: block;
+    margin-bottom: var(--tp-space-3);
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+.metabolic-inspector dl {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: var(--tp-space-2) var(--tp-space-3);
+    margin: 0;
+}
+
+.metabolic-inspector dt {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: var(--tp-tracking-label);
+}
+
+.metabolic-inspector dd {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.metabolic-network-shell {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-color-surface-soft);
+    box-shadow: none;
+}
+
+.metabolic-map-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tp-space-3);
+    min-height: 44px;
+    padding: var(--tp-space-2) var(--tp-space-3);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface);
+}
+
+.metabolic-map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2) var(--tp-space-4);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+}
+
+.metabolic-map-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    white-space: nowrap;
+}
+
+.metabolic-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--tp-radius-pill);
+}
+
+.metabolic-legend-dot--focal {
+    /* Matches the actual node shape (round-rectangle, gradient fill, colored border) --
+   a plain filled circle here didn't look anything like the node it was supposed to
+   identify, once other nodes became circles too. */
+    border-radius: var(--tp-radius-xs);
+    background: var(--tp-color-brand-050);
+    border: 2px solid var(--tp-color-brand-700);
+}
+
+.metabolic-legend-dot--chokepoint {
+    background: var(--tp-color-warning-ink);
+    border-radius: var(--tp-radius-xs);
+    transform: rotate(45deg);
+}
+
+.metabolic-legend-dot--plain {
+    background: var(--tp-color-text-soft);
+}
+
+.metabolic-legend-swatch {
+    width: 14px;
+    height: 10px;
+    border-radius: var(--tp-radius-xs);
+    background: var(--tp-color-success-bg);
+    border: 1px solid var(--tp-color-success-ink);
+}
+
+.metabolic-map-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    flex: 0 0 auto;
+}
+
+#metabolic-network-cy {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: clamp(460px, 58vh, 680px);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 240ms ease, transform 240ms ease;
+}
+
+#metabolic-network-cy.is-ready {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#metabolic-network-cy.metabolic-network-loading,
+#metabolic-network-cy.metabolic-network-empty,
+#metabolic-network-cy.metabolic-network-error {
+    opacity: 1;
+    transform: none;
+}
+
+/* .metabolic-network-tooltip* now lives in components/ui-system.css
+   (shared with the genome-wide metabolic network page). */
+.metabolic-network-note {
+    padding: var(--tp-space-2) var(--tp-space-3) var(--tp-space-3);
+    border-top: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.35;
+}
+
+.metabolic-network-loading,
+.metabolic-network-empty,
+.metabolic-network-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.metabolic-network-loading::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    margin-right: var(--tp-space-2);
+    border: 2px solid var(--tp-color-border-soft);
+    border-top-color: var(--tp-color-brand-700);
+    border-radius: var(--tp-radius-pill);
+    animation: tp-metabolism-spin 780ms linear infinite;
+}
+
+@keyframes tp-metabolism-spin {
+    to {
+    transform: rotate(360deg);
+    }
+}
+
+.metabolic-summary-sentence {
+    margin: var(--tp-space-3) 0 0;
+}
+
+/* protein_metabolic_network.html's own page usage -- unlike protein.html's,
+   which sits inside an already-padded .protein-card, this one sits directly
+   in the .genome-page flow between the hero and .quick-nav. Zero horizontal
+   margin there meant this bordered banner spanned wider than the 18px-inset
+   .quick-nav pill bar right below it. */
+.protein-metabolic-network-summary {
+    margin-left: var(--tp-space-5);
+    margin-right: var(--tp-space-5);
+}
+
+.metabolic-provenance {
+    margin: var(--tp-space-3) 0 0;
+    color: var(--tp-color-text-soft);
+    font-size: var(--tp-font-size-xs);
+}
+
+/* Same story as .protein-metabolic-network-summary just above: this page's
+   own usage is a direct child of .genome-page (right before the closing
+   </div>, after the last .genome-card), not nested in a padded card like
+   protein.html's and metabolism_pathway.html's uses of the same base
+   class -- scoped to this page only via the page-wrapper class already on
+   <div class="genome-page metabolism-page protein-metabolic-network-page">. */
+.protein-metabolic-network-page > .metabolic-provenance {
+    margin-left: var(--tp-space-5);
+    margin-right: var(--tp-space-5);
+}
+
+@media (max-width: 720px) {
+    .metabolic-map-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .metabolic-map-actions {
+        width: 100%;
+    }
+
+    #metabolic-network-cy {
+        min-height: 430px;
+    }
+
+    #viewport {
+        height: 340px;
+    }
+}
+
+#binding-site-evidence {
+    scroll-margin-top: 96px;
+}

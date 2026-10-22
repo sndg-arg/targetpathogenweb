@@ -1,76 +1,3 @@
-/* Genome overview — mirrors protein-detail / binder-detail design language. */
-
-.genome-page {
-    font-family: var(--tp-font-body);
-    color: var(--tp-color-text-primary);
-    margin: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--tp-space-4);
-}
-
-/* No hairline -- spacing only, same treatment as about-us/data-sources.css
-   (this page's grid gap is 16px; the extra 24px margin here matches that
-   page's own .ds-panel ~ .ds-panel value for the same ~40px total feel).
-   Only matches direct <section> siblings -- .quick-nav is a <nav> and
-   .genome-grid is a <div>, so this only kicks in on pages (like
-   Metabolism) where a content section sits as a direct sibling of the
-   hero with nothing else in between. Assembly's quick-nav/genome-grid
-   stay on their own gap-based spacing, untouched by this rule. */
-.genome-page > section ~ section {
-    margin-top: var(--tp-space-6);
-}
-
-.genome-page h1,
-.genome-page h2,
-.genome-page h3 {
-    font-family: var(--tp-font-head);
-    font-weight: 600;
-    letter-spacing: 0;
-}
-.genome-page h1 { font-weight: 600; }
-
-.genome-hero,
-.genome-page .quick-nav,
-.genome-card {
-    /* backwards, not both -- see the shared .tp-ui-enter rule in ui-system.css
-       for why: "both" permanently flags the element as animation-active even
-       long after it's visually settled, which is a known trigger for Chrome
-       mispositioning a native <select> popup nested inside it (e.g. the
-       Downloads section's format select). */
-    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) backwards;
-}
-
-.genome-page .quick-nav {
-    animation-delay: 40ms;
-}
-
-.genome-card {
-    animation-delay: 80ms;
-}
-
-.genome-card:nth-of-type(2) { animation-delay: 110ms; }
-.genome-card:nth-of-type(3) { animation-delay: 140ms; }
-.genome-card:nth-of-type(4) { animation-delay: 170ms; }
-
-.genome-hero-top {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--tp-space-5);
-    align-items: flex-start;
-    margin-top: var(--tp-space-2);
-}
-
-.genome-hero-content {
-    max-width: none;
-    width: 100%;
-    min-width: 0;
-}
-
-.genome-hero h1 {
-    word-break: break-all;
-}
-
 .genome-curated-callout {
     display: flex;
     align-items: center;
@@ -101,28 +28,6 @@
     gap: var(--tp-space-2);
     align-items: flex-start;
     max-width: min(100%, 720px);
-}
-
-.genome-hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-3);
-    margin-top: var(--tp-space-5);
-}
-
-.genome-hero-actions .tp-btn--primary {
-    min-width: 196px;
-    justify-content: center;
-}
-
-/* Arrow nudges forward on hover -- reinforces "this takes you somewhere". */
-.genome-hero-actions .tp-btn-icon {
-    transition: transform 140ms ease;
-}
-
-.genome-hero-actions .btn:hover .tp-btn-icon,
-.genome-hero-actions .btn:focus-visible .tp-btn-icon {
-    transform: translateX(3px);
 }
 
 .genome-hero-actions-hint {
@@ -173,7 +78,7 @@
     color: var(--tp-color-text-secondary);
     text-decoration: none;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .genome-blast-group-option:hover,
@@ -184,9 +89,7 @@
 }
 
 /* ── Metric pills ─────────────────────────────────────────────────── */
-
 /* ── Grid + panels ────────────────────────────────────────────────── */
-
 /* Every direct child below is a full-width section (targets/evidence/browse/
    downloads/details/danger) -- a plain single-column stack, not a 2-column
    grid. (Previously declared as a 2-column grid with every child forcing
@@ -207,19 +110,6 @@
    whitespace instead of a repeated line. */
 .genome-grid > * ~ * {
     margin-top: var(--tp-space-8);
-}
-
-.genome-card {
-    /* Horizontal padding matches .genome-hero's 18px so card content
-       lines up with the hero above it instead of sitting 2px narrower. */
-    padding: var(--tp-space-4) var(--tp-space-5);
-    /* Clearance for the sticky chrome when a nav link jumps here: top bar +
-       breadcrumb bar (--tp-sticky-chrome-h), then the 45px .quick-nav docked
-       below them, plus ~29px breathing room. Must stay just under
-       assembly.html's scroll-spy threshold (nav's bottom edge + 30) or the
-       clicked link never gets marked active. Keep this in sync with
-       .quick-nav's own box model if that ever changes. */
-    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 74px);
 }
 
 /* Exception: the two ranking tiles inside .genome-targets-wrap are a
@@ -252,7 +142,6 @@
 }
 
 /* ── Top targets (two rankings side-by-side) ─────────────────────── */
-
 .genome-targets-wrap {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -261,14 +150,14 @@
     scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 74px);
     align-items: stretch;
     /* The two ranking tiles inside keep their own border -- left/right margin
-       aligns that border with the 18px text inset used elsewhere on the page,
-       instead of sitting flush at the page's raw edge. Deliberately no
-       margin-top/bottom set here: a "margin: 0 var(--tp-space-5)" shorthand used to zero
-       those out, which (same specificity, later in the cascade) silently
-       defeated .genome-grid's own "40px gap between sections" rule below --
-       harmless while this was the grid's first child with no preceding
-       sibling to space from, but once moved lower on the page it collapsed
-       flush against whatever section sits above it. */
+   aligns that border with the 18px text inset used elsewhere on the page,
+   instead of sitting flush at the page's raw edge. Deliberately no
+   margin-top/bottom set here: a "margin: 0 var(--tp-space-5)" shorthand used to zero
+   those out, which (same specificity, later in the cascade) silently
+   defeated .genome-grid's own "40px gap between sections" rule below --
+   harmless while this was the grid's first child with no preceding
+   sibling to space from, but once moved lower on the page it collapsed
+   flush against whatever section sits above it. */
     margin-left: var(--tp-space-5);
     margin-right: var(--tp-space-5);
 }
@@ -359,8 +248,8 @@
     flex-direction: column;
     gap: var(--tp-space-3);
     /* Grows to fill the stretched card height (both ranking cards are equal-height
-       grid siblings), so the footnote lands at the same relative position in both
-       instead of floating right under a shorter list with dead space below it. */
+   grid siblings), so the footnote lands at the same relative position in both
+   instead of floating right under a shorter list with dead space below it. */
     flex: 1;
 }
 
@@ -370,9 +259,9 @@
     background: var(--tp-color-surface);
     box-shadow: none;
     transition:
-        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+    box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+    transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .targets-item:hover,
@@ -482,7 +371,7 @@
 .targets-score-number {
     font-family: var(--tp-font-head);
     /* Matches .evidence-headline's size -- same page, same "big highlighted
-       number" role, so they should read as the same visual weight. */
+   number" role, so they should read as the same visual weight. */
     font-size: var(--tp-heading-md);
     font-weight: 600;
     line-height: 1;
@@ -544,12 +433,12 @@
     font-size: var(--tp-font-size-xs);
     line-height: 1.6;
     /* Clamped to a fixed 2 lines -- proteins qualify for anywhere from ~2 to the
-       6-signal cap, and letting that vary the wrapped line count made every card
-       in the list a different height (reads as unpolished in a ranked list,
-       where a uniform row height is expected). Same technique already used on
-       .targets-description just above it. min-height covers the other
-       direction -- a protein with few enough signals to fit on one line would
-       otherwise make its card shorter than the rest. */
+   6-signal cap, and letting that vary the wrapped line count made every card
+   in the list a different height (reads as unpolished in a ranked list,
+   where a uniform row height is expected). Same technique already used on
+   .targets-description just above it. min-height covers the other
+   direction -- a protein with few enough signals to fit on one line would
+   otherwise make its card shorter than the rest. */
     min-height: 3.4em;
     overflow: hidden;
     display: -webkit-box;
@@ -634,7 +523,6 @@
 }
 
 /* ── Evidence available ──────────────────────────────────────────── */
-
 .evidence-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -737,7 +625,6 @@
 }
 
 /* ── Composition inline (within Evidence section) ────────────────── */
-
 .evidence-composition {
     display: flex;
     flex-wrap: wrap;
@@ -769,7 +656,6 @@
 }
 
 /* ── JBrowse iframe ──────────────────────────────────────────────── */
-
 .jbrowse-frame {
     width: 100%;
     height: 540px;
@@ -786,7 +672,6 @@
 }
 
 /* ── Evidence footnote ───────────────────────────────────────────── */
-
 .evidence-footnote {
     margin: var(--tp-space-4) 0 0;
     padding-top: var(--tp-space-3);
@@ -798,7 +683,6 @@
 }
 
 /* ── Imported details ────────────────────────────────────────────── */
-
 .genome-raw-details summary {
     cursor: pointer;
     color: var(--tp-color-brand-900);
@@ -837,7 +721,6 @@
 }
 
 /* ── Dataset deletion danger card ────────────────────────────────── */
-
 .genome-card--danger {
     border-color: var(--tp-color-danger-border);
     background: var(--tp-color-danger-bg);
@@ -877,28 +760,4 @@
     justify-content: flex-end;
     gap: var(--tp-space-3);
     flex-wrap: wrap;
-}
-
-@media (max-width: 640px) {
-
-    .genome-hero-actions .btn,
-    .genome-delete-actions .btn {
-        width: 100%;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .genome-hero-actions .tp-btn-icon {
-        transition: none;
-        transform: none !important;
-    }
-
-    .genome-hero,
-    .genome-page .quick-nav,
-    .genome-page .quick-nav .quick-nav-link,
-    .genome-page .quick-nav .quick-nav-link::after,
-    .genome-card {
-        animation: none !important;
-        transition: none !important;
-    }
 }

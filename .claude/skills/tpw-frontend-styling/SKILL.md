@@ -57,8 +57,11 @@ un-fixes the assistant button), never restyle them. This skill is the developer 
 
 ## File layout
 
-One CSS file per page or page family under `static/css/pages/` (genome-overview.css = genome pages,
-protein-detail.css = protein pages incl. human, metabolism-overview.css = metabolism views, auth.css = account). Shared, cross-page
+One CSS file per page under `static/css/pages/`. What a page family shares lives in a component file loaded
+first: `components/protein-page.css` (bacterial protein page, Human Targets protein page, protein metabolic
+network, /design) and `components/genome-page.css` (genome overview + metabolism pages); `protein-detail.css` and
+`genome-overview.css` now hold only what their own page uses. Shared metabolism views keep metabolism-overview.css;
+auth.css = account pages. Shared, cross-page
 component classes live in `static/css/components/ui-system.css` — e.g. `.tp-view-head`,
 `.tp-view-head-copy`, `.tp-view-head-actions`, generic `.tp-btn*`. **Check `ui-system.css` before
 assuming a class is undefined** — a `grep` across `static/css/` for the class name will tell you
@@ -67,7 +70,7 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
 ## Reusable component idioms — extend these, don't invent parallel ones
 
 Components (all on /design). There is no `.tp-ui-panel`/`.tp-ui-panel-head` any more.
-- `.target-evidence-card` (protein-detail.css): stat card — uppercase label, value, optional
+- `.target-evidence-card` (components/protein-page.css): stat card — uppercase label, value, optional
   key/value meta rows; `--secondary` = muted fill. Reuse it for any new evidence card.
 - Filters: `.filter-chip` (available) + `--active` or `[aria-pressed="true"]` (applied, filled
   primary) + `--pending` (dashed); tone variants for risk/favorable.
