@@ -2280,6 +2280,9 @@ class ProteinListView(View):
                     "tpwebapp:protein_advanced_filters", kwargs={"genome": genome}
                 ),
                 "proteins": proteins_dto,
+                "show_identical_column": any(
+                    p.get("identical_sequence_siblings") for p in proteins_dto
+                ),
                 "score_dict": score_dict,
                 "tcolumns": tcolumns,
                 "structure_columns": structure_dependent_columns(score_dict),

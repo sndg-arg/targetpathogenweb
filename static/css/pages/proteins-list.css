@@ -3450,10 +3450,8 @@ body.is-resizing-column * {
         display: none;
     }
 }
-.shared-strain-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2);
-    margin-top: var(--tp-space-1);
+/* Identical in: plain strain links, one line. */
+.protein-table td[data-col="identical-in"] {
+    white-space: nowrap;
     font-size: var(--tp-font-size-sm);
 }
