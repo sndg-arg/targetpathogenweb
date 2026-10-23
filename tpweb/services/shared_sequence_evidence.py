@@ -386,7 +386,6 @@ def annotate_shared_score_values(queryset, param_ids, user):
     from django.db.models import (
         Case,
         CharField,
-        Exists,
         F,
         FloatField,
         Func,
@@ -398,7 +397,7 @@ def annotate_shared_score_values(queryset, param_ids, user):
         Value,
         When,
     )
-    from django.db.models.functions import Trim, Upper
+    from django.db.models.functions import Coalesce, Trim, Upper
     from bioseq.models.Biodatabase import Biodatabase
     from tpweb.models import IdenticalSequenceMember
     from tpweb.models.ScoreParam import ScoreParam
@@ -434,47 +433,50 @@ def annotate_shared_score_values(queryset, param_ids, user):
         bioentry_id=OuterRef(OuterRef("pk")),
     ).values("group_id")
     annotations = {}
+    empty = ["", "None", "none", "nan", "null"]
     for param in params:
-        local_value = ScoreParamValue.objects.filter(
-            bioentry_id=OuterRef(OuterRef("pk")), score_param_id=param.pk
-        ).exclude(numeric_value__isnull=True, value__in=["", "None", "none", "nan", "null"])
-        rows = (
+        # Same answer as "curated copy first, then this protein's own value,
+        # then any other identical copy", written as three separate lookups
+        # joined by Coalesce. One subquery with an OR across them (own row OR
+        # a donor row) could not use the score-value indexes and, after the
+        # bulk structure load, ran for minutes per page.
+        own = ScoreParamValue.objects.filter(
+            bioentry_id=OuterRef("pk"), score_param_id=param.pk
+        ).exclude(numeric_value__isnull=True, value__in=empty)
+        donors = (
             ScoreParamValue.objects.annotate(_donor_sequence=normalized("bioentry__seq__seq"))
             .filter(
-                Q(bioentry_id=OuterRef("pk"))
-                | (
-                    scope
-                    & Q(bioentry__identical_sequence_memberships__group_id__in=Subquery(groups))
-                    & Q(_donor_sequence=OuterRef("_shared_target_sequence"))
-                ),
+                scope,
+                bioentry__identical_sequence_memberships__group_id__in=Subquery(groups),
+                _donor_sequence=OuterRef("_shared_target_sequence"),
                 score_param_id=param.pk,
             )
-            .filter(
-                Q(bioentry_id=OuterRef("pk"))
-                | Q(bioentry__identical_sequence_memberships__strain_label__in=CURATED_STRAINS)
-                | ~Q(Exists(local_value))
+            .exclude(numeric_value__isnull=True, value__in=empty)
+        )
+        curated = (
+            donors.filter(
+                bioentry__identical_sequence_memberships__strain_label__in=CURATED_STRAINS
             )
-            .exclude(numeric_value__isnull=True, value__in=["", "None", "none", "nan", "null"])
             .annotate(
                 _curated_priority=Case(
                     When(
                         bioentry__identical_sequence_memberships__strain_label="KP13", then=Value(0)
                     ),
-                    When(
-                        bioentry__identical_sequence_memberships__strain_label="ATCC43816",
-                        then=Value(1),
-                    ),
-                    default=Value(2),
+                    default=Value(1),
                     output_field=IntegerField(),
                 ),
             )
             .order_by("_curated_priority", "bioentry__accession", "pk")
         )
+        others = donors.order_by("bioentry__accession", "pk")
         prefix = f"_shared_score_{param.pk}_"
-        annotations[prefix + "value"] = Subquery(rows.values("value")[:1], output_field=CharField())
-        annotations[prefix + "numeric_value"] = Subquery(
-            rows.values("numeric_value")[:1], output_field=FloatField()
-        )
+        for column, output in (("value", CharField()), ("numeric_value", FloatField())):
+            annotations[prefix + column] = Coalesce(
+                Subquery(curated.values(column)[:1], output_field=output),
+                Subquery(own.values(column)[:1], output_field=output),
+                Subquery(others.values(column)[:1], output_field=output),
+                output_field=output,
+            )
     return queryset.annotate(**annotations), {p.pk for p in params}
 
 
