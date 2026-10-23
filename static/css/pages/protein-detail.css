@@ -1992,3 +1992,48 @@ body.residue-modal-open {
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* 3D stage: the viewer beside its pocket column (the column scrolls at the
+   viewer's height); without pockets the viewer keeps a reading width. */
+.structure-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--tp-space-5);
+    align-items: start;
+}
+
+.structure-stage:not(.has-side) .structure-stage-main {
+    max-width: 920px;
+}
+
+.structure-stage.has-side {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+}
+
+.structure-side {
+    max-height: calc(clamp(340px, 48vh, 460px) + var(--tp-space-4) + 2px);
+    overflow-y: auto;
+    padding-right: var(--tp-space-1);
+    scrollbar-width: thin;
+}
+
+.structure-side-hint {
+    margin: 0 0 var(--tp-space-2);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.4;
+}
+
+.structure-side .mini-section + .mini-section {
+    margin-top: var(--tp-space-4);
+}
+
+@media (max-width: 1100px) {
+    .structure-stage.has-side {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .structure-side {
+        max-height: none;
+    }
+}

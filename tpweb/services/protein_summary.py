@@ -804,6 +804,17 @@ def _float_or_none(value):
         return None
 
 
+# PSORTb's compartment names, as read on the page.
+_ENVELOPE_LABELS = {
+    "cytoplasmic": "Cytoplasm",
+    "cytoplasmicmembrane": "Inner (cytoplasmic) membrane",
+    "periplasmic": "Periplasm",
+    "outermembrane": "Outer membrane",
+    "extracellular": "Extracellular",
+    "cellwall": "Cell wall",
+    "unknown": "Unknown",
+}
+
 # PSORTb compartments -> parts of the bacterial cell diagram that light up.
 _ENVELOPE_PARTS = {
     "cytoplasmic": ["cytoplasm"],
@@ -824,7 +835,7 @@ def build_localization(target_profile):
     value = str(item["value"]).strip()
     key = value.lower().replace(" ", "").replace("_", "")
     return {
-        "value": value,
+        "value": _ENVELOPE_LABELS.get(key, value),
         "parts": _ENVELOPE_PARTS.get(key, []),
         "tooltip": item.get("tooltip", ""),
     }

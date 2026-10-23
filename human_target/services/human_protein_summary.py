@@ -192,6 +192,8 @@ def _ruler(length):
     return [
         {"position": position, "left": round(position / length * 100, 3)}
         for position in range(step, length, step)
+        # A tick right before the end would collide with the end label.
+        if length - position >= step * 0.4
     ]
 
 
