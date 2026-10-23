@@ -1,3 +1,4 @@
+from tpweb.services.topology_diagram import build_topology_diagram
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import Http404
 from django.shortcuts import render
@@ -93,6 +94,12 @@ class HumanProteinView(PermissionLockedMixin, View):
             "glance": glance,
             "assessment": assessment,
             "sequence": sequence,
+            "topology": build_topology_diagram(
+                (architecture or {}).get("topology"),
+                human_protein.sequence_length,
+                "Extracellular",
+                "Cytoplasm",
+            ),
             "xrefs": build_human_xref_context(human_protein),
             "structure": structure,
             "binders": binders,

@@ -1949,6 +1949,14 @@ body.residue-modal-open {
     align-items: center;
 }
 
+.annotation-location-body > :only-child {
+    grid-column: 1 / -1;
+}
+
+.annotation-location-detail .tm-figure:first-child {
+    margin-top: 0;
+}
+
 .annotation-term-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

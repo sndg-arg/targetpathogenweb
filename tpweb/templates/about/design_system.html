@@ -6,8 +6,8 @@
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261023-heronote">
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-p3">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261023-dossier">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-p4">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261023-p4">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -462,11 +462,12 @@
             <h3>Cell diagram</h3>
             <div class="ds-matrix-wrap">
             <table class="ds-matrix ds-matrix--top">
-                <thead><tr><th>Human cell</th><th>Bacterial envelope</th></tr></thead>
+                <thead><tr><th>Human cell</th><th>Bacterial envelope</th><th>Membrane topology</th></tr></thead>
                 <tbody>
                     <tr>
                         <td><div class="ds-cell">{% include "components/protein/cell_diagram.html" with compartments="membrane nucleus" %}</div></td>
-                        <td><div class="ds-cell">{% include "components/protein/envelope_diagram.html" with parts="periplasm" %}</div></td></tr>
+                        <td><div class="ds-cell">{% include "components/protein/envelope_diagram.html" with parts="periplasm" %}</div></td>
+                        <td><div class="ds-topology">{% include "components/protein/topology_diagram.html" with topo=sample_topology %}</div></td></tr>
                 </tbody>
             </table>
             </div>

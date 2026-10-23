@@ -11,7 +11,7 @@
     styling this page deliberately reuses verbatim (same markup, same tokens) --
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-p3">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-p4">
     <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261023-p2">
 {% endblock %}
 
@@ -134,7 +134,7 @@
                     </div>
                     {% endfor %}
                 </dl>
-                {% if function.function_text or overview.subunit_text or overview.polymorphism_text or overview.subcellular_locations %}
+                {% if function.function_text or overview.subunit_text or overview.polymorphism_text or overview.subcellular_locations or topology %}
                 <div class="hbio-layout">
                     {% if function.function_text or overview.subunit_text or overview.polymorphism_text %}
                     <div class="hbio-main">
@@ -155,7 +155,7 @@
                         {% endif %}
                     </div>
                     {% endif %}
-                    {% if overview.subcellular_locations %}
+                    {% if overview.subcellular_locations or topology %}
                     <aside class="hbio-aside">
                         <div class="cross-reference-group hov-cell">
                             <h3 class="cross-reference-group-label">{% trans "Subcellular location" %}</h3>
@@ -163,6 +163,7 @@
                             <ul class="hc-list">
                                 {% for loc in overview.subcellular_locations %}<li><span class="hc-dot" aria-hidden="true"></span>{{ loc }}</li>{% endfor %}
                             </ul>
+                            {% if topology %}{% include "components/protein/topology_diagram.html" with topo=topology %}{% endif %}
                         </div>
                     </aside>
                     {% endif %}

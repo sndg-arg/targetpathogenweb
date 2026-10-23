@@ -304,6 +304,10 @@
     width: 240px;
 }
 
+.ds-topology {
+    width: 360px;
+}
+
 .ds-card {
     display: grid;
     gap: var(--tp-space-1);

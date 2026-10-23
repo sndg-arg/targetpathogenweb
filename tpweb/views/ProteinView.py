@@ -12,6 +12,7 @@ from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
 from tpweb.services.structure_summary import pdb_structure
 from tpweb.services.identical_sequences import identical_siblings_for_bioentry
+from tpweb.services.topology_diagram import build_topology_diagram
 from tpweb.services.protein_architecture import (
     build_interpro_architecture,
     coverage_cells,
@@ -548,6 +549,10 @@ class ProteinView(View):
         experimental_structures = _build_experimental_structures(protein, structures)
         sequence_length = len(proteinDTO["seq"] or "")
         architecture = build_interpro_architecture(features, sequence_length)
+        # Gram-negative inner-membrane proteins: the non-cytoplasmic side is the periplasm.
+        topology = build_topology_diagram(
+            (architecture or {}).get("topology"), sequence_length, "Periplasm", "Cytoplasm"
+        )
         structure_coverage = coverage_cells(
             [
                 (xref.uniprot_start, xref.uniprot_end)
@@ -749,6 +754,7 @@ class ProteinView(View):
             "predicted_structures": [],
             "features": features,
             "architecture": architecture,
+            "topology": topology,
             "structure_coverage": structure_coverage,
             "sequence_lines": format_sequence(proteinDTO["seq"]),
             "annotations": annotations,
