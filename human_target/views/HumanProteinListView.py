@@ -66,7 +66,7 @@ COLUMNS = [
     ("drugs", "DrugBank", "Pharmacology", True),
     ("diseases", "Diseases", "Disease", True),
     ("tissue", "Tissue specificity", "Expression", True),
-    ("pathways", "Pathways", "Pathways", True),
+    ("pathways", "Pathways", "Pathways", False),
     ("location", "Location", "Localization", True),
     ("uniprot", "UniProt status", "Annotation", False),
 ]

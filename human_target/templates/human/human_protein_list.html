@@ -37,7 +37,7 @@
                 <span class="tp-chip">{% trans "Ligand records" %}: {{ dashboard.total_ligand_records|thousands }}</span>
             </div>
             {% if dashboard.ligand_coverage_is_sparse %}
-                <p class="tp-state-note tp-state-note--empty">{% trans "Ligand, structure, pathway and expression data are still being loaded, so some columns and sections may be empty for now." %}</p>
+                <p class="tp-state-note tp-state-note--empty">{% trans "Ligand and pathway data are still being loaded for most proteins, so those columns are mostly empty for now." %}</p>
             {% endif %}
         </section>
 
