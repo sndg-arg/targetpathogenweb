@@ -393,11 +393,13 @@ a.hero-chip.tp-chip--link .tp-chip-acc {
     box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
+/* A layer on in the viewer: a quiet neutral bar. Only the selected pocket
+   (below) takes the accent fill, so two lit pockets never look selected. */
 .pocket-card.is-visible-in-viewer,
 .residueset-row.is-visible-in-viewer {
     border-color: var(--tp-color-border-strong);
-    background: var(--tp-color-brand-100);
-    box-shadow: inset 3px 0 0 var(--tp-color-brand-800);
+    background: var(--tp-color-surface);
+    box-shadow: inset 3px 0 0 var(--tp-color-border-strong);
 }
 
 .pocket-card.is-selected-pocket {

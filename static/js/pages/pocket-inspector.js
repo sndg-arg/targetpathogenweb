@@ -19,6 +19,10 @@
         var pocketShowOnlyBtn = config.pocketShowOnlyBtn || null;
         var defaultLayerLabel = config.defaultLayerLabel || "Pocket core";
         var showOnlySelectedPocket = false;
+        // The layer inspectPocket() switched on by itself. Selecting another
+        // pocket switches it off again, so clicking pocket 1 then pocket 2
+        // shows pocket 2 -- layers the user turned on by hand stay on.
+        var autoLayerBtn = null;
 
         function setCardVisibilityState(card) {
             if (!card) return;
@@ -98,6 +102,7 @@
         // stays layer-agnostic because inspectPocket() reuses it internally when
         // switching pockets, and switching must not clear other active layers.
         function clearPocketSelectionAndLayers() {
+            autoLayerBtn = null;
             document.querySelectorAll(".pocket-card.is-selected-pocket").forEach(function (card) {
                 card.querySelectorAll('.js-repr-toggle[aria-pressed="true"]').forEach(function (btn) {
                     setReprButtonPressed(btn, false);
@@ -109,6 +114,10 @@
 
         function inspectPocket(card) {
             if (!card) return;
+            if (autoLayerBtn && !card.contains(autoLayerBtn)) {
+                setReprButtonPressed(autoLayerBtn, false);
+            }
+            autoLayerBtn = null;
             var hasVisibleLayer = !!card.querySelector('.js-repr-toggle[aria-pressed="true"]');
             clearPocketSelection();
             card.classList.add("is-selected-pocket");
@@ -116,7 +125,8 @@
             var coreRepr = card.getAttribute("data-pocket-core-repr") || "";
             var coreBtn = coreRepr ? card.querySelector('.js-repr-toggle[data-repr="' + coreRepr + '"]') : null;
             if (!hasVisibleLayer) {
-                setReprButtonPressed(coreBtn || card.querySelector(".js-repr-toggle"), true);
+                autoLayerBtn = coreBtn || card.querySelector(".js-repr-toggle");
+                setReprButtonPressed(autoLayerBtn, true);
             }
             setCardVisibilityState(card);
 
@@ -156,6 +166,7 @@
             }
             var isPressed = btn.getAttribute("aria-pressed") === "true";
             setReprButtonPressed(btn, !isPressed);
+            if (btn === autoLayerBtn) autoLayerBtn = null;
             var selectedCard = btn.closest(".pocket-card.is-selected-pocket");
             if (selectedCard && !isPressed) {
                 setPocketInspectorField("layer", btn.getAttribute("data-layer-label") || btn.textContent || "");
