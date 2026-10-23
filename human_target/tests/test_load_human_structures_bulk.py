@@ -21,6 +21,22 @@ _FAKE_CIF_WITH_METHOD = "_exptl.method   'X-RAY DIFFRACTION'\n"
 
 
 class ExperimentalResumeTests(SimpleTestCase):
+    def test_parse_failure_counts_entry_as_failed_without_writing_xref(self):
+        module = "human_target.management.commands.load_human_structures_bulk"
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch(f"{module}.PDB.objects.filter") as pdb,
+            patch(f"{module}.requests.get", return_value=_FakeResponse(_FAKE_CIF_WITH_METHOD)),
+            patch.object(Command, "_call_load_af_model", return_value=False),
+            patch(f"{module}.ExperimentalStructureXref.objects.update_or_create") as write,
+        ):
+            pdb.return_value.exists.return_value = False
+            result = Command()._process_one_experimental_entry(
+                "3JPN", ["P1"], {"P1": 1}, {"overwrite": False}, tmp
+            )
+            self.assertEqual(result, (0, 1))
+            write.assert_not_called()
+
     def test_resume_requires_both_xref_and_structure_link(self):
         rows = [
             ("P1", [{"database": "PDB", "id": "1ABC"}], 1),

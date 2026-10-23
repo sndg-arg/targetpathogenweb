@@ -27,7 +27,7 @@ class SanitizeCifTests(SimpleTestCase):
         finally:
             os.unlink(path)
 
-    def test_replaces_apostrophes_in_a_new_temp_file(self):
+    def test_preserves_already_quoted_apostrophes(self):
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".cif", delete=False, encoding="utf-8"
         ) as f:
@@ -36,11 +36,11 @@ class SanitizeCifTests(SimpleTestCase):
         result = None
         try:
             result = LoadAfModelCommand._sanitize_cif(path)
-            self.assertNotEqual(result, path)
+            self.assertEqual(result, path)
             with open(result, encoding="utf-8") as fh:
                 content = fh.read()
-            self.assertNotIn("'", content)
-            self.assertIn("*", content)
+            self.assertIn("ADENOSINE-5'-TRIPHOSPHATE", content)
+            self.assertNotIn("*", content)
         finally:
             os.unlink(path)
             if result and result != path:

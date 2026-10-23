@@ -16,10 +16,11 @@ def expected_pdb_pairs(rows):
     return pairs
 
 
-def compare_pdb_pairs(expected, registered, linked, sample_size=20):
+def compare_pdb_pairs(expected, registered, linked, sample_size=20, deprecated_linked=None):
     """Only expected pairs contribute to coverage; xrefs alone are insufficient."""
     complete = expected & registered & linked
     missing = expected - complete
+    deprecated_only = (expected & (deprecated_linked or set())) - linked
     return {
         "expected_pairs": len(expected),
         "registered_expected_pairs": len(expected & registered),
@@ -32,6 +33,9 @@ def compare_pdb_pairs(expected, registered, linked, sample_size=20):
         "structure_link_without_xref": len((expected & linked) - registered),
         "pending_pairs": len(missing),
         "pending_distinct_pdb": len({code for _, code in missing}),
+        "deprecated_only_pairs": len(deprecated_only),
+        "deprecated_only_sample": [list(pair) for pair in sorted(deprecated_only)[:sample_size]],
+        "without_any_structure_link": len(expected - linked - (deprecated_linked or set())),
         "extra_registered_pairs": len(registered - expected),
         "pending_sample": [list(pair) for pair in sorted(missing)[:sample_size]],
     }

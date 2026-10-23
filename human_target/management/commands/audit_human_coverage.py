@@ -62,6 +62,15 @@ class Command(BaseCommand):
             .iterator(chunk_size=2000)
         }
         structures = BioentryStructure.objects.filter(bioentry_id__in=ids, pdb__deprecated=False)
+        deprecated_linked = {
+            (accession, code.strip().upper())
+            for accession, code in BioentryStructure.objects.filter(
+                bioentry_id__in=ids, pdb__experiment="EX", pdb__deprecated=True
+            )
+            .order_by()
+            .values_list("bioentry__human_protein__uniprot_accession", "pdb__code")
+            .iterator(chunk_size=2000)
+        }
         linked = {
             (accession, code.strip().upper())
             for accession, code in structures.filter(pdb__experiment="EX")
@@ -80,7 +89,9 @@ class Command(BaseCommand):
                 "unreviewed": proteins.filter(is_reviewed=False).count(),
                 "requested_accessions_not_found": sorted(set(options["accession"]) - accessions),
             },
-            "experimental": compare_pdb_pairs(expected, registered, linked, options["sample_size"]),
+            "experimental": compare_pdb_pairs(
+                expected, registered, linked, options["sample_size"], deprecated_linked
+            ),
             "structures": list(
                 structures.order_by()
                 .values("pdb__experiment")

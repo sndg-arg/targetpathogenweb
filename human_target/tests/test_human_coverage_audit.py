@@ -11,6 +11,17 @@ from human_target.services.human_coverage_audit import (
 
 
 class HumanCoverageAuditTests(unittest.TestCase):
+    def test_deprecated_links_are_distinguished_from_absent_links(self):
+        result = compare_pdb_pairs(
+            {("P1", "9LSJ"), ("P2", "3JPN")},
+            {("P1", "9LSJ"), ("P2", "3JPN")},
+            set(),
+            deprecated_linked={("P1", "9LSJ")},
+        )
+        self.assertEqual(result["deprecated_only_pairs"], 1)
+        self.assertEqual(result["without_any_structure_link"], 1)
+        self.assertEqual(result["complete_pairs"], 0)
+
     def test_normalizes_and_deduplicates_expected_pairs(self):
         rows = [
             (

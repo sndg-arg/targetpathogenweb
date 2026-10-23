@@ -176,10 +176,20 @@ class Command(BaseCommand):
                 datadir=options["datadir"],
                 overwrite=options["overwrite"],
             )
-            return True
+            return BioentryStructure.objects.filter(
+                bioentry__accession=accession,
+                pdb__code=code,
+                pdb__experiment=experiment,
+                pdb__deprecated=False,
+            ).exists()
         except SystemExit as exc:
             self.stderr.write(f"  {code} for {accession}: {exc}")
-            return False
+            return BioentryStructure.objects.filter(
+                bioentry__accession=accession,
+                pdb__code=code,
+                pdb__experiment=experiment,
+                pdb__deprecated=False,
+            ).exists()
         except CommandError as exc:
             self.stderr.write(f"  {code} for {accession} failed: {exc}")
             return False
@@ -329,18 +339,12 @@ class Command(BaseCommand):
             method = _guess_experimental_method(resp.text)
 
         linked = 0
+        failed = False
         for accession in member_accessions:
-            # Unlike the pilot's _load_structures, this writes
-            # ExperimentalStructureXref unconditionally, not only when
-            # load_af_model returns normally. load_af_model raises
-            # SystemExit(1) both on a real failure *and* on its
-            # re-link-an-existing-row branch (the expected path for every
-            # protein here after the first one to reference a given PDB
-            # id, since sharing one is the common case at this scale) --
-            # skipping the xref write there, as the pilot does, would
-            # leave every such protein's structure correctly linked but
-            # missing from its Structure tab's own bookkeeping.
             ok = self._call_load_af_model(pdb_id, cif_path, accession, "EX", options)
+            if not ok:
+                failed = True
+                continue
             ExperimentalStructureXref.objects.update_or_create(
                 bioentry_id=accession_to_bioentry_id[accession],
                 pdb_id=pdb_id,
@@ -348,4 +352,4 @@ class Command(BaseCommand):
             )
             if ok:
                 linked += 1
-        return linked, 0
+        return linked, int(failed)
