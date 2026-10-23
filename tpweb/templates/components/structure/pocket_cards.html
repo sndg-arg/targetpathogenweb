@@ -4,7 +4,7 @@
     <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
         <h3 class="mini-section-title--p2rank">{% trans "Binding pockets" %} · P2Rank</h3>
         <p class="table-hint">{% trans "Binding-site probability (P2Rank): high ≥ 0.5 · medium ≥ 0.2 and < 0.5 · low < 0.2" %}</p>
-        <div class="pocket-cards">
+        <div class="pocket-cards{% if layout == 'rows' %} pocket-cards--rows{% endif %}">
             {% for p2 in structure_data.p2_pockets %}
                 <div class="pocket-card pocket-card--p2rank"
                      data-pocket-method="P2Rank"
@@ -41,10 +41,10 @@
                         <button type="button" class="filter-chip pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_lbl" data-layer-label="{% trans 'Residue labels' %}" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Residue labels" %}</button>
                     </div>
                     <div class="pocket-card-actions">
-                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">
+                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}" aria-label="{% trans 'Center view' %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span><span>{% trans "Center view" %}</span>
                         </button>
-                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p2.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">
+                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p2.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}" aria-label="{% trans 'List residues' %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span><span>{% trans "List residues" %}</span>
                         </button>
                     </div>
@@ -58,7 +58,7 @@
     <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
         <h3 class="mini-section-title--fpocket">{% trans "Binding pockets" %} · FPocket</h3>
         <p class="table-hint">{% trans "Druggability (FPocket): high ≥ 0.7 · medium ≥ 0.4 and < 0.7 · low < 0.4" %}</p>
-        <div class="pocket-cards">
+        <div class="pocket-cards{% if layout == 'rows' %} pocket-cards--rows{% if structure_data.pockets|length > 6 %} is-collapsed{% endif %}{% endif %}" id="fpocket-cards-{{ structure_key }}">
             {% for p in structure_data.pockets %}
                 <div class="pocket-card pocket-card--fpocket"
                      data-pocket-method="FPocket"
@@ -100,16 +100,19 @@
                         <button type="button" class="filter-chip pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_lbl" data-layer-label="{% trans 'Residue labels' %}" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Residue labels" %}</button>
                     </div>
                     <div class="pocket-card-actions">
-                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('{{p.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">
+                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('{{p.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}" aria-label="{% trans 'Center view' %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span><span>{% trans "Center view" %}</span>
                         </button>
-                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">
+                        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}" aria-label="{% trans 'List residues' %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span><span>{% trans "List residues" %}</span>
                         </button>
                     </div>
                 </div>
             {% endfor %}
         </div>
+        {% if layout == 'rows' and structure_data.pockets|length > 6 %}
+        <button type="button" class="list-more-toggle" data-expand-target="fpocket-cards-{{ structure_key }}" data-label-more="{% blocktrans with count=structure_data.pockets|length %}Show all {{ count }} pockets{% endblocktrans %}" data-label-less="{% trans 'Show fewer' %}">{% blocktrans with count=structure_data.pockets|length %}Show all {{ count }} pockets{% endblocktrans %}</button>
+        {% endif %}
     </div>
 {% endif %}
 

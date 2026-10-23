@@ -6,8 +6,8 @@
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261023-heronote">
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-meta">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261023-bar">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-p2">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261023-dossier">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -127,7 +127,7 @@
     <section class="ds-chapter tp-quick-nav-target" id="components">
         <header class="ds-chapter-head">
             <h2>Components</h2>
-            <nav class="ds-index" aria-label="Components"><a href="#c-buttons">Buttons</a><a href="#c-tags">Tags</a><a href="#c-filters">Filters</a><a href="#c-fields">Fields</a><a href="#c-file">File picker</a><a href="#c-select">Select</a><a href="#c-options">Options</a><a href="#c-tabs">Tabs</a><a href="#c-notes">Notes</a><a href="#c-empty">Empty state</a><a href="#c-messages">Messages</a><a href="#c-values">Long values</a><a href="#c-metrics">Metrics</a><a href="#c-bars">Bars</a><a href="#c-cards">Cards</a><a href="#c-header">Page header</a><a href="#c-section">Section header</a><a href="#c-navigation">Navigation</a><a href="#c-assistant">Assistant button</a><a href="#c-tooltips">Tooltips</a><a href="#c-dialogs">Dialogs</a><a href="#c-tables">Tables</a></nav>
+            <nav class="ds-index" aria-label="Components"><a href="#c-buttons">Buttons</a><a href="#c-tags">Tags</a><a href="#c-filters">Filters</a><a href="#c-fields">Fields</a><a href="#c-file">File picker</a><a href="#c-select">Select</a><a href="#c-options">Options</a><a href="#c-tabs">Tabs</a><a href="#c-notes">Notes</a><a href="#c-empty">Empty state</a><a href="#c-messages">Messages</a><a href="#c-values">Long values</a><a href="#c-metrics">Metrics</a><a href="#c-bars">Bars</a><a href="#c-cards">Cards</a><a href="#c-assessment">Assessment</a><a href="#c-cell">Cell diagram</a><a href="#c-header">Page header</a><a href="#c-section">Section header</a><a href="#c-navigation">Navigation</a><a href="#c-assistant">Assistant button</a><a href="#c-tooltips">Tooltips</a><a href="#c-dialogs">Dialogs</a><a href="#c-tables">Tables</a></nav>
         </header>
 
         <div class="ds-comp" id="c-buttons">
@@ -438,6 +438,35 @@
                                 <div class="target-evidence-meta-row"><span class="target-evidence-meta-key">FPocket</span><span class="target-evidence-meta-val"><strong>0.64</strong> · pocket 2</span></div>
                             </div>
                         </div></div></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <div class="ds-comp" id="c-assessment">
+            <h3>Assessment</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix ds-matrix--stack">
+                <tbody>
+                    <tr><th>Rows</th><td><div class="ds-frame"><div class="ta-list">
+                        <details class="ta-item"><summary class="ta-row"><span class="ta-label">Essentiality</span><span class="ta-status"><span class="tp-chip tp-chip--success">Essential</span></span><span class="ta-finding">Essential (DEG): Yes · Identity to closest essential gene: 82.1%</span></summary><div class="ta-body"><p class="pe-question">Does the pathogen need this gene to survive?</p></div></details>
+                        <details class="ta-item"><summary class="ta-row"><span class="ta-label">Off-target risk</span><span class="ta-status"><span class="tp-chip tp-chip--warning">Human homolog</span></span><span class="ta-finding">Human proteins: Hit · Gut microbiome: 1.8%</span></summary><div class="ta-body"><p class="pe-question">Could a drug against it also hit human or gut bacterial proteins?</p></div></details>
+                        <details class="ta-item"><summary class="ta-row"><span class="ta-label">Metabolism</span><span class="ta-status"><span class="tp-chip">Not classified</span></span><span class="ta-finding">Priority tier: —</span></summary><div class="ta-body"><p class="pe-question">How strongly does the curated metabolic model support it?</p></div></details>
+                    </div></div></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <div class="ds-comp" id="c-cell">
+            <h3>Cell diagram</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix ds-matrix--top">
+                <thead><tr><th>Human cell</th><th>Bacterial envelope</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><div class="ds-cell">{% include "components/protein/cell_diagram.html" with compartments="membrane nucleus" %}</div></td>
+                        <td><div class="ds-cell">{% include "components/protein/envelope_diagram.html" with parts="periplasm" %}</div></td></tr>
                 </tbody>
             </table>
             </div>

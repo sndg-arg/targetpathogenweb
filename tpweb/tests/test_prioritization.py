@@ -2,6 +2,7 @@ from django.test import SimpleTestCase
 
 from tpweb.services.protein_summary import (
     build_conservation_profile,
+    build_localization,
     build_microbiome_context,
     build_prioritization,
     build_selected_pocket_evidence,
@@ -53,6 +54,19 @@ class PrioritizationTests(SimpleTestCase):
         self.assertEqual(
             [(v["label"], v["value"]) for v in result["summary"]][-1], ("Druggable", "Yes")
         )
+        # Each verdict links to its row; each row carries a one-line finding.
+        self.assertEqual(result["summary"][-1]["href"], "#binding-site-evidence")
+        self.assertTrue(all(group["finding"] for group in result["groups"]))
+        self.assertIn("P2Rank", structure["finding"])
 
     def test_nothing_to_show_returns_none(self):
         self.assertIsNone(self.build({}))
+
+
+class LocalizationTests(SimpleTestCase):
+    def test_psortb_value_lights_its_envelope_part(self):
+        profile = [{"key": "Localization", "value": "Periplasmic", "tooltip": "t"}]
+        self.assertEqual(build_localization(profile)["parts"], ["periplasm"])
+        unknown = [{"key": "Localization", "value": "Unknown"}]
+        self.assertEqual(build_localization(unknown)["parts"], [])
+        self.assertIsNone(build_localization([]))

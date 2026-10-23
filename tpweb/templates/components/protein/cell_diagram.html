@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Schematic cell; compartments in `compartments` light up. Shapes only, colors come from human-protein-detail.css. #}
+{# Schematic cell; compartments in `compartments` light up. Shapes only, colors come from protein-page.css (.hc-*). #}
 <svg class="hc-cell" viewBox="0 0 320 210" role="img" aria-label="{% trans 'Cell diagram highlighting where this protein is found' %}">
     <g class="hc-part hc-part--secreted{% if 'secreted' in compartments %} is-on{% endif %}">
         <title>{% trans "Secreted / extracellular" %}</title>

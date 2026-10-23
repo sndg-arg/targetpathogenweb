@@ -485,6 +485,7 @@ def _build_binder_summary(tab_data):
             "id": best.get("id"),
             "name": best.get("name"),
             "source_label": _binder_source_label(best),
+            "is_direct": bool(best.get("is_direct")),
             "score_label": _binder_score_label(best),
             "external_url": best.get("external_url"),
             "external_label": best.get("external_label"),

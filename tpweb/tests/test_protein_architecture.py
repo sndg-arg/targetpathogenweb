@@ -28,7 +28,8 @@ class InterproArchitectureTests(SimpleTestCase):
         self.assertEqual([d["description"] for d in arch["domains"]], ["7tm"])
         self.assertEqual([t["kind"] for t in arch["topology"]], ["membrane", "inside"])
         self.assertEqual(len(arch["signal"]), 1)
-        self.assertEqual([row["key"] for row in arch["tick_rows"]], ["signatures", "disorder"])
+        # Other signatures (PANTHER here) stay in the feature table, off the map.
+        self.assertEqual([row["key"] for row in arch["tick_rows"]], ["disorder"])
 
     def test_no_features_no_map(self):
         self.assertIsNone(build_interpro_architecture([], 300))

@@ -11,8 +11,8 @@
     styling this page deliberately reuses verbatim (same markup, same tokens) --
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-dossier4">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261023-dossier4">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-p2">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261023-p2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -36,7 +36,7 @@
                     {# Name first, accession under it -- same order as the bacterial protein page. #}
                     <h1 class="tp-view-title">{{ human_protein.protein_name|default:human_protein.uniprot_accession }}</h1>
                     <p class="protein-description">{{ human_protein.uniprot_accession }}</p>
-                    {% if overview.summary_sentence %}<p class="hg-lede">{{ overview.summary_sentence }}</p>{% endif %}
+                    {% if overview.summary_sentence %}<p class="protein-lede">{{ overview.summary_sentence }}</p>{% endif %}
                     <div class="hero-chip-list tp-chip-group">
                         <span class="hero-chip tp-chip">
                             <strong>{% trans "Gene" %}:</strong>
@@ -61,7 +61,7 @@
             {% if glance %}
             {# Target at a glance: what kind of evidence exists, each tile a jump to its section. #}
             {# Design-system Metrics, link variant: each pill jumps to its section. #}
-            <div class="tp-metrics protein-metrics human-glance" aria-label="{% trans 'Target at a glance' %}">
+            <div class="tp-metrics protein-metrics protein-glance" aria-label="{% trans 'Target at a glance' %}">
                 {% for tile in glance %}
                 <a class="metric-pill metric-pill--link" href="{{ tile.href }}" title="{{ tile.note }}">
                     <span class="metric-label">{{ tile.label }}</span>
@@ -159,7 +159,7 @@
                     <aside class="hbio-aside">
                         <div class="cross-reference-group hov-cell">
                             <h3 class="cross-reference-group-label">{% trans "Subcellular location" %}</h3>
-                            {% include "human/_cell_diagram.html" with compartments=dossier.compartments %}
+                            {% include "components/protein/cell_diagram.html" with compartments=dossier.compartments %}
                             <ul class="hc-list">
                                 {% for loc in overview.subcellular_locations %}<li><span class="hc-dot" aria-hidden="true"></span>{{ loc }}</li>{% endfor %}
                             </ul>
@@ -263,33 +263,7 @@
                         <span class="binder-intel-kicker">{% trans "Chemistry signal" %}</span>
                         <p><span class="metric-value-icon metric-value-icon--success" aria-hidden="true">{% include "components/icons/check.html" %}</span>{{ binders.summary.summary_text }}</p>
                     </div>
-                    <div class="binder-intel-grid" aria-label="{% trans 'Ligand evidence summary' %}">
-                        <div class="binder-intel-stat">
-                            <span class="binder-intel-label">{% trans "Direct evidence" %}</span>
-                            <strong>{{ binders.summary.direct_count }}</strong>
-                            <span>{% trans "same-protein records" %}</span>
-                        </div>
-                        <div class="binder-intel-stat">
-                            <span class="binder-intel-label">{% trans "Transferred evidence" %}</span>
-                            <strong>{{ binders.summary.homolog_count }}</strong>
-                            <span>{% trans "records from similar proteins" %}</span>
-                        </div>
-                        <div class="binder-intel-stat">
-                            <span class="binder-intel-label">{% trans "Structural ligands" %}</span>
-                            <strong>{{ binders.summary.structural_count }}</strong>
-                            <span>{% blocktrans with count=binders.summary.loaded_crystal_count %}{{ count }} loaded crystals{% endblocktrans %}</span>
-                        </div>
-                        <div class="binder-intel-stat">
-                            <span class="binder-intel-label">{% trans "Measured bioactivity" %}</span>
-                            <strong>{{ binders.summary.bioactive_count }}</strong>
-                            <span>{% trans "direct and transferred ChEMBL records" %}</span>
-                        </div>
-                        <div class="binder-intel-stat">
-                            <span class="binder-intel-label">{% trans "Proposed compounds" %}</span>
-                            <strong>{{ binders.summary.proposed_count }}</strong>
-                            <span>{% trans "similarity-based ZINC candidates" %}</span>
-                        </div>
-                    </div>
+                    {% include "components/binders/intel_metrics.html" %}
                 </div>
                 {% endif %}
 
@@ -771,6 +745,7 @@
 {% block jsloaded %}
     <script src="{% static 'js/global/quick-nav.js' %}?v=20261022"></script>
     <script src="{% static 'js/pages/protein-architecture.js' %}?v=20261022"></script>
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261023-dossier4"></script>
+    <script src="{% static 'js/pages/protein-dossier.js' %}?v=20261023"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261023-p2"></script>
     <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261023-focal"></script>
 {% endblock %}

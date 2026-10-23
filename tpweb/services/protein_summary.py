@@ -804,6 +804,32 @@ def _float_or_none(value):
         return None
 
 
+# PSORTb compartments -> parts of the bacterial cell diagram that light up.
+_ENVELOPE_PARTS = {
+    "cytoplasmic": ["cytoplasm"],
+    "cytoplasmicmembrane": ["membrane"],
+    "periplasmic": ["periplasm"],
+    "outermembrane": ["outermembrane"],
+    "extracellular": ["extracellular"],
+    "cellwall": ["outermembrane"],
+}
+
+
+def build_localization(target_profile):
+    """PSORTb localization for the bacterial cell diagram: the reported value
+    and the diagram parts it lights up (none for "Unknown")."""
+    item = _profile_item(target_profile, "Localization")
+    if not item or not item.get("value"):
+        return None
+    value = str(item["value"]).strip()
+    key = value.lower().replace(" ", "").replace("_", "")
+    return {
+        "value": value,
+        "parts": _ENVELOPE_PARTS.get(key, []),
+        "tooltip": item.get("tooltip", ""),
+    }
+
+
 def _profile_item(target_profile, key):
     return next((item for item in target_profile or [] if item.get("key") == key), None)
 
@@ -1093,20 +1119,46 @@ def build_prioritization(
             verdict, tone = "Weak pockets", "warning"
         else:
             verdict, tone = "No pocket scores", "idle"
+        best = rows[0] if rows else None
+        finding = ""
+        if best:
+            parts = [
+                f"{tool} {best[key]['score']}"
+                for tool, key in (("P2Rank", "p2rank"), ("FPocket", "fpocket"))
+                if best[key].get("score")
+            ]
+            finding = " · ".join(parts) + (f" on {best['name']}" if parts else "")
         structure = {
             "verdict": verdict,
             "tone": tone,
             "summary_value": {"success": "Yes", "warning": "Weak", "idle": "No data"}[tone],
             "rows": rows,
+            "finding": finding,
+            "has_checks": any(row["consensus"] or row["outlier"] for row in rows),
         }
 
+    # One line per group for the collapsed assessment row: its first readings.
+    for group in groups:
+        group["finding"] = " · ".join(
+            f"{item['label']}: {item['value']}" for item in group["items"][:3] if item.get("value")
+        )
     summary = [
-        {"label": group["summary"], "value": group["summary_value"], "tone": group["tone"]}
+        {
+            "label": group["summary"],
+            "value": group["summary_value"],
+            "tone": group["tone"],
+            "href": f"#pe-{group['key']}",
+        }
         for group in groups
     ]
     if structure:
         summary.append(
-            {"label": "Druggable", "value": structure["summary_value"], "tone": structure["tone"]}
+            {
+                "label": "Druggable",
+                "value": structure["summary_value"],
+                "tone": structure["tone"],
+                "href": "#binding-site-evidence",
+            }
         )
     if not groups and not structure:
         return None

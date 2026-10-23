@@ -8,7 +8,7 @@ pages render it with the shared components/protein/architecture_map.html.
 from __future__ import annotations
 
 # One member database draws the domain blocks, in this order of preference;
-# the rest go to the "Other signatures" row.
+# the rest stay in the feature table.
 _DOMAIN_DBS = (
     "Pfam",
     "SMART",
@@ -112,8 +112,9 @@ def build_interpro_architecture(features, length):
         return None
     segment_rows = [
         {"key": key, "label": label, "items": items, "kind": "segments"}
+        # Other member-database signatures mostly restate the domains and drew
+        # as one solid bar; they stay in the feature table.
         for key, label, items in (
-            ("signatures", "Other signatures", others),
             ("disorder", "Disordered", disorder),
             ("coils", "Coiled coils", coils),
         )

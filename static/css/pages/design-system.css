@@ -300,6 +300,10 @@
     width: 140px;
 }
 
+.ds-cell {
+    width: 240px;
+}
+
 .ds-card {
     display: grid;
     gap: var(--tp-space-1);

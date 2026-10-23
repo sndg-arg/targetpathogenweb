@@ -48,6 +48,7 @@ from tpweb.services.structure_sources import (
 )
 from tpweb.services.protein_summary import (
     annotate_selected_source_status as _annotate_selected_source_status,
+    build_localization,
     build_protein_executive_context as _build_protein_executive_context,
 )
 from tpweb.services.binder_summary import create_binders_dict
@@ -766,6 +767,7 @@ class ProteinView(View):
             "shared_score_sources": shared_evidence.score_sources if shared_evidence else {},
             "target_profile": target_profile,
             "prioritization": executive_context["prioritization"],
+            "localization": build_localization(target_profile),
             "target_summary": target_summary,
             "score_breakdown": score_breakdown,
             "selected_pocket_evidence": selected_pocket_evidence,
@@ -922,6 +924,15 @@ class ProteinView(View):
             dto["experimental_structures"],
             dto["binders"],
             dto["metabolic_context"],
+        )
+        # The section is worth showing only for more than the UniProt link the
+        # hero already carries.
+        xrefs = dto["cross_references"]
+        dto["cross_references_extra"] = bool(
+            xrefs.get("structure")
+            or xrefs.get("chemistry")
+            or xrefs.get("pathways")
+            or any(item.get("source") != "UniProt" for item in xrefs.get("sequence") or [])
         )
 
         return render(request, self.template_name, dto)

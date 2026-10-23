@@ -29,207 +29,6 @@
     color: var(--tp-color-text-secondary);
 }
 
-/* Flat tone tint, not a decorative diagonal gradient -- reads as quality
-   paper stock rather than an AI-template flourish. border-radius matches
-   the 12px small-card convention used elsewhere in this file
-   (.target-evidence-card and friends) instead of an ad hoc 8px. */
-.target-summary-panel {
-    display: grid;
-    gap: var(--tp-space-3);
-    /* A callout, not a box: the tone is a bar on the left (same idiom as
-   tp-state-note), the text sits on the page. */
-    padding: var(--tp-space-1) 0 var(--tp-space-1) var(--tp-space-4);
-    border-left: 3px solid var(--tp-color-border-strong);
-    margin: 0 var(--tp-space-5);
-}
-
-.target-summary-panel--strong,
-.target-summary-panel--promising {
-    border-left-color: var(--tp-color-success-border);
-}
-
-.target-summary-panel--partial {
-    border-left-color: var(--tp-color-warning-border);
-}
-
-.target-summary-lead {
-    display: grid;
-    gap: var(--tp-space-1);
-}
-
-.target-summary-kicker {
-    grid-column: 1 / -1;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-}
-
-.target-summary-lead h2 {
-    margin: 0;
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-font-size-lg);
-    line-height: 1.2;
-}
-
-.target-summary-lead p {
-    max-width: var(--tp-measure);
-    margin: var(--tp-space-1) 0 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
-    line-height: 1.35;
-}
-
-.target-summary-columns {
-    display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
-    gap: var(--tp-space-3);
-    align-items: start;
-}
-
-.target-summary-aside {
-    display: grid;
-    gap: var(--tp-space-2);
-}
-
-/* No box, not even a left-accent bar -- this is a heading, not a
-   container. Reads like a journal section header ("METHODS",
-   "RESULTS"), with the tone conveyed through the label's own ink color
-   instead of a bar next to it. See tpw-editorial-redesign: avoid
-   card-in-a-card-in-a-card. */
-.target-summary-column {
-    min-width: 0;
-}
-
-.target-summary-column h3 {
-    margin: 0 0 var(--tp-space-3);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-}
-
-.target-summary-column--strength h3 {
-    color: var(--tp-color-success-ink);
-}
-
-.target-summary-column--risk h3 {
-    color: var(--tp-color-danger-ink);
-}
-
-.target-summary-list {
-    display: grid;
-}
-
-.target-summary-list--strengths {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: var(--tp-space-5);
-}
-
-/* One hairline row per item (lists are rows, never a box per row); the tone
-   is the small dot next to the title. The whole row links to its evidence. */
-.target-summary-item {
-    display: grid;
-    gap: 2px;
-    min-width: 0;
-    padding: var(--tp-space-2) 0;
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    color: inherit;
-    text-decoration: none;
-}
-
-.target-summary-item:hover,
-.target-summary-item:focus-visible {
-    text-decoration: none;
-}
-
-.target-summary-item:hover strong,
-.target-summary-item:focus-visible strong {
-    color: var(--tp-color-link-hover);
-}
-
-.target-summary-item strong {
-    display: flex;
-    align-items: center;
-    gap: var(--tp-space-2);
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    line-height: 1.2;
-}
-
-.target-summary-item strong::before {
-    content: "";
-    flex: 0 0 auto;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--tp-color-text-muted);
-}
-
-.target-summary-item span {
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-xs);
-    line-height: 1.35;
-}
-
-.target-summary-item--good strong::before {
-    background: var(--tp-color-success-ink);
-}
-
-.target-summary-item--neutral strong::before {
-    background: var(--tp-color-brand-500, var(--tp-color-brand-800));
-}
-
-.target-summary-item--watch strong::before {
-    background: var(--tp-color-warning-ink);
-}
-
-.target-summary-item--risk strong::before {
-    background: var(--tp-color-danger-ink);
-}
-
-.target-summary-item--missing {
-    opacity: 0.92;
-}
-
-.target-summary-item--missing strong::before {
-    background: var(--tp-color-text-muted);
-}
-
-.target-summary-empty {
-    display: block;
-}
-
-.target-summary-complete {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--tp-space-2);
-    padding: var(--tp-space-2) 0;
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
-    line-height: 1.35;
-}
-
-.target-summary-complete::before {
-    content: "✓";
-    flex: 0 0 auto;
-    display: inline-grid;
-    place-items: center;
-    width: 20px;
-    height: 20px;
-    border-radius: var(--tp-radius-pill);
-    color: var(--tp-color-success-ink);
-    background: var(--tp-color-success-bg);
-    font-weight: 600;
-}
-
-.target-summary-list--strengths .target-summary-more {
-    grid-column: 1 / -1;
-}
-
 /* ── Hero annotation groups ── */
 
 .hero-chip-gene .gene-value {
@@ -253,94 +52,6 @@ a.hero-chip.tp-chip--link .tp-chip-acc {
     line-height: 1.35;
 }
 
-/* Collapsible guide: hairlines above and below, no box. */
-.protein-interpretation-guide {
-    padding: var(--tp-space-3) 0;
-    border-top: 1px solid var(--tp-color-border-soft);
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    margin: 0 var(--tp-space-5);
-}
-
-.protein-interpretation-guide summary {
-    display: flex;
-    align-items: center;
-    gap: var(--tp-space-3);
-    cursor: pointer;
-    list-style: none;
-    color: var(--tp-color-brand-900);
-    font-family: var(--tp-font-head);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    line-height: 1.2;
-}
-
-.protein-interpretation-guide summary::-webkit-details-marker,
-.structure-color-guide-title::-webkit-details-marker {
-    display: none;
-}
-
-.protein-interpretation-guide summary::marker,
-.structure-color-guide-title::marker {
-    content: "";
-}
-
-.protein-interpretation-guide summary::after,
-.structure-color-guide-title::after {
-    content: "";
-    flex: 0 0 auto;
-    width: var(--tp-chevron-size);
-    height: var(--tp-chevron-size);
-    border-right: var(--tp-chevron-stroke) solid currentColor;
-    border-bottom: var(--tp-chevron-stroke) solid currentColor;
-    transform: rotate(45deg);
-    transform-origin: center;
-    color: var(--tp-color-text-muted);
-    opacity: var(--tp-chevron-opacity);
-    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.protein-interpretation-guide[open] summary::after,
-.protein-interpretation-guide.is-open-visual summary::after,
-.structure-color-guide[open] .structure-color-guide-title::after,
-.structure-color-guide.is-open-visual .structure-color-guide-title::after {
-    transform: rotate(-135deg);
-}
-
-.protein-interpretation-guide summary:focus-visible,
-.structure-color-guide-title:focus-visible {
-    outline: 2px solid var(--tp-focus-color);
-    outline-offset: 4px;
-    border-radius: var(--tp-radius-xs);
-}
-
-.protein-interpretation-guide summary:hover,
-.structure-color-guide-title:hover {
-    color: var(--tp-color-brand-900);
-}
-
-.protein-guide-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    column-gap: var(--tp-space-5);
-    row-gap: 0;
-    margin-top: var(--tp-space-3);
-    border-top: 1px solid var(--tp-color-border-soft);
-}
-
-.protein-guide-grid p {
-    margin: 0;
-    padding: var(--tp-space-3) 0;
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-xs);
-    line-height: 1.35;
-}
-
-.protein-guide-grid strong {
-    color: var(--tp-color-text-primary);
-    font-weight: 600;
-}
-
 /* Sections sit directly on the page background, no card boxing (see
    tpw-editorial-redesign). This page stacks 7-8 sections, each already
    opening with its own bold h2 -- a divider before every one would read
@@ -351,24 +62,6 @@ a.hero-chip.tp-chip--link .tp-chip-acc {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--tp-space-7);
     min-width: 0;
-}
-
-@media (min-width: 1200px) {
-    .protein-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .protein-grid > .protein-card {
-        grid-column: 1 / -1;
-    }
-
-    .protein-grid > #section-sequence {
-        grid-column: 1;
-    }
-
-    .protein-grid > #section-annotations {
-        grid-column: 2;
-    }
 }
 
 .features-tools-inline {
@@ -878,28 +571,6 @@ a.hero-chip.tp-chip--link .tp-chip-acc {
     font-size: var(--tp-font-size-sm);
 }
 
-.target-summary-more {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-start;
-    justify-self: start;
-    min-height: 26px;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    color: var(--tp-color-brand-900);
-    background: transparent;
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.target-summary-more:hover,
-.target-summary-more:focus-visible {
-    background: transparent;
-    text-decoration: underline;
-}
-
 .structure-viewport-wrap {
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-radius-md);
@@ -925,96 +596,10 @@ a.hero-chip.tp-chip--link .tp-chip-acc {
     pointer-events: none;
 }
 
-.structure-viewport-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2);
-    margin-top: var(--tp-space-2);
-}
-
 .structure-viewport-hint {
     margin: 0;
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-soft);
-}
-
-.structure-color-guide {
-    display: block;
-    margin-top: var(--tp-space-2);
-    padding: var(--tp-space-2) var(--tp-space-3);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-md);
-    background: color-mix(in srgb, var(--tp-color-surface-muted) 72%, transparent);
-    color: var(--tp-color-text-secondary);
-    box-shadow: none;
-}
-
-.structure-color-guide-title {
-    display: flex;
-    align-items: center;
-    gap: var(--tp-space-3);
-    cursor: pointer;
-    list-style: none;
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-    color: var(--tp-color-text-muted);
-}
-
-.structure-color-guide-title::after {
-    margin-left: auto;
-}
-
-.structure-color-guide[open] .structure-color-guide-title {
-    margin-bottom: var(--tp-space-2);
-}
-
-.structure-color-guide-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--tp-space-2);
-}
-
-.structure-color-guide-item {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--tp-space-2);
-    min-width: 0;
-    font-size: var(--tp-font-size-xs);
-    line-height: 1.35;
-}
-
-.structure-color-swatch {
-    width: 13px;
-    height: 13px;
-    margin-top: 3px;
-    border-radius: var(--tp-radius-pill);
-    flex: 0 0 auto;
-    border: 1px solid color-mix(in srgb, var(--tp-color-border-strong) 55%, transparent);
-    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--tp-color-surface) 82%, transparent);
-}
-
-.structure-color-swatch--model {
-    background: var(--tp-color-structure-cartoon);
-}
-
-.structure-color-swatch--chains {
-    background: conic-gradient(
-    from 35deg,
-    var(--tp-color-brand-500),
-    var(--tp-color-success-ink),
-    var(--tp-color-warning-ink),
-    var(--tp-color-danger-ink),
-    var(--tp-color-brand-500)
-    );
-}
-
-.structure-color-swatch--pockets {
-    border-radius: var(--tp-radius-xs);
-    background: linear-gradient(135deg, var(--tp-color-warning-ink), var(--tp-color-danger-ink));
 }
 
 .structure-actions {
@@ -1579,9 +1164,7 @@ body.residue-modal-open {
 }
 
 @media (max-width: 1100px) {
-    .target-summary-columns {
-        grid-template-columns: 1fr;
-    }
+
 
     .structure-actions {
         row-gap: var(--tp-space-3);
@@ -1597,23 +1180,15 @@ body.residue-modal-open {
         max-width: min(78vw, 520px);
     }
 
-    .structure-color-guide-grid {
-        grid-template-columns: 1fr;
-    }
+
 }
 
 @media (max-width: 700px) {
-    .target-summary-panel {
-        padding: var(--tp-space-3);
-    }
 
-    .target-summary-lead {
-        grid-template-columns: 1fr;
-    }
 
-    .target-summary-list--strengths {
-        grid-template-columns: 1fr;
-    }
+
+
+
 
     .structure-actions {
         display: grid;
@@ -1625,9 +1200,7 @@ body.residue-modal-open {
         text-align: center;
     }
 
-    .structure-color-guide {
-        grid-template-columns: 1fr;
-    }
+
 }
 
 /* ── Dark mode overrides ── */
@@ -2100,9 +1673,7 @@ body.residue-modal-open {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .structure-color-guide-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+
 }
 
 /* "Show this pocket" under the Binding-site evidence cards, when the best
@@ -2126,71 +1697,6 @@ body.residue-modal-open {
 .target-evidence-fullviewer-link:focus-visible {
     color: var(--tp-color-link-hover);
     text-decoration: underline;
-}
-
-/* ── Prioritization evidence: one block per question ─────────────────────
-   Head (question + verdict chip) beside its values; the left edge carries the
-   verdict tone, never a filled background. Structure and pockets get their own
-   block with a table per structure source. */
-.pe-summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2);
-    margin: 0 0 var(--tp-space-5);
-    padding: 0;
-    list-style: none;
-}
-
-.pe-summary-label {
-    color: var(--tp-color-text-muted);
-    font-weight: 600;
-}
-
-.pe-stack {
-    display: grid;
-    gap: var(--tp-space-4);
-}
-
-.pe-group {
-    display: grid;
-    grid-template-columns: 240px minmax(0, 1fr);
-    border: 1px solid var(--tp-color-border-soft);
-    border-left: 3px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-radius-md);
-    background: var(--tp-color-surface);
-    overflow: hidden;
-    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 72px);
-}
-
-.pe-group--success {
-    border-left-color: var(--tp-color-success-border);
-}
-
-.pe-group--warning {
-    border-left-color: var(--tp-color-warning-border);
-}
-
-.pe-head {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--tp-space-2);
-    padding: var(--tp-space-4);
-    border-right: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface-soft);
-}
-
-.pe-title {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--tp-space-2);
-    margin: 0;
-    color: var(--tp-color-text-primary);
-    font-family: var(--tp-font-head);
-    font-size: var(--tp-font-size-lg);
-    font-weight: 600;
-    letter-spacing: var(--tp-tracking-tight);
 }
 
 .pe-question {
@@ -2281,14 +1787,9 @@ body.residue-modal-open {
 }
 
 @media (max-width: 860px) {
-    .pe-group {
-        grid-template-columns: minmax(0, 1fr);
-    }
 
-    .pe-head {
-        border-right: 0;
-        border-bottom: 1px solid var(--tp-color-border-soft);
-    }
+
+
 
     .pe-items {
         grid-auto-flow: row;
@@ -2301,5 +1802,179 @@ body.residue-modal-open {
 
     .pe-table-shell {
         overflow-x: auto;
+    }
+}
+
+/* ── Target dossier layout (2026-10) ──────────────────────────────────── */
+
+/* Assessment rows: the readings open inside the row; items keep their own
+   hairline columns but lose the old block frame. */
+.ta-body .pe-question {
+    margin: 0 0 var(--tp-space-3);
+}
+
+.ta-body .pe-items {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-sm);
+}
+
+.ta-item {
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 72px);
+}
+
+/* Pockets as rows: name and score, the consensus line, layer chips, then
+   icon actions -- one line per pocket instead of a tall card. */
+.pocket-cards--rows {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.pocket-cards--rows > .pocket-card {
+    grid-template-columns: 280px minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-2) var(--tp-space-2);
+    border: 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    border-radius: 0;
+}
+
+.pocket-cards--rows .pocket-card-head {
+    grid-column: 1;
+    align-items: center;
+}
+
+.pocket-cards--rows .pocket-card-badges {
+    flex-direction: row;
+}
+
+.pocket-cards--rows .pocket-card-name {
+    white-space: nowrap;
+}
+
+.pocket-cards--rows .pocket-consensus {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 0;
+    border: 0;
+    font-size: var(--tp-font-size-xs);
+}
+
+.pocket-cards--rows .pocket-consensus-status {
+    flex-basis: auto;
+}
+
+.pocket-cards--rows .pocket-card-layer-label,
+.pocket-cards--rows .pocket-card-repr-group {
+    display: none;
+}
+
+.pocket-cards--rows .pocket-card-reprs {
+    grid-column: 3;
+    grid-row: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-1);
+}
+
+.pocket-cards--rows .pocket-card-actions {
+    grid-column: 4;
+    grid-row: 1;
+}
+
+.pocket-cards--rows .pocket-card-actions .btn {
+    flex: 0 0 auto;
+}
+
+.pocket-cards--rows .pocket-card-actions .btn > span:not(.tp-btn-icon) {
+    display: none;
+}
+
+.pocket-cards--rows.is-collapsed > .pocket-card:nth-child(n + 7) {
+    display: none;
+}
+
+.list-more-toggle {
+    margin-top: var(--tp-space-2);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.list-more-toggle:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 1100px) {
+    .pocket-cards--rows > .pocket-card {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .pocket-cards--rows .pocket-consensus,
+    .pocket-cards--rows .pocket-card-reprs {
+        grid-column: 1 / -1;
+        grid-row: auto;
+    }
+
+    .pocket-cards--rows .pocket-card-actions {
+        grid-column: 2;
+        grid-row: 1;
+    }
+}
+
+/* Functional annotations: localization on the cell envelope beside the
+   GO / EC terms. */
+#section-annotations {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.annotation-location {
+    margin-bottom: var(--tp-space-5);
+}
+
+.annotation-location-body {
+    display: grid;
+    grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+    gap: var(--tp-space-5);
+    align-items: center;
+}
+
+.annotation-term-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--tp-space-6);
+}
+
+.annotation-term-list .annotation-entry {
+    padding-left: var(--tp-space-1);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.annotation-term-list .annotation-entry-name {
+    white-space: normal;
+    cursor: auto;
+}
+
+/* Ligands: the strip spans the row when no direct best ligand leads it. */
+.binder-intel-main > .binder-molecule-strip:only-child {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
+
+.binders-tab:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+@media (max-width: 700px) {
+    .annotation-location-body,
+    .annotation-term-list {
+        grid-template-columns: minmax(0, 1fr);
     }
 }

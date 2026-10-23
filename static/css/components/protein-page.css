@@ -182,45 +182,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     text-align: right;
 }
 
-.binder-intel-grid {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: var(--tp-space-2);
-}
-
-.binder-intel-stat {
-    min-width: 0;
-    padding: var(--tp-space-3);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-sm);
-    background: color-mix(in srgb, var(--tp-color-surface) 82%, var(--tp-color-surface-soft));
-}
-
-.binder-intel-label {
-    display: block;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-}
-
-.binder-intel-stat strong {
-    display: block;
-    margin-top: var(--tp-space-1);
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-heading-md);
-    line-height: 1;
-}
-
-.binder-intel-stat span:last-child {
-    display: block;
-    margin-top: var(--tp-space-1);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
-}
-
 .binder-tbl__name-main {
     display: inline-flex;
     align-items: center;
@@ -568,7 +529,7 @@ body.binder-mol-modal-open {
         text-align: left;
     }
 
-    .binder-intel-grid,
+
     .binder-molecule-strip {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -610,12 +571,6 @@ body.binder-mol-modal-open {
     animation-delay: 0.17s;
 }
 
-@media (max-width: 1100px) {
-    .binder-intel-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
-
 @media (max-width: 991px) {
     .protein-hero-top {
         flex-direction: column;
@@ -648,8 +603,6 @@ body.binder-mol-modal-open {
     .quick-nav a,
     .quick-nav a::after,
     .data-details > summary::after,
-    .protein-interpretation-guide summary::after,
-    .structure-color-guide-title::after,
     .structure-picker-chevron {
         animation: none !important;
         transition: none !important;
@@ -1054,40 +1007,6 @@ body.binder-mol-modal-open {
     text-transform: none;
 }
 
-/* ── Shared with the human protein page: annotation panels, key/value rows
-   (target-profile-item) and cross-reference chip groups. ── */
-.annotation-panels {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--tp-space-3);
-    margin-top: var(--tp-space-3);
-}
-
-.annotation-panel {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface);
-    overflow: hidden;
-}
-
-.annotation-panel-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--tp-space-3);
-    padding: var(--tp-space-3) var(--tp-space-4);
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface-soft);
-}
-
-.annotation-panel-head h3 {
-    margin: 0;
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    color: var(--tp-color-brand-900);
-    letter-spacing: 0;
-}
-
 .annotation-entries {
     list-style: none;
     margin: 0;
@@ -1415,19 +1334,10 @@ body.binder-mol-modal-open {
     box-shadow: var(--tp-focus-outline);
 }
 
-.annotation-panel .list-more > summary {
-    padding: var(--tp-space-2) var(--tp-space-4);
-}
-
-.annotation-panel .list-more[open] > summary {
-    border-bottom: 1px solid var(--tp-color-border-soft);
-}
-
 .cross-reference-group .list-more > .cross-reference-chip-list,
 .hx-more > .hx-rows {
     margin-top: var(--tp-space-2);
 }
-
 
 /* ── Protein architecture map ─────────────────────────────────────────── */
 .ha-map {
@@ -1790,4 +1700,228 @@ body.binder-mol-modal-open {
         transition: none !important;
         animation: none !important;
     }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Target dossier components, shared by the pathogen and human protein
+   pages (see /design): hero lede and glance, assessment rows, cell diagram,
+   tabbed panels.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Hero lede: what the protein is, in one sentence. */
+.protein-lede {
+    max-width: 92ch;
+    margin: var(--tp-space-3) 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-md);
+    line-height: 1.6;
+}
+
+/* Glance pills keep their width when a protein has only a few of them. */
+.protein-glance {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+/* Assessment: one row per drug-discovery question (label, verdict tag,
+   finding, link). As <details>, the row opens to the readings behind it. */
+.ta-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ta-row {
+    display: grid;
+    grid-template-columns: 170px 200px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--tp-space-4);
+    padding: var(--tp-space-3) var(--tp-space-2);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ta-item > .ta-row {
+    cursor: pointer;
+    list-style: none;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.ta-item > .ta-row::-webkit-details-marker {
+    display: none;
+}
+
+.ta-item > .ta-row:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.ta-item > .ta-row:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+.ta-item > .ta-row::after {
+    content: "";
+    width: var(--tp-chevron-size);
+    height: var(--tp-chevron-size);
+    margin-right: var(--tp-space-2);
+    border-right: var(--tp-chevron-stroke) solid currentColor;
+    border-bottom: var(--tp-chevron-stroke) solid currentColor;
+    color: var(--tp-color-text-muted);
+    opacity: var(--tp-chevron-opacity);
+    transform: rotate(45deg);
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.ta-item[open] > .ta-row::after {
+    transform: rotate(-135deg);
+}
+
+.ta-body {
+    padding: var(--tp-space-3) var(--tp-space-2) var(--tp-space-5);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ta-label {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+.ta-finding {
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.ta-link {
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    .ta-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: var(--tp-space-1) var(--tp-space-3);
+    }
+
+    .ta-status {
+        grid-row: 2;
+    }
+
+    .ta-finding {
+        grid-column: 1 / -1;
+        grid-row: 3;
+    }
+
+    .ta-link {
+        grid-column: 2;
+        grid-row: 1;
+    }
+}
+
+/* Cell diagram: compartments in .is-on light up (human cell or bacterial
+   envelope). Shapes come from the templates; colors only from tokens. */
+.hc-cell {
+    width: 100%;
+    height: auto;
+}
+
+.hc-part {
+    color: var(--tp-color-border-strong);
+    transition: color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+}
+
+.hc-part .hc-fill {
+    fill: var(--tp-color-surface-soft);
+}
+
+.hc-part--cytoplasm .hc-fill {
+    fill: var(--tp-color-surface);
+}
+
+.hc-part .hc-line,
+.hc-part circle:not(.hc-fill) {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+}
+
+.hc-part.hc-part--secreted circle,
+.hc-part.hc-part--extracellular circle {
+    fill: currentColor;
+    stroke: none;
+}
+
+.hc-line--thick {
+    stroke-width: 3;
+}
+
+.hc-part.is-on {
+    color: var(--tp-color-primary);
+}
+
+.hc-part.is-on .hc-fill {
+    fill: color-mix(in srgb, var(--tp-color-primary) 16%, var(--tp-color-surface));
+}
+
+.hc-part--cytoplasm.is-on .hc-fill {
+    fill: color-mix(in srgb, var(--tp-color-primary) 9%, var(--tp-color-surface));
+}
+
+.hc-part--periplasm.is-on .hc-fill {
+    fill: color-mix(in srgb, var(--tp-color-primary) 28%, var(--tp-color-surface));
+}
+
+.hc-part.is-on .hc-line--thick {
+    stroke-width: 4;
+}
+
+.hc-list {
+    display: grid;
+    gap: var(--tp-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.hc-list li {
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+}
+
+.hc-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--tp-color-primary);
+}
+
+/* Tabbed panels: plain .tp-tabs; protein-dossier.js toggles .is-hidden. */
+[data-tab-group] > .tp-tabs {
+    margin-bottom: var(--tp-space-3);
+}
+
+[data-tab-panel].is-hidden {
+    display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ta-item > .ta-row,
+    .ta-item > .ta-row::after,
+    .hc-part {
+        transition: none !important;
+    }
+}
+
+.binder-intel-panel .binder-intel-metrics {
+    margin-top: 0;
 }
