@@ -120,7 +120,16 @@ def build_human_structure_context(bioentry):
             else:
                 xray.append(entry)
 
+    # Experimental structures first (best resolution first): when a protein
+    # has them, they are what a structural biologist opens before a model.
+    xray.sort(key=lambda entry: (entry.get("resolution") is None, entry.get("resolution") or 0))
     sub_tabs = []
+    if xray:
+        sub_tabs.append(
+            {"key": "xray", "label": "PDB · X-ray", "count": len(xray), "entries": xray}
+        )
+    if nmr:
+        sub_tabs.append({"key": "nmr", "label": "PDB · NMR", "count": len(nmr), "entries": nmr})
     if alphafold:
         sub_tabs.append(
             {
@@ -139,12 +148,6 @@ def build_human_structure_context(bioentry):
                 "entries": alphafill,
             }
         )
-    if xray:
-        sub_tabs.append(
-            {"key": "xray", "label": "PDB · X-ray", "count": len(xray), "entries": xray}
-        )
-    if nmr:
-        sub_tabs.append({"key": "nmr", "label": "PDB · NMR", "count": len(nmr), "entries": nmr})
 
     return {
         "sub_tabs": sub_tabs,

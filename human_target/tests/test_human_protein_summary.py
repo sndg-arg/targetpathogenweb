@@ -63,3 +63,15 @@ class HumanArchitectureTests(SimpleTestCase):
         self.assertEqual([line["start"] for line in lines], [1, 61])
         self.assertEqual([block["start"] for block in lines[0]["blocks"]], [1, 11, 21, 31, 41, 51])
         self.assertEqual(lines[1]["blocks"], [{"start": 61, "text": "AAAAA"}])
+
+
+class StripCitationsTests(SimpleTestCase):
+    def test_pubmed_lists_go_and_other_parentheticals_stay(self):
+        from human_target.services.human_protein_summary import strip_citations
+
+        self.assertEqual(
+            strip_citations(
+                "Acts (PubMed:1, PubMed:2). Binds (By similarity). Z (PubMed:3, By similarity)."
+            ),
+            "Acts. Binds (By similarity). Z (By similarity).",
+        )

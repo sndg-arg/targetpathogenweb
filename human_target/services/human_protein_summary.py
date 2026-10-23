@@ -10,6 +10,8 @@ concepts that don't apply here (see CLAUDE.md "Human Targets").
 
 from __future__ import annotations
 
+import re
+
 # UniProt cross-reference database name -> display bucket. Anything not
 # listed here falls into "Other" -- this mirrors target-human-web's
 # XREF_GROUPS grouping, kept as a flat dict (not a class) since it's pure
@@ -72,6 +74,25 @@ _GO_ASPECT_LABELS = {
 }
 
 
+_PAREN = re.compile(r"\s*\(([^()]*)\)")
+_PUBMED = re.compile(r"^(PubMed:\d+|ECO:\d+)$")
+
+
+def strip_citations(text):
+    """UniProt prose without its inline evidence lists, e.g. "(PubMed:123,
+    PubMed:456)"; other parentheticals such as "(By similarity)" stay. The
+    papers themselves are listed under References."""
+
+    def keep(match):
+        parts = [part.strip() for part in match.group(1).split(",")]
+        kept = [part for part in parts if part and not _PUBMED.match(part)]
+        if len(kept) == len(parts):
+            return match.group(0)
+        return f" ({', '.join(kept)})" if kept else ""
+
+    return _PAREN.sub(keep, text or "").strip()
+
+
 def _first_sentence(text):
     text = (text or "").strip()
     if not text:
@@ -86,22 +107,18 @@ def build_human_overview_context(human_protein):
     hp = human_protein
     score = hp.annotation_score or 0
     return {
-        "summary_sentence": _first_sentence(hp.function_text),
+        "summary_sentence": _first_sentence(strip_citations(hp.function_text)),
         "quick_facts": [
             {"label": "Length", "value": f"{hp.sequence_length} aa" if hp.sequence_length else "—"},
             {"label": "Mass", "value": f"{hp.mass_da:,} Da" if hp.mass_da else "—"},
             {
                 "label": "Annotation score",
                 "value": f"{score:.0f}/5" if hp.annotation_score is not None else "—",
-                # UniProt's 1-5 annotation score, drawn as five dots.
-                "meter": [i < round(score) for i in range(5)]
-                if hp.annotation_score is not None
-                else None,
             },
             {"label": "Entry version", "value": hp.entry_version or "—"},
         ],
-        "caution_text": hp.caution_text,
-        "subunit_text": hp.subunit_text,
+        "caution_text": strip_citations(hp.caution_text),
+        "subunit_text": strip_citations(hp.subunit_text),
         "polymorphism_text": hp.polymorphism_text,
         "publications": hp.publications or [],
         "lineage": hp.lineage or [],
@@ -133,7 +150,7 @@ def build_human_function_context(human_protein):
     # the Overview tab -- kept off this context to avoid duplicating the
     # same text in two sections.
     return {
-        "function_text": hp.function_text,
+        "function_text": strip_citations(hp.function_text),
         "catalytic_activity": hp.catalytic_activity or [],
         "go_cards": go_cards,
     }

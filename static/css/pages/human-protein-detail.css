@@ -47,27 +47,6 @@
     margin-top: var(--tp-space-4);
 }
 
-/* ── Overview layout: prose beside the cell diagram ──────────────────── */
-.hov-pair {
-    display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-    gap: 0 var(--tp-space-6);
-    align-items: start;
-}
-
-.hov-pair + .cross-reference-group {
-    margin-top: var(--tp-space-5);
-}
-
-.hov-pair > :only-child {
-    grid-column: 1 / -1;
-}
-
-.hov-pair .hc-layout {
-    grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
-}
-
-
 /* ── Hero lede: what the protein is, in one sentence ─────────────────── */
 .hg-lede {
     max-width: 92ch;
@@ -117,14 +96,48 @@
     white-space: nowrap;
 }
 
-/* ── Biology section spacing ──────────────────────────────────────────── */
-.hbio-function {
-    margin-bottom: var(--tp-space-5);
+/* ── Biology: a reading column beside an aside (facts, location). ────── */
+.hbio-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+    gap: var(--tp-space-8);
+    align-items: start;
 }
 
-.hbio-function + .human-identifiers,
-.human-identifiers + .hov-pair {
-    margin-top: var(--tp-space-4);
+.hbio-main > * + * {
+    margin-top: var(--tp-space-5);
+}
+
+.hbio-main .human-text {
+    max-width: 92ch;
+}
+
+.hbio-aside {
+    display: grid;
+    gap: var(--tp-space-5);
+}
+
+.hbio-aside .human-identifiers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.hbio-aside .hc-cell {
+    max-width: 300px;
+}
+
+.hbio-aside .hc-list {
+    margin-top: var(--tp-space-3);
+}
+
+/* Glance pills keep their width when a protein has only a few of them. */
+.human-glance {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+@media (max-width: 900px) {
+    .hbio-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 #section-sequence > .data-details {
@@ -153,9 +166,6 @@
 }
 
 /* ── Lineage, root to species, in the keywords list ──────────────────── */
-.hk-lineage span + span::before {
-    content: "›";
-}
 
 .hk-binomial {
     font-style: italic;
@@ -268,7 +278,12 @@
     font-weight: 500;
 }
 
+/* Items wrap between terms (flex), never as one long unbreakable line. */
 .hk-group dd {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 2px;
+    min-width: 0;
     margin: 0;
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
@@ -278,6 +293,11 @@
     content: "·";
     margin: 0 var(--tp-space-2);
     color: var(--tp-color-text-soft);
+    font-style: normal;
+}
+
+.hk-group dd.hk-lineage span + span::before {
+    content: "›";
 }
 
 /* ── Publications as citations, newest first ──────────────────────────── */
@@ -476,12 +496,6 @@
     from {
         transform: scaleY(0.2);
         transform-origin: bottom;
-    }
-}
-
-@media (max-width: 900px) {
-    .hov-pair {
-        grid-template-columns: minmax(0, 1fr);
     }
 }
 
@@ -1140,4 +1154,8 @@
     .hx-animate .hx-row .tp-bar-fill {
         transform: none;
     }
+}
+
+#section-biology > .tp-state-note + .hbio-layout {
+    margin-top: var(--tp-space-4);
 }
