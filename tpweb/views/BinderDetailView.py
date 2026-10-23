@@ -1,3 +1,4 @@
+import re
 from urllib.parse import quote
 
 from django.http import Http404
@@ -47,9 +48,11 @@ _NOTES_LABEL_MAP = {
 def _clean_note_value(value):
     """Strip Python list/string repr: ['PF03331', 'X'] → PF03331, X"""
     v = value.strip()
-    if v.startswith("[") and v.endswith("]"):
-        inner = v[1:-1]
-        items = [s.strip().strip("'\"") for s in inner.split(",") if s.strip().strip("'\"")]
+    if (v.startswith("[") and v.endswith("]")) or "' '" in v:
+        inner = v.strip("[]")
+        # numpy prints arrays without commas ('a' 'b'), lists with them; a
+        # truncated repr may lose its outer quotes, so split on quotes too.
+        items = [s for s in re.split(r"['\",\s]+", inner) if s]
         return ", ".join(items) if items else v
     return _SOURCE_NORMALISE.get(v.lower(), v)
 

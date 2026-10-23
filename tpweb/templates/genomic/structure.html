@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261019-mobile">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261023-compact">
 {% endblock %}
 
 {% block body %}
@@ -229,7 +229,7 @@
                     {% endif %}{% endfor %}
                 </div>
                 <p class="tp-state-note sv-sidebar-note">
-                    {% trans "Pocket predictions are computational screening signals. FPocket scores geometric cavities; P2Rank predicts likely ligand-binding sites. Use them with structure source, confidence, and ligand evidence." %}
+                    {% trans "Predicted pockets, not binding evidence: FPocket scores cavities, P2Rank likely binding sites." %}
                 </p>
                 <section class="sv-pocket-inspector" id="sv-pocket-inspector" hidden aria-live="polite">
                     <div class="sv-pocket-inspector-head">
@@ -275,7 +275,7 @@
             {# Pocket cards for each structure — only the active one is shown #}
             {% for s in all_structures %}
             <div class="sv-structure-block" data-structure-id="{{ s.id }}" {% if not s.is_active %}hidden{% endif %}>
-                {% include "components/structure/pocket_cards.html" with structure_data=s.structure_data structure_key=s.id|stringformat:"s" %}
+                {% include "components/structure/pocket_cards.html" with structure_data=s.structure_data structure_key=s.id|stringformat:"s" layout="compact" %}
                 {% if not s.structure_data.pockets and not s.structure_data.p2_pockets and not s.structure_data.residuesets %}
                     <p class="sv-no-pockets">{% trans "No pocket predictions available for this structure." %}</p>
                 {% endif %}
@@ -339,6 +339,7 @@
 {% endblock %}
 
 {% block jsloaded %}
+<script src="{% static 'js/pages/protein-dossier.js' %}?v=20261023"></script>
 <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20261017-system3"></script>
 <script src="{% static 'js/pages/ngl-shape-registry.js' %}?v=20260720-shaperegistry1"></script>
 {% comment %}

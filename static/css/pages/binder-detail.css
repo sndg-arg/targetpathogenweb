@@ -72,12 +72,6 @@
     max-width: var(--tp-measure);
 }
 
-.binder-context {
-    margin: var(--tp-space-3) 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-md);
-}
-
 .binder-context-id {
     font-family: var(--tp-font-mono);
     color: var(--tp-color-brand-900);
@@ -99,41 +93,6 @@
     margin-top: var(--tp-space-3);
 }
 
-.binder-pdb-chip {
-    text-decoration: none !important;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-1);
-    transition: background 140ms ease, border-color 140ms ease;
-}
-
-.binder-pdb-chip:hover {
-    border-color: var(--tp-color-border-strong) !important;
-    background: var(--tp-color-surface-soft) !important;
-}
-
-.binder-ext-icon {
-    width: 10px;
-    height: 10px;
-    flex-shrink: 0;
-    color: var(--tp-color-text-muted);
-}
-
-.binder-formula-chip {
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-xs) !important;
-    letter-spacing: 0;
-}
-
-/* ── Metric pills ─────────────────────────────────────────────────── */
-
-.binder-metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: var(--tp-space-3);
-    margin-top: var(--tp-space-4);
-}
-
 /* ── Grid + panels ────────────────────────────────────────────────── */
 
 /* Sections sit directly on the page background, no card boxing (see
@@ -143,7 +102,7 @@
    protein.html's .protein-grid. */
 .binder-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--tp-space-7);
 }
 
@@ -154,11 +113,6 @@
        sticky offset, plus ~24px breathing room -- same box model as
        protein-detail.css/genome-overview.css's .quick-nav. */
     scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 68px);
-}
-
-.binder-card--identifiers {
-    display: flex;
-    flex-direction: column;
 }
 
 .binder-card--properties,
@@ -208,138 +162,6 @@
     display: block;
 }
 
-/* ── Identifiers / dl rows ────────────────────────────────────────── */
-
-.binder-identifiers {
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--tp-space-3);
-    /* The grid stretches this card to match Structure's height (its 2D
-       diagram is usually taller than this short row list) -- center the
-       rows in that space instead of leaving them pinned to the top with
-       dead air below, which read as an unfinished/cut-off card. */
-    flex: 1;
-    justify-content: center;
-}
-
-.binder-id-row {
-    display: grid;
-    grid-template-columns: 160px minmax(0, 1fr);
-    gap: var(--tp-space-3);
-    align-items: baseline;
-}
-
-.binder-id-row dt {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-}
-
-.binder-id-row dd {
-    margin: 0;
-    color: var(--tp-color-text-primary);
-    font-weight: 500;
-    overflow-wrap: anywhere;
-}
-
-.binder-id-row-sub {
-    color: var(--tp-color-text-muted);
-    font-weight: 400;
-}
-
-@media (max-width: 640px) {
-    .binder-id-row {
-        grid-template-columns: 1fr;
-        gap: 2px;
-    }
-}
-
-/* ── Physicochemical properties grid ──────────────────────────────── */
-
-.property-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: var(--tp-space-3);
-}
-
-.property-cell {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface);
-    padding: var(--tp-space-3) var(--tp-space-3);
-    display: grid;
-    gap: var(--tp-space-1);
-    min-height: 68px;
-    align-content: center;
-}
-
-.property-label {
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: var(--tp-tracking-label);
-    color: var(--tp-color-text-muted);
-}
-
-.property-label small {
-    text-transform: none;
-    letter-spacing: 0;
-    font-weight: 500;
-    color: var(--tp-color-text-muted);
-}
-
-.property-value {
-    font-size: var(--tp-font-size-md);
-    font-weight: 600;
-    color: var(--tp-color-brand-900);
-    line-height: 1.2;
-}
-
-.property-value--text {
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-md);
-    word-break: break-all;
-}
-
-.property-unit {
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    color: var(--tp-color-text-muted);
-}
-
-/* ── Drug-likeness ────────────────────────────────────────────────── */
-
-.druglike-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--tp-space-4);
-}
-
-.druglike-block {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-md);
-    background: var(--tp-color-surface);
-    padding: var(--tp-space-4) var(--tp-space-4);
-}
-
-.druglike-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--tp-space-2) var(--tp-space-3);
-    margin-bottom: var(--tp-space-3);
-}
-
-.druglike-title {
-    font-size: var(--tp-font-size-md);
-    font-weight: 600;
-    color: var(--tp-color-brand-900);
-}
-
 .druglike-checks {
     margin: 0;
     padding: 0;
@@ -375,17 +197,6 @@
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--tp-color-brand-900);
-}
-
-.druglike-note {
-    margin: 0;
-    font-size: var(--tp-font-size-sm);
-    line-height: 1.5;
-    color: var(--tp-color-text-secondary);
-}
-
-.druglike-note code {
-    background: var(--tp-color-surface-soft);
 }
 
 /* ── Chemical strings (SMILES / InChI / InChIKey) ─────────────────── */
@@ -540,4 +351,41 @@
     color: var(--tp-color-text-muted);
     border-bottom: 1px solid var(--tp-color-border-soft);
     margin-bottom: var(--tp-space-1);
+}
+
+/* ── Dossier layout (2026-10): the molecule sits in the hero; facts and
+   drug-likeness use the shared protein-page components. ─────────────── */
+.binder-hero-mol {
+    flex: 0 0 auto;
+    width: 240px;
+    margin: 0;
+}
+
+.binder-hero-mol .binder-svg-box {
+    max-width: none;
+}
+
+.binder-hero-mol figcaption {
+    margin-top: var(--tp-space-1);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    text-align: center;
+}
+
+.binder-facts {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
+
+.binder-card--druglikeness .druglike-checks {
+    max-width: 520px;
+}
+
+@media (max-width: 760px) {
+    .binder-hero-top {
+        flex-direction: column;
+    }
+
+    .binder-hero-mol {
+        width: min(240px, 100%);
+    }
 }

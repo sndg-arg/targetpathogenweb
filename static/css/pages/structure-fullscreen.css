@@ -1248,3 +1248,84 @@ body.viewer-settings-open { overflow: hidden; }
 
     .sv-toolbar { max-width: calc(100vw - 20px); overflow-x: auto; }
 }
+
+/* ── Compact pocket list (sidebar): name, score and icon actions on one
+   line; the layer chips wrap below. Same markup as pocket_cards.html. ── */
+.pocket-cards--compact > .pocket-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--tp-space-1) var(--tp-space-2);
+    padding: var(--tp-space-2) var(--tp-space-3);
+}
+
+.pocket-cards--compact .pocket-card-head {
+    grid-column: 1;
+    grid-row: 1;
+    align-items: center;
+}
+
+.pocket-cards--compact .pocket-card-badges {
+    flex-direction: row;
+}
+
+.pocket-cards--compact .pocket-card-actions {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    gap: 2px;
+}
+
+.pocket-cards--compact .pocket-card-actions .btn {
+    flex: 0 0 auto;
+    min-width: 0;
+    padding: 0 var(--tp-space-2);
+}
+
+.pocket-cards--compact .pocket-card-actions .btn > span:not(.tp-btn-icon) {
+    display: none;
+}
+
+.pocket-cards--compact .pocket-consensus,
+.pocket-cards--compact .pocket-card-reprs {
+    grid-column: 1 / -1;
+}
+
+.pocket-cards--compact .pocket-consensus {
+    margin-top: 0;
+    font-size: var(--tp-font-size-xs);
+}
+
+.pocket-cards--compact .pocket-consensus-status {
+    flex-basis: auto;
+}
+
+.pocket-cards--compact .pocket-card-layer-label,
+.pocket-cards--compact .pocket-card-repr-group {
+    display: none;
+}
+
+.pocket-cards--compact .pocket-card-reprs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-1);
+}
+
+.pocket-cards--compact .pocket-repr-btn {
+    padding: 2px var(--tp-space-2);
+    font-size: var(--tp-font-size-xs);
+}
+
+.pocket-cards--compact.is-collapsed > .pocket-card:nth-child(n + 7) {
+    display: none;
+}
+
+.list-more-toggle {
+    margin-top: var(--tp-space-2);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+}

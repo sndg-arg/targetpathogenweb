@@ -1853,6 +1853,10 @@ body.residue-modal-open {
     white-space: nowrap;
 }
 
+.pocket-cards--rows .pocket-card-label {
+    flex: 0 0 auto;
+}
+
 .pocket-cards--rows .pocket-consensus {
     grid-column: 2;
     grid-row: 1;

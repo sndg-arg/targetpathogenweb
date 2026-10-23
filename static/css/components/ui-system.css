@@ -2291,6 +2291,16 @@ a.metric-pill:focus-visible {
     text-underline-offset: 3px;
 }
 
+/* A text value wraps; the jump label stays one piece beside its last word. */
+.metric-pill-jump {
+    white-space: nowrap;
+}
+
+.metric-value--text {
+    flex-wrap: wrap;
+    row-gap: 0;
+}
+
 a.metric-pill:hover .metric-pill-jump,
 a.metric-pill:focus-visible .metric-pill-jump {
     color: var(--tp-color-link);
