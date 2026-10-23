@@ -85,6 +85,32 @@
         });
     }
 
+    // ?pocket=p2rank:3 / fpocket:12 (links from the protein page): select that
+    // pocket once the viewer has drawn its layers, as if it had been clicked.
+    function openLinkedPocket() {
+        var raw = new URLSearchParams(window.location.search).get("pocket") || "";
+        var match = raw.match(/^(p2rank|fpocket):(.+)$/i);
+        if (!match) return;
+        var id = (match[1].toLowerCase() === "p2rank" ? "P2Rank #" : "FPocket #") + match[2];
+        var card = Array.prototype.find.call(document.querySelectorAll(".pocket-card"), function (el) {
+            return el.getAttribute("data-pocket-id") === id;
+        });
+        var head = card && card.querySelector(".js-inspect-pocket");
+        if (!head) return;
+        var core = card.getAttribute("data-pocket-core-repr") || "";
+        var tries = 0;
+        (function waitForViewer() {
+            var reps = window.representations || {};
+            if ((core && reps[core]) || tries > 60) {
+                head.click();
+                card.scrollIntoView({ block: "center" });
+                return;
+            }
+            tries += 1;
+            window.setTimeout(waitForViewer, 250);
+        })();
+    }
+
     function ready(fn) {
         if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn);
         else fn();
@@ -94,6 +120,7 @@
         initTabGroups();
         initGlanceCountUp();
         initExpandToggles();
+        openLinkedPocket();
         openHashTarget();
         window.addEventListener("hashchange", openHashTarget);
     });

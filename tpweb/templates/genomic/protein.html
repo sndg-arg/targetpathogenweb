@@ -5,7 +5,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-pop">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261023-p5">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261023-pocket">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -127,7 +127,6 @@
             {% if prioritization %}<a href="#section-target-profile" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Prioritization" %}</a>{% endif %}
             {% if metabolic_context %}<a href="#section-metabolic-context" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Metabolism" %}</a>{% endif %}
             <a href="#section-structure" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "3D structure" %}</a>
-            {% if structure.pockets or structure.p2_pockets %}<a href="#pocket-panel-details" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Pockets" %}</a>{% endif %}
             {% if binders.total %}<a href="#section-binders" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Ligands" %}</a>{% endif %}
             <a href="#section-sequence" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
             <a href="#section-annotations" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotations" %}</a>
@@ -446,50 +445,11 @@
                     <p class="structure-viewport-hint">{% trans "Drag to rotate; click the view, then scroll to zoom. Chains may be colored apart; pocket colors are predicted cavities, not chains." %} <a href="{% url 'tpwebapp:data_sources' %}#binding-sites">{% trans "Methodology" %}</a></p>
 
                     {% if structure.pockets or structure.p2_pockets or alt_structure.pockets or alt_structure.p2_pockets or pocket_structure.pockets or pocket_structure.p2_pockets %}
-                    <details class="data-details pocket-panel-details js-smooth-details" id="pocket-panel-details" open>
+                    <details class="data-details pocket-panel-details js-smooth-details" id="pocket-panel-details">
                         <summary class="pocket-panel-summary">
-                            {% trans "Pocket details" %}
-                            <span class="pocket-panel-summary-hint">{% trans "Click a pocket to select it; the chips show its layers in the viewer." %}</span>
+                            {% trans "Pocket layers" %}
+                            <span class="pocket-panel-summary-hint">{% trans "Show predicted pockets in this viewer; open one in the full viewer for its residues and properties." %}</span>
                         </summary>
-                        <section class="sv-pocket-inspector" id="protein-pocket-inspector" hidden aria-live="polite">
-                            <div class="sv-pocket-inspector-head">
-                                <span class="sv-pocket-inspector-kicker">{% trans "Selected pocket" %}</span>
-                                <div class="sv-pocket-inspector-actions">
-                                    <button type="button" class="filter-chip sv-pocket-inspector-toggle" id="protein-pocket-show-only-toggle" aria-pressed="false" title="{% trans "Hide other active pocket layers and keep the viewer focused on this selected pocket." %}">
-                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span>
-                                        <span>{% trans "Focus this pocket" %}</span>
-                                    </button>
-                                    <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon sv-pocket-inspector-clear" id="protein-pocket-clear-selection">
-                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
-                                        <span>{% trans "Clear selection" %}</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <strong class="sv-pocket-inspector-title" data-pocket-field="title">-</strong>
-                            <dl class="sv-pocket-inspector-grid">
-                                <div>
-                                    <dt>{% trans "Method" %}</dt>
-                                    <dd data-pocket-field="method">-</dd>
-                                </div>
-                                <div>
-                                    <dt>{% trans "Druggability" %}</dt>
-                                    <dd data-pocket-field="score">-</dd>
-                                </div>
-                                <div>
-                                    <dt>{% trans "Visible layer" %}</dt>
-                                    <dd data-pocket-field="layer">-</dd>
-                                </div>
-                                <div class="sv-pocket-inspector-wide">
-                                    <dt>{% trans "Residues" %}</dt>
-                                    <dd data-pocket-field="residues">-</dd>
-                                </div>
-                                <div class="sv-pocket-inspector-wide">
-                                    <dt title="{% trans "Extra descriptors from the predictor (volume, alpha spheres, etc.), whether FPocket and P2Rank agree on this site (within ~8 Å), and the nearest annotated functional site, when available. A ranking/raw score listed here is not the druggability shown above." %}">{% trans "Pocket properties" %}</dt>
-                                    <dd data-pocket-field="properties">-</dd>
-                                </div>
-                            </dl>
-                            <p class="sv-pocket-inspector-note">{% trans "Selecting a pocket opens its details and centers the viewer without clearing other active layers. Use Focus this pocket when you want to hide the rest; use Residue surface for the wider residue environment." %}</p>
-                        </section>
                         {% include "components/structure/pocket_cards.html" with structure_data=structure structure_key="primary" layout="rows" %}
                         {% if alt_structure %}
                             {% include "components/structure/pocket_cards.html" with structure_data=alt_structure structure_key="alt" hidden=True layout="rows" %}
@@ -978,7 +938,7 @@
     {{ graphic_features|json_script:"seqfeatures" }}
 
     <script src="{% static 'js/pages/protein-architecture.js' %}?v=20261022"></script>
-    <script src="{% static 'js/pages/protein-dossier.js' %}?v=20261023"></script>
+    <script src="{% static 'js/pages/protein-dossier.js' %}?v=20261023-pocket"></script>
     <script src="{% static 'js/pages/protein-detail.js' %}?v=20261018-neutral"></script>
     <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20261023-select"></script>
     <script src="{% static 'js/pages/ngl-shape-registry.js' %}?v=20260720-shaperegistry1"></script>

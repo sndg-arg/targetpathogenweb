@@ -47,6 +47,11 @@
                         <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p2.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}" aria-label="{% trans 'List residues' %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span><span>{% trans "List residues" %}</span>
                         </button>
+                        {% if layout == 'rows' and structure_data.id %}
+                        <a class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" href="{% url 'tpwebapp:structure' structure_data.id %}?protein_id={{ protein.id }}&amp;pocket=p2rank:{{ p2.name|urlencode }}" title="{% trans 'Open this pocket in the full viewer, with its residues and properties.' %}" aria-label="{% trans 'Open in full viewer' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/maximize.html" %}</span><span>{% trans "Full viewer" %}</span>
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}
@@ -106,6 +111,11 @@
                         <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}" aria-label="{% trans 'List residues' %}">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span><span>{% trans "List residues" %}</span>
                         </button>
+                        {% if layout == 'rows' and structure_data.id %}
+                        <a class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" href="{% url 'tpwebapp:structure' structure_data.id %}?protein_id={{ protein.id }}&amp;pocket=fpocket:{{ p.name|urlencode }}" title="{% trans 'Open this pocket in the full viewer, with its residues and properties.' %}" aria-label="{% trans 'Open in full viewer' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/maximize.html" %}</span><span>{% trans "Full viewer" %}</span>
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}
@@ -116,7 +126,7 @@
     </div>
 {% endif %}
 
-{% if structure_data.residuesets %}
+{% if structure_data.residuesets and layout != 'rows' %}
     <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
         <details class="data-details js-smooth-details">
             <summary>{% trans "Residue sets" %}</summary>

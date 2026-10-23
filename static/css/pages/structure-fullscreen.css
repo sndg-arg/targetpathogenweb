@@ -1268,6 +1268,21 @@ body.viewer-settings-open { overflow: hidden; }
 
 .pocket-cards--compact .pocket-card-badges {
     flex-direction: row;
+    flex-wrap: wrap;
+}
+
+/* The name stays on one line; tags wrap after it in a narrow sidebar. */
+.pocket-cards--compact .pocket-card-head {
+    flex-wrap: wrap;
+    row-gap: var(--tp-space-1);
+}
+
+.pocket-cards--compact .pocket-card-label {
+    flex: 0 0 auto;
+}
+
+.pocket-cards--compact .pocket-card-name {
+    white-space: nowrap;
 }
 
 .pocket-cards--compact .pocket-card-actions {
