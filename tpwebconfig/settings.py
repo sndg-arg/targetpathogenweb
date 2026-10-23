@@ -135,6 +135,12 @@ DATABASES = {
     }
 }
 
+# Set by start.sh for the web server only (see there): Postgres cancels a
+# statement after this many ms. 0 / unset = no limit (management commands).
+_STATEMENT_TIMEOUT_MS = env.int("DJANGO_STATEMENT_TIMEOUT_MS", default=0)
+if _STATEMENT_TIMEOUT_MS:
+    DATABASES["default"]["OPTIONS"] = {"options": f"-c statement_timeout={_STATEMENT_TIMEOUT_MS}"}
+
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
