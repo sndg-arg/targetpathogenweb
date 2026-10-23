@@ -5,7 +5,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-pop">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261023-stage">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261023-evid">
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261023">
 {% endblock %}
 
@@ -473,7 +473,7 @@
                             </span>
                             {% endwith %}
                         </summary>
-                        {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures predicted_items=predicted_structures protein=protein %}
+                        {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures predicted_items=predicted_structures protein=protein in_details=True %}
                     </details>
                     {% endif %}
                 </section>

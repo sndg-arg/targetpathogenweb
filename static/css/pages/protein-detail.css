@@ -1509,8 +1509,11 @@ body.residue-modal-open {
     outline-offset: 2px;
 }
 
+/* The structure already in the viewer needs no Switch (its "Viewing" tag says
+   it); JS moves the active class on every switch. !important because
+   .tp-btn-with-icon sets display with !important. */
 .experimental-structure-table tr.experimental-row--viewer-active .experimental-switch-btn {
-    display: none;
+    display: none !important;
 }
 
 /* ── Target pocket evidence ── */
@@ -2036,4 +2039,8 @@ body.residue-modal-open {
     .structure-side {
         max-height: none;
     }
+}
+
+.structure-evidence-details .pdb-evidence-note {
+    margin-top: 0;
 }

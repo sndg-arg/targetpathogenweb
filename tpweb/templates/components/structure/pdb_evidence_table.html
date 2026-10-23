@@ -1,21 +1,23 @@
 {% load i18n %}
 {% if items or predicted_items %}
 <div class="pdb-evidence-subsection">
+    {% if not in_details %}
     <div class="pdb-evidence-head">
         <h3 class="pdb-evidence-title">{% trans "Structural evidence" %}</h3>
         <span class="tp-chip">{{ items|length }}{% if predicted_items %} + {{ predicted_items|length }}{% endif %}</span>
     </div>
-    <p class="pdb-evidence-note">{% trans "Experimental PDB entries plus predicted AlphaFold DB or ColabFold models. Click Switch to display a different loaded structure in the viewer." %}</p>
+    {% endif %}
+    <p class="pdb-evidence-note">{% trans "Switch shows another loaded structure in the viewer." %}</p>
     <div class="table-shell tp-table-shell experimental-structure-shell">
         <table class="tp-table experimental-structure-table" data-table-export="off">
             <thead>
             <tr>
                 <th scope="col">{% trans "Entry" %}</th>
                 <th scope="col">{% trans "Method" %}</th>
-                <th scope="col">{% trans "Resolution" %}</th>
-                <th scope="col">{% trans "Chain" %}</th>
+                {% if items %}<th scope="col">{% trans "Resolution" %}</th>
+                <th scope="col">{% trans "Chain" %}</th>{% endif %}
                 <th scope="col">{% trans "Coverage" %}</th>
-                <th scope="col">{% trans "Links" %}</th>
+                {% if items %}<th scope="col">{% trans "Links" %}</th>{% endif %}
                 <th scope="col">{% trans "Status" %}</th>
             </tr>
             </thead>
@@ -85,9 +87,9 @@
                             <span class="experimental-pdb-id experimental-pdb-id--predicted">{{ item.pdb_id }}</span>
                         </div>
                     </td>
-                    <td class="experimental-method">{{ item.method }}</td>
-                    <td class="experimental-resolution">—</td>
-                    <td class="experimental-chain">{{ item.chains }}</td>
+                    <td class="experimental-method">{% trans "Predicted model" %}</td>
+                    {% if items %}<td class="experimental-resolution">—</td>
+                    <td class="experimental-chain">{{ item.chains|default:"—" }}</td>{% endif %}
                     <td class="experimental-coverage-cell">
                         {% if item.has_positions %}
                             <div class="experimental-coverage-track" title="{% trans "Sequence coverage" %}: {{ item.coverage_label }} ({{ item.positions }})">
@@ -96,10 +98,10 @@
                             <span class="experimental-coverage-label">{{ item.coverage_label }}</span>
                             <span class="experimental-coverage-range">{{ item.positions }}</span>
                         {% else %}
-                            <span class="experimental-coverage-empty">full sequence</span>
+                            <span class="experimental-coverage-empty">{% trans "Full sequence" %}</span>
                         {% endif %}
                     </td>
-                    <td class="experimental-links-cell">—</td>
+                    {% if items %}<td class="experimental-links-cell">—</td>{% endif %}
                     <td class="experimental-status-cell">
                         <span class="tp-chip tp-chip--state js-experimental-viewer-status {% if item.viewer_key == 'primary' %}running{% else %}finished{% endif %}"
                               data-pdb-slot="{{ item.slot_key }}"
