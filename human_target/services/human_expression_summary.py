@@ -151,6 +151,26 @@ def tissue_specificity(scores):
     return sum(1 - score / peak for score in scores) / (len(scores) - 1)
 
 
+# Bgee's score is rank-based (roughly a log scale), so tau over it directly
+# squeezes every gene towards "broad". Tau is defined on expression levels:
+# 2**(score / 15) turns the score back into one, and tissues called absent
+# count as 0 (as in Kryuchkova-Mostacci & Robinson-Rechavi, 2017). Checked on
+# the full human Bgee file: INS 0.95, ALB 0.85, EGFR 0.49, GAPDH 0.03.
+_SCORE_DOUBLING = 15
+
+
+def tissue_levels(rows):
+    """{tissue: expression level} for tau, one value per tissue (its best call)."""
+    levels = {}
+    for row in rows or []:
+        tissue = (row.get("tissue") or row.get("cell_type") or "").strip()
+        if not tissue:
+            continue
+        level = 0.0 if _is_absent(row) else 2 ** (float(row.get("score") or 0) / _SCORE_DOUBLING)
+        levels[tissue] = max(levels.get(tissue, 0.0), level)
+    return levels
+
+
 def specificity_label(tau):
     if tau is None:
         return ""
@@ -166,13 +186,13 @@ def build_human_expression_context(human_protein):
     ranked = sorted(rows, key=lambda row: row.get("score") or 0, reverse=True)
     present = [row for row in ranked if not _is_absent(row)]
 
-    # One score per tissue (its best cell type / call), for tau and breadth.
+    # One score per expressed tissue (its best cell type / call), for breadth.
     by_tissue = {}
     for row in present:
         tissue = (row.get("tissue") or row.get("cell_type") or "").strip()
         if tissue:
             by_tissue[tissue] = max(by_tissue.get(tissue, 0.0), float(row.get("score") or 0))
-    tau = tissue_specificity(by_tissue.values())
+    tau = tissue_specificity(tissue_levels(rows).values())
 
     by_system = {}
     for row in ranked:

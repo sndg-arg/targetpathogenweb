@@ -10,7 +10,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 
 from human_target.services.human_dossier import compartments_for
-from human_target.services.human_expression_summary import tissue_specificity
+from human_target.services.human_expression_summary import tissue_levels, tissue_specificity
 
 SUMMARY_FIELDS = [
     "structure_count",
@@ -40,7 +40,7 @@ def _expression_summary(rows):
     if not by_tissue:
         return None, ""
     peak = max(by_tissue, key=by_tissue.get)
-    tau = tissue_specificity(by_tissue.values())
+    tau = tissue_specificity(tissue_levels(rows).values())
     return (round(tau, 3) if tau is not None else None), peak[:255]
 
 

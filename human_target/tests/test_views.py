@@ -157,5 +157,5 @@ class HumanProteinListViewPaginationTests(TestCase):
         self.assertEqual((protein.drugbank_count, protein.disease_count), (2, 1))
         self.assertTrue(protein.surface_accessible)
         self.assertEqual(protein.peak_tissue, "testis")
-        self.assertAlmostEqual(protein.tissue_specificity, 0.889, places=3)
+        self.assertAlmostEqual(protein.tissue_specificity, 0.975, places=3)
         self.assertIsNotNone(protein.summary_updated_at)

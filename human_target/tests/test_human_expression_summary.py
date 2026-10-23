@@ -59,7 +59,17 @@ class BuildHumanExpressionContextTests(SimpleTestCase):
         self.assertTrue(context["peak_is_gold"])
         self.assertEqual(context["gold_count"], 2)
         self.assertEqual((context["tissue_count"], context["expressed_count"]), (2, 1))
-        self.assertEqual(context["specificity_label"], "Intermediate specificity")
+        # Absent liver counts as 0 and heart (score 20) is far below testis.
+        self.assertEqual(context["specificity_label"], "Tissue-specific")
+
+    def test_tau_reads_bgee_scores_as_levels(self):
+        def tau_for(scores):
+            rows = [{"tissue": f"t{i}", "score": s} for i, s in enumerate(scores)]
+            return build_human_expression_context(_FakeHumanProtein(rows))["tau"]
+
+        self.assertLess(tau_for([90, 88, 86, 85]), 0.3)
+        # 40 score points below the peak is a ~6x lower level, not "nearly the same".
+        self.assertGreater(tau_for([95, 55, 55, 55]), 0.8)
 
     def test_kidney_cortex_is_urinary_not_nervous(self):
         rows = [
