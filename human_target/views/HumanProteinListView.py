@@ -10,19 +10,20 @@ from human_target.services.human_targets import human_proteins_queryset
 from tpweb.views.ProteinListView import ProteinListView
 from tpweb.views.mixins import PermissionLockedMixin
 
-PAGE_SIZE = 40
+PAGE_SIZES = (10, 25, 50, 100)
+DEFAULT_PAGE_SIZE = 25
 
-# Toggle filters: GET key -> (label, group, queryset filter). Each is "1" when on.
+# Toggle filters: GET key -> (label, queryset filter). Each is "1" when on.
 TOGGLE_FILTERS = {
-    "reviewed": ("Reviewed (Swiss-Prot)", "Evidence", Q(is_reviewed=True)),
-    "structure": ("3D structure", "Evidence", Q(structure_count__gt=0)),
-    "experimental": ("Experimental structure", "Evidence", Q(experimental_structure_count__gt=0)),
-    "ligands": ("Ligand evidence", "Evidence", Q(ligand_count__gt=0)),
-    "direct": ("Ligands on this protein", "Evidence", Q(direct_ligand_count__gt=0)),
-    "drugs": ("DrugBank compounds", "Evidence", Q(drugbank_count__gt=0)),
-    "disease": ("Disease-linked", "Evidence", Q(disease_count__gt=0)),
-    "pathways": ("In KEGG pathways", "Evidence", Q(pathway_count__gt=0)),
-    "surface": ("Cell surface or secreted", "Location", Q(surface_accessible=True)),
+    "reviewed": ("Reviewed (Swiss-Prot)", Q(is_reviewed=True)),
+    "structure": ("Any 3D structure", Q(structure_count__gt=0)),
+    "experimental": ("Experimental (PDB)", Q(experimental_structure_count__gt=0)),
+    "ligands": ("Any ligand evidence", Q(ligand_count__gt=0)),
+    "direct": ("Measured on this protein", Q(direct_ligand_count__gt=0)),
+    "drugs": ("DrugBank compounds", Q(drugbank_count__gt=0)),
+    "disease": ("Disease-linked", Q(disease_count__gt=0)),
+    "pathways": ("In KEGG pathways", Q(pathway_count__gt=0)),
+    "surface": ("Cell surface or secreted", Q(surface_accessible=True)),
 }
 # Tissue specificity (tau), one at a time.
 TISSUE_FILTERS = {
@@ -33,6 +34,18 @@ TISSUE_FILTERS = {
     ),
     "broad": ("Broadly expressed (τ < 0.3)", Q(tissue_specificity__lt=0.3)),
 }
+# Drawer categories, in the order the pathogen list uses where they overlap.
+FILTER_CATEGORIES = [
+    ("Structure", "3D structure", ["structure", "experimental"]),
+    ("Ligands", "Ligand evidence", ["ligands", "direct"]),
+    ("Pharmacology", "Known drugs", ["drugs"]),
+    ("Disease", "Disease association", ["disease"]),
+    ("Pathways", "Metabolic and signalling pathways", ["pathways"]),
+    ("Localization", "Reachable by antibodies", ["surface"]),
+    ("Expression", "Tissue specificity", None),
+    ("Annotation", "UniProt curation", ["reviewed"]),
+]
+CATEGORY_OF = {key: category for category, _hint, keys in FILTER_CATEGORIES for key in keys or []}
 SORTS = {
     "protein": "uniprot_accession",
     "gene": "gene_symbol",
@@ -45,6 +58,19 @@ SORTS = {
     "pathways": "pathway_count",
 }
 DEFAULT_SORT = ("-is_reviewed", "uniprot_accession")
+# Optional table columns (Columns drawer); the rest are always shown.
+COLUMNS = [
+    ("length", "Length", "Sequence", False),
+    ("structures", "Structures", "Structure", True),
+    ("ligands", "Ligands", "Ligands", True),
+    ("drugs", "DrugBank", "Pharmacology", True),
+    ("diseases", "Diseases", "Disease", True),
+    ("tissue", "Tissue specificity", "Expression", True),
+    ("pathways", "Pathways", "Pathways", True),
+    ("location", "Location", "Localization", True),
+    ("uniprot", "UniProt status", "Annotation", False),
+]
+FIXED_COLUMNS = ["#", "Protein", "Description", "Gene"]
 
 
 def _query_string(params, **changes):
@@ -70,6 +96,12 @@ class HumanProteinListView(PermissionLockedMixin, View):
         direction = "asc" if request.GET.get("dir") == "asc" else "desc"
         if sort not in SORTS:
             sort = ""
+        try:
+            size = int(request.GET.get("size", DEFAULT_PAGE_SIZE))
+        except ValueError:
+            size = DEFAULT_PAGE_SIZE
+        if size not in PAGE_SIZES:
+            size = DEFAULT_PAGE_SIZE
 
         # DB-side filter + pagination: the list has to scale to the full
         # proteome (~20,000 proteins), so every column it filters or sorts on
@@ -78,7 +110,7 @@ class HumanProteinListView(PermissionLockedMixin, View):
             "uniprot_raw", "features_raw", "publications", "expression_json", "sequence"
         )
         for key in active:
-            proteins_qs = proteins_qs.filter(TOGGLE_FILTERS[key][2])
+            proteins_qs = proteins_qs.filter(TOGGLE_FILTERS[key][1])
         if tissue:
             proteins_qs = proteins_qs.filter(TISSUE_FILTERS[tissue][1])
         if sort:
@@ -94,7 +126,7 @@ class HumanProteinListView(PermissionLockedMixin, View):
             proteins_qs = proteins_qs.order_by(*DEFAULT_SORT)
         total_count = proteins_qs.count()
 
-        paginator = Paginator(proteins_qs, PAGE_SIZE)
+        paginator = Paginator(proteins_qs, size)
         try:
             page = paginator.page(request.GET.get("page"))
         except PageNotAnInteger:
@@ -102,28 +134,47 @@ class HumanProteinListView(PermissionLockedMixin, View):
         except EmptyPage:
             page = paginator.page(paginator.num_pages)
 
-        params = {"q": query, "tissue": tissue, "sort": sort, "dir": direction if sort else ""}
+        params = {
+            "q": query,
+            "tissue": tissue,
+            "sort": sort,
+            "dir": direction if sort else "",
+            "size": "" if size == DEFAULT_PAGE_SIZE else str(size),
+        }
         params.update({key: "1" for key in active})
-        filter_groups = {}
-        for key, (label, group, _q) in TOGGLE_FILTERS.items():
-            on = key in active
-            filter_groups.setdefault(group, []).append(
+
+        filter_categories = []
+        for category, hint, keys in FILTER_CATEGORIES:
+            if keys is None:
+                chips = [
+                    {"name": "tissue", "value": key, "label": label, "active": tissue == key}
+                    for key, (label, _q) in TISSUE_FILTERS.items()
+                ]
+                single = True
+            else:
+                chips = [
+                    {
+                        "name": key,
+                        "value": "1",
+                        "label": TOGGLE_FILTERS[key][0],
+                        "active": key in active,
+                    }
+                    for key in keys
+                ]
+                single = False
+            filter_categories.append(
                 {
-                    "label": label,
-                    "active": on,
-                    "url": "?" + _query_string(params, **{key: "" if on else "1", "page": ""}),
+                    "category": category,
+                    "hint": hint,
+                    "single": single,
+                    "chips": chips,
+                    "active_count": sum(chip["active"] for chip in chips),
                 }
             )
-        filter_groups["Tissue specificity"] = [
-            {
-                "label": label,
-                "active": tissue == key,
-                "url": "?" + _query_string(params, tissue="" if tissue == key else key, page=""),
-            }
-            for key, (label, _q) in TISSUE_FILTERS.items()
-        ]
+
         active_pills = [
             {
+                "category": CATEGORY_OF[key],
                 "label": TOGGLE_FILTERS[key][0],
                 "url": "?" + _query_string(params, **{key: "", "page": ""}),
             }
@@ -133,6 +184,7 @@ class HumanProteinListView(PermissionLockedMixin, View):
         if tissue:
             active_pills.append(
                 {
+                    "category": "Expression",
                     "label": TISSUE_FILTERS[tissue][0],
                     "url": "?" + _query_string(params, tissue="", page=""),
                 }
@@ -146,6 +198,12 @@ class HumanProteinListView(PermissionLockedMixin, View):
                 page="",
             )
             for key in SORTS
+        }
+        # Everything except the filters themselves, for the drawer's GET form.
+        keep_params = {
+            key: value
+            for key, value in params.items()
+            if value and key not in TOGGLE_FILTERS and key != "tissue"
         }
 
         return render(
@@ -162,12 +220,21 @@ class HumanProteinListView(PermissionLockedMixin, View):
                 if (query or active or tissue)
                 else total_count,
                 "query": query,
-                "filter_groups": filter_groups,
+                "page_size": size,
+                "page_sizes": PAGE_SIZES,
+                "filter_categories": filter_categories,
+                "filter_option_count": len(TOGGLE_FILTERS) + len(TISSUE_FILTERS),
                 "active_pills": active_pills,
-                "clear_filters_url": "?" + _query_string({"q": query}),
+                "keep_params": keep_params,
+                "clear_filters_url": "?" + _query_string(keep_params),
                 "sort": sort,
                 "sort_dir": direction,
                 "sort_urls": sort_urls,
+                "columns": [
+                    {"name": name, "label": label, "category": category, "default": default}
+                    for name, label, category, default in COLUMNS
+                ],
+                "fixed_columns": FIXED_COLUMNS,
                 "has_summary": human_proteins_queryset()
                 .filter(summary_updated_at__isnull=False)
                 .exists(),

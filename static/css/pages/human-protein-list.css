@@ -1,34 +1,27 @@
 /*
- * Human Targets — protein list. The hero, toolbar, table, active-criteria tray
- * and pagination come from proteins-list.css (same as the pathogen protein
- * list); this file only lays out the filter groups and two table cells.
+ * Human Targets — protein list. The hero, toolbar, Filters/Columns drawers,
+ * table, active-criteria tray and pagination come from proteins-list.css (same
+ * as the pathogen protein list); this file only covers what differs.
  */
 
-.human-filters {
-    display: grid;
-    gap: var(--tp-space-3);
-    margin: var(--tp-space-4) 0;
-    /* Same inset as the toolbar and table above and below. */
-    padding: 0 18px;
+/* Drawer chips are labels over a checkbox/radio (one GET form). */
+.human-filter-chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
 }
 
-.human-filter-group {
-    display: grid;
-    grid-template-columns: 150px minmax(0, 1fr);
-    align-items: baseline;
-    gap: var(--tp-space-3);
+.human-filter-chip:has(input:focus-visible) {
+    outline: 2px solid var(--tp-focus-color);
+    outline-offset: 2px;
 }
 
-.human-filter-label {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
+.human-filter-chip:not(.filter-chip--active) .filter-chip-glyph {
+    display: none;
 }
 
-.human-filters .filter-chip {
-    text-decoration: none;
+.human-columns-row .columns-row-copy {
+    flex: 1 1 auto;
 }
 
 .human-tau {
@@ -47,11 +40,4 @@
     font-size: var(--tp-font-size-xs);
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-@media (max-width: 700px) {
-    .human-filter-group {
-        grid-template-columns: minmax(0, 1fr);
-        gap: var(--tp-space-1);
-    }
 }

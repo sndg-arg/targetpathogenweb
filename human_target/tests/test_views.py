@@ -76,15 +76,15 @@ class HumanProteinListViewPaginationTests(TestCase):
 
         response = self.client.get(reverse("human_target:human_protein_list"))
 
-        self.assertEqual(len(response.context["proteins"]), 40)
+        self.assertEqual(len(response.context["proteins"]), 25)
         self.assertEqual(response.context["total_count"], 55)
 
     def test_second_page_shows_the_remainder(self):
         self._make_human_proteins(55)
 
-        response = self.client.get(reverse("human_target:human_protein_list"), {"page": 2})
+        response = self.client.get(reverse("human_target:human_protein_list"), {"page": 3})
 
-        self.assertEqual(len(response.context["proteins"]), 15)
+        self.assertEqual(len(response.context["proteins"]), 5)
 
     def test_search_filters_before_pagination(self):
         self._make_human_proteins(55)
@@ -100,7 +100,7 @@ class HumanProteinListViewPaginationTests(TestCase):
         response = self.client.get(reverse("human_target:human_protein_list"), {"page": 999})
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["proteins"].number, 2)
+        self.assertEqual(response.context["proteins"].number, 3)
 
     def test_list_is_the_shared_protein_table_with_evidence_columns(self):
         self._make_human_proteins(2)
@@ -121,6 +121,10 @@ class HumanProteinListViewPaginationTests(TestCase):
         response = self.client.get(reverse("human_target:human_protein_list"), {"drugs": "1"})
         self.assertEqual(response.context["total_count"], 2)
         self.assertEqual(len(response.context["active_pills"]), 1)
+        self.assertContains(response, 'id="filters-drawer"')
+
+        response = self.client.get(reverse("human_target:human_protein_list"), {"size": "10"})
+        self.assertEqual(response.context["proteins"].paginator.per_page, 10)
 
         response = self.client.get(
             reverse("human_target:human_protein_list"), {"sort": "drugs", "dir": "desc"}
