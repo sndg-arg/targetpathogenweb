@@ -55,6 +55,21 @@ class HumanProtein(models.Model):
     # across proteins, only render one protein's ~200 rows at a time.
     expression_json = models.JSONField(default=list, blank=True)
 
+    # Per-protein evidence summary for the list page's columns, filters and
+    # sorting, computed from the fields above and related tables by
+    # `refresh_human_target_summary` (see human_target_summary.py).
+    structure_count = models.IntegerField(default=0)
+    experimental_structure_count = models.IntegerField(default=0)
+    ligand_count = models.IntegerField(default=0)
+    direct_ligand_count = models.IntegerField(default=0)
+    drugbank_count = models.IntegerField(default=0)
+    disease_count = models.IntegerField(default=0)
+    pathway_count = models.IntegerField(default=0)
+    tissue_specificity = models.FloatField(null=True, blank=True)
+    peak_tissue = models.CharField(max_length=255, blank=True, default="")
+    surface_accessible = models.BooleanField(default=False)
+    summary_updated_at = models.DateTimeField(null=True, blank=True)
+
     # Full original record, kept as a fallback/audit trail.
     uniprot_raw = models.JSONField(default=dict, blank=True)
     ingest_source_path = models.CharField(max_length=1024, blank=True, default="")

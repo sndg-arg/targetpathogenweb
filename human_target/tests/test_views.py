@@ -102,12 +102,60 @@ class HumanProteinListViewPaginationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["proteins"].number, 2)
 
-    def test_list_is_the_shared_protein_table_with_structure_and_ligand_columns(self):
+    def test_list_is_the_shared_protein_table_with_evidence_columns(self):
         self._make_human_proteins(2)
 
         response = self.client.get(reverse("human_target:human_protein_list"))
 
         self.assertContains(response, 'class="table tp-table tp-table--compact protein-table"')
         self.assertContains(response, reverse("human_target:human_protein", args=["P00000"]))
-        self.assertEqual([row["ligands"]["total"] for row in response.context["rows"]], [0, 0])
-        self.assertFalse(response.context["rows"][0]["structure"]["has_structure"])
+        self.assertContains(response, "DrugBank")
+
+    def test_filters_and_sorting_use_the_stored_summary(self):
+        self._make_human_proteins(3)
+        HumanProtein.objects.filter(uniprot_accession="P00001").update(
+            drugbank_count=4, tissue_specificity=0.9
+        )
+        HumanProtein.objects.filter(uniprot_accession="P00002").update(drugbank_count=1)
+
+        response = self.client.get(reverse("human_target:human_protein_list"), {"drugs": "1"})
+        self.assertEqual(response.context["total_count"], 2)
+        self.assertEqual(len(response.context["active_pills"]), 1)
+
+        response = self.client.get(
+            reverse("human_target:human_protein_list"), {"sort": "drugs", "dir": "desc"}
+        )
+        self.assertEqual(
+            [hp.uniprot_accession for hp in response.context["proteins"]][:2],
+            ["P00001", "P00002"],
+        )
+
+        response = self.client.get(
+            reverse("human_target:human_protein_list"), {"tissue": "restricted"}
+        )
+        self.assertEqual([hp.uniprot_accession for hp in response.context["proteins"]], ["P00001"])
+
+    def test_summary_refresh_counts_drugs_and_diseases(self):
+        from human_target.services.human_target_summary import refresh_summaries
+
+        self._make_human_proteins(1)
+        HumanProtein.objects.filter(uniprot_accession="P00000").update(
+            cross_references_raw=[
+                {"database": "DrugBank", "id": "DB1"},
+                {"database": "DrugBank", "id": "DB2"},
+                {"database": "PDB", "id": "1ABC"},
+            ],
+            disease_comments=[{"name": "X"}],
+            subcellular_locations=["Cell membrane"],
+            expression_json=[
+                {"tissue": "testis", "score": 90.0},
+                {"tissue": "liver", "score": 10.0},
+            ],
+        )
+        self.assertEqual(refresh_summaries(HumanProtein.objects.all()), 1)
+        protein = HumanProtein.objects.get(uniprot_accession="P00000")
+        self.assertEqual((protein.drugbank_count, protein.disease_count), (2, 1))
+        self.assertTrue(protein.surface_accessible)
+        self.assertEqual(protein.peak_tissue, "testis")
+        self.assertAlmostEqual(protein.tissue_specificity, 0.889, places=3)
+        self.assertIsNotNone(protein.summary_updated_at)

@@ -7,6 +7,7 @@
 
 {% block head %}
     {# Same page CSS as the pathogen protein table: same hero, toolbar, table and pagination. #}
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-list.css' %}?v=20261022">
     <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261022-idcol">
 {% endblock %}
 
@@ -44,6 +45,7 @@
             <form method="GET" action="{{ request.path }}" class="search-form tp-ui-toolbar-form" role="search">
                 <div class="toolbar-search-row tp-ui-search-row tp-ui-toolbar-row tp-ui-toolbar-row--stack-sm">
                     <div class="search-autocomplete tp-ui-search">
+                        {% for key, value in request.GET.items %}{% if key != "q" and key != "page" %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
                         <input type="text"
                                class="form-control search-input tp-ui-search-input"
                                name="q"
@@ -67,11 +69,46 @@
             </form>
         </section>
 
+        <section class="human-filters" aria-label="{% trans 'Filters' %}">
+            {% for group, chips in filter_groups.items %}
+            <div class="human-filter-group">
+                <span class="human-filter-label">{{ group }}</span>
+                <div class="filter-chip-group">
+                    {% for chip in chips %}<a class="filter-chip{% if chip.active %} filter-chip--active{% endif %}" href="{{ chip.url }}"{% if chip.active %} aria-pressed="true"{% endif %}><span class="filter-chip-label">{{ chip.label }}</span>{% if chip.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}</a>{% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            {% if not has_summary %}<p class="tp-state-note tp-state-note--empty">{% trans "Evidence columns and filters fill in once the summary is computed (refresh_human_target_summary)." %}</p>{% endif %}
+        </section>
+
+        {% if active_pills %}
+        <section class="filter-tray" role="region" aria-label="{% trans 'Active criteria' %}">
+            <div class="filter-tray-head">
+                <span class="filter-tray-label">{% trans "Active criteria" %}</span>
+                <span class="filter-tray-count tp-chip">{{ active_pills|length }}</span>
+            </div>
+            <div class="filter-tray-pills">
+                {% for pill in active_pills %}
+                <a href="{{ pill.url }}" class="filter-pill tp-chip tp-chip--filter">
+                    <span>{{ pill.label }}</span>
+                    <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                </a>
+                {% endfor %}
+            </div>
+            <div class="filter-tray-actions">
+                <a href="{{ clear_filters_url }}" class="btn tp-btn tp-btn--danger tp-btn-with-icon filter-tray-clear-btn">
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
+                    <span>{% trans "Clear all" %}</span>
+                </a>
+            </div>
+        </section>
+        {% endif %}
+
         <section class="protein-workspace">
             <div class="protein-table-panel">
-                {% if not rows %}
+                {% if not proteins.object_list %}
                 <div class="tp-empty protein-empty-state">
-                    <p class="tp-empty-title">{% if query %}{% trans "No human proteins match this search" %}{% else %}{% trans "No human proteins loaded yet" %}{% endif %}</p>
+                    <p class="tp-empty-title">{% if query or active_pills %}{% trans "No human proteins match the current search and filters" %}{% else %}{% trans "No human proteins loaded yet" %}{% endif %}</p>
                     {% if query %}
                     <div class="tp-empty-actions">
                         <a href="{{ request.path }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon">
@@ -83,8 +120,8 @@
                 </div>
                 {% else %}
                 <p class="protein-table-results" role="status">
-                    {% if query %}
-                        {% blocktrans with filtered=total_count|thousands total=all_count|thousands %}<strong>{{ filtered }}</strong> of {{ total }} proteins match the current search{% endblocktrans %}
+                    {% if total_count != all_count %}
+                        {% blocktrans with filtered=total_count|thousands total=all_count|thousands %}<strong>{{ filtered }}</strong> of {{ total }} proteins match the current search and filters{% endblocktrans %}
                     {% else %}
                         {% blocktrans with total=total_count|thousands %}Showing all <strong>{{ total }}</strong> proteins{% endblocktrans %}
                     {% endif %}
@@ -94,41 +131,38 @@
                         <thead>
                         <tr>
                             <th>#</th>
-                            <th>{% trans "Protein" %}</th>
+                            <th class="th-sortable{% if sort == 'protein' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}"><a href="{{ sort_urls.protein }}" class="th-sort-link">{% trans "Protein" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
                             <th>{% trans "Description" %}</th>
-                            <th>{% trans "Gene" %}</th>
-                            <th>{% trans "Length" %}</th>
-                            <th>{% trans "Structure" %}</th>
-                            <th title="{% trans 'Ligand evidence records: same-protein (direct) out of all, including those transferred from similar proteins.' %}">{% trans "Ligands" %}</th>
+                            <th class="th-sortable{% if sort == 'gene' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}"><a href="{{ sort_urls.gene }}" class="th-sort-link">{% trans "Gene" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th class="th-sortable{% if sort == 'length' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}"><a href="{{ sort_urls.length }}" class="th-sort-link">{% trans "Length" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th class="th-sortable{% if sort == 'structures' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}" title="{% trans '3D structures loaded; experimental ones in brackets.' %}"><a href="{{ sort_urls.structures }}" class="th-sort-link">{% trans "Structures" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th class="th-sortable{% if sort == 'ligands' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}" title="{% trans 'Ligand evidence records: on this exact protein / all, including similar proteins.' %}"><a href="{{ sort_urls.ligands }}" class="th-sort-link">{% trans "Ligands" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th class="th-sortable{% if sort == 'drugs' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}" title="{% trans 'Drugs and investigational compounds DrugBank links to this protein.' %}"><a href="{{ sort_urls.drugs }}" class="th-sort-link">{% trans "DrugBank" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th class="th-sortable{% if sort == 'diseases' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}" title="{% trans 'Disease associations curated on the UniProt record.' %}"><a href="{{ sort_urls.diseases }}" class="th-sort-link">{% trans "Diseases" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th class="th-sortable{% if sort == 'tissue' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}" title="{% trans 'Tau over Bgee expression: 0 = same in every tissue, 1 = a single tissue.' %}"><a href="{{ sort_urls.tissue }}" class="th-sort-link">{% trans "Tissue specificity" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th class="th-sortable{% if sort == 'pathways' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}" title="{% trans 'KEGG pathways the protein takes part in.' %}"><a href="{{ sort_urls.pathways }}" class="th-sort-link">{% trans "Pathways" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th>{% trans "Location" %}</th>
                             <th>{% trans "UniProt" %}</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {% for row in rows %}
-                            {% with hp=row.protein %}
+                        {% for hp in proteins %}
+                            {% url 'human_target:human_protein' hp.uniprot_accession as protein_url %}
                             <tr class="protein-row">
                                 <td class="rank-col">{{ proteins.start_index|add:forloop.counter0 }}</td>
-                                <td class="acc-col"><a href="{% url 'human_target:human_protein' hp.uniprot_accession %}">{{ hp.uniprot_accession }}</a></td>
+                                <td class="acc-col"><a href="{{ protein_url }}">{{ hp.uniprot_accession }}</a></td>
                                 <td class="desc-col">{{ hp.protein_name|default:"—" }}</td>
                                 <td class="gene-col">{{ hp.gene_symbol|default:"—" }}</td>
                                 <td>{% if hp.sequence_length %}{{ hp.sequence_length }} aa{% else %}<span class="metric-na">—</span>{% endif %}</td>
-                                <td data-col="structure-source">
-                                    {% if row.structure.has_structure %}
-                                        <span class="tp-chip">{{ row.structure.label }}</span>
-                                    {% else %}
-                                        <span class="tp-chip structure-unavailable">{{ row.structure.label }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if row.ligands.total %}
-                                        <a href="{% url 'human_target:human_protein' hp.uniprot_accession %}#section-binders" class="tp-chip tp-chip--code" title="{% trans 'Direct / all ligand evidence records' %}">{{ row.ligands.direct }} / {{ row.ligands.total }}</a>
-                                    {% else %}
-                                        <span class="metric-na" title="{% trans 'No ligand evidence loaded for this protein.' %}">—</span>
-                                    {% endif %}
-                                </td>
+                                <td>{% if hp.structure_count %}<a href="{{ protein_url }}#section-structure" class="tp-chip">{{ hp.structure_count }}{% if hp.experimental_structure_count %} ({{ hp.experimental_structure_count }} exp.){% endif %}</a>{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td>{% if hp.ligand_count %}<a href="{{ protein_url }}#section-binders" class="tp-chip tp-chip--code">{{ hp.direct_ligand_count }} / {{ hp.ligand_count }}</a>{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td>{% if hp.drugbank_count %}<a href="{{ protein_url }}#section-pharmacology" class="tp-chip tp-chip--success">{{ hp.drugbank_count }}</a>{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td>{% if hp.disease_count %}<a href="{{ protein_url }}#section-diseases" class="tp-chip">{{ hp.disease_count }}</a>{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td>{% if hp.tissue_specificity is not None %}<span class="human-tau">τ {{ hp.tissue_specificity|floatformat:2 }}</span>{% if hp.peak_tissue %}<span class="human-peak" title="{% trans 'Highest expression' %}">{{ hp.peak_tissue|capfirst }}</span>{% endif %}{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td>{% if hp.pathway_count %}<a href="{{ protein_url }}#section-pathways" class="tp-chip">{{ hp.pathway_count }}</a>{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td>{% if hp.surface_accessible %}<span class="tp-chip" title="{% trans 'Cell membrane or secreted: reachable by antibodies.' %}">{% trans "Cell surface" %}</span>{% else %}<span class="metric-na">—</span>{% endif %}</td>
                                 <td>{% if hp.is_reviewed %}<span class="tp-chip">{% trans "Reviewed" %}</span>{% else %}<span class="tp-chip tp-chip--muted">{% trans "Unreviewed" %}</span>{% endif %}</td>
                             </tr>
-                            {% endwith %}
                         {% endfor %}
                         </tbody>
                     </table>
@@ -136,7 +170,7 @@
 
                 <div class="pagination-row">
                     <form method="GET" action="{{ request.path }}" class="pagination-label">
-                        {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+                        {% for key, value in request.GET.items %}{% if key != "page" %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
                         {% trans "Page" %}
                         {% if proteins.paginator.num_pages > 1 %}
                             <input type="number" name="page" class="page-jump-input" value="{{ proteins.number }}" min="1" max="{{ proteins.paginator.num_pages }}" aria-label="{% trans 'Go to page' %}">
