@@ -4,7 +4,7 @@
 {% load custom_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-live">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-arch2">
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261022-prio">
 {% endblock %}
 
@@ -202,7 +202,6 @@
             {% if metabolic_context %}<a href="#section-metabolic-context" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Metabolism" %}</a>{% endif %}
             <a href="#section-sequence" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
             <a href="#section-annotations" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotations" %}</a>
-            <a href="#section-features" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Features" %}</a>
             {% if identical_sequence_siblings %}<a href="#section-identical-sequences" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Other strains" %}</a>{% endif %}
             <a href="#section-structure" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "3D structure" %}</a>
             {% if binders.total %}
@@ -465,8 +464,8 @@
             <section class="protein-card" id="section-sequence">
                 <div class="section-head">
                     <div>
-                        <h2>{% trans "Sequence" %}</h2>
-                        <p class="section-subtitle">{% trans "Primary amino-acid sequence viewer." %}</p>
+                        <h2>{% trans "Sequence & architecture" %}</h2>
+                        <p class="section-subtitle">{% trans "Domains and signatures from InterPro on the sequence; click a domain to find it below." %}</p>
                     </div>
                     <button
                         id="copy-sequence-btn"
@@ -479,11 +478,43 @@
                     </button>
                 </div>
                 <textarea id="raw-protein-seq" class="d-none">{{ protein.seq }}</textarea>
-                <div class="sequence-shell">
-                    <div id="protein-sequence-viewer">
-                        <pre class="protein-sequence-fallback">{{ protein.seq }}</pre>
-                    </div>
-                </div>
+                {% if architecture %}
+                {% trans "Outside (periplasm / extracellular)" as outside_label %}
+                {% include "components/protein/architecture_map.html" with arch=architecture coverage=structure_coverage outside_label=outside_label %}
+                {% endif %}
+                {% include "components/protein/sequence_blocks.html" with lines=sequence_lines %}
+                {% if features %}
+                    <details class="data-details js-smooth-details">
+                        <summary>
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style="flex-shrink:0;opacity:0.6"><rect x="1" y="1" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/><line x1="1" y1="4.5" x2="13" y2="4.5" stroke="currentColor" stroke-width="1.3"/><line x1="5" y1="4.5" x2="5" y2="13" stroke="currentColor" stroke-width="1.3"/></svg>
+                            {% trans "Feature table" %} <span class="data-details-summary-meta">{{ features|length }} {% trans "records" %}</span>
+                        </summary>
+                        <div class="table-shell tp-table-shell">
+                            <table id="features_table" class="table tp-table tp-table--compact">
+                                <thead>
+                                <tr>
+                                    <th scope="col">{% trans "Start" %}</th>
+                                    <th scope="col">{% trans "End" %}</th>
+                                    <th scope="col">{% trans "DB" %}</th>
+                                    <th scope="col">{% trans "Term" %}</th>
+                                    <th scope="col">{% trans "Name" %}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for feature in features %}
+                                    <tr>
+                                        <td>{{ feature.start }}</td>
+                                        <td>{{ feature.end }}</td>
+                                        <td>{{ feature.db }}</td>
+                                        <td>{{ feature.term }}</td>
+                                        <td>{{ feature.name }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                {% endif %}
             </section>
 
             <section class="protein-card" id="section-annotations">
@@ -524,13 +555,26 @@
                                     <span class="tp-count">{{ ec_annotations|length }}</span>
                                 </div>
                                 <ul class="annotation-entries">
-                                    {% for ec in ec_annotations %}
+                                    {% for ec in ec_annotations|slice:":8" %}
                                         <li class="annotation-entry">
                                             <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="annotation-entry-id">{{ ec.accession }}</a>
                                             {% if ec.name %}<span class="annotation-entry-name" title="{{ ec.name }}">{{ ec.name }}</span>{% endif %}
                                         </li>
                                     {% endfor %}
                                 </ul>
+                                {% if ec_annotations|length > 8 %}
+                                <details class="list-more js-smooth-details">
+                                    <summary>{% blocktrans with count=ec_annotations|length|add:"-8" %}Show {{ count }} more{% endblocktrans %}</summary>
+                                    <ul class="annotation-entries">
+                                    {% for ec in ec_annotations|slice:"8:" %}
+                                        <li class="annotation-entry">
+                                            <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="annotation-entry-id">{{ ec.accession }}</a>
+                                            {% if ec.name %}<span class="annotation-entry-name" title="{{ ec.name }}">{{ ec.name }}</span>{% endif %}
+                                        </li>
+                                    {% endfor %}
+                                    </ul>
+                                </details>
+                                {% endif %}
                             </div>
                         {% endif %}
                         {% if go_annotations %}
@@ -540,78 +584,31 @@
                                     <span class="tp-count">{{ go_annotations|length }}</span>
                                 </div>
                                 <ul class="annotation-entries">
-                                    {% for go in go_annotations %}
+                                    {% for go in go_annotations|slice:":8" %}
                                         <li class="annotation-entry">
                                             <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="annotation-entry-id">{{ go.accession }}</a>
                                             {% if go.name %}<span class="annotation-entry-name" title="{{ go.name }}">{{ go.name }}</span>{% endif %}
                                         </li>
                                     {% endfor %}
                                 </ul>
+                                {% if go_annotations|length > 8 %}
+                                <details class="list-more js-smooth-details">
+                                    <summary>{% blocktrans with count=go_annotations|length|add:"-8" %}Show {{ count }} more{% endblocktrans %}</summary>
+                                    <ul class="annotation-entries">
+                                    {% for go in go_annotations|slice:"8:" %}
+                                        <li class="annotation-entry">
+                                            <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="annotation-entry-id">{{ go.accession }}</a>
+                                            {% if go.name %}<span class="annotation-entry-name" title="{{ go.name }}">{{ go.name }}</span>{% endif %}
+                                        </li>
+                                    {% endfor %}
+                                    </ul>
+                                </details>
+                                {% endif %}
                             </div>
                         {% endif %}
                     </div>
                 {% else %}
                     <p class="tp-state-note tp-state-note--empty">{% trans "No GO or EC annotations are currently loaded for this protein." %}</p>
-                {% endif %}
-            </section>
-
-            <section class="protein-card" id="section-features">
-                <div class="section-head">
-                    <div>
-                        <h2>{% trans "Sequence domains and features" %}</h2>
-                        <p class="section-subtitle">{% trans "Domain and signature matches imported from InterPro and related databases." %}</p>
-                    </div>
-                    <div class="section-tools">
-                        <div class="features-tools-inline">
-                            <span class="tp-chip">{{ features|length }} {% trans "records" %}</span>
-                            {% if features %}
-                                <button
-                                    id="reset-feature-zoom-btn"
-                                    type="button"
-                                    class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon features-reset-btn">
-                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
-                                    <span>{% trans "Reset zoom" %}</span>
-                                </button>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% if features %}
-                    <div class="feature-viewer-shell">
-                        <div id="div2"></div>
-                    </div>
-                    <details class="data-details js-smooth-details">
-                        <summary>
-                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style="flex-shrink:0;opacity:0.6"><rect x="1" y="1" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/><line x1="1" y1="4.5" x2="13" y2="4.5" stroke="currentColor" stroke-width="1.3"/><line x1="5" y1="4.5" x2="5" y2="13" stroke="currentColor" stroke-width="1.3"/></svg>
-                            {% trans "Show feature table" %}
-                        </summary>
-                        <div class="table-shell tp-table-shell">
-                            <table id="features_table" class="table tp-table">
-                                <thead>
-                                <tr>
-                                    <th scope="col">{% trans "Start" %}</th>
-                                    <th scope="col">{% trans "End" %}</th>
-                                    <th scope="col">{% trans "DB" %}</th>
-                                    <th scope="col">{% trans "Term" %}</th>
-                                    <th scope="col">{% trans "Name" %}</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for feature in features %}
-                                    <tr>
-                                        <td>{{ feature.start }}</td>
-                                        <td>{{ feature.end }}</td>
-                                        <td>{{ feature.db }}</td>
-                                        <td>{{ feature.term }}</td>
-                                        <td>{{ feature.name }}</td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </details>
-                {% else %}
-                    <p class="tp-state-note tp-state-note--empty">{% trans "No sequence features are currently loaded for this protein." %}</p>
                 {% endif %}
             </section>
 
@@ -1153,6 +1150,7 @@
 {% block jsloaded %}
     {{ graphic_features|json_script:"seqfeatures" }}
 
+    <script src="{% static 'js/pages/protein-architecture.js' %}?v=20261022"></script>
     <script src="{% static 'js/pages/protein-detail.js' %}?v=20261018-neutral"></script>
     <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20261017-system3"></script>
     <script src="{% static 'js/pages/ngl-shape-registry.js' %}?v=20260720-shaperegistry1"></script>

@@ -12,6 +12,11 @@ from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
 from tpweb.services.structure_summary import pdb_structure
 from tpweb.services.identical_sequences import identical_siblings_for_bioentry
+from tpweb.services.protein_architecture import (
+    build_interpro_architecture,
+    coverage_cells,
+    format_sequence,
+)
 from tpweb.services.shared_sequence_evidence import apply_shared_sequence_evidence
 from tpweb.services.protein_annotations import (
     annotation_dbnames,
@@ -540,6 +545,15 @@ class ProteinView(View):
         if shared_evidence:
             structures.sort(key=lambda link: link.pk not in shared_evidence.curated_structure_ids)
         experimental_structures = _build_experimental_structures(protein, structures)
+        sequence_length = len(proteinDTO["seq"] or "")
+        architecture = build_interpro_architecture(features, sequence_length)
+        structure_coverage = coverage_cells(
+            [
+                (xref.uniprot_start, xref.uniprot_end)
+                for xref in protein.experimental_structure_xrefs.all()
+            ],
+            sequence_length,
+        )
         binders_search_query = request.GET.get("binder_search", "").strip()
         binders = create_binders_dict(
             protein, search_query=binders_search_query, structures=structures
@@ -733,6 +747,9 @@ class ProteinView(View):
             "protein": proteinDTO,
             "predicted_structures": [],
             "features": features,
+            "architecture": architecture,
+            "structure_coverage": structure_coverage,
+            "sequence_lines": format_sequence(proteinDTO["seq"]),
             "annotations": annotations,
             "ec_annotations": ec_all,
             "go_annotations": go_all,

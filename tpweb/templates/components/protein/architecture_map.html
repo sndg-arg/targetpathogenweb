@@ -1,0 +1,58 @@
+{% load i18n l10n %}
+{% comment %}
+Protein architecture map, shared by the pathogen and human protein pages.
+  arch      dict from protein_architecture.build_interpro_architecture or
+            human_protein_summary.build_human_architecture
+  coverage  optional {cells, structures, peak}: structures per stretch
+  outside_label  "Extracellular" (human) or "Periplasmic / outside" (bacteria)
+  filter    True to add the variant filter line (human disease variants)
+Clicking a domain marks its residues in components/protein/sequence_blocks.html.
+{% endcomment %}
+{% localize off %}
+<figure class="ha-map" id="protein-map" aria-label="{% trans 'Protein architecture' %}">
+    {% if filter %}<p class="ha-filter" id="protein-map-filter" hidden><span></span> <button type="button" class="hd-map-link" data-show-disease="">{% trans "Show all variants" %}</button></p>{% endif %}
+    <div class="ha-row ha-row--main">
+        <span class="ha-row-label">{% trans "Architecture" %}</span>
+        <div class="ha-row-track">
+            <span class="ha-backbone" aria-hidden="true"></span>
+            {% for seg in arch.topology %}<span class="ha-topo ha-topo--{{ seg.kind }}" style="left: {{ seg.left }}%; width: {{ seg.width }}%" data-tip="{{ seg.description }} · {{ seg.start }}–{{ seg.end }}"></span>{% endfor %}
+            {% for seg in arch.signal %}<span class="ha-signal" style="left: {{ seg.left }}%; width: {{ seg.width }}%" data-tip="{% trans 'Signal peptide' %} · {{ seg.start }}–{{ seg.end }}"></span>{% endfor %}
+            {% for d in arch.domains %}<button type="button" class="ha-domain{% if d.width < 7 %} is-narrow{% endif %}" style="left: {{ d.left }}%; width: {{ d.width }}%" data-start="{{ d.start }}" data-end="{{ d.end }}" data-tip="{{ d.description }} · {{ d.start }}–{{ d.end }}"><span class="ha-domain-label">{{ d.description }}</span></button>{% endfor %}
+        </div>
+    </div>
+    {% for row in arch.tick_rows %}
+    <div class="ha-row ha-row--{{ row.key }}">
+        <span class="ha-row-label">{{ row.label }} <span class="ha-row-count">{{ row.items|length }}</span></span>
+        <div class="ha-row-track ha-row-track--ticks">
+            {% for t in row.items %}{% if row.kind == "segments" %}<span class="ha-seg" style="left: {{ t.left }}%; width: {{ t.width }}%" data-tip="{{ t.label }} · {{ t.description }} · {{ t.start }}–{{ t.end }}"></span>{% else %}<span class="ha-tick" style="left: {{ t.left }}%" data-tip="{% if t.label %}{{ t.label }}{% else %}{{ t.start }}{% if t.end != t.start %}–{{ t.end }}{% endif %}{% endif %} · {{ t.description }}"{% if t.diseases %} data-diseases="{{ t.diseases|join:' ' }}"{% endif %}></span>{% endif %}{% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+    {% if coverage %}
+    <div class="ha-row">
+        <span class="ha-row-label">{% trans "PDB coverage" %} <span class="ha-row-count">{{ coverage.structures }}</span></span>
+        <div class="ha-row-track ha-coverage">
+            {% for cell in coverage.cells %}{% if cell.count %}<span class="ha-cov ha-cov--{{ cell.level }}" style="left: {{ cell.left }}%; width: {{ cell.width }}%" data-tip="{{ cell.first }}–{{ cell.last }} · {{ cell.count }} structure{{ cell.count|pluralize }}"></span>{% endif %}{% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    <div class="ha-row ha-row--axis" aria-hidden="true">
+        <span class="ha-row-label"></span>
+        <div class="ha-row-track ha-axis">
+            <span style="left: 0%">1</span>
+            {% for tick in arch.ruler %}<span style="left: {{ tick.left }}%">{{ tick.position }}</span>{% endfor %}
+            <span class="ha-axis-end" style="left: 100%">{{ arch.length }}</span>
+        </div>
+    </div>
+    <figcaption class="ha-legend">
+        {% if arch.has_topology %}
+        <span><i class="ha-key ha-key--outside"></i>{{ outside_label|default:_("Extracellular") }}</span>
+        <span><i class="ha-key ha-key--membrane"></i>{% trans "Membrane" %}</span>
+        <span><i class="ha-key ha-key--inside"></i>{% trans "Cytoplasmic" %}</span>
+        {% endif %}
+        {% if arch.signal %}<span><i class="ha-key ha-key--signal"></i>{% trans "Signal peptide" %}</span>{% endif %}
+        {% if arch.domains %}<span><i class="ha-key ha-key--domain"></i>{% if arch.domain_source %}{% blocktrans with db=arch.domain_source %}{{ db }} domain · click to find it in the sequence{% endblocktrans %}{% else %}{% trans "Domain · click to find it in the sequence" %}{% endif %}</span>{% endif %}
+        {% if coverage %}<span><i class="ha-key ha-key--coverage"></i>{% blocktrans with peak=coverage.peak %}PDB structures per stretch (darker = more, up to {{ peak }}){% endblocktrans %}</span>{% endif %}
+    </figcaption>
+</figure>
+{% endlocalize %}

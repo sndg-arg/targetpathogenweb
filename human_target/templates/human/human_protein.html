@@ -11,8 +11,8 @@
     styling this page deliberately reuses verbatim (same markup, same tokens) --
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-live">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261022-prio">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-arch2">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261022-arch2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -440,62 +440,11 @@
                     </button>
                 </div>
                 <textarea id="human-raw-sequence" hidden>{{ sequence.sequence }}</textarea>
-                {% with arch=sequence.architecture %}{% if arch %}
-                {% localize off %}
-                <figure class="ha-map" id="protein-map" aria-label="{% trans 'Protein architecture' %}">
-                    <p class="ha-filter" id="protein-map-filter" hidden><span></span> <button type="button" class="hd-map-link" data-show-disease="">{% trans "Show all variants" %}</button></p>
-                    <div class="ha-row ha-row--main">
-                        <span class="ha-row-label">{% trans "Architecture" %}</span>
-                        <div class="ha-row-track">
-                            <span class="ha-backbone" aria-hidden="true"></span>
-                            {% for seg in arch.topology %}<span class="ha-topo ha-topo--{{ seg.kind }}" style="left: {{ seg.left }}%; width: {{ seg.width }}%" data-tip="{{ seg.description }} · {{ seg.start }}–{{ seg.end }}"></span>{% endfor %}
-                            {% for seg in arch.signal %}<span class="ha-signal" style="left: {{ seg.left }}%; width: {{ seg.width }}%" data-tip="{% trans 'Signal peptide' %} · {{ seg.start }}–{{ seg.end }}"></span>{% endfor %}
-                            {% for d in arch.domains %}<button type="button" class="ha-domain{% if d.width < 7 %} is-narrow{% endif %}" style="left: {{ d.left }}%; width: {{ d.width }}%" data-start="{{ d.start }}" data-end="{{ d.end }}" data-tip="{{ d.description }} · {{ d.start }}–{{ d.end }}"><span class="ha-domain-label">{{ d.description }}</span></button>{% endfor %}
-                        </div>
-                    </div>
-                    {% for row in arch.tick_rows %}
-                    <div class="ha-row ha-row--{{ row.key }}">
-                        <span class="ha-row-label">{{ row.label }} <span class="ha-row-count">{{ row.items|length }}</span></span>
-                        <div class="ha-row-track ha-row-track--ticks">
-                            {% for t in row.items %}<span class="ha-tick" style="left: {{ t.left }}%" data-tip="{% if t.label %}{{ t.label }}{% else %}{{ t.start }}{% if t.end != t.start %}–{{ t.end }}{% endif %}{% endif %} · {{ t.description }}"{% if t.diseases %} data-diseases="{{ t.diseases|join:' ' }}"{% endif %}></span>{% endfor %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                    {% with cov=dossier.pdb_coverage %}{% if cov %}
-                    <div class="ha-row">
-                        <span class="ha-row-label">{% trans "PDB coverage" %} <span class="ha-row-count">{{ cov.structures }}</span></span>
-                        <div class="ha-row-track ha-coverage">
-                            {% for cell in cov.cells %}{% if cell.count %}<span class="ha-cov ha-cov--{{ cell.level }}" style="left: {{ cell.left }}%; width: {{ cell.width }}%" data-tip="{{ cell.first }}–{{ cell.last }} · {{ cell.count }} structure{{ cell.count|pluralize }}"></span>{% endif %}{% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}{% endwith %}
-                    <div class="ha-row ha-row--axis" aria-hidden="true">
-                        <span class="ha-row-label"></span>
-                        <div class="ha-row-track ha-axis">
-                            <span style="left: 0%">1</span>
-                            {% for tick in arch.ruler %}<span style="left: {{ tick.left }}%">{{ tick.position }}</span>{% endfor %}
-                            <span class="ha-axis-end" style="left: 100%">{{ arch.length }}</span>
-                        </div>
-                    </div>
-                    <figcaption class="ha-legend">
-                        {% if arch.has_topology %}
-                        <span><i class="ha-key ha-key--outside"></i>{% trans "Extracellular" %}</span>
-                        <span><i class="ha-key ha-key--membrane"></i>{% trans "Membrane" %}</span>
-                        <span><i class="ha-key ha-key--inside"></i>{% trans "Cytoplasmic" %}</span>
-                        {% endif %}
-                        {% if arch.signal %}<span><i class="ha-key ha-key--signal"></i>{% trans "Signal peptide" %}</span>{% endif %}
-                        {% if arch.domains %}<span><i class="ha-key ha-key--domain"></i>{% trans "Domain · click to find it in the sequence" %}</span>{% endif %}
-                        {% if dossier.pdb_coverage %}<span><i class="ha-key ha-key--coverage"></i>{% blocktrans with peak=dossier.pdb_coverage.peak %}PDB structures per stretch (darker = more, up to {{ peak }}){% endblocktrans %}</span>{% endif %}
-                    </figcaption>
-                </figure>
-                {% endlocalize %}
-                {% endif %}{% endwith %}
+                {% if sequence.architecture %}
+                {% include "components/protein/architecture_map.html" with arch=sequence.architecture coverage=dossier.pdb_coverage filter=True %}
+                {% endif %}
                 {% if sequence.sequence %}
-                <div class="hseq" id="human-sequence" aria-label="{% trans 'Amino-acid sequence' %}">
-                    {% for line in sequence.sequence_lines %}
-                    <div class="hseq-line"><span class="hseq-pos">{{ line.start }}</span>{% for block in line.blocks %}<span class="hseq-block" data-start="{{ block.start }}">{{ block.text }}</span>{% endfor %}</div>
-                    {% endfor %}
-                </div>
+                {% include "components/protein/sequence_blocks.html" with lines=sequence.sequence_lines %}
                 {% else %}
                 <p class="tp-state-note tp-state-note--empty">{% trans "No sequence loaded for this protein." %}</p>
                 {% endif %}
@@ -871,6 +820,7 @@
 
 {% block jsloaded %}
     <script src="{% static 'js/global/quick-nav.js' %}?v=20261022"></script>
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261022-prio"></script>
+    <script src="{% static 'js/pages/protein-architecture.js' %}?v=20261022"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261022-arch2"></script>
     <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261022-premium"></script>
 {% endblock %}
