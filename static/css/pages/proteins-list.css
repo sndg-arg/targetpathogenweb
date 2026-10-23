@@ -56,6 +56,10 @@
     color: var(--tp-color-text-secondary);
 }
 
+.hero-chips + .tp-state-note {
+    margin-top: var(--tp-space-4);
+}
+
 .hero-analysis-value {
     min-width: 0;
     color: var(--tp-color-brand-900);
