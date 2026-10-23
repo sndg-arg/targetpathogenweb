@@ -3,41 +3,47 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260804-fusion2">
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20261021-phone">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% trans "Proteins" as crumb_proteins %}
+        {% trans "Make my own score" as crumb_custom_score %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:genomes_list' as genomes_url %}
+        {% url 'tpwebapp:assembly' genome as assembly_url %}
+        {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
+        {% with genome_label=assembly_label|default:assembly_name %}
+        {% with crumb_genome="Genome: "|add:genome_label %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_custom_score %}
+        {% endwith %}
+        {% endwith %}
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}
-    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <script src="{% static 'js/vendor/htmx-1.9.2.min.js' %}"></script>
 
     <div class="formula-page">
 
         {# ── Hero ── #}
-        <section class="formula-hero">
-            {% trans "Genomes" as crumb_genomes %}
-            {% trans "Proteins" as crumb_proteins %}
-            {% trans "Custom score" as crumb_custom_score %}
-            {% url 'tpwebapp:index' as index_url %}
-            {% url 'tpwebapp:genomes_list' as genomes_url %}
-            {% url 'tpwebapp:assembly' genome as assembly_url %}
-            {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
-            {% with genome_label=assembly_label|default:assembly_name %}
-            {% with crumb_genome="Genome: "|add:genome_label %}
-            {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_custom_score %}
-            {% endwith %}
-            {% endwith %}
-
-            <span class="formula-eyebrow">
+        <section class="tp-page-hero formula-hero">
+            <span class="tp-view-eyebrow formula-eyebrow">
                 <span aria-hidden="true">∫</span>
                 {% trans "Custom scoring · Mathematical formula" %}
             </span>
-            <h1>{% trans "Make my own score" %}</h1>
-            <p class="formula-subtitle">{% trans "Build an optional composite score by combining raw numeric evidence, such as druggability or identity, with binary categorical signals such as essentiality and off-target hits." %}</p>
+            <h1 class="tp-view-title">{% if editing %}{% blocktrans with name=editing.name %}Edit score: {{ name }}{% endblocktrans %}{% else %}{% trans "Make my own score" %}{% endif %}</h1>
+            <p class="tp-view-lead formula-subtitle">{% trans "Build an optional composite score by combining raw numeric evidence, such as druggability or identity, with binary categorical signals such as essentiality and off-target hits." %}</p>
             <div class="formula-chip-group tp-chip-group">
-                <span class="tp-chip tp-chip--meta tp-chip--sm">
+                <span class="tp-chip">
                     <strong>{% trans "Genome" %}:</strong>
                     <span class="formula-chip-id">{{ assembly_label|default:assembly_name }}</span>
                 </span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Supports" %}: <code>+  −  ×  ÷  ^  sqrt  log  exp  abs  max  min</code></span>
+                <span class="tp-chip">{% trans "Supports" %}: <code>+  −  ×  ÷  ^  sqrt  log  exp  abs  max  min</code></span>
             </div>
         </section>
 
@@ -50,6 +56,7 @@
 
         <form id="formula-form" method="POST" novalidate>
         {% csrf_token %}
+        {% if editing %}<input type="hidden" name="editing_pk" value="{{ editing.pk }}">{% endif %}
 
         {# ── Main workbench ── #}
         <section class="formula-workbench">
@@ -58,7 +65,7 @@
             <div class="formula-editor-col">
 
                 {# Name field #}
-                <div class="formula-card formula-card--name tp-ui-panel">
+                <div class="formula-card formula-card--name">
                     <div class="tp-ui-field">
                         <label class="tp-ui-field-label" for="{{ form.formula_name.id_for_label }}">
                             {% trans "Formula name" %}
@@ -68,11 +75,18 @@
                             <p class="formula-field-error">{{ form.formula_name.errors|striptags }}</p>
                         {% endif %}
                     </div>
+                    <div class="tp-ui-field formula-visibility-field">
+                        <label class="tp-ui-field-label" for="{{ form.visibility.id_for_label }}">
+                            {% trans "Who can see this formula" %}
+                        </label>
+                        {{ form.visibility }}
+                        <p class="formula-card-note">{% trans "Change this anytime from Settings without recreating the formula." %}</p>
+                    </div>
                 </div>
 
                 {# Expression editor #}
-                <div class="formula-card formula-card--editor tp-ui-panel">
-                    <div class="formula-card-head tp-ui-panel-head">
+                <div class="formula-card formula-card--editor">
+                    <div class="section-head formula-card-head">
                         <div>
                             <h2>{% trans "Expression" %}</h2>
                             <p class="formula-card-note">{% trans "Write a composite ranking formula. Use raw numeric variables directly, and use categorical variables as 1/0 indicators." %}</p>
@@ -81,13 +95,16 @@
 
                     <div class="tp-ui-field formula-expr-field">
                         {{ form.expression }}
+                        {# Variable autocomplete: filled by the script below as you type. #}
+                        <ul class="formula-autocomplete" id="formula-autocomplete" role="listbox" aria-label="{% trans 'Matching variables' %}" hidden></ul>
+                        <p class="formula-autocomplete-hint">{% trans "Start typing a variable name for suggestions · ↑↓ to choose · Enter or Tab to insert · Esc to close" %}</p>
                         {% if form.expression.errors %}
                             <p class="formula-field-error">{{ form.expression.errors|striptags }}</p>
                         {% endif %}
                         <div class="formula-validation-row">
                             <div id="formula-validation-result"
                                  hx-get="{% url 'tpwebapp:validate_expression' %}"
-                                 hx-trigger="keyup from:#id_expression delay:500ms, change from:#id_expression"
+                                 hx-trigger="{% if form.expression.value %}load, {% endif %}keyup from:#id_expression delay:500ms, change from:#id_expression"
                                  hx-include="#id_expression"
                                  hx-swap="innerHTML">
                                 <span class="formula-valid-badge formula-valid-badge--empty">{% trans "Type an expression above" %}</span>
@@ -104,12 +121,12 @@
                     </div>
 
                     {% if example_formulas %}
-                        <div class="formula-palette formula-palette--examples">
-                            <p class="formula-palette-label">{% trans "Examples" %}</p>
+                        <details class="formula-palette formula-palette--examples">
+                            <summary class="formula-palette-label">{% trans "Examples" %}</summary>
                             <div class="formula-palette-chips">
                                 {% for example in example_formulas %}
                                     <button type="button"
-                                            class="formula-example-chip"
+                                            class="tp-chip tp-chip--link formula-example-chip"
                                             data-example="{{ example.expression }}"
                                             data-desc="{{ example.desc }}"
                                             aria-label="{{ example.desc }}">
@@ -118,33 +135,33 @@
                                     </button>
                                 {% endfor %}
                             </div>
-                        </div>
+                        </details>
                     {% endif %}
 
                     {# Function palette #}
-                    <div class="formula-palette formula-palette--funcs">
-                        <p class="formula-palette-label">{% trans "Functions" %}</p>
+                    <details class="formula-palette formula-palette--funcs">
+                        <summary class="formula-palette-label">{% trans "Functions" %}</summary>
                         <div class="formula-palette-chips">
                             {% for fn in safe_functions %}
                                 <button type="button"
-                                        class="formula-fn-chip"
+                                        class="tp-chip tp-chip--code formula-fn-chip"
                                         data-insert="{{ fn.insert }}"
                                         title="{{ fn.desc }}">{{ fn.label }}</button>
                             {% endfor %}
                         </div>
-                    </div>
+                    </details>
 
                     {# Operator shortcuts #}
                     <div class="formula-palette formula-palette--ops">
                         <p class="formula-palette-label">{% trans "Operators" %}</p>
                         <div class="formula-palette-chips">
-                            <button type="button" class="formula-op-chip" data-insert=" + ">+</button>
-                            <button type="button" class="formula-op-chip" data-insert=" - ">−</button>
-                            <button type="button" class="formula-op-chip" data-insert=" * ">×</button>
-                            <button type="button" class="formula-op-chip" data-insert=" / ">÷</button>
-                            <button type="button" class="formula-op-chip" data-insert=" ** ">^</button>
-                            <button type="button" class="formula-op-chip" data-insert="(">( </button>
-                            <button type="button" class="formula-op-chip" data-insert=")"> )</button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert=" + ">+</button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert=" - ">−</button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert=" * ">×</button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert=" / ">÷</button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert=" ** ">^</button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert="(">( </button>
+                            <button type="button" class="tp-chip tp-chip--code formula-op-chip" data-insert=")"> )</button>
                         </div>
                     </div>
                 </div>
@@ -153,11 +170,12 @@
 
             {# ─── Right column: variable palette ─── #}
             <div class="formula-vars-col">
-                <div class="formula-card formula-card--vars tp-ui-panel">
-                    <div class="formula-card-head tp-ui-panel-head">
+                <div class="formula-card formula-card--vars">
+                    <div class="section-head formula-card-head">
                         <div>
                             <h2>{% trans "Variables" %}</h2>
                             <p class="formula-card-note">{% trans "Click any variable to insert it. Numeric variables keep their raw value; categorical variables are 1.0 when true and 0.0 otherwise." %}</p>
+                            <p class="formula-card-note">{% trans "Numeric variables use different scales (the tag shows which: %, 0–1, 0–100, count, e-value). Rescale before adding them, e.g. human_identity / 100, or one variable will dominate the score." %}</p>
                             <p class="formula-card-note">{% trans "Large text categories, such as individual structure IDs, are hidden here because they are better used as filters than score terms." %}</p>
                         </div>
                     </div>
@@ -172,37 +190,44 @@
                     <div class="formula-var-groups" id="formula-var-groups">
                         {% if variable_groups %}
                             {% for category, vars in variable_groups.items %}
-                                <div class="formula-var-group" data-category="{{ category }}">
-                                    <p class="formula-var-group-label">{{ category }}</p>
+                                <details class="formula-var-group" data-category="{{ category }}"{% if forloop.first %} open{% endif %}>
+                                    <summary class="formula-var-group-label">{{ category }} <span class="formula-var-group-count">{{ vars|length }}</span></summary>
                                     <div class="formula-var-chips">
                                         {% for v in vars %}
                                             <button type="button"
-                                                    class="formula-var-chip formula-var-chip--{{ v.kind|default:'categorical' }}"
+                                                    class="tp-chip tp-chip--code formula-var-chip"
                                                     data-var="{{ v.var }}"
                                                     data-desc="{{ v.desc }}"
-                                                    aria-label="{{ v.desc }}">
+                                                    title="{{ v.desc }}"
+                                                    aria-label="{{ v.var }}: {{ v.desc }}">
                                                 <span class="formula-var-name">{{ v.var }}</span>
                                                 <span class="formula-var-kind">
-                                                    {% if v.kind == "numeric" %}{% trans "numeric" %}{% else %}{% trans "0/1" %}{% endif %}
+                                                    {% if v.kind == "numeric" %}{{ v.scale|default:_("numeric") }}{% else %}{% trans "0/1" %}{% endif %}
                                                 </span>
                                             </button>
                                         {% endfor %}
                                     </div>
-                                </div>
+                                </details>
                             {% endfor %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty">{% trans "No scoring parameters available." %}</p>
                         {% endif %}
                     </div>
+                    {% if hidden_variables %}
+                        <p class="formula-card-note formula-hidden-vars">
+                            {% trans "Your uploaded columns not offered here, because they have too many different values to score (use them in Filters instead):" %}
+                            {% for h in hidden_variables %}<span class="formula-hidden-var">{{ h.param }}</span> ({% blocktrans count n=h.options %}{{ n }} value{% plural %}{{ n }} values{% endblocktrans %}){% if not forloop.last %}, {% endif %}{% endfor %}.
+                        </p>
+                    {% endif %}
                 </div>
             </div>
 
         </section>
 
         {# ── Footer ── #}
-        <section class="formula-footer tp-ui-panel">
+        <section class="formula-footer">
             <div class="formula-footer-copy">
-                <p class="formula-footer-title">{% trans "Save and apply" %}</p>
+                <p class="formula-footer-title">{% if editing %}{% trans "Save changes and apply" %}{% else %}{% trans "Save and apply" %}{% endif %}</p>
                 <p class="formula-footer-note">{% trans "Saves this formula and takes you to the protein list ranked by your score." %}</p>
             </div>
             <div class="formula-footer-actions">
@@ -212,9 +237,9 @@
                     <span>{% trans "Save scoring formula" %}</span>
                 </button>
                 <button type="submit" form="formula-form" name="reset_process" value="true"
-                        class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon">
+                        class="btn tp-btn tp-btn--danger tp-btn-with-icon">
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
-                    <span>{% trans "Reset" %}</span>
+                    <span>{% trans "Clear editor" %}</span>
                 </button>
             </div>
         </section>
@@ -293,8 +318,112 @@
                         if (match) anyVisible = true;
                     });
                     group.style.display = anyVisible ? "" : "none";
+                    // Collapsed groups open while searching so matches are visible.
+                    if (q && anyVisible) group.open = true;
                 });
             });
+        }
+
+        // ── Variable autocomplete ─────────────────────────────────────────
+        // Suggests variables (from the palette chips, so it always matches
+        // what this user can actually use) for the identifier being typed.
+        const acList = document.getElementById("formula-autocomplete");
+        const AC_MAX = 8;
+        const acVars = Array.from(document.querySelectorAll(".formula-var-chip[data-var]")).map(chip => ({
+            name: chip.dataset.var,
+            desc: chip.dataset.desc || "",
+            kind: chip.querySelector(".formula-var-kind")?.textContent.trim() || "",
+        }));
+        let acItems = [];
+        let acIndex = -1;
+        let acSuppress = false;
+
+        function currentToken() {
+            const upto = textarea.value.slice(0, textarea.selectionStart);
+            const match = upto.match(/[A-Za-z_][A-Za-z0-9_]*$/);
+            return match ? match[0] : "";
+        }
+
+        function closeAutocomplete() {
+            if (!acList) return;
+            acList.hidden = true;
+            acList.innerHTML = "";
+            acItems = [];
+            acIndex = -1;
+        }
+
+        function highlight(index) {
+            acIndex = index;
+            Array.from(acList.children).forEach((li, i) => {
+                li.classList.toggle("is-active", i === index);
+                li.setAttribute("aria-selected", i === index ? "true" : "false");
+            });
+        }
+
+        function acceptSuggestion(index) {
+            const item = acItems[index];
+            if (!item) return;
+            const token = currentToken();
+            const start = textarea.selectionStart - token.length;
+            textarea.setSelectionRange(start, textarea.selectionStart);
+            acSuppress = true;
+            insertAtCursor(item.name);
+            acSuppress = false;
+            closeAutocomplete();
+        }
+
+        function updateAutocomplete() {
+            if (!acList || !textarea || acSuppress) return;
+            const token = currentToken().toLowerCase();
+            if (token.length < 2) { closeAutocomplete(); return; }
+            const starts = acVars.filter(v => v.name.toLowerCase().startsWith(token));
+            const contains = acVars.filter(v => !v.name.toLowerCase().startsWith(token)
+                && (v.name.toLowerCase().includes(token) || v.desc.toLowerCase().includes(token)));
+            acItems = starts.concat(contains).slice(0, AC_MAX);
+            if (!acItems.length || (acItems.length === 1 && acItems[0].name.toLowerCase() === token)) {
+                closeAutocomplete();
+                return;
+            }
+            acList.innerHTML = "";
+            acItems.forEach((item, i) => {
+                const li = document.createElement("li");
+                li.className = "formula-autocomplete-item";
+                li.setAttribute("role", "option");
+                const name = document.createElement("code");
+                name.textContent = item.name;
+                const kind = document.createElement("span");
+                kind.className = "formula-autocomplete-kind";
+                kind.textContent = item.kind;
+                li.append(name, kind);
+                if (item.desc) li.title = item.desc;
+                li.addEventListener("mousedown", event => {
+                    event.preventDefault();
+                    acceptSuggestion(i);
+                });
+                acList.appendChild(li);
+            });
+            acList.hidden = false;
+            highlight(0);
+        }
+
+        if (textarea && acList) {
+            textarea.addEventListener("input", updateAutocomplete);
+            textarea.addEventListener("keydown", event => {
+                if (acList.hidden) return;
+                if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    highlight((acIndex + 1) % acItems.length);
+                } else if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    highlight((acIndex - 1 + acItems.length) % acItems.length);
+                } else if (event.key === "Enter" || event.key === "Tab") {
+                    event.preventDefault();
+                    acceptSuggestion(acIndex);
+                } else if (event.key === "Escape") {
+                    closeAutocomplete();
+                }
+            });
+            textarea.addEventListener("blur", () => window.setTimeout(closeAutocomplete, 120));
         }
 
         // ── Pretty-print expression (no external dependencies) ───────────

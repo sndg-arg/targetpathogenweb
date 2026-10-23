@@ -1,0 +1,163 @@
+/* Printable protein report (search/protein_report.html).
+   Layout follows the site's fused editorial standard: no stacked cards,
+   sections sit on the page background separated by hairlines, 18px text
+   inset shared by every section (same as .genome-hero / Proteins). Tables
+   reuse the shared .tp-table--premium styling. When printed, only the
+   report is kept. */
+
+.protein-report {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+}
+
+.protein-report > section {
+    padding: var(--tp-space-5) var(--tp-space-5);
+}
+
+.protein-report > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.protein-report-chips {
+    margin-top: var(--tp-space-3);
+}
+
+.protein-report-section h2 {
+    margin: 0 0 var(--tp-space-3);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-lg);
+    font-weight: 600;
+}
+
+.protein-report-note {
+    margin: 0 0 var(--tp-space-3);
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-muted);
+}
+
+.protein-report-criteria {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--tp-space-3) var(--tp-space-6);
+    margin: 0;
+}
+
+.protein-report-criteria dt {
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+}
+
+.protein-report-criteria dd {
+    margin: 2px 0 0;
+    font-size: var(--tp-font-size-sm);
+}
+
+.protein-report-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--tp-color-border);
+    border-radius: var(--tp-radius-md);
+}
+
+.protein-report-table {
+    margin: 0;
+    font-size: var(--tp-font-size-xs);
+}
+
+/* Cells wrap only between words (GO/EC lists break after their commas);
+   identifiers like VK055_0242 or 1.7.5.1 are never split mid-token. */
+.protein-report-table td {
+    vertical-align: top;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.protein-report-table th {
+    white-space: nowrap;
+}
+
+.protein-report-table:not(.protein-report-table--sources) td:nth-child(1),
+.protein-report-table:not(.protein-report-table--sources) td:nth-child(2) {
+    white-space: nowrap;
+}
+
+.protein-report-table:not(.protein-report-table--sources) td:nth-child(3) {
+    min-width: 180px;
+}
+
+.protein-report-table--sources td:first-child {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.protein-report-references {
+    margin: 0 0 var(--tp-space-3);
+    padding-left: var(--tp-space-5);
+    font-size: var(--tp-font-size-sm);
+}
+
+.protein-report-references li + li {
+    margin-top: var(--tp-space-1);
+}
+
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    .protein-report,
+    .protein-report * {
+        visibility: visible;
+    }
+
+    .protein-report {
+        position: absolute;
+        inset: 0 auto auto 0;
+        width: 100%;
+        color-scheme: light;
+    }
+
+    /* Dark-mode text tokens are light; paper is white. CanvasText is the
+       light scheme's system text color (black), not a hardcoded value. */
+    .protein-report,
+    .protein-report * {
+        color: CanvasText !important;
+    }
+
+    .protein-report > section {
+        padding: var(--tp-space-3) 0;
+    }
+
+    .protein-report-actions {
+        display: none !important;
+    }
+
+    .protein-report-table-wrap {
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+    }
+
+    .protein-report-table {
+        font-size: var(--tp-font-size-2xs);
+    }
+
+    .protein-report-table thead {
+        display: table-header-group;
+    }
+
+    .protein-report-table tr {
+        break-inside: avoid;
+    }
+
+    .protein-report-section--sources {
+        break-before: page;
+    }
+}

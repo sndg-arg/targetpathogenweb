@@ -246,7 +246,32 @@ branch-protected: a PR can't be merged until that check passes.
 
 ## Cluster Deployment
 
-See [docs/CLUSTER_DEPLOY.md](docs/CLUSTER_DEPLOY.md). Minimal flow:
+Production runs on the QB FCEN UBA cluster (node **Nodo0**) and is served at
+https://target2.infra.cluster.qb.fcen.uba.ar/. Pushing to GitHub does not update it —
+someone has to pull and rebuild on Nodo0. Full runbook (rules for Nodo0, logs, SLURM,
+large-file transfers): [docs/CLUSTER_DEPLOY.md](docs/CLUSTER_DEPLOY.md).
+
+Get onto Nodo0:
+
+```bash
+ssh agutson@cluster.qb.fcen.uba.ar
+su glyco
+ssh nodo0
+sudo su dockeradmin
+cd ~/targetpathogenweb
+```
+
+Update the live site from the `misc-fixes` branch:
+
+```bash
+cd ~/targetpathogenweb
+git pull origin misc-fixes
+make build ENV=cluster
+make up ENV=cluster
+make migrate ENV=cluster
+```
+
+First-time install on a fresh node:
 
 ```bash
 cp .env.cluster.example .env

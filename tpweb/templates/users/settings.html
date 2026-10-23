@@ -1,0 +1,129 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261018-subtitles">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% url 'tpwebapp:index' as index_url %}
+        {% trans "Settings" as crumb_settings %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_settings %}
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="settings-page">
+
+    <section class="tp-page-hero settings-hero">
+        <h1 class="tp-view-title">{% trans "Settings" %}</h1>
+        <p class="tp-view-lead settings-hero-description">{% trans "Everything you create is private until you share it. Pick who can see each formula and each uploaded column." %}</p>
+        <dl class="settings-legend">
+            <div><dt>{% trans "Only me" %}</dt><dd>{% trans "nobody else sees it" %}</dd></div>
+            <div>{% if gates_viewer %}<dt>{% trans "Gates members" %}</dt><dd>{% trans "accounts approved for the Gates project" %}</dd>{% else %}<dt>{% trans "Project members" %}</dt><dd>{% trans "accounts approved for the project" %}</dd>{% endif %}</div>
+            <div><dt>{% trans "Everyone" %}</dt><dd>{% trans "every signed-in user who can see that genome" %}</dd></div>
+        </dl>
+    </section>
+
+    <section class="settings-section">
+        <h2 class="tp-section-title settings-section-title">{% trans "My scoring formulas" %} <span class="settings-count">{{ my_formula_rows|length }}</span></h2>
+        {% if my_formula_rows %}
+        <ul class="settings-rows">
+            {% for row in my_formula_rows %}{% include "users/_settings_formula_row.html" with show_delete=True %}{% endfor %}
+        </ul>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty settings-empty">{% trans "You haven't made a formula of your own yet. Build one with Make my own score from any genome's protein list. The built-in formulas (Druggability, Localization) are already available to everyone." %}</p>
+        {% endif %}
+    </section>
+
+    <section class="settings-section">
+        <h2 class="tp-section-title settings-section-title">{% trans "My uploaded data" %} <span class="settings-count">{{ my_param_rows|length }}</span></h2>
+        {% if my_param_rows %}
+        <ul class="settings-rows">
+            {% for row in my_param_rows %}{% include "users/_settings_column_row.html" with show_delete=True %}{% endfor %}
+        </ul>
+        <p class="settings-note">{% trans "A shared column shows up for others as an extra option under Columns, Filters and Make my own score on that genome. Deleting it removes it for everyone." %}</p>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty settings-empty">{% trans "You haven't uploaded data yet. Use Add my own data from any genome's protein list." %}</p>
+        {% endif %}
+    </section>
+
+    {% if is_superuser_view %}
+    <section class="settings-section">
+        <p class="tp-view-eyebrow">{% trans "Admin only" %}</p>
+        <h2 class="tp-section-title settings-section-title">{% trans "Everyone's formulas and data" %}</h2>
+        <p class="section-subtitle settings-section-description">{% trans "Read-only: only the owner can change who sees their formulas and data. Built-in formula copies are left out." %}</p>
+
+        <h3 class="settings-subtitle">{% trans "Shared right now" %} <span class="settings-count">{{ shared_total }}</span></h3>
+        {% if shared_formula_rows or shared_param_rows %}
+        <ul class="settings-rows">
+            {% for row in shared_formula_rows %}{% include "users/_settings_formula_row.html" with show_owner=True readonly=True %}{% endfor %}
+            {% for row in shared_param_rows %}{% include "users/_settings_column_row.html" with show_owner=True readonly=True %}{% endfor %}
+        </ul>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty settings-empty">{% trans "Nothing is shared right now." %}</p>
+        {% endif %}
+
+        <h3 class="settings-subtitle">{% trans "By user" %} <span class="settings-count">{{ user_groups|length }}</span></h3>
+        {% if user_groups %}
+        <div class="settings-users">
+            {% for group in user_groups %}
+            <details class="settings-user">
+                <summary>
+                    <span class="settings-user-name">{{ group.label }}</span>
+                    <span class="settings-item-meta">
+                        {% blocktrans count total=group.formulas|length %}{{ total }} formula{% plural %}{{ total }} formulas{% endblocktrans %}
+                        · {% blocktrans count total=group.columns|length %}{{ total }} column{% plural %}{{ total }} columns{% endblocktrans %}
+                        {% if group.shared_count %}· <strong>{% blocktrans count total=group.shared_count %}{{ total }} shared{% plural %}{{ total }} shared{% endblocktrans %}</strong>{% endif %}
+                    </span>
+                </summary>
+                <ul class="settings-rows">
+                    {% for row in group.formulas %}{% include "users/_settings_formula_row.html" with readonly=True %}{% endfor %}
+                    {% for row in group.columns %}{% include "users/_settings_column_row.html" with readonly=True %}{% endfor %}
+                </ul>
+            </details>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty settings-empty">{% trans "No one has made a formula or uploaded data yet." %}</p>
+        {% endif %}
+    </section>
+
+    <section class="settings-section">
+        <p class="tp-view-eyebrow">{% trans "Admin only" %}</p>
+        <h2 class="tp-section-title settings-section-title">{% trans "Restricted genomes" %} <span class="settings-count">{{ restricted_genomes|length }}</span></h2>
+        <p class="section-subtitle settings-section-description">
+            {% url 'tpwebapp:genomes_list' as genomes_url %}
+            {% if gates_viewer %}{% blocktrans %}Only Gates members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% else %}{% blocktrans %}Only project members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% endif %}
+        </p>
+        {% if restricted_genomes %}
+        <ul class="settings-rows">
+            {% for entry in restricted_genomes %}
+            <li class="settings-row">
+                <div class="settings-row-main">
+                    <span class="settings-item-name">{{ entry.label }}</span>
+                    <span class="settings-item-meta">{% trans "Restricted by" %} {{ entry.obj.restricted_by.name|default:entry.obj.restricted_by.get_username|default:"—" }}</span>
+                </div>
+                <div class="settings-row-controls">
+                    <form method="post" action="{% url 'tpwebapp:settings' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="unrestrict_genome">
+                        <input type="hidden" name="genome_name" value="{{ entry.obj.genome_name }}">
+                        <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Unrestrict" %}</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty settings-empty">{% trans "No restricted genomes." %}</p>
+        {% endif %}
+    </section>
+    {% endif %}
+
+</div>
+{% endblock %}

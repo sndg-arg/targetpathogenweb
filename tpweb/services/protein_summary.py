@@ -13,13 +13,13 @@ from django.core.cache import cache
 from django.urls import reverse
 
 from bioseq.models.Biodatabase import Biodatabase
-from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.Metabolism import GeneReactionLink, MetabolicImportRun, ReactionParticipant
 from tpweb.services.assembly_workspace import OVERVIEW_CACHE_TTL_SECONDS
 from tpweb.services.binder_summary import create_binders_dict
 from tpweb.services.metabolism_summary import build_target_metabolic_sentence
 from tpweb.services.genome_workspace import genome_url_slug
+from tpweb.services.score_params import GATES_METABOLIC_HELP
 from tpweb.services.structure_sources import (
     STRUCTURE_SOURCE_EXPERIMENTAL,
     STRUCTURE_SOURCE_MIXED,
@@ -93,7 +93,7 @@ _SCORE_META = [
         "localization",
         [],
         [],
-        "Predicted subcellular localization by PSORTb. Extracellular and outer-membrane proteins are preferred as drug targets.",
+        "Predicted subcellular localization by PSORTb. Whether a compartment favors a target depends on the project (e.g. drug access vs. intracellular function).",
     ),
     (
         "colabfold_plddt",
@@ -138,7 +138,7 @@ def p2rank_label(value):
 
     Same shape as druggability_label but P2Rank's own thresholds (high >= 0.5,
     medium 0.2-0.49 -- see the "Probability: high >= 0.5..." hint in
-    pocket_cards.html and p2rank_probability_color in StructureView.py),
+    pocket_cards.html and p2rank_probability_color in structure_summary.py),
     since P2Rank's probability scale isn't calibrated the same as FPocket's
     druggability score."""
     if value is None:
@@ -178,6 +178,8 @@ def build_target_profile(raw_scores, microbiome_context=None):
         else:
             tone = "neutral"
         display = val.replace("_", " ").replace("no hit", "No hit").replace("no_hit", "No hit")
+        if display in {"Y", "N"}:
+            display = "Yes" if display == "Y" else "No"
         display_kind = ""
         percentage = None
         if name == "gut_microbiome_offtarget" and microbiome_context:
@@ -196,6 +198,10 @@ def build_target_profile(raw_scores, microbiome_context=None):
                 continue
         items.append(
             {
+                # Score name, so the template can pick bars/scales by key
+                # instead of by the display label (renaming a label used to
+                # silently drop its bar).
+                "key": name,
                 "label": label,
                 "value": display,
                 "tone": tone,
@@ -368,8 +374,8 @@ _pocket_reference_cache = None
 def _pocket_reference_rows():
     """Cached module-level lookup for the FPocket druggability Property/ResidueSet rows
     used by _resolve_fpocket_structure_by_max_score -- same always-the-same-rows
-    rationale as StructureView._pdb_reference_rows, kept local to this module rather
-    than imported from a view (CLAUDE.md: views delegate to services, not the reverse)."""
+    rationale as structure_summary._pdb_reference_rows, kept local to this module
+    since it only needs 2 of that function's 6 rows."""
     global _pocket_reference_cache
     if _pocket_reference_cache is None:
         from tpweb.models.pdb import Property, ResidueSet
@@ -411,6 +417,8 @@ def _resolve_fpocket_structure_by_max_score(structures):
         "code": best_rs.pdb.code,
         "source": source_key,
         "label": structure_source_label(source_key),
+        "pocket": best_rs.name or "",
+        "pdb_id": best_rs.pdb.id,
     }
 
 
@@ -532,6 +540,37 @@ def build_conservation_profile(raw_scores):
         "is_core": roary and corecruncher,
         "roary_label": "core" if roary else "accessory",
         "corecruncher_label": "core" if corecruncher else "accessory",
+    }
+
+
+# Maps the Gates-project curated metabolic analysis' priority label (tpweb/management/
+# commands/load_gates_metabolic_score.py) to one of the site's semantic tone
+# tokens, for the badge color on the protein page's evidence card.
+_GATES_PRIORITY_TONES = {
+    "Priority target": "success",
+    "Second priority targets": "warning",
+    "Non-priority target": "idle",
+}
+
+
+def build_gates_metabolic_priority(raw_scores):
+    """The Gates-project curated metabolic priority score (S_gene,
+    reaction_support, n_reactions, quadrant, priority) -- a curated
+    replacement for the automatic BioCyc/Pathway Tools metrics in
+    build_metabolic_context, only loaded for KP13/ATCC43816 so far
+    (see load_gates_metabolic_score)."""
+    priority = _raw_score(raw_scores, "priority")
+    quadrant = _raw_score(raw_scores, "quadrant")
+    if not priority and not quadrant:
+        return None
+    return {
+        "priority": priority,
+        "quadrant": quadrant,
+        "tone": _GATES_PRIORITY_TONES.get(priority, "idle"),
+        "s_gene": _format_score_value(_raw_score(raw_scores, "S_gene")),
+        "reaction_support": _format_score_value(_raw_score(raw_scores, "reaction_support")),
+        "n_reactions": _raw_score(raw_scores, "n_reactions"),
+        "help": GATES_METABOLIC_HELP,
     }
 
 
@@ -726,6 +765,417 @@ def _append_summary_item(
     )
 
 
+_EVIDENCE_KIND_ORDER = ("metabolic", "structural", "chemical", "selectivity", "conservation")
+
+
+def _summary_evidence_kind(item):
+    anchor = item.get("anchor") or ""
+    label = (item.get("label") or "").lower()
+    if anchor == "#section-metabolic-context":
+        return "metabolic"
+    if anchor == "#section-binders":
+        return "chemical"
+    if anchor == "#section-structure" or "pocket" in label:
+        return "structural"
+    if label.startswith("no similar"):
+        return "selectivity"
+    if label.startswith("core gene"):
+        return "conservation"
+    return None
+
+
+def _summary_evidence_kinds(strengths):
+    found = {_summary_evidence_kind(item) for item in strengths}
+    return [kind for kind in _EVIDENCE_KIND_ORDER if kind in found]
+
+
+def _join_evidence_kinds(kinds):
+    if not kinds:
+        return "supporting"
+    if len(kinds) == 1:
+        return kinds[0]
+    return ", ".join(kinds[:-1]) + " and " + kinds[-1]
+
+
+def _float_or_none(value):
+    try:
+        return float(str(value).replace(",", "."))
+    except (TypeError, ValueError):
+        return None
+
+
+# PSORTb's compartment names, as read on the page.
+_ENVELOPE_LABELS = {
+    "cytoplasmic": "Cytoplasm",
+    "cytoplasmicmembrane": "Inner (cytoplasmic) membrane",
+    "periplasmic": "Periplasm",
+    "outermembrane": "Outer membrane",
+    "extracellular": "Extracellular",
+    "cellwall": "Cell wall",
+    "unknown": "Unknown",
+}
+
+# PSORTb compartments -> parts of the bacterial cell diagram that light up.
+_ENVELOPE_PARTS = {
+    "cytoplasmic": ["cytoplasm"],
+    "cytoplasmicmembrane": ["membrane"],
+    "periplasmic": ["periplasm"],
+    "outermembrane": ["outermembrane"],
+    "extracellular": ["extracellular"],
+    "cellwall": ["outermembrane"],
+}
+
+
+def build_localization(target_profile):
+    """PSORTb localization for the bacterial cell diagram: the reported value
+    and the diagram parts it lights up (none for "Unknown")."""
+    item = _profile_item(target_profile, "Localization")
+    if not item or not item.get("value"):
+        return None
+    value = str(item["value"]).strip()
+    key = value.lower().replace(" ", "").replace("_", "")
+    return {
+        "value": _ENVELOPE_LABELS.get(key, value),
+        "parts": _ENVELOPE_PARTS.get(key, []),
+        "tooltip": item.get("tooltip", ""),
+    }
+
+
+def _profile_item(target_profile, key):
+    return next((item for item in target_profile or [] if item.get("key") == key), None)
+
+
+def build_prioritization(
+    raw_scores,
+    target_profile,
+    selected_pocket_evidence,
+    conservation_profile,
+    microbiome_context,
+    gates_metabolic_priority,
+):
+    """ "Prioritization evidence" as separate questions, each with a verdict
+    (tone = success / warning / idle, the design-system chip variants), plus the
+    structural block kept apart: one row per structure source with its model
+    confidence and best pocket per tool."""
+    groups = []
+
+    # Essentiality
+    essential = _profile_item(target_profile, "hit_in_deg")
+    if essential:
+        identity = _profile_item(target_profile, "deg_identity")
+        evalue = _profile_item(target_profile, "deg_evalue")
+        is_essential = essential["tone"] == "good"
+        items = [
+            {
+                "label": "Essential (DEG)",
+                "kind": "chip",
+                "value": essential["value"],
+                "tone": "success" if is_essential else "",
+                "note": "Match in the Database of Essential Genes."
+                if is_essential
+                else "No match in the Database of Essential Genes.",
+                "key": "hit_in_deg",
+            }
+        ]
+        if identity:
+            items.append(
+                {
+                    "label": "Identity to closest essential gene",
+                    "kind": "bar",
+                    "value": f"{identity['value']}%",
+                    "percent": _float_or_none(identity["value"]) or 0,
+                    "note": "Higher values support similarity to known essential genes.",
+                    "key": "deg_identity",
+                }
+            )
+        if evalue:
+            items.append(
+                {
+                    "label": "DEG E-value",
+                    "kind": "number",
+                    "value": evalue["value"],
+                    "note": "Smaller values mean stronger essential-gene similarity.",
+                    "key": "deg_evalue",
+                }
+            )
+        groups.append(
+            {
+                "key": "essentiality",
+                "title": "Essentiality",
+                "question": "Does the pathogen need this gene to survive?",
+                "verdict": "Essential" if is_essential else "Not essential",
+                "summary": "Essential",
+                "summary_value": "Yes" if is_essential else "No",
+                "tone": "success" if is_essential else "warning",
+                "items": items,
+            }
+        )
+
+    # Metabolism (curated)
+    gates = gates_metabolic_priority
+    if gates:
+        items = [
+            {
+                "label": "Priority tier",
+                "kind": "chip",
+                "value": gates["priority"] or "—",
+                "tone": gates["tone"] if gates["tone"] != "idle" else "",
+                "note": gates["quadrant"] or "",
+                "tooltip": gates["help"].get("priority", ""),
+            }
+        ]
+        for label, field, help_key in (
+            ("Gene support", "s_gene", "S_gene"),
+            ("Reaction support", "reaction_support", "reaction_support"),
+        ):
+            value = _float_or_none(gates[field])
+            if value is not None:
+                items.append(
+                    {
+                        "label": label,
+                        "kind": "bar",
+                        "value": gates[field],
+                        "percent": max(0.0, min(100.0, value * 100)),
+                        "note": "Score from 0 to 1.",
+                        "tooltip": gates["help"].get(help_key, ""),
+                    }
+                )
+        if gates["n_reactions"]:
+            items.append(
+                {
+                    "label": "Reactions",
+                    "kind": "number",
+                    "value": gates["n_reactions"],
+                    "note": "Reactions this gene takes part in.",
+                    "tooltip": gates["help"].get("n_reactions", ""),
+                }
+            )
+        groups.append(
+            {
+                "key": "metabolism",
+                "title": "Metabolism",
+                "question": "How strongly does the curated metabolic model support it?",
+                "verdict": gates["priority"] or "Not classified",
+                "summary": "Metabolic",
+                "summary_value": gates["priority"] or "—",
+                "tone": {"success": "success", "warning": "warning"}.get(gates["tone"], "idle"),
+                "items": items,
+                "badge": "Curated",
+            }
+        )
+
+    # Conservation
+    if conservation_profile:
+        both = conservation_profile["roary"] == conservation_profile["corecruncher"]
+        groups.append(
+            {
+                "key": "conservation",
+                "title": "Conservation",
+                "question": "Is the gene present in every strain analyzed?",
+                "verdict": "Core gene" if conservation_profile["is_core"] else "Accessory gene",
+                "summary": "Conservation",
+                "summary_value": "Core" if conservation_profile["is_core"] else "Accessory",
+                "tone": "success" if conservation_profile["is_core"] else "warning",
+                "items": [
+                    {
+                        "label": "Roary",
+                        "kind": "chip",
+                        "value": conservation_profile["roary_label"].capitalize(),
+                        "tone": "success" if conservation_profile["roary"] else "",
+                        "note": "Core = present in at least 99% of the genomes.",
+                        "key": "core_roary",
+                    },
+                    {
+                        "label": "CoreCruncher",
+                        "kind": "chip",
+                        "value": conservation_profile["corecruncher_label"].capitalize(),
+                        "tone": "success" if conservation_profile["corecruncher"] else "",
+                        "note": "Stricter check that adds phylogenetic evidence.",
+                        "key": "core_corecruncher",
+                    },
+                    {
+                        "label": "Agreement",
+                        "kind": "chip",
+                        "value": "Both tools agree" if both else "Tools disagree",
+                        "tone": "success" if both else "warning",
+                        "note": "A gene counts as core only when both say so.",
+                    },
+                ],
+            }
+        )
+
+    # Off-target risk
+    human = _profile_item(target_profile, "human_offtarget")
+    human_identity = _profile_item(target_profile, "human_identity")
+    if human or microbiome_context:
+        items = []
+        human_hit = bool(human and human["tone"] == "bad")
+        if human:
+            items.append(
+                {
+                    "label": "Human proteins",
+                    "kind": "chip",
+                    "value": human["value"],
+                    "tone": "danger"
+                    if human_hit
+                    else ("success" if human["tone"] == "good" else ""),
+                    "note": "Significant human homolog in the BLAST screen."
+                    if human_hit
+                    else "No significant human homolog in the BLAST screen.",
+                    "key": "human_offtarget",
+                }
+            )
+        if human_identity:
+            items.append(
+                {
+                    "label": "Identity to human homolog",
+                    "kind": "bar",
+                    "value": f"{human_identity['value']}%",
+                    "percent": _float_or_none(human_identity["value"]) or 0,
+                    "note": "Lower values reduce human off-target concern.",
+                    "key": "human_identity",
+                }
+            )
+        microbiome_pct = (microbiome_context or {}).get("percentage")
+        if microbiome_context and microbiome_pct is not None:
+            items.append(
+                {
+                    "label": "Gut microbiome",
+                    "kind": "bar",
+                    "value": f"{microbiome_pct}%",
+                    "detail": f"{microbiome_context['count'] or 0} of {microbiome_context['total']} genomes",
+                    "percent": microbiome_pct,
+                    "note": "Share of screened gut genomes with a similar protein. Lower is better.",
+                    "key": "gut_microbiome_offtarget",
+                }
+            )
+        high_microbiome = microbiome_pct is not None and microbiome_pct >= 25
+        groups.append(
+            {
+                "key": "off_target",
+                "title": "Off-target risk",
+                "question": "Could a drug against it also hit human or gut bacterial proteins?",
+                "verdict": "Human homolog"
+                if human_hit
+                else ("Broad in the gut microbiome" if high_microbiome else "Low risk"),
+                "summary": "Off-target",
+                "summary_value": "Human homolog"
+                if human_hit
+                else ("Microbiome overlap" if high_microbiome else "Low risk"),
+                "tone": "warning" if (human_hit or high_microbiome) else "success",
+                "items": items,
+            }
+        )
+
+    # Structure and pockets: kept apart from the sequence-based checks above.
+    structure = None
+    evidence = selected_pocket_evidence
+    plddt = _format_score_value(_raw_score(raw_scores, "colabfold_plddt"))
+    if evidence or plddt:
+        rows = []
+        outlier = _truthy_score(_raw_score(raw_scores, "pocket_size_outlier"))
+        consensus_raw = _raw_score(raw_scores, "pocket_consensus_high_score")
+        if evidence and (evidence["p2rank"]["score"] or evidence["fpocket"]["score"]):
+            kind = evidence["selected_source_kind"] or "Selected structure"
+            is_colabfold = kind.startswith("ColabFold")
+            rows.append(
+                {
+                    "name": kind,
+                    "ids": [
+                        code
+                        for code in dict.fromkeys(
+                            [evidence["p2rank"]["structure"], evidence["fpocket"]["structure"]]
+                        )
+                        if code
+                    ],
+                    "plddt": plddt if is_colabfold else "",
+                    "p2rank": evidence["p2rank"],
+                    "fpocket": evidence["fpocket"],
+                    "outlier": outlier,
+                    "consensus": ("agree" if _truthy_score(consensus_raw) else "differ")
+                    if consensus_raw
+                    else "",
+                    "is_selected": True,
+                }
+            )
+        colabfold = (evidence or {}).get("colabfold") or {}
+        if colabfold.get("p2rank_score") or colabfold.get("fpocket_score") or plddt:
+            rows.append(
+                {
+                    "name": "ColabFold model",
+                    "ids": [],
+                    "plddt": plddt,
+                    "p2rank": {
+                        "score": colabfold.get("p2rank_score", ""),
+                        "pocket": colabfold.get("p2rank_pocket", ""),
+                    },
+                    "fpocket": {
+                        "score": colabfold.get("fpocket_score", ""),
+                        "pocket": colabfold.get("fpocket_pocket", ""),
+                    },
+                    "outlier": False,
+                    "consensus": "",
+                    "is_selected": False,
+                }
+            )
+        best_fpocket = max(
+            (_float_or_none(row["fpocket"].get("score")) or 0 for row in rows), default=0
+        )
+        best_p2rank = max(
+            (_float_or_none(row["p2rank"].get("score")) or 0 for row in rows), default=0
+        )
+        if best_fpocket >= 0.7 or best_p2rank >= 0.5:
+            verdict, tone = "Druggable pocket", "success"
+        elif best_fpocket or best_p2rank:
+            verdict, tone = "Weak pockets", "warning"
+        else:
+            verdict, tone = "No pocket scores", "idle"
+        best = rows[0] if rows else None
+        finding = ""
+        if best:
+            parts = [
+                f"{tool} {best[key]['score']}"
+                for tool, key in (("P2Rank", "p2rank"), ("FPocket", "fpocket"))
+                if best[key].get("score")
+            ]
+            finding = " · ".join(parts) + (f" on {best['name']}" if parts else "")
+        structure = {
+            "verdict": verdict,
+            "tone": tone,
+            "summary_value": {"success": "Yes", "warning": "Weak", "idle": "No data"}[tone],
+            "rows": rows,
+            "finding": finding,
+            "has_checks": any(row["consensus"] or row["outlier"] for row in rows),
+        }
+
+    # One line per group for the collapsed assessment row: its first readings.
+    for group in groups:
+        group["finding"] = " · ".join(
+            f"{item['label']}: {item['value']}" for item in group["items"][:3] if item.get("value")
+        )
+    summary = [
+        {
+            "label": group["summary"],
+            "value": group["summary_value"],
+            "tone": group["tone"],
+            "href": f"#pe-{group['key']}",
+        }
+        for group in groups
+    ]
+    if structure:
+        summary.append(
+            {
+                "label": "Druggable",
+                "value": structure["summary_value"],
+                "tone": structure["tone"],
+                "href": "#binding-site-evidence",
+            }
+        )
+    if not groups and not structure:
+        return None
+    return {"groups": groups, "structure": structure, "summary": summary}
+
+
 def build_target_executive_summary(
     raw_scores,
     structure_summary,
@@ -780,7 +1230,7 @@ def build_target_executive_summary(
         _append_summary_item(
             missing,
             "No metabolic context",
-            "No SBML/network-derived reaction evidence is loaded for this protein.",
+            "No metabolic-model reactions are loaded for this protein.",
             "missing",
             "#section-metabolic-context",
         )
@@ -835,8 +1285,12 @@ def build_target_executive_summary(
             )
             _append_summary_item(risks, "Human similarity", detail, "risk", "#section-binders")
 
-    if microbiome_context:
-        gut_offtarget = _raw_score(raw_scores, "gut_microbiome_offtarget").lower()
+    # Read straight from raw_scores, not gated on microbiome_context: that context
+    # only exists for curated imports (counts/totals), but the plain hit/no_hit
+    # call is loaded for every pipeline genome and a hit must still surface as a risk.
+    microbiome_context = microbiome_context or {}
+    gut_offtarget = _raw_score(raw_scores, "gut_microbiome_offtarget").lower()
+    if gut_offtarget:
         if gut_offtarget == "no_hit":
             _append_summary_item(
                 strengths,
@@ -1083,22 +1537,25 @@ def build_target_executive_summary(
         )
         signal_score += 1
 
+    # Name only the evidence kinds this protein actually has -- a fixed
+    # "converging metabolic, structural and chemical evidence" sentence used to
+    # appear even for proteins with no metabolic data at all.
+    evidence_kinds = _summary_evidence_kinds(strengths)
+    kinds_text = _join_evidence_kinds(evidence_kinds)
     if not strengths:
-        verdict = "Evidence is still sparse for this target."
+        verdict = "Sparse evidence so far."
         tone = "sparse"
     elif signal_score >= 8:
-        verdict = (
-            "Strong target candidate with converging metabolic, structural and chemical evidence."
-        )
+        verdict = f"Well supported: {kinds_text} evidence agree."
         tone = "strong"
     elif signal_score >= 5:
-        verdict = "Promising target candidate with multiple supporting evidence streams."
+        verdict = f"Promising: {kinds_text} evidence."
         tone = "promising"
     else:
-        verdict = (
-            "Target candidate with partial support; inspect missing evidence before prioritizing."
-        )
+        verdict = f"Partial support: {kinds_text} evidence."
         tone = "partial"
+    if risks and strengths:
+        verdict += f" {len(risks)} flagged risk{'s' if len(risks) != 1 else ''}."
 
     # Stable sort: higher-priority (more specific, e.g. direct ligand evidence,
     # experimental structure, pocket consensus) items surface first so they
@@ -1134,9 +1591,14 @@ def build_protein_executive_context(
     passing those in here avoids re-querying/recomputing them a second time.
     Callers that don't have them yet (explain_target) get the exact same
     behavior as before by leaving them as the defaults."""
-    score_param_values = list(
-        ScoreParamValue.objects.filter(bioentry=protein).select_related("score_param")
-    )
+    from tpweb.services.shared_sequence_evidence import apply_shared_sequence_evidence
+
+    apply_shared_sequence_evidence([protein], user)
+    shared = getattr(protein, "shared_sequence_evidence", None)
+    score_values = protein.score_params.all()
+    if shared is None:
+        score_values = score_values.select_related("score_param")
+    score_param_values = list(score_values)
     raw_scores = {
         spv.score_param.name: spv.value
         if spv.value
@@ -1144,7 +1606,10 @@ def build_protein_executive_context(
         for spv in score_param_values
     }
     if structures is None:
-        structures = list(BioentryStructure.objects.filter(bioentry=protein).select_related("pdb"))
+        links = protein.structures.all()
+        if shared is None:
+            links = links.select_related("pdb")
+        structures = list(links)
     if structure_summary is None:
         structure_summary = summarize_structure_sources(structures)
 
@@ -1199,14 +1664,45 @@ def build_protein_executive_context(
         druggability = None
 
     selected_pocket_evidence = build_selected_pocket_evidence(raw_scores)
+    # Classic-pipeline genomes don't record which structure/pocket produced the
+    # FPocket score, so the evidence card showed "Structure – / Pocket –" while
+    # the header already named the structure. Reuse that same resolution, so
+    # the card says where the number comes from and flags when it isn't the
+    # structure shown in the viewer (annotate_selected_source_status below).
+    if (
+        selected_pocket_evidence
+        and druggability
+        and druggability[2] == "FPocket"
+        and isinstance(druggability[3], dict)
+        and not selected_pocket_evidence["fpocket"]["structure"]
+    ):
+        resolved = druggability[3]
+        selected_pocket_evidence["fpocket"]["structure"] = resolved.get("code") or ""
+        selected_pocket_evidence["fpocket"]["viewer_pdb_id"] = resolved.get("pdb_id")
+        if not selected_pocket_evidence["fpocket"]["pocket"] and resolved.get("pocket"):
+            selected_pocket_evidence["fpocket"]["pocket"] = _format_pocket_label(
+                f"Pocket {resolved['pocket']}"
+                if str(resolved["pocket"]).isdigit()
+                else resolved["pocket"]
+            )
     annotate_selected_source_status(selected_pocket_evidence, structures)
     conservation_profile = build_conservation_profile(raw_scores)
     microbiome_context = build_microbiome_context(raw_scores)
     target_profile = build_target_profile(raw_scores, microbiome_context=microbiome_context)
     metabolic_context = build_metabolic_context(protein, raw_scores)
+    gates_metabolic_priority = build_gates_metabolic_priority(raw_scores)
 
     if binders is None:
         binders = create_binders_dict(protein, search_query=search_query, structures=structures)
+
+    prioritization = build_prioritization(
+        raw_scores,
+        target_profile,
+        selected_pocket_evidence,
+        conservation_profile,
+        microbiome_context,
+        gates_metabolic_priority,
+    )
 
     target_summary = build_target_executive_summary(
         raw_scores,
@@ -1230,8 +1726,10 @@ def build_protein_executive_context(
         "conservation_profile": conservation_profile,
         "microbiome_context": microbiome_context,
         "metabolic_context": metabolic_context,
+        "gates_metabolic_priority": gates_metabolic_priority,
         "structure_summary": structure_summary,
         "binders": binders,
         "target_summary": target_summary,
         "score_breakdown": score_breakdown,
+        "prioritization": prioritization,
     }

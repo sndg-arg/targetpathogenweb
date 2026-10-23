@@ -13,16 +13,13 @@ from __future__ import annotations
 import os
 import shlex
 import shutil
-import socket
 import subprocess
 import tarfile
 import time
 from dataclasses import dataclass
 from datetime import datetime
 
-import paramiko
-from scp import SCPClient
-
+from identical_reuse import reusable_loci
 from pipeline_commands import (
     fpocket2json_cmd,
     load_af_model_cmd,
@@ -30,79 +27,17 @@ from pipeline_commands import (
     load_pocket_cmd,
     p2rank2json_cmd,
 )
-
-
-REMOTE_FAILURE_PREFIXES = (
-    "FAILED",
-    "CANCELLED",
-    "TIMEOUT",
-    "OUT_OF_MEMORY",
-    "NODE_FAIL",
+from slurm_remote_command import (
+    REMOTE_FAILURE_PREFIXES,
+    _assert_ssh_reachable,
+    _close_remote_session,
+    _config_text,
+    _env_int,
+    _env_text,
+    _exec_remote,
+    _open_remote_session,
+    _resolve_ssh_options,
 )
-
-
-def _env_int(name, default):
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    try:
-        return int(raw.strip())
-    except (TypeError, ValueError):
-        return default
-
-
-def _env_text(name, default=None):
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    text = str(raw).strip()
-    return text or default
-
-
-def _config_text(cfg_dict, section, option, default=None):
-    try:
-        value = cfg_dict.get(section, option, fallback=None)
-    except Exception:
-        value = None
-    text = str(value or "").strip()
-    return text or default
-
-
-def _resolve_ssh_options(host, user=None, port=22):
-    resolved = {"host": host, "user": user, "port": port, "key_filename": None}
-    config_path = os.path.expanduser("~/.ssh/config")
-    if not os.path.exists(config_path):
-        return resolved
-    try:
-        ssh_config = paramiko.SSHConfig()
-        with open(config_path, encoding="utf-8") as handle:
-            ssh_config.parse(handle)
-        entry = ssh_config.lookup(host)
-    except Exception:
-        return resolved
-
-    resolved["host"] = entry.get("hostname") or resolved["host"]
-    resolved["user"] = user or entry.get("user") or resolved["user"]
-    entry_port = entry.get("port")
-    if entry_port:
-        try:
-            resolved["port"] = int(entry_port)
-        except (TypeError, ValueError):
-            pass
-    identity_files = entry.get("identityfile") or []
-    if identity_files:
-        expanded = [os.path.expanduser(path) for path in identity_files]
-        resolved["key_filename"] = expanded if len(expanded) > 1 else expanded[0]
-    return resolved
-
-
-def _assert_ssh_reachable(host, port, timeout):
-    probe = socket.socket()
-    probe.settimeout(timeout)
-    try:
-        probe.connect((host, int(port or 22)))
-    finally:
-        probe.close()
 
 
 def _record_event(run_id_raw, *, status, message, payload=None):
@@ -198,44 +133,6 @@ def _build_structures_config(cfg_dict):
     )
 
 
-def _open_remote_session(config):
-    ssh = paramiko.SSHClient()
-    ssh.load_system_host_keys()
-    ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
-    ssh.connect(
-        config.ssh_host,
-        port=config.ssh_port,
-        username=config.ssh_user,
-        password=config.ssh_password,
-        timeout=config.ssh_connect_timeout,
-        banner_timeout=config.ssh_connect_timeout,
-        auth_timeout=config.ssh_connect_timeout,
-        allow_agent=True,
-        look_for_keys=True,
-        key_filename=config.ssh_key_filename,
-    )
-    scp_client = SCPClient(ssh.get_transport())
-    sftp = ssh.open_sftp()
-    return ssh, scp_client, sftp
-
-
-def _close_remote_session(ssh, scp_client, sftp):
-    for handle in (scp_client, sftp, ssh):
-        if handle is not None:
-            try:
-                handle.close()
-            except Exception:
-                pass
-
-
-def _exec_remote(ssh, cmd):
-    _stdin, stdout, stderr = ssh.exec_command(cmd)
-    exit_code = stdout.channel.recv_exit_status()
-    out = stdout.read().decode("utf-8", errors="replace").strip()
-    err = stderr.read().decode("utf-8", errors="replace").strip()
-    return exit_code, out, err
-
-
 def _data_dir(working_dir):
     return os.path.join(working_dir, "data")
 
@@ -306,16 +203,22 @@ def _build_slurm_script(config, remote_input_tar, remote_output_tar, remote_work
             "  exit 0",
             "fi",
             'tar xf "${INPUT_TAR}" -C "${WORK_ROOT}"',
-            "total=0; fpocket_ok=0; p2rank_ok=0",
-            'while IFS= read -r -d "" pdb; do',
-            "  total=$((total + 1))",
+            # One protein per worker, THREADS workers at once: FPocket is
+            # single-threaded and P2Rank barely benefits from -threads on one
+            # small PDB, so the old sequential loop left 7 of 8 CPUs idle
+            # (~800 proteins/h on a 5400-protein genome).
+            'STATUS="${WORK_ROOT}/.status"',
+            'mkdir -p "${STATUS}"',
+            "export WORK_ROOT OUTPUT_ROOT FAILURES STATUS FPOCKET_BIN P2RANK_BIN",
+            "process_one() {",
+            '  pdb="$1"',
             '  locus="$(basename "$(dirname "${pdb}")")"',
             '  locus_dir="$(dirname "${pdb}")"',
             '  out_locus="${OUTPUT_ROOT}/alphafold/${locus}"',
             '  mkdir -p "${out_locus}"',
             '  echo "[$(date)] ${locus}"',
-            '  if (cd "${locus_dir}" && "${FPOCKET_BIN}" -f "${locus}_af.pdb"); then',
-            "    fpocket_ok=$((fpocket_ok + 1))",
+            '  if (cd "${locus_dir}" && "${FPOCKET_BIN}" -f "${locus}_af.pdb" >/dev/null); then',
+            '    touch "${STATUS}/${locus}.fpocket"',
             '    if [ -d "${locus_dir}/${locus}_af_out" ]; then',
             '      cp -a "${locus_dir}/${locus}_af_out" "${out_locus}/"',
             "    fi",
@@ -324,13 +227,20 @@ def _build_slurm_script(config, remote_input_tar, remote_output_tar, remote_work
             "  fi",
             '  p2rank_dir="${locus_dir}/p2rank"',
             '  mkdir -p "${p2rank_dir}"',
-            '  if "${P2RANK_BIN}" predict -f "${pdb}" -o "${p2rank_dir}" -threads "${THREADS}"; then',
-            "    p2rank_ok=$((p2rank_ok + 1))",
+            '  if "${P2RANK_BIN}" predict -f "${pdb}" -o "${p2rank_dir}" -threads 1 >/dev/null; then',
+            '    touch "${STATUS}/${locus}.p2rank"',
             '    cp -a "${p2rank_dir}" "${out_locus}/"',
             "  else",
             '    printf "%s\\tp2rank\\tfailed\\n" "${locus}" >> "${FAILURES}"',
             "  fi",
-            'done < <(find "${WORK_ROOT}/alphafold" -mindepth 2 -maxdepth 2 -name "*_af.pdb" -print0)',
+            "  return 0",
+            "}",
+            "export -f process_one",
+            'find "${WORK_ROOT}/alphafold" -mindepth 2 -maxdepth 2 -name "*_af.pdb" -print0'
+            ' | xargs -0 -r -n 1 -P "${THREADS}" bash -c \'process_one "$1"\' _',
+            'total=$(find "${WORK_ROOT}/alphafold" -mindepth 2 -maxdepth 2 -name "*_af.pdb" | wc -l)',
+            'fpocket_ok=$(find "${STATUS}" -name "*.fpocket" | wc -l)',
+            'p2rank_ok=$(find "${STATUS}" -name "*.p2rank" | wc -l)',
             'printf "proteins\\t%s\\n" "${total}" >> "${SUMMARY}"',
             'printf "fpocket_ok\\t%s\\n" "${fpocket_ok}" >> "${SUMMARY}"',
             'printf "p2rank_ok\\t%s\\n" "${p2rank_ok}" >> "${SUMMARY}"',
@@ -433,56 +343,80 @@ def _run_local_command(command, label):
         raise RuntimeError(f"{label} failed (rc={result.returncode}): {error_msg}")
 
 
+def _import_one(locus_tag, loaded_structures, genome, working_dir, folder_path):
+    """Load one protein's structure + pockets. Returns (fpocket_loaded,
+    p2rank_loaded, error_or_None)."""
+    fpocket_loaded = False
+    try:
+        if locus_tag not in loaded_structures:
+            _run_local_command(
+                load_af_model_cmd(locus_tag, working_dir, folder_path),
+                f"load_af_model {locus_tag}",
+            )
+
+        _run_local_command(
+            fpocket2json_cmd(folder_path, locus_tag),
+            f"fpocket2json {locus_tag}",
+        )
+        fpocket_json = os.path.join(
+            folder_path,
+            "alphafold",
+            locus_tag,
+            f"{locus_tag}_af_out",
+            "fpocket.json.gz",
+        )
+        if os.path.exists(fpocket_json):
+            _run_local_command(
+                load_pocket_cmd(folder_path, locus_tag, working_dir),
+                f"load_fpocket {locus_tag}",
+            )
+            fpocket_loaded = True
+
+        _run_local_command(
+            p2rank2json_cmd(genome, locus_tag, working_dir),
+            f"p2rank2json {locus_tag}",
+        )
+        _run_local_command(
+            load_p2pocket_cmd(genome, locus_tag, working_dir),
+            f"load_p2pocket {locus_tag}",
+        )
+        return fpocket_loaded, True, None
+    except Exception as exc:
+        return fpocket_loaded, False, (locus_tag, str(exc))
+
+
 def _postprocess_outputs(locus_tags, genome, working_dir, folder_path):
+    """Each protein's import is several Django management-command
+    subprocesses (~seconds of startup each), independent of every other
+    protein -- run them TPW_STRUCTURES_IMPORT_WORKERS at a time, same 4-worker
+    default as the local (non-remote) stage-17 chain."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     loaded_structures = _existing_loaded_structures(genome)
     errors = []
     fpocket_loaded = 0
     p2rank_loaded = 0
+    workers = max(1, _env_int("TPW_STRUCTURES_IMPORT_WORKERS", default=4))
 
-    for index, locus_tag in enumerate(locus_tags, start=1):
-        try:
-            if locus_tag not in loaded_structures:
-                _run_local_command(
-                    load_af_model_cmd(locus_tag, working_dir, folder_path),
-                    f"load_af_model {locus_tag}",
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = [
+            executor.submit(
+                _import_one, locus_tag, loaded_structures, genome, working_dir, folder_path
+            )
+            for locus_tag in locus_tags
+        ]
+        for index, future in enumerate(as_completed(futures), start=1):
+            fpocket_ok, p2rank_ok, error = future.result()
+            fpocket_loaded += int(fpocket_ok)
+            p2rank_loaded += int(p2rank_ok)
+            if error:
+                errors.append(error)
+            if index == 1 or index % 100 == 0 or index == len(locus_tags):
+                print(
+                    "structures remote: local import "
+                    f"{index}/{len(locus_tags)} "
+                    f"(fpocket={fpocket_loaded}, p2rank={p2rank_loaded}, failed={len(errors)})"
                 )
-
-            _run_local_command(
-                fpocket2json_cmd(folder_path, locus_tag),
-                f"fpocket2json {locus_tag}",
-            )
-            fpocket_json = os.path.join(
-                folder_path,
-                "alphafold",
-                locus_tag,
-                f"{locus_tag}_af_out",
-                "fpocket.json.gz",
-            )
-            if os.path.exists(fpocket_json):
-                _run_local_command(
-                    load_pocket_cmd(folder_path, locus_tag, working_dir),
-                    f"load_fpocket {locus_tag}",
-                )
-                fpocket_loaded += 1
-
-            _run_local_command(
-                p2rank2json_cmd(genome, locus_tag, working_dir),
-                f"p2rank2json {locus_tag}",
-            )
-            _run_local_command(
-                load_p2pocket_cmd(genome, locus_tag, working_dir),
-                f"load_p2pocket {locus_tag}",
-            )
-            p2rank_loaded += 1
-        except Exception as exc:
-            errors.append((locus_tag, str(exc)))
-
-        if index == 1 or index % 100 == 0 or index == len(locus_tags):
-            print(
-                "structures remote: local import "
-                f"{index}/{len(locus_tags)} "
-                f"(fpocket={fpocket_loaded}, p2rank={p2rank_loaded}, failed={len(errors)})"
-            )
 
     return fpocket_loaded, p2rank_loaded, errors
 
@@ -513,7 +447,8 @@ def run_remote_structures(cfg_dict, folder_path, genome, working_dir):
     config = _build_structures_config(cfg_dict)
     run_id_raw = str(os.getenv("TPW_PIPELINE_RUN_ID") or "").strip()
 
-    proteins = _protein_pdbs(folder_path)
+    reused = reusable_loci(genome, "pockets")
+    proteins = [p for p in _protein_pdbs(folder_path) if p[0] not in reused]
     if not proteins:
         print("No protein structures found to process remotely.")
         return 0

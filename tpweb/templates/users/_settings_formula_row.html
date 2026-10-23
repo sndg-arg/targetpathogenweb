@@ -1,0 +1,33 @@
+{% load i18n %}
+{% load custom_tags %}
+<li class="settings-row">
+    <div class="settings-row-main">
+        <span class="settings-item-name">{{ row.obj.name }}</span>
+        {% if show_owner %}<span class="settings-item-meta">{% trans "Scoring formula" %} · {{ row.obj.user.name|default:row.obj.user.get_username }}</span>{% endif %}
+        {% if row.obj.expression %}<code class="settings-item-expression">{{ row.obj.expression }}</code>{% endif %}
+    </div>
+    <div class="settings-row-controls">
+        {% if readonly %}
+        <span class="settings-visibility-label">{{ row.visibility_label|branded:user }}</span>
+        {% else %}
+        <form method="post" action="{% url 'tpwebapp:settings' %}" class="settings-visibility-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="set_formula_visibility">
+            <input type="hidden" name="formula_id" value="{{ row.obj.pk }}">
+            <select name="visibility" class="form-control tp-ui-control" aria-label="{% blocktrans with name=row.obj.name %}Who can see {{ name }}{% endblocktrans %}" onchange="this.form.submit()">
+                {% for value, label in formula_visibility_choices %}
+                <option value="{{ value }}" {% if value == row.visibility %}selected{% endif %}>{{ label|branded:user }}</option>
+                {% endfor %}
+            </select>
+        </form>
+        {% endif %}
+        {% if show_delete %}
+        <form method="post" action="{% url 'tpwebapp:settings' %}" onsubmit="return confirm(this.dataset.confirm);" data-confirm="{% blocktrans with name=row.obj.name %}Delete the formula {{ name }}? Anyone you shared it with will stop seeing it too.{% endblocktrans %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_formula">
+            <input type="hidden" name="formula_id" value="{{ row.obj.pk }}">
+            <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Delete" %}</button>
+        </form>
+        {% endif %}
+    </div>
+</li>

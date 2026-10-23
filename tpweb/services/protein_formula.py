@@ -4,8 +4,9 @@ from django.db.models import Q
 
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam
+from tpweb.services.genome_workspace import user_can_view_restricted_genomes
 from tpweb.services.protein_list import humanize_identifier
-from tpweb.services.workspace import resolve_workspace_user
+from tpweb.services.workspace import get_public_workspace_user, resolve_workspace_user
 
 
 def _dedupe_formulas_by_name(formulas):
@@ -25,6 +26,34 @@ def resolve_formulas_for_user(user):
     formulas = list(
         ScoreFormula.objects.filter(user=workspace_user).order_by("-default", "name", "id")
     )
+
+    # Other real users' own formulas they've explicitly opted to share --
+    # `public` reaches every logged-in user, `shared_with_gates` only
+    # consumer/collaborator roles. Merged in alongside the owner's own list
+    # (not just a fallback for an empty list), so sharing one formula
+    # doesn't require the recipient to have zero formulas of their own.
+    shared_filter = Q(public=True)
+    if user_can_view_restricted_genomes(user):
+        shared_filter |= Q(shared_with_gates=True)
+    formulas += list(
+        ScoreFormula.objects.filter(shared_filter)
+        .exclude(user__isnull=True)
+        .exclude(user=workspace_user)
+        .order_by("-default", "name", "id")
+    )
+
+    # The base formulas (GARDP_*, Druggability, Localization) are seeded
+    # per-user by ScoreParam.Initialize_* at setup time, so any account
+    # created afterwards has none of its own -- the Scoring drawer then
+    # showed nothing until the user built a formula by hand. Always offer
+    # the public workspace's formulas as a baseline; appended last so a
+    # user's own same-named copy wins the dedupe below.
+    public_user = get_public_workspace_user()
+    if workspace_user.pk != public_user.pk:
+        formulas += list(
+            ScoreFormula.objects.filter(user=public_user).order_by("-default", "name", "id")
+        )
+
     if not formulas:
         formulas = list(
             ScoreFormula.objects.filter((Q(default=True) | Q(public=True)) & Q(user__isnull=True))
@@ -66,7 +95,7 @@ def build_col_descriptions(formula_term_list):
     return descriptions
 
 
-def build_all_term_descriptions():
+def build_all_term_descriptions(params=None):
     """Return a {token: description} dict covering every ScoreParam column name
     and every categorical ScoreParamOptions value site-wide.
 
@@ -78,7 +107,12 @@ def build_all_term_descriptions():
     dict is the only way to explain their raw column-name tokens too.
     """
     descriptions = {}
-    for param in ScoreParam.objects.all().prefetch_related("choices"):
+    # `params`: only the columns the user can read -- otherwise a formula
+    # token that happened to match someone else's private uploaded column
+    # would show that column's description.
+    if params is None:
+        params = ScoreParam.objects.all().prefetch_related("choices")
+    for param in params:
         if param.description:
             descriptions[param.name] = param.description
         for choice in param.choices.all():
@@ -114,6 +148,37 @@ def annotate_formula_terms(expression, term_descriptions):
     return found
 
 
+def readable_formula(expression, param_names):
+    """The formula in words, shown under the raw expression in the Scoring
+    drawer: "druggability + 2 * hit_in_deg_y" reads as "Druggability (FPocket,
+    0–1) + 2 × (Essential homolog (DEG) is Yes)". A categorical variable is
+    <param>_<option> and is 1 when the protein has that value."""
+    if not expression:
+        return ""
+    by_normalized = {}
+    for name in param_names:
+        normalized = re.sub(r"[^a-z0-9_]", "_", str(name).lower())
+        if normalized:
+            by_normalized[normalized] = name
+    prefixes = sorted(by_normalized, key=len, reverse=True)
+
+    def describe(match):
+        token = match.group(0)
+        lowered = token.lower()
+        if lowered in by_normalized:
+            return humanize_identifier(by_normalized[lowered]) or token
+        for prefix in prefixes:
+            if lowered.startswith(prefix + "_"):
+                option = token[len(prefix) + 1 :]
+                param_label = humanize_identifier(by_normalized[prefix]) or prefix
+                option_label = humanize_identifier(option) or option
+                return f"({param_label} is {option_label})"
+        return token
+
+    text = re.sub(r"[A-Za-z_][A-Za-z0-9_]*", describe, expression)
+    return text.replace("*", "×").replace(" - ", " − ")
+
+
 def ordered_score_params(formula_term_list):
     ordered = []
     seen_score_param_ids = set()
@@ -132,6 +197,26 @@ def build_score_dict_and_columns(ordered_params):
         score_dict[score_param.name] = score_param
         columns.append(score_param.name)
     return score_dict, columns
+
+
+_STRUCTURE_COLUMN_CATEGORIES = {"pocket", "structure"}
+_STRUCTURE_COLUMN_TOKENS = ("druggability", "p2rank", "plddt", "pocket")
+
+
+def structure_dependent_columns(score_dict):
+    """Names of table columns whose value only exists when the protein has a
+    3D structure (pocket/druggability/pLDDT). The protein table shows "No
+    structure" only in these -- off-target, essentiality, localization, etc.
+    don't depend on a structure and must keep showing their real value."""
+    names = set()
+    for name, score_param in (score_dict or {}).items():
+        category = str(getattr(score_param, "category", "") or "").strip().lower()
+        lowered = str(name or "").lower()
+        if category in _STRUCTURE_COLUMN_CATEGORIES or any(
+            token in lowered for token in _STRUCTURE_COLUMN_TOKENS
+        ):
+            names.add(name)
+    return names
 
 
 def coefficient_map(formula_term_list):

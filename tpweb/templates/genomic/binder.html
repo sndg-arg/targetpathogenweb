@@ -3,334 +3,259 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20260804-fusion1">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-pop">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261023-dossier">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% trans "Proteins" as crumb_proteins %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:genomes_list' as genomes_url %}
+        {% url 'tpwebapp:assembly' genome as assembly_url %}
+        {% with crumb_genome="Genome: "|add:assembly_label %}
+        {% with crumb_protein="Protein: "|add:protein.accession %}
+        {% with crumb_binder="Ligand: "|add:binder.name %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein crumb_5_url=protein_url crumb_6_label=crumb_binder %}
+        {% endwith %}
+        {% endwith %}
+        {% endwith %}
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}
     <div class="binder-page">
-        <section class="binder-hero" id="section-overview">
+        <section class="tp-page-hero binder-hero" id="section-overview">
             <div class="binder-hero-top tp-view-head">
                 <div class="binder-hero-content tp-view-head-copy">
-                    {% trans "Genomes" as crumb_genomes %}
-                    {% trans "Proteins" as crumb_proteins %}
-                    {% url 'tpwebapp:index' as index_url %}
-                    {% url 'tpwebapp:genomes_list' as genomes_url %}
-                    {% url 'tpwebapp:assembly' genome as assembly_url %}
-                    {% with crumb_genome="Genome: "|add:assembly_label %}
-                    {% with crumb_protein="Protein: "|add:protein.accession %}
-                    {% with crumb_binder="Ligand: "|add:binder.name %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein crumb_5_url=protein_url crumb_6_label=crumb_binder %}
-                    {% endwith %}
-                    {% endwith %}
-                    {% endwith %}
-                    <p class="binder-hero-eyebrow">{% trans "Ligand profile" %}</p>
-                    <h1>{{ binder.name }}</h1>
-                    <p class="binder-description">
+                    <p class="tp-view-eyebrow binder-hero-eyebrow">{% trans "Ligand profile" %}</p>
+                    <h1 class="tp-view-title">{{ binder.name }}</h1>
+                    <p class="protein-lede binder-description">
                         {% if binder.is_pdb %}
-                            {% if binder.is_direct %}{% trans "Ligand co-crystallized with this exact protein (Protein Data Bank)." %}
-                            {% else %}{% trans "Ligand co-crystallized with a similar protein (Protein Data Bank)." %}{% endif %}
+                            {% if binder.is_direct %}{% trans "Co-crystallized with this exact protein (Protein Data Bank)." %}
+                            {% else %}{% trans "Co-crystallized with a similar protein (Protein Data Bank)." %}{% endif %}
                         {% elif binder.source == 'chembl' %}
-                            {% if binder.is_direct %}{% trans "Bioactivity data from ChEMBL measured on this exact protein." %}
-                            {% else %}{% trans "Bioactivity hit from ChEMBL on a similar protein." %}{% endif %}
+                            {% if binder.is_direct %}{% trans "Bioactivity measured on this exact protein (ChEMBL)." %}
+                            {% else %}{% trans "Bioactivity measured on a similar protein (ChEMBL)." %}{% endif %}
                         {% else %}
-                            {% trans "Virtual-screening candidate from ZINC." %}
+                            {% trans "Virtual-screening candidate from ZINC, by similarity to a known active." %}
                         {% endif %}
-                    </p>
-                    <p class="binder-context">
-                        <strong>{% trans "Bound to" %}:</strong>
-                        <a class="binder-context-id" href="{{ protein_url }}">{{ protein.accession }}</a>
-                        {% if protein.description %}<span class="binder-context-desc">— {{ protein.description }}</span>{% endif %}
+                        {% trans "Bound to" %} <a class="binder-context-id" href="{{ protein_url }}">{{ protein.accession }}</a>{% if protein.description %} <span class="binder-context-desc">· {{ protein.description }}</span>{% endif %}.
                     </p>
                     <div class="hero-chip-list tp-chip-group">
-                        <span class="hero-chip tp-chip {% if binder.is_direct %}tp-chip--direct{% else %}tp-chip--homolog{% endif %} tp-chip--sm">
+                        <span class="hero-chip tp-chip {% if binder.is_direct %}tp-chip--success{% else %}tp-chip--muted{% endif %}">
                             {% if binder.is_direct %}{% trans "Direct evidence" %}{% else %}{% trans "Via homolog" %}{% endif %}
                         </span>
                         {% if binder.pdb_id %}
-                            <a class="hero-chip tp-chip tp-chip--meta tp-chip--sm binder-pdb-chip"
-                               href="https://www.rcsb.org/structure/{{ binder.pdb_id }}"
-                               target="_blank" rel="noopener noreferrer"
-                               title="{% trans 'View in RCSB PDB' %}">
-                                <strong>PDB</strong> <span>{{ binder.pdb_id }}</span>
-                                <svg class="binder-ext-icon" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M7 1h4v4M11 1L6 6M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <a class="hero-chip tp-chip tp-chip--link" href="https://www.rcsb.org/structure/{{ binder.pdb_id }}" target="_blank" rel="noopener noreferrer" title="{% trans 'View in RCSB PDB' %}">
+                                <span class="tp-chip-db">PDB</span> <span class="tp-chip-acc">{{ binder.pdb_id }}</span> <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
                             </a>
                         {% endif %}
                         {% if binder.uniprot %}
-                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
-                                <strong>UniProt</strong>&thinsp;<span>{{ binder.uniprot }}</span>
-                            </span>
+                            <a class="hero-chip tp-chip tp-chip--link" href="https://www.uniprot.org/uniprotkb/{{ binder.uniprot }}" target="_blank" rel="noopener noreferrer" title="{% if binder.is_direct %}{% trans 'UniProt (this protein)' %}{% else %}{% trans 'UniProt (similar protein)' %}{% endif %}">
+                                <span class="tp-chip-db">UniProt</span> <span class="tp-chip-acc">{{ binder.uniprot }}</span> <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
+                            </a>
                         {% endif %}
                         {% if properties.formula %}
-                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm binder-formula-chip">
-                                <strong>{% trans "Formula" %}</strong>&thinsp;<span>{{ properties.formula }}</span>
-                            </span>
+                            <span class="hero-chip tp-chip tp-chip--code">{{ properties.formula }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="tp-metrics protein-glance binder-metrics" aria-label="{% trans 'Ligand at a glance' %}">
+                        {% if binder.score is not None %}
+                            <div class="metric-pill">
+                                <span class="metric-label">{% if binder.source == 'chembl' %}{% trans "Potency (pChEMBL)" %}{% elif binder.source == 'proposed' %}{% trans "Similarity (Tanimoto)" %}{% else %}{% trans "Score" %}{% endif %}</span>
+                                <span class="metric-value"><span data-count="{{ binder.score|stringformat:'.2f' }}">{{ binder.score|stringformat:".2f" }}</span></span>
+                                {% if binder.potency_estimate %}<span class="metric-note" title="{% trans 'Estimated experimental potency, converted from pchembl.' %}">{{ binder.potency_estimate }}</span>{% endif %}
+                            </div>
+                        {% endif %}
+                        {% if properties.mw %}
+                            <div class="metric-pill">
+                                <span class="metric-label">{% trans "Mol. weight" %}</span>
+                                <span class="metric-value"><span data-count="{{ properties.mw }}">{{ properties.mw }}</span> <span class="metric-unit">Da</span></span>
+                            </div>
+                        {% endif %}
+                        {% if properties %}
+                            <a class="metric-pill metric-pill--link" href="#dl-lipinski">
+                                <span class="metric-label">{% trans "Rule of Five" %}</span>
+                                <span class="metric-value metric-value--text">{% if properties.lipinski_pass %}{% trans "Pass" %}{% else %}{% trans "Fail" %}{% endif %} <span class="metric-pill-jump">{% trans "See evidence" %}</span></span>
+                                <span class="metric-note">{% blocktrans count count=properties.lipinski_violations %}{{ count }} violation{% plural %}{{ count }} violations{% endblocktrans %}</span>
+                            </a>
+                            <a class="metric-pill metric-pill--link" href="#dl-permeability">
+                                <span class="metric-label">{% trans "Permeability" %}</span>
+                                <span class="metric-value metric-value--text">{{ properties.permeability_label }} <span class="metric-pill-jump">{% trans "See evidence" %}</span></span>
+                            </a>
+                            <a class="metric-pill metric-pill--link" href="#dl-pains">
+                                <span class="metric-label">PAINS</span>
+                                <span class="metric-value metric-value--text">{% if properties.pains_hit %}{% trans "Alert" %}{% else %}{% trans "Clean" %}{% endif %} <span class="metric-pill-jump">{% trans "See evidence" %}</span></span>
+                            </a>
                         {% endif %}
                     </div>
                 </div>
-            </div>
-            <div class="binder-metrics" aria-label="{% trans 'Ligand summary' %}">
-                {% if binder.score is not None %}
-                    <div class="metric-pill">
-                        <span class="metric-label">
-                            {% if binder.source == 'chembl' %}pchembl
-                            {% elif binder.source == 'proposed' %}Tanimoto
-                            {% else %}{% trans "Score" %}{% endif %}
-                        </span>
-                        <span class="metric-value">{{ binder.score|stringformat:".2f" }}</span>
-                        {% if binder.potency_estimate %}<span class="metric-unit" title="{% trans 'Estimated experimental potency, converted from pchembl.' %}">{{ binder.potency_estimate }}</span>{% endif %}
-                    </div>
-                {% endif %}
-                {% if properties.mw %}
-                    <div class="metric-pill">
-                        <span class="metric-label">{% trans "Mol. weight" %}</span>
-                        <span class="metric-value">{{ properties.mw }} <span class="metric-unit">Da</span></span>
-                    </div>
-                {% endif %}
-                {% if properties %}
-                    <div class="metric-pill">
-                        <span class="metric-label">{% trans "Permeability" %}</span>
-                        <span class="metric-value metric-value--text metric-value--{{ properties.permeability_ok|yesno:'ok,warn' }}">{{ properties.permeability_label }}</span>
-                    </div>
-                    <div class="metric-pill">
-                        <span class="metric-label">PAINS</span>
-                        <span class="metric-value metric-value--text metric-value--{{ properties.pains_hit|yesno:'warn,ok' }}">{% if properties.pains_hit %}{% trans "Alert" %}{% else %}{% trans "Clean" %}{% endif %}</span>
-                    </div>
+                {% if binder.svg %}
+                <figure class="binder-hero-mol" id="section-structure">
+                    <div class="binder-svg-box">{{ binder.svg|safe }}</div>
+                    <figcaption>{% trans "2D structure from SMILES" %}</figcaption>
+                </figure>
                 {% endif %}
             </div>
         </section>
 
         <nav class="quick-nav" aria-label="{% trans 'Ligand sections' %}">
-            <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
-            {% if binder.svg %}
-                <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Structure" %}</a>
-            {% endif %}
             {% if properties %}
-                <a href="#section-properties" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Properties" %}</a>
-                <a href="#section-druglikeness" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Drug-likeness" %}</a>
+                <a href="#section-druglikeness" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Drug-likeness" %}</a>
+                <a href="#section-properties" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Properties" %}</a>
             {% endif %}
-            <a href="#section-strings" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Chemical representations" %}</a>
-            {% if binder.notes_items %}
-                <a href="#section-provenance" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Provenance" %}</a>
-            {% endif %}
+            <a href="#section-identifiers" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Identifiers" %}</a>
+            <a href="#section-strings" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "SMILES & InChI" %}</a>
             {% if external_links %}
-                <a href="#section-external" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "External" %}</a>
+                <a href="#section-external" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "External" %}</a>
             {% endif %}
             {% if siblings.pdb or siblings.chembl or siblings.proposed %}
-                <a href="#section-siblings" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Other ligands" %}</a>
+                <a href="#section-siblings" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Other ligands" %}</a>
             {% endif %}
         </nav>
 
         <div class="binder-grid">
-            <!-- Identifiers -->
-            <section class="binder-card binder-card--identifiers">
-                <div class="section-head tp-ui-panel-head">
+            {% if properties %}
+            <section class="binder-card binder-card--druglikeness" id="section-druglikeness">
+                <div class="section-head">
                     <div>
-                        <h2>{% trans "Identifiers" %}</h2>
-                        <p class="section-subtitle">{% trans "Database identifiers and provenance." %}</p>
+                        <h2>{% trans "Drug-likeness" %}</h2>
+                        <p class="section-subtitle">{% trans "Rules computed from the chemical structure, not measured; open a row for its checks." %}</p>
                     </div>
                 </div>
-                <dl class="binder-identifiers">
-                    {% if binder.ccd_id %}
-                        <div class="binder-id-row">
-                            <dt>{% trans "Ligand ID" %}</dt>
-                            <dd><code>{{ binder.ccd_id }}</code></dd>
+                <div class="ta-list">
+                    <details class="ta-item js-smooth-details" id="dl-permeability">
+                        <summary class="ta-row">
+                            <span class="ta-label">{% trans "Permeability proxy" %}</span>
+                            <span class="ta-status"><span class="tp-chip {% if properties.permeability_ok %}tp-chip--success{% else %}tp-chip--warning{% endif %}">{{ properties.permeability_label }}</span></span>
+                            <span class="ta-finding">TPSA {{ properties.tpsa }} Å² · LogP {{ properties.logp }}</span>
+                        </summary>
+                        <div class="ta-body">
+                            <p class="pe-question">{% trans "From TPSA and LogP only: TPSA ≤ 90 Å² and −1 ≤ LogP ≤ 5 pass as a small-molecule permeability screen." %}</p>
+                            <ul class="druglike-checks">
+                                {% for c in properties.permeability_checks %}
+                                <li class="{% if c.ok %}is-ok{% else %}is-bad{% endif %}">
+                                    <span class="check-icon" aria-hidden="true">{% if c.ok %}{% include "components/icons/check.html" %}{% else %}✗{% endif %}</span>
+                                    <span class="check-name">{{ c.name }}</span>
+                                    <span class="check-value">{{ c.value }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
                         </div>
-                    {% endif %}
-                    {% if binder.pdb_id %}
-                        <div class="binder-id-row">
-                            <dt>PDB</dt>
-                            <dd><code>{{ binder.pdb_id }}</code></dd>
+                    </details>
+                    <details class="ta-item js-smooth-details" id="dl-lipinski">
+                        <summary class="ta-row">
+                            <span class="ta-label">Lipinski's Rule of Five</span>
+                            <span class="ta-status"><span class="tp-chip {% if properties.lipinski_pass %}tp-chip--success{% else %}tp-chip--warning{% endif %}">{% if properties.lipinski_pass %}{% trans "Pass" %}{% else %}{% trans "Fail" %}{% endif %}</span></span>
+                            <span class="ta-finding">{% blocktrans count count=properties.lipinski_violations %}{{ count }} violation{% plural %}{{ count }} violations{% endblocktrans %}</span>
+                        </summary>
+                        <div class="ta-body">
+
+                            <ul class="druglike-checks">
+                                {% for c in properties.lipinski_checks %}
+                                <li class="{% if c.ok %}is-ok{% else %}is-bad{% endif %}">
+                                    <span class="check-icon" aria-hidden="true">{% if c.ok %}{% include "components/icons/check.html" %}{% else %}✗{% endif %}</span>
+                                    <span class="check-name">{{ c.name }}</span>
+                                    <span class="check-value">{{ c.value }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
                         </div>
-                    {% endif %}
-                    {% if binder.uniprot %}
-                        <div class="binder-id-row">
-                            <dt>{% if binder.is_direct %}{% trans "UniProt (this protein)" %}{% else %}{% trans "UniProt (similar protein)" %}{% endif %}</dt>
-                            <dd><code>{{ binder.uniprot }}</code></dd>
+                    </details>
+                    <details class="ta-item js-smooth-details" id="dl-veber">
+                        <summary class="ta-row">
+                            <span class="ta-label">Veber's rules</span>
+                            <span class="ta-status"><span class="tp-chip {% if properties.veber_pass %}tp-chip--success{% else %}tp-chip--warning{% endif %}">{% if properties.veber_pass %}{% trans "Pass" %}{% else %}{% trans "Fail" %}{% endif %}</span></span>
+                            <span class="ta-finding">{% trans 'Rotatable bonds' %} {{ properties.rotb }} · TPSA {{ properties.tpsa }} Å²</span>
+                        </summary>
+                        <div class="ta-body">
+
+                            <ul class="druglike-checks">
+                                {% for c in properties.veber_checks %}
+                                <li class="{% if c.ok %}is-ok{% else %}is-bad{% endif %}">
+                                    <span class="check-icon" aria-hidden="true">{% if c.ok %}{% include "components/icons/check.html" %}{% else %}✗{% endif %}</span>
+                                    <span class="check-name">{{ c.name }}</span>
+                                    <span class="check-value">{{ c.value }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
                         </div>
-                    {% endif %}
-                    {% if binder.score is not None %}
-                        <div class="binder-id-row">
-                            <dt>
-                                {% if binder.is_pdb %}{% trans "Score" %}
-                                {% elif binder.source == 'chembl' %}pchembl
-                                {% else %}Tanimoto{% endif %}
-                            </dt>
-                            <dd>{{ binder.score|stringformat:".3f" }}{% if binder.potency_estimate %} <span class="binder-id-row-sub">({{ binder.potency_estimate }})</span>{% endif %}</dd>
+                    </details>
+                    <details class="ta-item js-smooth-details" id="dl-pains">
+                        <summary class="ta-row">
+                            <span class="ta-label">PAINS</span>
+                            <span class="ta-status"><span class="tp-chip {% if not properties.pains_hit %}tp-chip--success{% else %}tp-chip--warning{% endif %}">{% if properties.pains_hit %}{% trans "Alert" %}{% else %}{% trans "Clean" %}{% endif %}</span></span>
+                            <span class="ta-finding">{% if properties.pains_hit %}{{ properties.pains_hit }}{% else %}{% trans "No structural alert" %}{% endif %}</span>
+                        </summary>
+                        <div class="ta-body">
+
+                            {% if properties.pains_hit %}<p class="pe-question">{% blocktrans with hit=properties.pains_hit %}Matches the PAINS filter <code>{{ hit }}</code>: often a false positive in high-throughput screens, review carefully.{% endblocktrans %}</p>{% else %}<p class="pe-question">{% trans "No PAINS structural alerts detected." %}</p>{% endif %}
                         </div>
-                    {% endif %}
-                    <div class="binder-id-row">
-                        <dt>{% trans "Target protein" %}</dt>
-                        <dd><a href="{{ protein_url }}">{{ protein.accession }}</a></dd>
+                    </details>
+                </div>
+            </section>
+
+            <section class="binder-card binder-card--properties" id="section-properties">
+                <div class="section-head">
+                    <div>
+                        <h2>{% trans "Physicochemical properties" %}</h2>
+                        <p class="section-subtitle">{% trans "Computed with RDKit from SMILES." %}</p>
                     </div>
+                </div>
+                <dl class="target-profile-group-grid binder-facts">
+                    <div class="target-profile-item"><dt class="target-profile-label">{% trans "Molecular weight" %}</dt><dd class="target-profile-value">{{ properties.mw }} Da</dd></div>
+                    <div class="target-profile-item"><dt class="target-profile-label">LogP (Crippen)</dt><dd class="target-profile-value">{{ properties.logp }}</dd></div>
+                    <div class="target-profile-item"><dt class="target-profile-label">TPSA</dt><dd class="target-profile-value">{{ properties.tpsa }} Å²</dd></div>
+                    <div class="target-profile-item"><dt class="target-profile-label">{% trans "H-bond donors" %}</dt><dd class="target-profile-value">{{ properties.hbd }}</dd></div>
+                    <div class="target-profile-item"><dt class="target-profile-label">{% trans "H-bond acceptors" %}</dt><dd class="target-profile-value">{{ properties.hba }}</dd></div>
+                    <div class="target-profile-item"><dt class="target-profile-label">{% trans "Rotatable bonds" %}</dt><dd class="target-profile-value">{{ properties.rotb }}</dd></div>
+                    <div class="target-profile-item"><dt class="target-profile-label">{% trans "Aromatic / all rings" %}</dt><dd class="target-profile-value">{{ properties.aromatic_rings }} / {{ properties.num_rings }}</dd></div>
+                    <div class="target-profile-item"><dt class="target-profile-label">{% trans "Heavy atoms" %}</dt><dd class="target-profile-value">{{ properties.heavy_atoms }}</dd></div>
+                    <div class="target-profile-item"><dt class="target-profile-label">{% trans "Fraction sp³ C" %}</dt><dd class="target-profile-value">{{ properties.fraction_csp3 }}</dd></div>
+                    <div class="target-profile-item"><dt class="target-profile-label">{% trans "Formula" %}</dt><dd class="target-profile-value">{{ properties.formula }}</dd></div>
+                </dl>
+            </section>
+            {% endif %}
+
+            <section class="binder-card binder-card--identifiers" id="section-identifiers">
+                <div class="section-head">
+                    <div>
+                        <h2>{% trans "Identifiers & provenance" %}</h2>
+                        <p class="section-subtitle">{% trans "Where this record comes from, as collected by LigQ_2." %}</p>
+                    </div>
+                </div>
+                <dl class="target-profile-group-grid binder-facts">
+                    {% if binder.ccd_id %}<div class="target-profile-item"><dt class="target-profile-label">{% trans "Ligand ID" %}</dt><dd class="target-profile-value">{{ binder.ccd_id }}</dd></div>{% endif %}
+                    {% if binder.pdb_id %}<div class="target-profile-item"><dt class="target-profile-label">PDB</dt><dd class="target-profile-value">{{ binder.pdb_id|upper }}</dd></div>{% endif %}
+                    {% if binder.uniprot %}<div class="target-profile-item"><dt class="target-profile-label">{% if binder.is_direct %}{% trans "UniProt (this protein)" %}{% else %}{% trans "UniProt (similar protein)" %}{% endif %}</dt><dd class="target-profile-value">{{ binder.uniprot }}</dd></div>{% endif %}
+                    {% if binder.score is not None %}<div class="target-profile-item"><dt class="target-profile-label">{% if binder.is_pdb %}{% trans "Score" %}{% elif binder.source == 'chembl' %}{% trans "Potency (pChEMBL)" %}{% else %}Tanimoto{% endif %}</dt><dd class="target-profile-value">{{ binder.score|stringformat:".3f" }}</dd></div>{% endif %}
+                    <div class="target-profile-item"><dt class="target-profile-label">{% trans "Target protein" %}</dt><dd class="target-profile-value"><a href="{{ protein_url }}">{{ protein.accession }}</a></dd></div>
+                    {% for item in binder.notes_items %}<div class="target-profile-item"><dt class="target-profile-label">{{ item.label }}</dt><dd class="target-profile-value">{{ item.value }}</dd></div>{% endfor %}
                 </dl>
             </section>
 
-            {% if binder.svg %}
-                <section class="binder-card binder-card--structure" id="section-structure">
-                    <div class="section-head tp-ui-panel-head">
-                        <div>
-                            <h2>{% trans "Structure" %}</h2>
-                            <p class="section-subtitle">{% trans "2D representation rendered from SMILES." %}</p>
-                        </div>
-                    </div>
-                    <div class="binder-svg-box">{{ binder.svg|safe }}</div>
-                </section>
-            {% endif %}
-
-            {% if properties %}
-                <section class="binder-card binder-card--properties" id="section-properties">
-                    <div class="section-head tp-ui-panel-head">
-                        <div>
-                            <h2>{% trans "Physicochemical properties" %}</h2>
-                            <p class="section-subtitle">{% trans "Computed with RDKit from SMILES." %}</p>
-                        </div>
-                    </div>
-                    <div class="property-grid">
-                        <div class="property-cell">
-                            <span class="property-label">{% trans "Molecular weight" %}</span>
-                            <span class="property-value">{{ properties.mw }} <span class="property-unit">Da</span></span>
-                        </div>
-                        <div class="property-cell">
-                            <span class="property-label">LogP <small>(Crippen)</small></span>
-                            <span class="property-value">{{ properties.logp }}</span>
-                        </div>
-                        <div class="property-cell">
-                            <span class="property-label">{% trans "H-bond donors" %}</span>
-                            <span class="property-value">{{ properties.hbd }}</span>
-                        </div>
-                        <div class="property-cell">
-                            <span class="property-label">{% trans "H-bond acceptors" %}</span>
-                            <span class="property-value">{{ properties.hba }}</span>
-                        </div>
-                        <div class="property-cell">
-                            <span class="property-label">TPSA</span>
-                            <span class="property-value">{{ properties.tpsa }} <span class="property-unit">Å²</span></span>
-                        </div>
-                        <div class="property-cell">
-                            <span class="property-label">{% trans "Rotatable bonds" %}</span>
-                            <span class="property-value">{{ properties.rotb }}</span>
-                        </div>
-                        <div class="property-cell">
-                            <span class="property-label">{% trans "Aromatic rings" %}</span>
-                            <span class="property-value">{{ properties.aromatic_rings }} / {{ properties.num_rings }}</span>
-                        </div>
-                        <div class="property-cell">
-                            <span class="property-label">{% trans "Heavy atoms" %}</span>
-                            <span class="property-value">{{ properties.heavy_atoms }}</span>
-                        </div>
-                        <div class="property-cell">
-                            <span class="property-label">{% trans "Fraction sp³ C" %}</span>
-                            <span class="property-value">{{ properties.fraction_csp3 }}</span>
-                        </div>
-                        <div class="property-cell">
-                            <span class="property-label">{% trans "Formula" %}</span>
-                            <span class="property-value property-value--text">{{ properties.formula }}</span>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="binder-card binder-card--druglikeness" id="section-druglikeness">
-                    <div class="section-head tp-ui-panel-head">
-                        <div>
-                            <h2>{% trans "Drug-likeness" %}</h2>
-                            <p class="section-subtitle">{% trans "Descriptor-based ADME screening flags from SMILES. These are not experimental toxicity results." %}</p>
-                        </div>
-                    </div>
-                    <div class="druglike-grid">
-                        <div class="druglike-block">
-                            <div class="druglike-head">
-                                <span class="druglike-title">{% trans "Permeability proxy" %}</span>
-                                <span class="druglike-badge {% if properties.permeability_ok %}is-pass{% else %}is-warn{% endif %}">
-                                    {{ properties.permeability_label }}
-                                </span>
-                            </div>
-                            <p class="druglike-note">
-                                {% trans "Estimated from TPSA and LogP only: TPSA ≤ 90 Å² and −1 ≤ LogP ≤ 5 are treated as a favorable small-molecule permeability screen." %}
-                            </p>
-                            <ul class="druglike-checks">
-                                {% for c in properties.permeability_checks %}
-                                    <li class="{% if c.ok %}is-ok{% else %}is-bad{% endif %}">
-                                        <span class="check-icon" aria-hidden="true">{% if c.ok %}{% include "components/icons/check.html" %}{% else %}✗{% endif %}</span>
-                                        <span class="check-name">{{ c.name }}</span>
-                                        <span class="check-value">{{ c.value }}</span>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-
-                        <div class="druglike-block">
-                            <div class="druglike-head">
-                                <span class="druglike-title">Lipinski's Rule of Five</span>
-                                <span class="druglike-badge {% if properties.lipinski_pass %}is-pass{% else %}is-fail{% endif %}">
-                                    {% if properties.lipinski_pass %}{% trans "Pass" %}{% else %}{% trans "Fail" %}{% endif %}
-                                    <span class="druglike-badge-count">{{ properties.lipinski_violations }} {% trans "violation" %}{{ properties.lipinski_violations|pluralize }}</span>
-                                </span>
-                            </div>
-                            <ul class="druglike-checks">
-                                {% for c in properties.lipinski_checks %}
-                                    <li class="{% if c.ok %}is-ok{% else %}is-bad{% endif %}">
-                                        <span class="check-icon" aria-hidden="true">{% if c.ok %}{% include "components/icons/check.html" %}{% else %}✗{% endif %}</span>
-                                        <span class="check-name">{{ c.name }}</span>
-                                        <span class="check-value">{{ c.value }}</span>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-
-                        <div class="druglike-block">
-                            <div class="druglike-head">
-                                <span class="druglike-title">Veber's rules</span>
-                                <span class="druglike-badge {% if properties.veber_pass %}is-pass{% else %}is-fail{% endif %}">
-                                    {% if properties.veber_pass %}{% trans "Pass" %}{% else %}{% trans "Fail" %}{% endif %}
-                                </span>
-                            </div>
-                            <ul class="druglike-checks">
-                                {% for c in properties.veber_checks %}
-                                    <li class="{% if c.ok %}is-ok{% else %}is-bad{% endif %}">
-                                        <span class="check-icon" aria-hidden="true">{% if c.ok %}{% include "components/icons/check.html" %}{% else %}✗{% endif %}</span>
-                                        <span class="check-name">{{ c.name }}</span>
-                                        <span class="check-value">{{ c.value }}</span>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-
-                        <div class="druglike-block">
-                            <div class="druglike-head">
-                                <span class="druglike-title">PAINS</span>
-                                <span class="druglike-badge {% if not properties.pains_hit %}is-pass{% else %}is-warn{% endif %}">
-                                    {% if properties.pains_hit %}{% trans "Alert" %}{% else %}{% trans "Clean" %}{% endif %}
-                                </span>
-                            </div>
-                            <p class="druglike-note">
-                                {% if properties.pains_hit %}
-                                    {% blocktrans with hit=properties.pains_hit %}Matches PAINS filter: <code>{{ hit }}</code>. May be a frequent false positive in HTS — review carefully.{% endblocktrans %}
-                                {% else %}
-                                    {% trans "No PAINS structural alerts detected." %}
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
-                </section>
-            {% endif %}
-
             <section class="binder-card binder-card--strings" id="section-strings">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Chemical representations" %}</h2>
-                        <p class="section-subtitle">{% trans "Canonical representations for cheminformatics workflows." %}</p>
+                        <p class="section-subtitle">{% trans "SMILES, InChI and InChIKey, ready to copy." %}</p>
                     </div>
                 </div>
                 <div class="binder-string-block">
                     <div class="binder-string-head">
                         <span class="binder-string-label">SMILES</span>
                         <button type="button"
-                                class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-copy-btn"
+                                class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon binder-copy-btn"
                                 data-copy-target="binder-smiles-text">
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
                             <span data-copy-label>{% trans "Copy" %}</span>
                         </button>
                     </div>
-                    <pre class="binder-string-value">{{ binder.smiles }}</pre>
+                    <pre class="tp-code-block binder-string-value">{{ binder.smiles }}</pre>
                     <span hidden id="binder-smiles-text">{{ binder.smiles }}</span>
                 </div>
                 {% if properties.inchi %}
@@ -338,13 +263,13 @@
                         <div class="binder-string-head">
                             <span class="binder-string-label">InChI</span>
                             <button type="button"
-                                    class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-copy-btn"
+                                    class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon binder-copy-btn"
                                     data-copy-target="binder-inchi-text">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
                                 <span data-copy-label>{% trans "Copy" %}</span>
                             </button>
                         </div>
-                        <pre class="binder-string-value">{{ properties.inchi }}</pre>
+                        <pre class="tp-code-block binder-string-value">{{ properties.inchi }}</pre>
                         <span hidden id="binder-inchi-text">{{ properties.inchi }}</span>
                     </div>
                 {% endif %}
@@ -353,49 +278,30 @@
                         <div class="binder-string-head">
                             <span class="binder-string-label">InChIKey</span>
                             <button type="button"
-                                    class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-copy-btn"
+                                    class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon binder-copy-btn"
                                     data-copy-target="binder-inchikey-text">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
                                 <span data-copy-label>{% trans "Copy" %}</span>
                             </button>
                         </div>
-                        <pre class="binder-string-value binder-string-value--short">{{ properties.inchi_key }}</pre>
+                        <pre class="tp-code-block binder-string-value binder-string-value--short">{{ properties.inchi_key }}</pre>
                         <span hidden id="binder-inchikey-text">{{ properties.inchi_key }}</span>
                     </div>
                 {% endif %}
             </section>
 
-            {% if binder.notes_items %}
-                <section class="binder-card binder-card--provenance" id="section-provenance">
-                    <div class="section-head tp-ui-panel-head">
-                        <div>
-                            <h2>{% trans "Provenance" %}</h2>
-                            <p class="section-subtitle">{% trans "Annotation context from LigQ_2, the internal Target step that collects PDB, ChEMBL, and ZINC ligand evidence." %}</p>
-                        </div>
-                    </div>
-                    <dl class="binder-identifiers">
-                        {% for item in binder.notes_items %}
-                            <div class="binder-id-row">
-                                <dt>{{ item.label }}</dt>
-                                <dd>{{ item.value }}</dd>
-                            </div>
-                        {% endfor %}
-                    </dl>
-                </section>
-            {% endif %}
-
             {% if external_links %}
                 <section class="binder-card binder-card--external" id="section-external">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "External resources" %}</h2>
-                            <p class="section-subtitle">{% trans "Open this ligand in third-party databases and cheminformatics tools." %}</p>
+                            <p class="section-subtitle">{% trans "This ligand in public databases and cheminformatics tools." %}</p>
                         </div>
                     </div>
                     <ul class="binder-links">
                         {% for link in external_links %}
                             <li>
-                                <span class="binder-link-category">{{ link.category }}</span>
+                                <span class="tp-chip">{{ link.category }}</span>
                                 <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }} →</a>
                             </li>
                         {% endfor %}
@@ -405,16 +311,16 @@
 
             {% if siblings.pdb or siblings.chembl or siblings.proposed %}
                 <section class="binder-card binder-card--siblings" id="section-siblings">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "Other ligands for this protein" %}</h2>
-                            <p class="section-subtitle">{% blocktrans with prot=protein.accession %}Quick navigation to other ligands bound to {{ prot }}.{% endblocktrans %}</p>
+                            <p class="section-subtitle">{% blocktrans with prot=protein.accession %}Ligand records for {{ prot }}.{% endblocktrans %}</p>
                         </div>
                     </div>
                     <div class="siblings-grid">
                         {% if siblings.pdb %}
                             <div class="siblings-group">
-                                <h3 class="siblings-group-title">PDB <span class="siblings-group-count">{{ siblings.pdb_total }}</span></h3>
+                                <h3 class="siblings-group-title">PDB <span class="tp-count">{{ siblings.pdb_total }}</span></h3>
                                 <p class="siblings-group-desc">{% trans "Ligands co-crystallized with this protein (structural evidence)." %}</p>
                                 <div class="siblings-col-head">
                                     <span>{% trans "Ligand" %}</span>
@@ -429,7 +335,7 @@
                         {% endif %}
                         {% if siblings.chembl %}
                             <div class="siblings-group">
-                                <h3 class="siblings-group-title">ChEMBL <span class="siblings-group-count">{{ siblings.chembl_total }}</span></h3>
+                                <h3 class="siblings-group-title">ChEMBL <span class="tp-count">{{ siblings.chembl_total }}</span></h3>
                                 <p class="siblings-group-desc">{% trans "Compounds with measured inhibitory activity on this target (higher pchembl = more potent)." %}</p>
                                 <div class="siblings-col-head">
                                     <span>{% trans "Compound" %}</span>
@@ -444,7 +350,7 @@
                         {% endif %}
                         {% if siblings.proposed %}
                             <div class="siblings-group">
-                                <h3 class="siblings-group-title">ZINC <span class="siblings-group-count">{{ siblings.proposed_total }}</span></h3>
+                                <h3 class="siblings-group-title">ZINC <span class="tp-count">{{ siblings.proposed_total }}</span></h3>
                                 <p class="siblings-group-desc">{% trans "Virtual screening candidates selected by structural similarity to known actives (Tanimoto ≥ 0.5)." %}</p>
                                 <div class="siblings-col-head">
                                     <span>{% trans "Compound" %}</span>
@@ -465,6 +371,7 @@
 {% endblock %}
 
 {% block jsloaded %}
+    <script src="{% static 'js/pages/protein-dossier.js' %}?v=20261023"></script>
     <script>
         (function () {
             // Scrollspy for quick-nav

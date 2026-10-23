@@ -33,6 +33,8 @@ _SCORE_PROTEINS_PARAM_NAMES = [
 
 EC_DBNAMES = {str(Ontology.EC or "").strip(), "ec", "EC"}
 EVIDENCE_CONVERGENCE_MAX_SCORE = 15.0
+EVIDENCE_CONVERGENCE_STRONG_MIN = 9.75
+EVIDENCE_CONVERGENCE_MODERATE_MIN = 6.0
 
 # Neither the workspace metrics nor the evidence-convergence ranking depend on the
 # requesting user or their scoring formula (it's a fixed per-genome heuristic) -- both
@@ -54,10 +56,9 @@ def _format_decimal(value):
 
 
 def _evidence_convergence_tier(score):
-    fraction = score / EVIDENCE_CONVERGENCE_MAX_SCORE
-    if fraction >= 0.65:
+    if score >= EVIDENCE_CONVERGENCE_STRONG_MIN:
         return "Strong", "good"
-    if fraction >= 0.4:
+    if score >= EVIDENCE_CONVERGENCE_MODERATE_MIN:
         return "Moderate", "neutral"
     return "Limited", "bad"
 
@@ -223,17 +224,38 @@ def _score_proteins(assembly_name):
         cautions = []
         score = 0.0
 
-        # P2Rank checked (and its signal added) before FPocket so it's the pocket
-        # signal that shows first in the ranking card chips, consistent with it
-        # being the primary druggability source everywhere else in the app.
+        # P2Rank is the primary pocket signal (team decision, 2026-10): its
+        # binding-site probability earns the pocket points, and FPocket only
+        # adds a point when it agrees on a strong pocket. FPocket alone scores
+        # the pocket only for proteins with no P2Rank value. Same 3-point cap
+        # as before.
         p2rank = _as_float(param_values.get("p2rank_probability"))
-        if p2rank is not None and p2rank >= 0.5:
-            score += 1.0
-            _add_signal(signals, "P2Rank pocket support")
-
         fpocket = _as_float(param_values.get("Druggability"))
         pocket_size_outlier = _is_yes(param_values.get("pocket_size_outlier"))
-        if fpocket is not None:
+        if p2rank is not None:
+            if p2rank >= 0.5:
+                score += 2.0
+                _add_signal(
+                    signals, f"High P2Rank binding-site probability {_format_decimal(p2rank)}"
+                )
+                if fpocket is not None and fpocket >= 0.7 and not pocket_size_outlier:
+                    score += 1.0
+                    _add_signal(signals, f"FPocket agrees: druggability {_format_decimal(fpocket)}")
+            elif p2rank >= 0.2:
+                score += 1.0
+                _add_signal(
+                    signals,
+                    f"Moderate P2Rank binding-site probability {_format_decimal(p2rank)}",
+                    "neutral",
+                )
+            else:
+                score -= 0.5
+                _add_signal(
+                    cautions,
+                    f"Low P2Rank binding-site probability {_format_decimal(p2rank)}",
+                    "bad",
+                )
+        elif fpocket is not None:
             if fpocket >= 0.7:
                 if pocket_size_outlier:
                     score += 1.0
@@ -350,6 +372,8 @@ def _score_proteins(assembly_name):
                 "description": p.description,
                 "score": score,
                 "fpocket": fpocket or 0.0,
+                # Tie-breaker: the primary pocket score (P2Rank, else FPocket).
+                "pocket": p2rank if p2rank is not None else (fpocket or 0.0),
                 "direct_count": direct_count,
                 "binder_count": binder_count,
                 "factors": combined_factors[:4],
@@ -406,9 +430,11 @@ def _format_score_items(scored_rows):
                 "bioentry_id": row["bioentry_id"],
                 "accession": row["accession"],
                 "description": row["description"],
-                "score": round(row["score"], 1),
+                "score": round(row["score"], 2),
                 "score_max": int(EVIDENCE_CONVERGENCE_MAX_SCORE),
-                "score_percent": round((row["score"] / EVIDENCE_CONVERGENCE_MAX_SCORE) * 100),
+                "score_percent": max(
+                    0, min(100, round((row["score"] / EVIDENCE_CONVERGENCE_MAX_SCORE) * 100))
+                ),
                 "tier_label": tier_label,
                 "tier_tone": tier_tone,
                 "factors": row["factors"],
@@ -435,26 +461,31 @@ def get_top_targets_by_score(assembly_name, user, limit=5, scored=None):
         scored = _cached_score_proteins(assembly_name)
     ranked = sorted(
         scored,
-        key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]),
+        key=lambda r: (
+            r["score"],
+            r.get("pocket", r["fpocket"]),
+            r["direct_count"],
+            r["binder_count"],
+        ),
         reverse=True,
     )
     return {"formula_name": "Evidence convergence", "items": _format_score_items(ranked[:limit])}
 
 
 def get_unexplored_targets(assembly_name, user, limit=5, scored=None):
-    """Top-N proteins with strong non-chemical evidence but zero ligand records.
+    """Top-N scored proteins with zero loaded ligand records.
 
-    Raw ligand count rewards "well-studied" proteins - a bacterial protein
-    with a well-studied human homolog (kinases, GPCRs) racks up ChEMBL/ZINC
-    hits regardless of whether it's a good bacterial-specific target, and that
-    homology is often the same thing the off-target signal penalizes. This
-    surfaces the inverse: promising, druggable, selective candidates nobody
-    has drugged yet - a target-discovery view instead of a "most-studied" one.
+    This subset uses the same score and tiers as the overall ranking.
+    Missing records do not establish that a protein has never been studied.
     """
     if scored is None:
         scored = _cached_score_proteins(assembly_name)
     unexplored = [r for r in scored if r["binder_count"] == 0]
-    unexplored.sort(key=lambda r: (r["score"], r["fpocket"]), reverse=True)
+    if len(unexplored) == len(scored):
+        # No protein has ligand evidence yet, so this list would just repeat
+        # the main ranking; the overview hides the panel when it's empty.
+        return {"formula_name": "Unexplored candidates", "items": []}
+    unexplored.sort(key=lambda r: (r["score"], r.get("pocket", r["fpocket"])), reverse=True)
     return {
         "formula_name": "Unexplored candidates",
         "items": _format_score_items(unexplored[:limit]),
@@ -470,7 +501,7 @@ def get_overview_target_rankings(assembly_name, user, limit=5):
     twice per page load, the dominant cost on large genomes. Cached by
     genome name (the heuristic ignores `user`), same TTL policy as
     build_assembly_workspace_metrics."""
-    cache_key = f"Target:overview_target_rankings:{assembly_name}:{limit}"
+    cache_key = f"Target:overview_target_rankings:v2:{assembly_name}:{limit}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -489,7 +520,13 @@ def export_composite_ranking_rows(assembly_name):
     (headers, rows) ready for csv_exports.csv_response."""
     scored = _cached_score_proteins(assembly_name)
     scored.sort(
-        key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]), reverse=True
+        key=lambda r: (
+            r["score"],
+            r.get("pocket", r["fpocket"]),
+            r["direct_count"],
+            r["binder_count"],
+        ),
+        reverse=True,
     )
 
     headers = [
@@ -513,7 +550,7 @@ def export_composite_ranking_rows(assembly_name):
             [
                 row["accession"],
                 row["description"],
-                round(row["score"], 1),
+                round(row["score"], 2),
                 int(EVIDENCE_CONVERGENCE_MAX_SCORE),
                 tier_label,
                 row["fpocket"],
@@ -544,23 +581,42 @@ def _build_assembly_workspace_metrics(assembly_name):
 
     total_proteins = proteins.count()
     proteins_with_structure = proteins.filter(structures__isnull=False).distinct().count()
-    experimental_structures = (
+    experimental_bioentry_ids = (
         BioentryStructure.objects.filter(bioentry__biodatabase__name=proteome_name)
         .exclude(pdb__experiment__in=PDB_MODEL_EXPERIMENTS)
-        .values("bioentry_id")
+        .values_list("bioentry_id", flat=True)
         .distinct()
-        .count()
     )
+    experimental_structures = experimental_bioentry_ids.count()
     experimental_structure_xrefs = ExperimentalStructureXref.objects.filter(
         bioentry__biodatabase__name=proteome_name,
     )
     pdb_xref_entries = experimental_structure_xrefs.count()
     pdb_xref_proteins = experimental_structure_xrefs.values("bioentry_id").distinct().count()
+    # Mutually exclusive by source priority (experimental > AlphaFold DB > ColabFold,
+    # same order structure_sources.py uses per-protein) -- a protein with both an
+    # experimental structure and a ColabFold model only counts once, under
+    # "experimental". Without this, each count answered "has at least one of this
+    # type" independently, so a protein could be counted in all three at once and
+    # e.g. colabfold_structures could equal proteins_with_structure even though
+    # ColabFold is meant to only cover what nothing else already covers.
+    alphafold_bioentry_ids = (
+        proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
+        .values_list("bioentry_id", flat=True)
+        .distinct()
+    )
     alphafold_structures = (
-        proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD).distinct().count()
+        proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
+        .exclude(bioentry_id__in=experimental_bioentry_ids)
+        .distinct()
+        .count()
     )
     colabfold_structures = (
-        proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD).distinct().count()
+        proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD)
+        .exclude(bioentry_id__in=experimental_bioentry_ids)
+        .exclude(bioentry_id__in=alphafold_bioentry_ids)
+        .distinct()
+        .count()
     )
     ec_annotated = proteins.filter(dbxrefs__dbxref__dbname__in=EC_DBNAMES).distinct().count()
     go_annotated = proteins.filter(dbxrefs__dbxref__dbname=Ontology.GO).distinct().count()
@@ -652,7 +708,7 @@ def _build_assembly_workspace_metrics(assembly_name):
         # same base queryset (chokepoint_role is a plain field, not a
         # relation, so filtering it inside Count() can't create the kind of
         # ambiguous multi-valued join FilteredRelation exists to prevent
-        # elsewhere in this codebase -- see StructureView._ranked_pocket_ids).
+        # elsewhere in this codebase -- see structure_summary._ranked_pocket_ids).
         link_totals = metabolic_links_qs.aggregate(
             protein_count=Count("bioentry_id", distinct=True),
             chokepoint_reaction_count=Count(

@@ -1,86 +1,17 @@
 /*
  * Human Targets — protein detail page.
  *
- * Deliberately narrow: the hero/card/quick-nav/metric-pill/binders-table/
- * binder-intel/binder-mol-modal styling is reused verbatim from
- * protein-detail.css (same markup, same tokens, loaded alongside this file
- * -- see human_protein.html's {% block head %}), so this file only adds the
- * genuinely new human-specific classes (Overview/Function/Sequence/
- * Structure/Cross-refs) plus the custom properties the reused classes
- * expect from their normal `.protein-page` ancestor, aliased here onto
- * `.human-protein-page` instead.
+ * Hero, cards, quick-nav, annotation panels, key/value rows, cross-reference
+ * chips, sequence and ligand tables all come from the shared protein-page.css,
+ * same markup as the pathogen protein page. This file only styles what is
+ * human-only: diseases, the structure picker, the expression atlas and the
+ * KEGG pathway index. One accent (brand-800), used for the selected item and
+ * the single highest value; everything else stays neutral.
  */
 
-/* Base font/color/spacing and the --protein-accent* custom properties
-   (light + dark-mode-corrected values) all come from the real `.protein-page`
-   class, added alongside this one in human_protein.html -- this page reuses
-   protein-detail.css's hero/card/binders styling verbatim and must pick up
-   its `.tp-dark .protein-page` dark-mode accent overrides too, not just its
-   light-mode values. Only the genuinely new `--human-accent` lives here. */
 .human-protein-page {
     --human-accent: var(--tp-color-brand-800);
-}
-
-.hero-chip-reviewed {
-    background: var(--tp-color-success-bg);
-    color: var(--tp-color-success-ink);
-    border-color: var(--tp-color-success-border);
-}
-
-/* Overview */
-
-.human-overview-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
-    gap: var(--tp-space-6);
-    align-items: start;
-}
-
-@media (max-width: 900px) {
-    .human-overview-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.human-overview-block {
-    margin-top: var(--tp-space-4);
-}
-
-.human-overview-block h3 {
-    font-size: var(--tp-font-size-md);
-    margin-bottom: var(--tp-space-2);
-}
-
-.human-caution {
-    margin-top: var(--tp-space-3);
-}
-
-.human-publication-list {
-    margin: 0;
-    padding-left: var(--tp-space-4);
-    font-size: var(--tp-font-size-sm);
-}
-
-.human-publication-list li {
-    margin-bottom: var(--tp-space-1);
-}
-
-.human-identifiers-card,
-.human-pill-block {
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    padding: var(--tp-space-4);
-    margin-bottom: var(--tp-space-4);
-}
-
-.human-identifiers-card h3,
-.human-pill-block h3 {
-    font-size: var(--tp-font-label);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--tp-color-text-muted);
-    margin-bottom: var(--tp-space-3);
+    --human-ease: var(--tp-ui-ease-standard, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .human-kv-list {
@@ -100,270 +31,975 @@
     font-size: var(--tp-font-size-sm);
 }
 
-.human-lineage {
-    margin: var(--tp-space-3) 0 0;
-    font-size: var(--tp-font-size-xs);
-    color: var(--tp-color-text-muted);
-}
-
-/* Function */
-
-.human-function-text {
-    white-space: pre-line;
-    line-height: 1.6;
-}
-
-.human-catalytic-list {
-    display: grid;
-    gap: var(--tp-space-2);
-    margin-top: var(--tp-space-4);
-}
-
-.human-catalytic-card {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    padding: var(--tp-space-3);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--tp-space-2);
-}
-
-.human-reaction-eq {
+/* Plain UniProt prose (function, subunit, lineage) inside the shared
+   annotation/cross-reference groups. */
+.human-text {
     margin: 0;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    flex-basis: 100%;
+    max-width: 78ch;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.65;
 }
 
-.human-go-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--tp-space-3);
+.cross-reference-group > .human-text,
+.human-identifiers + .cross-reference-group {
     margin-top: var(--tp-space-4);
 }
 
-.human-go-card {
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    padding: var(--tp-space-3);
+/* ── Biology: facts strip, then prose beside the cell diagram. ───────── */
+.hbio-facts {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
 }
 
-.human-go-card h3 {
-    font-size: var(--tp-font-size-sm);
-    color: var(--tp-color-text-muted);
-    margin-bottom: var(--tp-space-2);
+.hbio-facts + .hbio-layout {
+    margin-top: var(--tp-space-5);
 }
 
-/* Sequence */
-
-.human-sequence-block {
-    font-family: "SFMono-Regular", Consolas, monospace;
-    font-size: var(--tp-font-size-sm);
-    line-height: 1.6;
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    padding: var(--tp-space-4);
-    overflow-x: auto;
-    white-space: pre-wrap;
-    word-break: break-all;
-}
-
-/* Seamless mosaic: 1px gaps read as hairline dividers between lanes, no
-   per-lane border/shadow/export-toolbar (these are lookup lists of a
-   handful of rows each, not sortable/exportable data grids). */
-.human-feature-lanes {
+/* The prose column is only as wide as its text (up to a reading measure),
+   so a one-line function sits right beside the diagram, not across a gap. */
+.hbio-layout {
     display: grid;
-    gap: 1px;
-    background: var(--tp-color-border-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    overflow: hidden;
-    margin-top: var(--tp-space-4);
+    grid-template-columns: fit-content(min(92ch, 100%)) minmax(280px, 360px);
+    justify-content: start;
+    gap: var(--tp-space-8);
+    align-items: start;
 }
 
-.human-feature-lane {
-    display: grid;
-    grid-template-columns: minmax(140px, 180px) 1fr;
-    gap: var(--tp-space-3);
-    padding: var(--tp-space-3) var(--tp-space-4);
-    background: var(--tp-color-surface);
+.hbio-layout > :only-child {
+    grid-column: 1 / -1;
 }
 
-@media (max-width: 700px) {
-    .human-feature-lane {
-        grid-template-columns: 1fr;
-    }
+.hbio-main > * + * {
+    margin-top: var(--tp-space-5);
 }
 
-.human-feature-lane__label {
-    font-size: var(--tp-font-label);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--tp-color-text-muted);
-    padding-top: 2px;
+.hbio-main .human-text {
+    max-width: 92ch;
 }
 
-.human-feature-lane__items {
-    display: grid;
-    gap: var(--tp-space-1);
+.hbio-aside .hc-cell {
+    max-width: 300px;
 }
 
-.human-feature-item {
-    display: grid;
-    grid-template-columns: 90px 1fr;
-    gap: var(--tp-space-2);
-    font-size: var(--tp-font-size-sm);
-}
-
-.human-feature-item__pos {
-    font-family: "SFMono-Regular", Consolas, monospace;
-    color: var(--tp-color-text-muted);
-}
-
-/* Structure */
-
-.human-structure-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2);
-    margin-bottom: var(--tp-space-4);
-}
-
-.human-structure-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-1);
-    border: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface);
-    border-radius: 999px;
-    padding: var(--tp-space-1) var(--tp-space-3);
-    font-size: var(--tp-font-size-sm);
-    cursor: pointer;
-}
-
-.human-structure-tab.is-active {
-    background: var(--human-accent);
-    color: var(--tp-color-on-accent);
-    border-color: var(--human-accent);
-}
-
-.human-structure-tab__count {
-    font-size: var(--tp-font-size-xs);
-    opacity: 0.8;
-}
-
-.human-structure-body {
-    display: grid;
-    grid-template-columns: minmax(200px, 260px) 1fr;
-    gap: var(--tp-space-4);
+.hbio-aside .hc-list {
+    margin-top: var(--tp-space-3);
 }
 
 @media (max-width: 900px) {
-    .human-structure-body {
-        grid-template-columns: 1fr;
+    .hbio-layout {
+        grid-template-columns: minmax(0, 1fr);
     }
+}
+
+#section-sequence > .data-details {
+    margin-top: var(--tp-space-4);
+}
+
+/* ── Lineage, root to species, in the keywords list ──────────────────── */
+
+.hk-binomial {
+    font-style: italic;
+}
+
+/* ── Keywords by UniProt category ─────────────────────────────────────── */
+.hk-groups {
+    display: grid;
+    margin: 0;
+}
+
+.hk-group {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: var(--tp-space-4);
+    padding: var(--tp-space-2) 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.hk-group:last-child {
+    border-bottom: 0;
+}
+
+.hk-group dt {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+}
+
+/* Items wrap between terms (flex), never as one long unbreakable line. */
+.hk-group dd {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 2px;
+    min-width: 0;
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.hk-group dd span + span::before {
+    content: "·";
+    margin: 0 var(--tp-space-2);
+    color: var(--tp-color-text-soft);
+    font-style: normal;
+}
+
+.hk-group dd.hk-lineage span + span::before {
+    content: "›";
+}
+
+/* ── Publications as citations, newest first ──────────────────────────── */
+.hb-count {
+    margin-left: 4px;
+    color: var(--tp-color-text-soft);
+    font-family: var(--tp-font-mono);
+    letter-spacing: 0;
+}
+
+.hb-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hb-item {
+    display: grid;
+    grid-template-columns: 4.5ch minmax(0, 1fr);
+    gap: var(--tp-space-4);
+    padding: var(--tp-space-3) 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.hb-year {
+    padding-top: 1px;
+    color: var(--tp-color-text-muted);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+}
+
+.hb-title {
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    line-height: 1.45;
+    text-decoration: none;
+}
+
+.hb-title:hover {
+    color: var(--tp-color-link);
+    text-decoration: underline;
+}
+
+.hb-meta {
+    margin: 2px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.hb-all {
+    display: inline-block;
+    margin-top: var(--tp-space-3);
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-sm);
+    text-decoration: none;
+}
+
+.hb-all:hover {
+    text-decoration: underline;
+}
+
+/* GO terms in two columns, names in full (no truncation). */
+.ha-term-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--tp-space-6);
+}
+
+.ha-term-list--wide {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.ha-term-list .annotation-entry {
+    padding-left: var(--tp-space-1);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ha-term-list .annotation-entry-name {
+    white-space: normal;
+    cursor: auto;
+}
+
+@media (max-width: 700px) {
+    .ha-term-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ── Pharmacology ─────────────────────────────────────────────────────── */
+.hph-resources {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2) var(--tp-space-3);
+    margin-bottom: var(--tp-space-4);
+}
+
+.hph-note {
+    margin-top: var(--tp-space-3);
+}
+
+.hph-drugs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr));
+    gap: 0 var(--tp-space-5);
+    margin: var(--tp-space-4) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hph-drugs a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-2) 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    text-decoration: none;
+}
+
+.hph-drug-name {
+    overflow: hidden;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hph-drug-id {
+    color: var(--tp-color-text-soft);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-2xs);
+}
+
+.hph-drugs a:hover .hph-drug-name {
+    color: var(--tp-color-link);
+}
+
+/* ── Disease rows: variant count and jump to the map ──────────────────── */
+.hd-variants {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.hd-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2) var(--tp-space-4);
+}
+
+.hd-map-link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.hd-map-link:hover {
+    text-decoration: underline;
+}
+
+.ha-filter {
+    margin: 0 0 var(--tp-space-1);
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+}
+
+.ha-map.is-filtered .ha-row--variants .ha-tick {
+    opacity: 0.2;
+}
+
+.ha-map.is-filtered .ha-row--variants .ha-tick.is-hit {
+    height: 16px;
+    opacity: 1;
+    background: var(--human-accent);
+    animation: ha-hit 500ms var(--human-ease) both;
+}
+
+/* Lollipops keep their height when lit by the disease filter. */
+.ha-map.is-filtered .ha-row--variants .ha-pop.is-hit {
+    height: calc(var(--h, 0.5) * 42px);
+}
+
+.ha-map.is-filtered .ha-row--variants .ha-pop.is-hit::before {
+    border-color: var(--human-accent);
+    background: var(--human-accent);
+}
+
+@keyframes ha-hit {
+    from {
+        transform: scaleY(0.2);
+        transform-origin: bottom;
+    }
+}
+
+@media (max-width: 700px) {
+
+    .hc-layout,
+    .hk-group {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--tp-space-2);
+    }
+
+    .hc-cell {
+        max-width: 280px;
+    }
+}
+
+/* ── Diseases: an editorial list, one hairline row per disease ───────── */
+.hd-list {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.hd-item {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.hd-summary {
+    display: flex;
+    align-items: baseline;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-3) var(--tp-space-2);
+    list-style: none;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 transparent;
+    transition:
+        background var(--tp-ui-motion-fast) var(--human-ease),
+        box-shadow var(--tp-ui-motion-fast) var(--human-ease);
+}
+
+.hd-summary::-webkit-details-marker {
+    display: none;
+}
+
+.hd-summary::marker {
+    content: "";
+}
+
+.hd-summary:hover {
+    background: var(--tp-color-surface-soft);
+    box-shadow: inset 3px 0 0 var(--tp-color-border-strong);
+}
+
+.hd-summary:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+.hd-name {
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-md);
+    font-weight: 600;
+    letter-spacing: var(--tp-tracking-tight);
+}
+
+.hd-acronym {
+    color: var(--tp-color-text-muted);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+}
+
+.hd-chevron {
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    margin-left: auto;
+    border-right: 1.5px solid var(--tp-color-text-muted);
+    border-bottom: 1.5px solid var(--tp-color-text-muted);
+    transform: translateY(-2px) rotate(45deg);
+    transition: transform var(--tp-ui-motion-base) var(--human-ease);
+}
+
+.hd-item[open] > .hd-summary .hd-chevron {
+    transform: translateY(1px) rotate(225deg);
+}
+
+.hd-body {
+    padding: 0 var(--tp-space-2) var(--tp-space-4);
+}
+
+.hd-body p {
+    max-width: 78ch;
+    margin: 0 0 var(--tp-space-2);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.65;
+}
+
+.hd-source,
+.hp-source {
+    color: var(--tp-color-link);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.hd-source:hover,
+.hp-source:hover {
+    text-decoration: underline;
+}
+
+/* ── 3D structure: model index + a framed stage ──────────────────────── */
+.hs-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+    gap: var(--tp-space-5);
+    align-items: stretch;
+}
+
+.hs-index {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.human-structure-tabs {
+    margin-bottom: var(--tp-space-2);
+}
+
+.human-structure-panel {
+    max-height: 440px;
+    overflow-y: auto;
+    border-top: 1px solid var(--tp-color-border-soft);
+    scrollbar-width: thin;
 }
 
 .human-structure-panel.is-hidden {
     display: none;
 }
 
-.human-structure-entry {
+.hs-entry {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px var(--tp-space-3);
+    width: 100%;
+    padding: var(--tp-space-3);
+    border: 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 transparent;
+    transition:
+        background var(--tp-ui-motion-fast) var(--human-ease),
+        box-shadow var(--tp-ui-motion-base) var(--human-ease);
+}
+
+.hs-entry:hover {
+    background: var(--tp-color-surface-soft);
+    box-shadow: inset 3px 0 0 var(--tp-color-border-strong);
+}
+
+.hs-entry.is-active {
+    background: var(--tp-color-surface-soft);
+    box-shadow: inset 3px 0 0 var(--human-accent);
+}
+
+.hs-entry:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+.hs-entry-code {
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+}
+
+.hs-entry-meta {
+    grid-column: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--tp-space-2);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.hs-entry-meta:empty {
+    display: none;
+}
+
+.hs-entry-meta span + span::before {
+    content: "·";
+    margin-right: var(--tp-space-2);
+}
+
+.hs-plddt {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+}
+
+.hs-stage {
+    position: relative;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-    width: 100%;
-    text-align: left;
+    min-height: 460px;
+    margin: 0;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    padding: var(--tp-space-2) var(--tp-space-3);
-    margin-bottom: var(--tp-space-2);
-    background: var(--tp-color-surface);
-    cursor: pointer;
-    font-size: var(--tp-font-size-sm);
-}
-
-.human-structure-entry.is-active {
-    border-color: var(--human-accent);
-    background: var(--tp-color-surface-soft);
-}
-
-.human-structure-viewer {
-    position: relative;
-    min-height: 420px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-structure-bg, var(--tp-color-surface-panel));
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-structure-bg, var(--tp-color-surface-muted));
     overflow: hidden;
 }
 
 #human-structure-viewport {
-    position: absolute;
-    inset: 0;
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 420px;
+    transition: opacity var(--tp-ui-motion-base) var(--human-ease);
 }
 
-#human-structure-loading {
+.hs-stage.is-loading #human-structure-viewport {
+    opacity: 0.25;
+}
+
+.hs-loading {
     position: absolute;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 40px;
+    left: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
     pointer-events: none;
 }
 
-/* Cross-references */
-
-.human-xref-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--tp-space-3);
+.hs-stage.is-loading .hs-loading {
+    animation: hs-breathe 1.6s var(--human-ease) infinite;
 }
 
-.human-xref-card {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    padding: var(--tp-space-3);
+@keyframes hs-breathe {
+    50% {
+        opacity: 0.45;
+    }
+}
+
+.hs-caption {
+    padding: var(--tp-space-2) var(--tp-space-3);
+    border-top: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.hs-caption:empty {
+    display: none;
+}
+
+/* ── Expression atlas ────────────────────────────────────────────────── */
+.hx-metrics {
+    margin: 0 0 var(--tp-space-5);
+}
+
+/* Bars (.tp-bar) grow in on first view (JS adds .hx-animate, then .is-revealed). */
+.hx-row .tp-bar-fill {
+    transition: transform 900ms var(--human-ease);
+}
+
+.hx-animate .hx-row .tp-bar-fill {
+    transform: scaleX(0);
+}
+
+.hx-animate.is-revealed .hx-row .tp-bar-fill {
+    transform: scaleX(1);
+}
+
+.hx-animate.is-revealed .hx-row:nth-child(2) .tp-bar-fill { transition-delay: 40ms; }
+.hx-animate.is-revealed .hx-row:nth-child(3) .tp-bar-fill { transition-delay: 80ms; }
+.hx-animate.is-revealed .hx-row:nth-child(4) .tp-bar-fill { transition-delay: 120ms; }
+.hx-animate.is-revealed .hx-row:nth-child(n + 5) .tp-bar-fill { transition-delay: 160ms; }
+
+.human-expression-tabs {
+    margin-bottom: var(--tp-space-3);
+}
+
+.human-expression-panel.is-hidden {
+    display: none;
+}
+
+.human-expression-panel:not(.is-hidden) {
+    animation: hx-fade 260ms var(--human-ease);
+}
+
+@keyframes hx-fade {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+}
+
+/* One collapsible row per system: name, its top tissue and score while
+   closed; its tissue bars when open (the peak system starts open). */
+.hx-group {
+    border-top: 1px solid var(--tp-color-border-soft);
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 72px);
+    transition: background 600ms var(--human-ease);
+}
+
+.hx-group.is-flashed {
     background: var(--tp-color-surface-soft);
 }
 
-.human-xref-card h3 {
-    font-size: var(--tp-font-label);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--tp-color-text-muted);
-    margin-bottom: var(--tp-space-2);
-}
-
-.human-xref-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+.hx-group-title {
     display: grid;
-    gap: var(--tp-space-1);
+    grid-template-columns: minmax(160px, 220px) minmax(0, 1fr) 2.5em 12px;
+    align-items: center;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-3) var(--tp-space-2);
+    list-style: none;
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--human-ease);
 }
 
-.human-xref-list li {
+.hx-group-title::-webkit-details-marker {
+    display: none;
+}
+
+.hx-group-title:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.hx-group-title:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+.hx-group-name {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
     gap: var(--tp-space-2);
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+}
+
+.hx-group-top {
+    overflow: hidden;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hx-group[open] > .hx-group-title .hd-chevron {
+    transform: translateY(1px) rotate(225deg);
+}
+
+.hx-group > .hx-rows {
+    padding: 0 var(--tp-space-2) var(--tp-space-4) calc(220px + var(--tp-space-3) + var(--tp-space-2));
+}
+
+.hx-rows {
+    display: grid;
+    gap: var(--tp-space-2);
+    min-width: 0;
+}
+
+.hx-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) minmax(100px, 2fr) 2.5em;
+    align-items: center;
+    gap: var(--tp-space-3);
     font-size: var(--tp-font-size-sm);
 }
 
-.human-xref-db {
+.hx-row-label {
+    overflow: hidden;
+    color: var(--tp-color-text-secondary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hx-row.is-peak .hx-row-label {
+    color: var(--tp-color-text-primary);
+    font-weight: 600;
+}
+
+.hx-row.is-absent {
+    opacity: 0.55;
+}
+
+.hx-row-score {
+    color: var(--tp-color-text-muted);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.human-expression-rank-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--tp-font-size-sm);
+}
+
+.human-expression-rank-table th,
+.human-expression-rank-table td {
+    text-align: left;
+}
+
+.human-expression-rank-table__celltype {
     color: var(--tp-color-text-muted);
 }
 
-.human-xref-id {
-    font-family: "SFMono-Regular", Consolas, monospace;
+/* Expression ranking: scroll sideways on a phone instead of overflowing. */
+.human-expression-rank-shell {
+    overflow-x: auto;
+}
+
+.human-expression-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-4);
+}
+
+/* ── Pathways: KEGG index beside the network ─────────────────────────── */
+.hp-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+    gap: var(--tp-space-5);
+    align-items: start;
+}
+
+.hp-index {
+    max-height: 560px;
+    overflow-y: auto;
+    border-top: 1px solid var(--tp-color-border-soft);
+    scrollbar-width: thin;
+}
+
+.hp-index-item {
+    display: grid;
+    gap: 2px;
+    width: 100%;
+    padding: var(--tp-space-3);
+    border: 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 transparent;
+    transition:
+        background var(--tp-ui-motion-fast) var(--human-ease),
+        box-shadow var(--tp-ui-motion-base) var(--human-ease);
+}
+
+.hp-index-item:hover {
+    background: var(--tp-color-surface-soft);
+    box-shadow: inset 3px 0 0 var(--tp-color-border-strong);
+}
+
+.hp-index-item.is-active {
+    background: var(--tp-color-surface-soft);
+    box-shadow: inset 3px 0 0 var(--human-accent);
+}
+
+.hp-index-item:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+.hp-index-title {
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.hp-index-item.is-active .hp-index-title {
+    font-weight: 600;
+}
+
+.hp-index-meta {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.hp-index-id {
+    font-family: var(--tp-font-mono);
+}
+
+.hp-stage {
+    min-width: 0;
+}
+
+.hp-stage-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--tp-space-3);
+    margin-bottom: var(--tp-space-3);
+}
+
+.hp-stage-head h3 {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-lg);
+    font-weight: 600;
+    letter-spacing: var(--tp-tracking-tight);
+}
+
+.hp-stage-head p {
+    margin: 2px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.human-pathway-meta-panel.is-hidden {
+    display: none;
+}
+
+.human-pathway-graph-wrap {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface-soft);
+    padding: var(--tp-space-2);
+}
+
+#human-pathway-graph {
+    width: 100%;
+    height: clamp(340px, 40vw, 500px);
+    transition: opacity var(--tp-ui-motion-base) var(--human-ease);
+}
+
+#human-pathway-graph.is-switching {
+    opacity: 0;
+}
+
+.human-pathway-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-2);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.human-pathway-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-1);
+}
+
+.human-pathway-legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--tp-color-border-strong);
+}
+
+.human-pathway-legend-dot--focal {
+    border-radius: var(--tp-radius-xs);
+    background: var(--human-accent);
+}
+
+.human-pathway-legend-line {
+    display: inline-block;
+    width: 18px;
+    height: 0;
+    border-top: 2px solid var(--tp-color-border-strong);
+}
+
+.human-pathway-legend-line--activation {
+    border-top-color: var(--tp-color-success-ink);
+}
+
+.human-pathway-legend-line--inhibition {
+    border-top-style: dashed;
+    border-top-color: var(--tp-color-danger-ink);
+}
+
+.human-pathway-legend-line--other {
+    border-top-color: var(--tp-color-border-strong);
+}
+
+/* ── Narrow screens ──────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .hs-layout,
+    .hp-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .human-structure-panel,
+    .hp-index {
+        max-height: 260px;
+    }
+
+    .hx-group-title {
+        grid-template-columns: minmax(0, 1fr) 2.5em 12px;
+    }
+
+    .hx-group-top {
+        display: none;
+    }
+
+    .hx-group > .hx-rows {
+        padding-left: var(--tp-space-2);
+    }
+}
+
+@media (max-width: 520px) {
+    .hx-row {
+        grid-template-columns: minmax(90px, 1fr) minmax(60px, 1.2fr) 2.2em;
+        gap: var(--tp-space-2);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .human-structure-tab,
-    .human-structure-entry {
-        transition: none;
+    .hd-summary,
+    .hd-chevron,
+    .hx-group-title,
+    .hc-part,
+    .ha-domain,
+    .ha-tick,
+    .list-more > summary::after,
+    .hs-entry,
+    .hx-row .tp-bar-fill,
+    .hx-group,
+    .hp-index-item,
+    #human-structure-viewport,
+    #human-pathway-graph {
+        transition: none !important;
     }
+
+    .hs-stage.is-loading .hs-loading,
+    .ha-map.is-filtered .ha-row--variants .ha-tick.is-hit,
+    .hseq mark,
+    .human-expression-panel:not(.is-hidden) {
+        animation: none !important;
+    }
+
+    .hx-animate .hx-row .tp-bar-fill {
+        transform: none;
+    }
+}
+
+#section-biology > .tp-state-note + .hbio-facts {
+    margin-top: var(--tp-space-4);
 }

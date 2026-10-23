@@ -4,44 +4,54 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260808-scrollmargin-fix">
+    <link rel="stylesheet" href="{% static 'css/components/genome-page.css' %}?v=20261021-split">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261021-split">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:genomes_list' as genomes_url %}
+        {% with crumb_genome="Genome: "|add:assembly.name %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome %}
+        {% endwith %}
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}
     <div class="genome-page">
-        <section class="genome-hero" id="section-overview">
+        <section class="tp-page-hero genome-hero" id="section-overview">
             <div class="genome-hero-top tp-view-head">
                 <div class="genome-hero-content tp-view-head-copy">
-                    {% trans "Genomes" as crumb_genomes %}
-                    {% url 'tpwebapp:index' as index_url %}
-                    {% url 'tpwebapp:genomes_list' as genomes_url %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=assembly.name %}
-                    <p class="genome-hero-eyebrow">{% trans "Bacterial genome" %}</p>
-                    <h1>{{ assembly.name }}</h1>
+                    <p class="tp-view-eyebrow genome-hero-eyebrow">{% trans "Bacterial genome" %}</p>
+                    <h1 class="tp-view-title">{{ assembly.name }}</h1>
                     {% if workspace_metrics.has_curated_data %}
                         <div class="genome-curated-callout">
-                            <span class="tp-chip tp-chip--state finished tp-chip--sm">{% trans "Curated analysis" %}</span>
+                            <span class="tp-chip tp-chip--state finished">{% trans "Curated analysis" %}</span>
                             <span class="genome-curated-callout-note">{% trans "Druggability scores from a reviewed external import." %}</span>
                         </div>
                     {% endif %}
-                    {% if assembly.description %}<p class="genome-description">{{ assembly.description }}</p>{% endif %}
+                    {% if assembly.description %}<p class="tp-view-lead genome-description">{{ assembly.description }}</p>{% endif %}
                     <div class="hero-chip-list tp-chip-group">
                         {% for fact in overview.primary_hero_facts %}
                             {% if fact.label != "Annotated features" %}
-                                <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                                <span class="hero-chip tp-chip">
                                     <strong>{{ fact.label }}:</strong>
                                     <span>{{ fact.value }}</span>
                                 </span>
                             {% endif %}
                         {% endfor %}
                         {% if overview.strain_display %}
-                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                            <span class="hero-chip tp-chip">
                                 <strong>{% trans "Strain" %}:</strong>
                                 <span>{{ overview.strain_display }}</span>
                             </span>
                         {% endif %}
                         {% if overview.completion_display %}
-                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                            <span class="hero-chip tp-chip">
                                 <strong>{% trans "Completion" %}:</strong>
                                 <span>{{ overview.completion_display }}</span>
                             </span>
@@ -50,10 +60,7 @@
                     {% if pipeline_status.available %}
                         {% if pipeline_status.running_for_current_genome or pipeline_status.current_genome_status_note %}
                             <div class="genome-pipeline-group">
-                                <div>
-                                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
-                                </div>
-                                {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
+                                {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state" %}
                             </div>
                             {% if pipeline_status.current_genome_status_note %}
                                 <p class="tp-state-note {% if pipeline_status.failed_for_current_genome %}tp-state-note--error{% else %}tp-state-note--empty{% endif %}">
@@ -66,28 +73,40 @@
                         <p class="tp-state-note tp-state-note--error">{{ delete_error_message }}</p>
                     {% endif %}
                     <div class="genome-hero-actions">
-                        <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Proteins" %}</a>
-                        <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--outline">{% trans "Metabolism" %}</a>
-                    </div>
-                    <div class="genome-hero-actions genome-hero-actions--secondary">
-                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon">
-                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span>
-                            <span>{% trans "Add data" %}</span>
+                        {# Verb + arrow on purpose: a bare filled "Proteins" button read as a #}
+                        {# selected tab/section title, not as the way into the protein table. #}
+                        <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
+                            <span>{% trans "Explore proteins" %}</span>
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                         </a>
-                        <a href="{{ workspace_links.formula_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Custom score" %}</a>
-                        <a href="{{ workspace_links.ec_explorer_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "EC tree" %}</a>
-                        <a href="{{ workspace_links.blast_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm" title="{% trans 'Nucleotide BLAST (blastn) against this genome.' %}">BLAST</a>
-                        <a href="{{ workspace_links.protein_blast_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm" title="{% trans 'Amino acid BLAST (blastp) against every protein loaded for this genome.' %}">{% trans "Protein BLAST" %}</a>
+                        {% if workspace_metrics.metabolic_reaction_count %}
+                        <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon">
+                            <span>{% trans "Explore metabolism" %}</span>
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                    <p class="genome-hero-actions-hint">{% trans "Filters, scoring and the full protein table are under Explore proteins." %}</p>
+                    <div class="genome-hero-actions genome-hero-actions--secondary">
+                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span>
+                            <span>{% trans "Add my own data" %}</span>
+                        </a>
+                        <div class="genome-blast-group" role="group" aria-label="{% trans 'BLAST' %}">
+                            <span class="genome-blast-group-label" aria-hidden="true">{% trans "BLAST" %}</span>
+                            <a href="{{ workspace_links.blast_url }}" class="genome-blast-group-option" title="{% trans 'Nucleotide sequence (blastn) against this genome.' %}">{% trans "Genome" %}</a>
+                            <a href="{{ workspace_links.protein_blast_url }}" class="genome-blast-group-option" title="{% trans 'Amino acid sequence (blastp) against every protein loaded for this genome.' %}">{% trans "Protein" %}</a>
+                        </div>
                     </div>
                 </div>
                 <div class="tp-view-head-actions">
-                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon tp-view-export-link">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
-                        {% trans "Export view" %}
+                        {% trans "Download Excel summary" %}
                     </a>
                 </div>
             </div>
-            <div class="genome-metrics" aria-label="{% trans 'Genome summary' %}">
+            <div class="tp-metrics genome-metrics" aria-label="{% trans 'Genome summary' %}">
                 <div class="metric-pill">
                     <span class="metric-label" title="{% trans 'Total proteins loaded for this genome.' %}">{% trans "Proteins" %}</span>
                     <span class="metric-value">{{ workspace_metrics.total_proteins }}</span>
@@ -121,100 +140,24 @@
         </section>
 
         <nav class="quick-nav" aria-label="{% trans 'Genome sections' %}">
-            <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
-            {% if top_targets_by_score.items or unexplored_targets.items %}
-                <a href="#section-targets" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Top targets" %}</a>
-            {% endif %}
-            <a href="#section-evidence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Evidence" %}</a>
+            <a href="#section-evidence" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Evidence" %}</a>
             {% if jbrowse_embed.enabled %}
-                <a href="#section-browse" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Genome browser" %}</a>
+                <a href="#section-browse" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Genome browser" %}</a>
             {% endif %}
-            <a href="#section-downloads" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Downloads" %}</a>
-            <a href="#section-details" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Details" %}</a>
+            <a href="#section-downloads" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Downloads" %}</a>
+            {% if top_targets_by_score.items or unexplored_targets.items %}
+                <a href="#section-targets" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Top targets" %}</a>
+            {% endif %}
+            <a href="#section-details" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Details" %}</a>
             {% if can_delete_workspace %}
-                <a href="#section-dataset" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Dataset" %}</a>
+                <a href="#section-dataset" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Delete genome" %}</a>
             {% endif %}
         </nav>
 
         <div class="genome-grid">
-            {% if top_targets_by_score.items or unexplored_targets.items %}
-                <section class="genome-targets-wrap" id="section-targets">
-                    {% if top_targets_by_score.items %}
-                        <div class="genome-card genome-card--ranking">
-                            <div class="section-head tp-ui-panel-head">
-                                <div>
-                                    <!-- Invisible spacer matching the secondary ranking's "No ligand evidence
-                                         yet" eyebrow -- without it, that card's header is one line taller and
-                                         the two lists start at different heights. Same technique as the
-                                         invisible "How is this calculated?" spacer below, mirrored the other
-                                         direction. -->
-                                    <span class="targets-eyebrow" style="visibility: hidden;" aria-hidden="true">{% trans "No ligand evidence yet" %}</span>
-                                    <h2>{% trans "Top-ranked candidates" %}</h2>
-                                    <p class="section-subtitle">
-                                        {% trans "Composite score (0-100%) weighing druggability, ligand evidence, and five other independent signals." %}
-                                    </p>
-                                    <details class="targets-methodology js-smooth-details">
-                                        <summary>{% trans "How is this calculated?" %}</summary>
-                                        <p>
-                                            {% trans "FPocket druggability, P2Rank pocket support, ligand evidence type, selectivity/off-target screens, essentiality, conservation, structure, and metabolic context each contribute independently. Ligand counts are context, not a linear score multiplier - direct PDB ligand, measured ChEMBL activity, homolog-transferred evidence, and ZINC proposals are capped separately. Use the ligand-support ranking alongside this one when the raw count itself matters." %}
-                                        </p>
-                                    </details>
-                                </div>
-                                <a href="?export=ranking_csv" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon targets-export-btn" title="{% trans "Export every scored protein with its full score breakdown, not just the top candidates shown here." %}">
-                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
-                                    {% trans "Export CSV" %}
-                                </a>
-                            </div>
-                            <ol class="targets-list">
-                                {% for t in top_targets_by_score.items %}
-                                    {% blocktrans with percent=t.score_percent asvar score_tooltip %}Composite score: {{ percent }}% of the maximum weighted evidence. Strong means several independent evidence types agree; it is still only a first-pass triage score.{% endblocktrans %}
-                                    {% include "components/targets/ranking_item.html" %}
-                                {% endfor %}
-                            </ol>
-                            <p class="targets-footnote">
-                                {% trans "Strong is at least 65% of the maximum weighted evidence; Moderate is 40-65%; Limited is below 40%. This ranking is only a first-pass triage." %}
-                                <a href="{{ workspace_links.custom_scores_url }}">{% trans "Create your own score" %} &rarr;</a>
-                            </p>
-                        </div>
-                    {% endif %}
-
-                    {% if unexplored_targets.items %}
-                        <div class="genome-card genome-card--ranking genome-card--ranking-secondary">
-                            <div class="section-head tp-ui-panel-head">
-                                <div>
-                                    <span class="targets-eyebrow">{% trans "No ligand evidence yet" %}</span>
-                                    <h2>{% trans "Worth a fresh look" %}</h2>
-                                    <p class="section-subtitle">
-                                        {% trans "Same composite score, restricted to proteins with zero ligand records - promising candidates nobody has drugged yet, instead of the ones already best-studied." %}
-                                    </p>
-                                    <!-- Invisible spacer matching the primary ranking's "How is this calculated?"
-                                         details/summary line -- that card's header is one line taller, so without
-                                         this the two lists start at different heights even though the outer
-                                         cards are the same overall height. visibility:hidden removes it from the
-                                         tab order and the accessibility tree, unlike display:none it still holds
-                                         its layout space. -->
-                                    <details class="targets-methodology" style="visibility: hidden;" aria-hidden="true">
-                                        <summary>{% trans "How is this calculated?" %}</summary>
-                                    </details>
-                                </div>
-                            </div>
-                            <ol class="targets-list">
-                                {% for t in unexplored_targets.items %}
-                                    {% blocktrans with percent=t.score_percent asvar score_tooltip %}Composite score: {{ percent }}% of the maximum weighted evidence, computed without any ligand-evidence signal.{% endblocktrans %}
-                                    {% include "components/targets/ranking_item.html" %}
-                                {% endfor %}
-                            </ol>
-                            <p class="targets-footnote">
-                                {% trans "Ranked by the same non-chemical evidence as the main ranking: druggability, selectivity, essentiality, conservation, structure, and metabolic role. Once real ligand evidence appears for one of these, it will move to the main ranking instead." %}
-                            </p>
-                        </div>
-                    {% endif %}
-                </section>
-            {% endif %}
-
             <!-- Evidence available -->
             <section class="genome-card genome-card--evidence" id="section-evidence">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Evidence available" %}{% trans "Hover any stat below for what it counts and how it's computed." as evidence_help %}{% include "components/ui/section_help.html" with text=evidence_help %}</h2>
                         <p class="section-subtitle">{% trans "Structural, functional, ligand, and metabolic evidence available for proteins in this genome." %}</p>
@@ -227,18 +170,20 @@
                             {% blocktrans count proteins=workspace_metrics.proteins_with_structure %}{{ proteins }} protein{% plural %}{{ proteins }} proteins{% endblocktrans %}
                         </span>
                         <ul class="evidence-breakdown">
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Proteins with at least one 3D structure loaded. The three rows below split this same total by source — experimental, AlphaFold DB, or ColabFold — so they add up to this number exactly, each protein counted once under its best available source.' %}">{% trans "Total with a structure" %}</span><span class="evidence-bd-value">{{ workspace_metrics.proteins_with_structure }}</span></li>
                             {% if workspace_metrics.experimental_structures %}
-                                <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="Experimentally determined structures (X-ray, cryo-EM, NMR) that are downloaded and visible in the 3D viewer right now.">{% trans "Loaded experimental" %}</span><span class="evidence-bd-value">{{ workspace_metrics.experimental_structures }}</span></li>
-                            {% endif %}
-                            {% if workspace_metrics.pdb_xref_entries %}
-                                <li><span class="evidence-bd-label" title="Proteins that UniProt reports as having at least one PDB entry — but those structures may not be downloaded yet.">{% trans "PDB xref proteins" %}</span><span class="evidence-bd-value">{{ workspace_metrics.pdb_xref_proteins }}</span></li>
-                                <li><span class="evidence-bd-label" title="Individual PDB accession codes from UniProt for this genome. One protein can have several entries (different ligands, conditions, or resolutions).">{% trans "PDB xref entries" %}</span><span class="evidence-bd-value">{{ workspace_metrics.pdb_xref_entries }}</span></li>
+                                <li><span class="evidence-bd-label" title="{% trans 'Experimentally determined structures (X-ray, cryo-EM, NMR), already downloaded and visible in the 3D viewer. Highest-priority source: never double-counted below.' %}">{% trans "Experimental, downloaded" %}</span><span class="evidence-bd-value">{{ workspace_metrics.experimental_structures }}</span></li>
                             {% endif %}
                             {% if workspace_metrics.alphafold_structures %}
-                                <li><span class="evidence-bd-label" title="{% trans 'Proteins with an AlphaFold Database model loaded in Target. These are precomputed models from AlphaFold DB, not structures experimentally solved by this project.' %}">{% trans "AlphaFold DB models" %}</span><span class="evidence-bd-value">{{ workspace_metrics.alphafold_structures }}</span></li>
+                                <li><span class="evidence-bd-label" title="{% trans 'Proteins with an AlphaFold Database model loaded, counted here only if they have no experimental structure — these are precomputed models from AlphaFold DB, not structures experimentally solved by this project.' %}">{% trans "AlphaFold DB, downloaded" %}</span><span class="evidence-bd-value">{{ workspace_metrics.alphafold_structures }}</span></li>
                             {% endif %}
                             {% if workspace_metrics.colabfold_structures %}
-                                <li><span class="evidence-bd-label" title="{% trans 'Proteins with a ColabFold model generated for this workspace. These are computational predictions and should be interpreted by coverage and confidence.' %}">{% trans "ColabFold models" %}</span><span class="evidence-bd-value">{{ workspace_metrics.colabfold_structures }}</span></li>
+                                <li><span class="evidence-bd-label" title="{% trans 'Proteins with a ColabFold model, counted here only if they have no experimental structure and no AlphaFold DB model — ColabFold runs as the last-resort source for whatever nothing else already covers. These are computational predictions and should be interpreted by coverage and confidence.' %}">{% trans "ColabFold, predicted" %}</span><span class="evidence-bd-value">{{ workspace_metrics.colabfold_structures }}</span></li>
+                            {% endif %}
+                            {% if workspace_metrics.pdb_xref_entries %}
+                                <li class="evidence-breakdown-group-label" title="{% trans 'These two counts come from PDB entries UniProt lists for this genome — they are a citation, not a download. A protein listed here may or may not be the same one already downloaded above.' %}">{% trans "Cited in PDB via UniProt (not downloaded)" %}</li>
+                                <li><span class="evidence-bd-label" title="{% trans 'Proteins that UniProt reports as having at least one PDB entry — but those structures may not be downloaded yet.' %}">{% trans "Proteins with a PDB entry" %}</span><span class="evidence-bd-value">{{ workspace_metrics.pdb_xref_proteins }}</span></li>
+                                <li><span class="evidence-bd-label" title="{% trans 'Individual PDB accession codes from UniProt for this genome. One protein can have several entries (different ligands, conditions, or resolutions).' %}">{% trans "Total PDB entries" %}</span><span class="evidence-bd-value">{{ workspace_metrics.pdb_xref_entries }}</span></li>
                             {% endif %}
                         </ul>
                     </div>
@@ -258,6 +203,12 @@
                             </li>
                             {% endif %}
                         </ul>
+                        {% if workspace_metrics.ec_annotated %}
+                        <a href="{{ workspace_links.ec_explorer_url }}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon evidence-card-action">
+                            <span>{% trans "Explore EC tree" %}</span>
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                        </a>
+                        {% endif %}
                     </div>
 
                     <div class="evidence-card evidence-card--binders">
@@ -265,14 +216,18 @@
                         <span class="evidence-headline">
                             {% if workspace_metrics.binder_direct %}
                                 {% blocktrans count n=workspace_metrics.binder_direct %}{{ n }} direct hit{% plural %}{{ n }} direct hits{% endblocktrans %}
-                            {% else %}
+                            {% elif workspace_metrics.binder_total %}
                                 {% trans "All via homologs" %}
+                            {% else %}
+                                {% trans "No ligand evidence loaded yet" %}
                             {% endif %}
+                            {% if workspace_metrics.binder_total %}
                             <span class="evidence-headline-sub">
                                 {% blocktrans count total=workspace_metrics.binder_total %}{{ total }} total record{% plural %}{{ total }} total records{% endblocktrans %}
                                 ·
                                 {% blocktrans count proteins=workspace_metrics.proteins_with_binders %}{{ proteins }} protein{% plural %}{{ proteins }} proteins{% endblocktrans %}
                             </span>
+                            {% endif %}
                         </span>
                         <ul class="evidence-breakdown">
                             <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Ligand observed in an experimental Protein Data Bank structure of this protein.' %}">{% trans "PDB co-crystal" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_direct }}</span></li>
@@ -299,7 +254,7 @@
                             <li><span class="evidence-bd-label" title="{% trans 'Chokepoint reactions in the imported Pathway Tools/MetaFlux network.' %}">{% trans "Chokepoint reactions" %}</span><span class="evidence-bd-value">{{ workspace_metrics.metabolic_chokepoint_reaction_count }}</span></li>
                             <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Proteins that are both metabolic chokepoints and druggable (P2Rank >= 0.5, or FPocket >= 0.4 when no P2Rank value is loaded).' %}">{% trans "Chokepoint + pocket" %}</span><span class="evidence-bd-value">{{ workspace_metrics.metabolic_druggable_target_count }}</span></li>
                         </ul>
-                        <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon evidence-card-action">
+                        <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon evidence-card-action">
                             <span>{% trans "Open metabolism" %}</span>
                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                         </a>
@@ -338,13 +293,13 @@
 
             {% if jbrowse_embed.enabled %}
                 <section class="genome-card genome-card--browse" id="section-browse">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "Genome browser" %}</h2>
                             <p class="section-subtitle">{% trans "Interactive view of contigs and annotation tracks." %}</p>
                         </div>
                         <div class="section-tools">
-                            <a href="{{ jbrowse_url }}" target="_blank" rel="noopener" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon">
+                            <a href="{{ jbrowse_url }}" target="_blank" rel="noopener" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon">
                                 <span>{% trans "Open in new tab" %}</span>
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/external_link.html" %}</span>
                             </a>
@@ -358,7 +313,7 @@
 
             <!-- Downloads -->
             <section class="genome-card genome-card--downloads" id="section-downloads">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Downloads" %}</h2>
                         <p class="section-subtitle">{% trans "Download source genome and annotation files." %}</p>
@@ -383,9 +338,112 @@
                 </form>
             </section>
 
+            {% if top_targets_by_score.items or unexplored_targets.items %}
+                <section class="genome-targets-wrap" id="section-targets">
+                    {% if top_targets_by_score.items %}
+                        <div class="genome-card genome-card--ranking">
+                            <div class="section-head">
+                                <div>
+                                    <!-- Invisible spacer matching the secondary ranking's "No ligand evidence
+                                         yet" eyebrow -- without it, that card's header is one line taller and
+                                         the two lists start at different heights. Same technique as the
+                                         invisible "How is this calculated?" spacer below, mirrored the other
+                                         direction. -->
+                                    <span class="tp-view-eyebrow" style="visibility: hidden;" aria-hidden="true">{% trans "No ligand evidence yet" %}</span>
+                                    <h2>{% trans "Quick triage ranking" %}</h2>
+                                    <p class="section-subtitle">
+                                        {% blocktrans with maximum=triage_scoring.maximum %}A first-look ranking: proteins earn points for supporting evidence and lose points for red flags, out of {{ maximum }}. Open a protein to review its evidence before treating it as a candidate.{% endblocktrans %}
+                                    </p>
+                                    <details class="targets-methodology js-smooth-details">
+                                        <summary>{% trans "How is this calculated?" %}</summary>
+                                        <p>
+                                            {% blocktrans with maximum=triage_scoring.maximum %}This ranking uses fixed rules on a {{ maximum }}-point scale. Your custom scoring formulas are separate. Missing evidence adds no points and is not treated as a negative result. Each rule contributes once per protein, regardless of the number of records.{% endblocktrans %}
+                                        </p>
+                                        <p><strong>{% trans "Points added:" %}</strong></p>
+                                        <ul>
+                                            <li>{% trans "When P2Rank is available: probability at or above 0.5 adds 2 points; at or above 0.2 but below 0.5 adds 1 point." %}</li>
+                                            <li>{% trans "FPocket adds 1 extra point only when P2Rank is at or above 0.5, FPocket druggability is at or above 0.7, and the pocket has no size/shape outlier flag." %}</li>
+                                            <li>{% trans "Only when P2Rank is unavailable: FPocket druggability at or above 0.7 adds 2 points (1 with a pocket size/shape outlier); at or above 0.4 but below 0.7 adds 1 point (0 with an outlier). Pocket evidence contributes at most 3 points in total." %}</li>
+                                            <li>{% trans "Experimental PDB ligand co-crystallized with this exact protein: +2" %}</li>
+                                            <li>{% trans "Measured ChEMBL bioactivity on this exact protein: +2" %}</li>
+                                            <li>{% trans "Ligand evidence transferred from a similar protein, PDB or ChEMBL homolog: +0.75" %}</li>
+                                            <li>{% trans "Proposed ZINC compounds by chemical similarity only, no measured activity: +0.25" %}</li>
+                                            <li>{% trans "No significant human protein similarity in the off-target screen: +1.5" %}</li>
+                                            <li>{% trans "No significant gut microbiome similarity in the off-target screen: +1" %}</li>
+                                            <li>{% trans "Homolog found in the Database of Essential Genes (DEG): +1" %}</li>
+                                            <li>{% trans "Core gene across strains, agreed by both Roary and CoreCruncher: +1" %}</li>
+                                            <li>{% trans "Catalyzes a metabolic chokepoint reaction: +1.5 (or +0.25 for any other mapped metabolic reaction that is not a chokepoint)" %}</li>
+                                            <li>{% trans "Experimental 3D structure loaded: +1 (or +0.5 for a predicted AlphaFold/ColabFold model only)" %}</li>
+                                        </ul>
+                                        <p><strong>{% trans "Points subtracted:" %}</strong></p>
+                                        <ul>
+                                            <li>{% trans "When P2Rank is available: probability below 0.2 subtracts 0.5 points. Only when P2Rank is unavailable: FPocket druggability above 0 but below 0.4 subtracts 0.5 points." %}</li>
+                                            <li>{% trans "Significant human protein similarity detected: -2" %}</li>
+                                            <li>{% trans "Significant gut microbiome similarity detected: -1" %}</li>
+                                        </ul>
+                                        <p>
+                                            {% trans "Proteins scoring at or below zero with no positive signal are left out of both lists. Ties are broken first by P2Rank probability (or FPocket druggability when P2Rank is unavailable), then by direct ligand record count, then by total ligand record count." %}
+                                        </p>
+                                        <p>
+                                            {% trans "This ranking only orders candidates for a first look. It does not change, and is not changed by, the scoring formulas you create, and it is not a substitute for reviewing each protein's evidence." %}
+                                        </p>
+                                    </details>
+                                </div>
+                                <a href="?export=ranking_csv" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon targets-export-btn" title="{% trans "Export every scored protein with its full score breakdown, not just the top candidates shown here." %}">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                                    {% trans "Export CSV" %}
+                                </a>
+                            </div>
+                            <ol class="targets-list">
+                                {% for t in top_targets_by_score.items %}
+                                    {% blocktrans with points=t.score maximum=t.score_max asvar score_tooltip %}Quick triage score: {{ points }} of {{ maximum }} points. The label describes the point total, not a probability of success or experimental validation.{% endblocktrans %}
+                                    {% include "components/targets/ranking_item.html" %}
+                                {% endfor %}
+                            </ol>
+                            <p class="targets-footnote">
+                                {% blocktrans with strong=triage_scoring.strong_min|floatformat:"-2" moderate=triage_scoring.moderate_min|floatformat:"-2" maximum=triage_scoring.maximum %}On the {{ maximum }}-point scale: Strong is at least {{ strong }} points; Moderate is at least {{ moderate }} but below {{ strong }} points; Limited is below {{ moderate }} points. This ranking is only a first-pass triage.{% endblocktrans %}
+                                <a href="{{ workspace_links.formula_url }}">{% trans "Create your own score" %} &rarr;</a>
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    {% if unexplored_targets.items %}
+                        <div class="genome-card genome-card--ranking genome-card--ranking-secondary">
+                            <div class="section-head">
+                                <div>
+                                    <span class="tp-view-eyebrow">{% trans "No ligand evidence yet" %}</span>
+                                    <h2>{% trans "Worth a fresh look" %}</h2>
+                                    <p class="section-subtitle">
+                                        {% trans "A subset of the main ranking with no loaded PDB, ChEMBL, or ZINC ligand records, including records transferred from homologs. Missing records do not mean these proteins have never been studied." %}
+                                    </p>
+                                    <!-- Invisible spacer matching the primary ranking's "How is this calculated?"
+                                         details/summary line -- that card's header is one line taller, so without
+                                         this the two lists start at different heights even though the outer
+                                         cards are the same overall height. visibility:hidden removes it from the
+                                         tab order and the accessibility tree, unlike display:none it still holds
+                                         its layout space. -->
+                                    <details class="targets-methodology" style="visibility: hidden;" aria-hidden="true">
+                                        <summary>{% trans "How is this calculated?" %}</summary>
+                                    </details>
+                                </div>
+                            </div>
+                            <ol class="targets-list">
+                                {% for t in unexplored_targets.items %}
+                                    {% blocktrans with points=t.score maximum=t.score_max asvar score_tooltip %}Quick triage score: {{ points }} of {{ maximum }} points, computed without any ligand-evidence signal.{% endblocktrans %}
+                                    {% include "components/targets/ranking_item.html" %}
+                                {% endfor %}
+                            </ol>
+                            <p class="targets-footnote">
+                                {% blocktrans with maximum=triage_scoring.maximum %}Uses the same {{ maximum }}-point scale and labels as the main ranking. Without ligand records, at most 10 points are available from pocket evidence, selectivity, essential-gene similarity, conservation, structure, and metabolic role. These proteins remain eligible for the main ranking; any loaded ligand record removes them from this subset.{% endblocktrans %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </section>
+            {% endif %}
+
             <!-- Imported details -->
             <section class="genome-card genome-card--details" id="section-details">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head">
                     <div>
                         <h2>{% trans "Imported genome details" %}</h2>
                         <p class="section-subtitle">{% trans "Properties imported from the source record." %}</p>
@@ -394,7 +452,7 @@
                 <details class="genome-raw-details js-smooth-details">
                     <summary>{% trans "Show imported genome details" %}</summary>
                     <div class="tp-table-shell genome-raw-table">
-                        <table class="table table-striped table-hover mb-0 tp-table tp-table--plain">
+                        <table class="table mb-0 tp-table">
                             <tbody>
                             {% for row in assembly.prop_rows %}
                                 <tr>
@@ -414,14 +472,14 @@
 
             {% if can_delete_workspace %}
                 <section class="genome-card genome-card--danger" id="section-dataset">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head">
                         <div>
                             <h2>{% trans "Dataset removal" %}</h2>
                             <p class="section-subtitle">{% trans "Delete this uploaded genome dataset and all derived records." %}</p>
                         </div>
                     </div>
                     <details class="genome-delete-summary js-smooth-details">
-                        <summary>{% trans "Show deletion controls" %}</summary>
+                        <summary class="btn tp-btn tp-btn--danger tp-btn--sm">{% trans "Show deletion controls" %}</summary>
                         <form method="post" class="genome-delete-form">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="delete_workspace">
@@ -429,7 +487,7 @@
                                 {% trans "This removes the uploaded genome dataset, protein records, upload history, and generated analysis artifacts for this genome. This cannot be undone." %}
                             </p>
                             <div class="tp-ui-field">
-                                <label class="tp-ui-field-label" for="delete-workspace-confirm">{% trans "Type the accession to confirm" %}</label>
+                                <label class="tp-ui-field-label" for="delete-workspace-confirm">{% blocktrans with name=assembly.name %}Type {{ name }} to confirm{% endblocktrans %}</label>
                                 <input
                                     id="delete-workspace-confirm"
                                     name="confirm_accession"
@@ -440,7 +498,7 @@
                                 >
                             </div>
                             <div class="genome-delete-actions">
-                                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon">
+                                <button type="submit" class="btn tp-btn tp-btn--danger tp-btn-with-icon">
                                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
                                     <span>{% trans "Delete dataset" %}</span>
                                 </button>
@@ -482,7 +540,10 @@
                 var atBottom = (window.scrollY + window.innerHeight) >= (document.documentElement.scrollHeight - 4);
                 if (atBottom) return sections[sections.length - 1];
 
-                var threshold = window.scrollY + nav.offsetHeight + 24;
+                // nav.getBoundingClientRect().bottom, not offsetHeight: the nav docks
+                // below the top bar + breadcrumb bar, so its stuck bottom edge already
+                // includes that chrome (matches .genome-card's scroll-margin-top).
+                var threshold = window.scrollY + nav.getBoundingClientRect().bottom + 30;
                 var active = sections[0];
                 for (var i = 0; i < sections.length; i++) {
                     if (absTop(sections[i]) <= threshold) active = sections[i];

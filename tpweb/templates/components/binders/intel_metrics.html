@@ -1,0 +1,29 @@
+{% load i18n %}
+{# Ligand evidence at a glance, as design-system metric pills (both protein pages). #}
+<div class="tp-metrics binder-intel-metrics" aria-label="{% trans 'Ligand evidence summary' %}">
+    <div class="metric-pill" title="{% trans 'Same-protein PDB ligands or measured ChEMBL bioactivity.' %}">
+        <span class="metric-label">{% trans "On this protein" %}</span>
+        <span class="metric-value">{{ binders.summary.direct_count }}</span>
+        <span class="metric-note">{% trans "direct records" %}</span>
+    </div>
+    <div class="metric-pill">
+        <span class="metric-label">{% trans "From similar proteins" %}</span>
+        <span class="metric-value">{{ binders.summary.homolog_count }}</span>
+        <span class="metric-note">{% trans "transferred records" %}</span>
+    </div>
+    <div class="metric-pill">
+        <span class="metric-label">{% trans "Structural ligands" %}</span>
+        <span class="metric-value">{{ binders.summary.structural_count }}</span>
+        <span class="metric-note">{% blocktrans with count=binders.summary.loaded_crystal_count %}{{ count }} loaded crystals{% endblocktrans %}</span>
+    </div>
+    <div class="metric-pill">
+        <span class="metric-label">{% trans "Measured bioactivity" %}</span>
+        <span class="metric-value">{{ binders.summary.bioactive_count }}</span>
+        <span class="metric-note">{% trans "ChEMBL records" %}</span>
+    </div>
+    <div class="metric-pill">
+        <span class="metric-label">{% trans "Proposed compounds" %}</span>
+        <span class="metric-value">{{ binders.summary.proposed_count }}</span>
+        <span class="metric-note">{% trans "ZINC, by similarity" %}</span>
+    </div>
+</div>

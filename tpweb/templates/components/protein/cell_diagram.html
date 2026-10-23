@@ -1,0 +1,45 @@
+{% load i18n %}
+{# Schematic cell; compartments in `compartments` light up. Shapes only, colors come from protein-page.css (.hc-*). #}
+<svg class="hc-cell" viewBox="0 0 320 210" role="img" aria-label="{% trans 'Cell diagram highlighting where this protein is found' %}">
+    <g class="hc-part hc-part--secreted{% if 'secreted' in compartments %} is-on{% endif %}">
+        <title>{% trans "Secreted / extracellular" %}</title>
+        <circle cx="290" cy="30" r="5"/><circle cx="302" cy="48" r="3.5"/><circle cx="278" cy="14" r="3"/>
+        <circle cx="22" cy="184" r="4"/><circle cx="10" cy="168" r="3"/>
+    </g>
+    <g class="hc-part hc-part--cytoplasm{% if 'cytoplasm' in compartments %} is-on{% endif %}">
+        <title>{% trans "Cytoplasm" %}</title>
+        <ellipse class="hc-fill" cx="160" cy="105" rx="138" ry="86"/>
+    </g>
+    <g class="hc-part hc-part--membrane{% if 'membrane' in compartments %} is-on{% endif %}">
+        <title>{% trans "Cell membrane" %}</title>
+        <ellipse class="hc-line hc-line--thick" cx="160" cy="105" rx="138" ry="86"/>
+    </g>
+    <g class="hc-part hc-part--cytoskeleton{% if 'cytoskeleton' in compartments %} is-on{% endif %}">
+        <title>{% trans "Cytoskeleton" %}</title>
+        <path class="hc-line" d="M60 70 L120 52 M196 160 L250 128 M70 150 L112 168 M230 60 L268 92"/>
+    </g>
+    <g class="hc-part hc-part--er{% if 'er' in compartments %} is-on{% endif %}">
+        <title>{% trans "Endoplasmic reticulum" %}</title>
+        <path class="hc-line" d="M82 74 q10 -14 20 0 t20 0 t20 0 M78 138 q10 14 20 0 t20 0 t20 0 M70 92 q-10 14 0 28"/>
+    </g>
+    <g class="hc-part hc-part--nucleus{% if 'nucleus' in compartments %} is-on{% endif %}">
+        <title>{% trans "Nucleus" %}</title>
+        <circle class="hc-fill hc-line" cx="112" cy="106" r="30"/>
+        <circle class="hc-line" cx="118" cy="100" r="8"/>
+    </g>
+    <g class="hc-part hc-part--golgi{% if 'golgi' in compartments %} is-on{% endif %}">
+        <title>{% trans "Golgi apparatus" %}</title>
+        <path class="hc-line" d="M176 70 q18 -10 36 0 M172 80 q22 -12 44 0 M176 90 q18 -10 36 0"/>
+    </g>
+    <g class="hc-part hc-part--mitochondrion{% if 'mitochondrion' in compartments %} is-on{% endif %}">
+        <title>{% trans "Mitochondrion" %}</title>
+        <rect class="hc-fill hc-line" x="190" y="120" width="52" height="24" rx="12"/>
+        <path class="hc-line" d="M200 126 v12 M210 126 v12 M220 126 v12 M230 126 v12"/>
+    </g>
+    <g class="hc-part hc-part--vesicle{% if 'vesicle' in compartments %} is-on{% endif %}">
+        <title>{% trans "Vesicles, lysosomes and endosomes" %}</title>
+        <circle class="hc-fill hc-line" cx="250" cy="96" r="9"/>
+        <circle class="hc-fill hc-line" cx="160" cy="152" r="7"/>
+        <circle class="hc-fill hc-line" cx="232" cy="74" r="5"/>
+    </g>
+</svg>

@@ -1,0 +1,2060 @@
+/* Shared by every page in this family (see split.js history). Page-only rules
+   stay in protein-detail.css. Loaded before the page file. */
+
+.protein-page {
+    font-family: var(--tp-font-body);
+    color: var(--tp-color-text-primary);
+    max-width: none;
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--tp-space-4);
+}
+
+.protein-page h1,
+.protein-page h2,
+.protein-page h3,
+.protein-page h4 {
+    font-family: var(--tp-font-head);
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.protein-page h1 { font-weight: 600; }
+
+/* Base styles from .tp-page-hero in ui-system.css */
+.protein-hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--tp-space-5);
+    /* Top-pinned like every other page's .tp-view-head-actions (assembly,
+   proteins, genomes, annotation_explorer all use the shared flex-start
+   from ui-system.css) -- confirmed live this reads better than centering
+   it against the header, which was this page's own one-off deviation. */
+    align-items: flex-start;
+    margin-top: var(--tp-space-2);
+}
+
+.protein-hero-content {
+    max-width: none;
+    width: 100%;
+}
+
+.protein-hero-eyebrow {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+}
+
+.protein-description {
+    margin: var(--tp-space-3) 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-md);
+    line-height: 1.35;
+    max-width: var(--tp-measure);
+}
+
+.hero-chip-list {
+    margin-top: var(--tp-space-3);
+}
+
+.hero-chip-list .hero-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    color: var(--tp-color-text-secondary);
+}
+
+.hero-chip strong {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+}
+
+a.hero-chip.tp-chip--link .tp-chip-db {
+    color: var(--tp-color-text-muted);
+}
+
+a.hero-chip.tp-chip--link .tp-chip-ext-icon {
+    color: var(--tp-color-text-muted);
+}
+
+/* human_protein.html nests its .protein-card sections directly here (no
+   .protein-grid wrapper) -- 32px matches .protein-grid's gap below so
+   both pages get the same generous section spacing instead of a
+   hairline (each card already opens with its own bold h2). */
+.protein-main {
+    display: grid;
+    gap: var(--tp-space-7);
+    min-width: 0;
+}
+
+.protein-page a.btn,
+.protein-page a.btn:hover,
+.protein-page a.btn:active,
+.quick-nav .quick-nav-link:visited {
+    text-decoration: none !important;
+}
+
+/* Clearance for the sticky .quick-nav when a nav link jumps here: nav height
+   (44px link height + 1px bottom border = 45px) minus its -2px sticky
+   offset, plus ~24px breathing room. Keep this in sync with .quick-nav's
+   own box model if that ever changes. */
+.protein-card {
+    padding: var(--tp-space-4) var(--tp-space-5);
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 68px);
+}
+
+/* No longer boxed via .tp-page-hero -- sits directly on the page
+   background (see tpw-editorial-redesign), so it needs its own padding
+   now instead of inheriting that shared class's. */
+.protein-hero {
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 68px);
+}
+
+.sequence-shell,
+.feature-viewer-shell,
+.table-shell {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    overflow: auto;
+}
+
+.table-shell td {
+    vertical-align: middle;
+}
+
+#viewport {
+    width: 100%;
+    height: clamp(340px, 48vh, 460px);
+    min-height: 0;
+    border-radius: var(--tp-radius-md);
+    border: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-muted);
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+#viewport canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+@keyframes structure-loading-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* === Binders v2 — search + tabs + clickable cards + proposed table === */
+.binder-intel-panel {
+    display: grid;
+    gap: var(--tp-space-3);
+    margin: var(--tp-space-3) 0 var(--tp-space-4);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.binder-intel-lead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--tp-space-4);
+    padding-bottom: 2px;
+}
+
+.binder-intel-kicker {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+.binder-intel-lead p {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    line-height: 1.35;
+    text-align: right;
+}
+
+.binder-tbl__name-main {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    color: inherit;
+    text-decoration: none;
+}
+
+.binder-tbl__name-main:hover,
+.binder-tbl__name-main:focus-visible {
+    color: var(--tp-color-text-primary);
+    text-decoration: underline;
+}
+
+.binder-tbl__source-link {
+    margin-left: var(--tp-space-2);
+    font-size: var(--tp-font-size-2xs);
+    vertical-align: middle;
+}
+
+/* Ligand drawing inside the shared .tp-modal (ui-system.css). */
+.binder-mol-modal__body {
+    display: grid;
+    place-items: center;
+    min-height: 460px;
+    padding: var(--tp-space-6);
+    background:
+    linear-gradient(90deg, color-mix(in srgb, var(--tp-color-border-soft) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, var(--tp-color-border-soft) 45%, transparent) 1px, transparent 1px),
+    var(--tp-color-surface);
+    background-size: var(--tp-space-6) var(--tp-space-6);
+}
+
+.binder-mol-modal__body svg {
+    width: min(520px, 78vw);
+    height: min(520px, 78vw);
+    max-height: 62vh;
+}
+
+body.binder-mol-modal-open {
+    overflow: hidden;
+}
+
+.binders-search {
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    margin: var(--tp-space-3) 0 var(--tp-space-4);
+}
+
+.binders-search__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 1px solid var(--tp-color-border);
+    border-radius: var(--tp-radius-sm);
+    padding: var(--tp-space-2) var(--tp-space-4);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    font: inherit;
+    font-size: var(--tp-font-size-sm);
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.binders-search__input::placeholder {
+    color: var(--tp-color-text-soft);
+}
+
+.binders-search__input:focus {
+    outline: none;
+    border-color: var(--tp-focus-color);
+    box-shadow: var(--tp-focus-outline);
+}
+
+.binders-search__clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-muted);
+    text-decoration: none;
+    font-size: var(--tp-font-size-lg);
+    line-height: 1;
+    transition: background 140ms ease, color 140ms ease;
+}
+
+.binders-search__clear:hover,
+.binders-search__clear:focus-visible {
+    background: var(--tp-color-danger-bg);
+    color: var(--tp-color-danger-ink);
+    outline: none;
+}
+
+.binders-search__submit {
+    flex: 0 0 auto;
+}
+
+.binders-panel.is-hidden {
+    display: none;
+}
+
+/* === Binder tables (5-category layout) === */
+.binder-table-wrap {
+    overflow-x: auto;
+}
+
+.binder-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--tp-font-size-sm);
+}
+
+.binder-tbl th {
+    text-align: left;
+    white-space: nowrap;
+}
+
+.binder-tbl tbody tr {
+    transition: background 140ms ease;
+}
+
+.binder-tbl__row {
+    cursor: pointer;
+}
+
+.binder-tbl__row:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.binder-tbl td {
+    vertical-align: middle;
+}
+
+.binder-tbl__name {
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--tp-color-link);
+}
+
+.binder-tbl__row:hover .binder-tbl__name {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+}
+
+.binder-tbl__pdb,
+.binder-tbl__uniprot {
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-secondary);
+    white-space: nowrap;
+}
+
+.binder-tbl__pdb-id {
+    font-family: var(--tp-font-mono);
+    font-weight: 600;
+}
+
+.binder-tbl__score-col {
+    width: 96px;
+}
+
+.binder-tbl__score {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: var(--tp-color-text-secondary);
+}
+
+.binder-tbl__props-col {
+    white-space: nowrap;
+}
+
+.binder-tbl__props {
+    white-space: nowrap;
+}
+
+.binder-prop {
+    display: inline;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-secondary);
+}
+
+.binder-prop + .binder-prop::before {
+    content: " · ";
+    color: var(--tp-color-text-soft);
+    font-size: 0.9em;
+}
+
+.binder-tbl__score-empty {
+    color: var(--tp-color-text-soft);
+    font-weight: 400;
+}
+
+.binder-tbl__score-sub {
+    display: block;
+    font-variant-numeric: tabular-nums;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 400;
+    color: var(--tp-color-text-soft);
+}
+
+.binder-tbl__smiles-col {
+    max-width: 260px;
+}
+
+.binder-tbl__smiles {
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+    max-width: 260px;
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-1);
+    cursor: copy;
+    transition: color 140ms ease, background 140ms ease;
+}
+
+.binder-tbl__smiles code {
+    color: inherit;
+    background: none;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.binder-tbl__copy-icon svg,
+.binder-tbl__ext-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.binder-tbl__copy-icon {
+    display: inline-flex;
+    width: 12px;
+    height: 11px;
+    flex-shrink: 0;
+    color: var(--tp-color-text-soft);
+    opacity: 0.35;
+    transition: opacity 140ms ease;
+}
+
+.binder-tbl__smiles[data-smiles]:hover .binder-tbl__copy-icon {
+    opacity: 1;
+}
+
+.binder-tbl__smiles[data-smiles]:hover {
+    color: var(--tp-color-text-primary);
+    background: var(--tp-color-surface-soft);
+    border-radius: var(--tp-radius-xs);
+}
+
+.binder-tbl__smiles--copied {
+    color: var(--tp-color-success-ink) !important;
+    background: var(--tp-color-success-bg) !important;
+    border-radius: var(--tp-radius-xs);
+}
+
+.binder-tbl__pdb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-1);
+    color: inherit;
+    text-decoration: none;
+}
+
+.binder-tbl__pdb-link:hover .binder-tbl__pdb-id {
+    color: var(--tp-color-link-hover);
+}
+
+.binder-tbl__ext-icon {
+    display: inline-flex;
+    width: 11px;
+    height: 11px;
+    color: var(--tp-color-text-muted);
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 140ms ease;
+}
+
+.binder-tbl__pdb-link:hover .binder-tbl__ext-icon {
+    opacity: 1;
+}
+
+/* ── Binder filter bar ─────────────────────────────────────────────── */
+.binder-filter-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-3) var(--tp-space-4);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-soft);
+}
+
+.binder-filter-label {
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+    white-space: nowrap;
+    margin-right: 2px;
+}
+
+.binder-filter-sep {
+    flex: 1;
+}
+
+.binder-filter-count {
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.binders-empty {
+    margin: var(--tp-space-4) 0;
+}
+
+/* Proposed binders shown as a tabular list (no SVG) */
+.binder-table {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--tp-color-border-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-sm);
+    overflow: hidden;
+}
+
+@media (max-width: 720px) {
+    .binder-intel-lead,
+    .binder-intel-main {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .binder-intel-lead {
+        gap: var(--tp-space-2);
+    }
+
+    .binder-intel-lead p {
+        text-align: left;
+    }
+
+
+    .binder-molecule-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+#copy-residue-list {
+    min-width: 170px;
+    justify-content: center;
+}
+
+.protein-hero,
+.quick-nav,
+.protein-card {
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) backwards;
+}
+
+.quick-nav {
+    animation-delay: 0.03s;
+}
+
+/* Keep entry motion subtle and deterministic across optional sections. */
+.protein-card:nth-of-type(2) {
+    animation-delay: 0.05s;
+}
+
+.protein-card:nth-of-type(3) {
+    animation-delay: 0.08s;
+}
+
+.protein-card:nth-of-type(4) {
+    animation-delay: 0.11s;
+}
+
+.protein-card:nth-of-type(5) {
+    animation-delay: 0.14s;
+}
+
+.protein-card:nth-of-type(6) {
+    animation-delay: 0.17s;
+}
+
+@media (max-width: 991px) {
+    .protein-hero-top {
+        flex-direction: column;
+    }
+
+    .protein-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .protein-card {
+        padding: var(--tp-space-3);
+    }
+
+    #viewport {
+        height: clamp(340px, 52vh, 440px);
+    }
+}
+
+@media (max-width: 700px) {
+    .section-tools .btn {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .protein-hero,
+    .quick-nav,
+    .protein-card,
+    .binder-card,
+    .quick-nav a,
+    .quick-nav a::after,
+    .data-details > summary::after,
+    .structure-picker-chevron {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+.tp-dark #viewport {
+    background: var(--tp-color-structure-bg);
+    border-color: var(--tp-color-border);
+}
+
+/* ================================================================
+   Premium table overrides — pocket tables, binders, features
+   Same clean look as the structural evidence table.
+   ================================================================ */
+/* ── Binder table ── */
+/* Remove alternating stripe */
+.binder-tbl tbody tr:nth-child(even) {
+    background: transparent;
+}
+
+/* Brand-mix hover */
+.binder-tbl__row:hover {
+    background: var(--tp-color-surface-soft) !important;
+}
+
+/* ── Features table (#features_table, DataTables) ── */
+/* ── Dark mode ── */
+.tp-dark .binder-tbl__row:hover {
+    background: var(--tp-color-surface-soft) !important;
+}
+
+/* Chips inside a card keep their own width. */
+.target-evidence-card > .tp-chip {
+    align-self: flex-start;
+}
+
+.target-evidence-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-3) var(--tp-space-4);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface);
+}
+
+.target-evidence-card--secondary {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border);
+}
+
+.target-evidence-label {
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--tp-tracking-label);
+}
+
+.target-evidence-value {
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-heading-md);
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--tp-color-brand-900);
+}
+
+.target-evidence-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 2px;
+    padding-top: var(--tp-space-2);
+    border-top: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 70%, transparent);
+}
+
+.target-evidence-meta--top {
+    margin-top: var(--tp-space-1);
+    padding-top: 0;
+    border-top: none;
+}
+
+.target-evidence-meta-row {
+    display: flex;
+    gap: var(--tp-space-2);
+    align-items: baseline;
+}
+
+.target-evidence-meta-key {
+    flex: 0 0 auto;
+    min-width: 72px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+}
+
+.target-evidence-meta-val {
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.35;
+}
+
+.target-evidence-meta-val strong {
+    color: var(--tp-color-brand-900);
+    font-weight: 600;
+}
+
+.target-evidence-card[title],
+.target-evidence-meta-key[title] {
+    cursor: help;
+}
+
+.binder-tbl__crystal {
+    min-width: 200px;
+}
+
+.binder-crystal-cell {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2);
+}
+
+.binder-crystal-res {
+    font-size: var(--tp-font-size-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--tp-color-text-muted);
+    white-space: nowrap;
+}
+
+.binder-crystal-res::before {
+    content: "·";
+    margin: 0 var(--tp-space-1);
+    color: var(--tp-color-text-soft);
+}
+
+.binder-crystal-viewer {
+    white-space: nowrap;
+}
+
+.metabolic-score-card,
+.metabolic-sidebar-block,
+.metabolic-inspector {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-color-surface);
+}
+
+.metabolic-sidebar-block,
+.metabolic-inspector {
+    padding: var(--tp-space-3) var(--tp-space-4);
+}
+
+.metabolic-pathway-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+}
+
+.metabolic-no-pathway-note {
+    margin: 0;
+    padding: var(--tp-space-2) var(--tp-space-3);
+    border-left: 2px solid var(--tp-color-border-strong);
+    color: var(--tp-color-text-soft);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.5;
+}
+
+.metabolic-inspector strong {
+    display: block;
+    margin-bottom: var(--tp-space-3);
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+.metabolic-inspector dl {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: var(--tp-space-2) var(--tp-space-3);
+    margin: 0;
+}
+
+.metabolic-inspector dt {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: var(--tp-tracking-label);
+}
+
+.metabolic-inspector dd {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.metabolic-network-shell {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-color-surface-soft);
+    box-shadow: none;
+}
+
+.metabolic-map-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tp-space-3);
+    min-height: 44px;
+    padding: var(--tp-space-2) var(--tp-space-3);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface);
+}
+
+.metabolic-map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2) var(--tp-space-4);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+}
+
+.metabolic-map-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    white-space: nowrap;
+}
+
+.metabolic-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--tp-radius-pill);
+}
+
+.metabolic-legend-dot--focal {
+    /* Matches the actual node shape (round-rectangle, gradient fill, colored border) --
+   a plain filled circle here didn't look anything like the node it was supposed to
+   identify, once other nodes became circles too. */
+    border-radius: var(--tp-radius-xs);
+    background: var(--tp-color-brand-050);
+    border: 2px solid var(--tp-color-brand-700);
+}
+
+.metabolic-legend-dot--chokepoint {
+    background: var(--tp-color-warning-ink);
+    border-radius: var(--tp-radius-xs);
+    transform: rotate(45deg);
+}
+
+.metabolic-legend-dot--plain {
+    background: var(--tp-color-text-soft);
+}
+
+.metabolic-legend-swatch {
+    width: 14px;
+    height: 10px;
+    border-radius: var(--tp-radius-xs);
+    background: var(--tp-color-success-bg);
+    border: 1px solid var(--tp-color-success-ink);
+}
+
+.metabolic-map-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    flex: 0 0 auto;
+}
+
+#metabolic-network-cy {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: clamp(460px, 58vh, 680px);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 240ms ease, transform 240ms ease;
+}
+
+#metabolic-network-cy.is-ready {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#metabolic-network-cy.metabolic-network-loading,
+#metabolic-network-cy.metabolic-network-empty,
+#metabolic-network-cy.metabolic-network-error {
+    opacity: 1;
+    transform: none;
+}
+
+/* .metabolic-network-tooltip* now lives in components/ui-system.css
+   (shared with the genome-wide metabolic network page). */
+.metabolic-network-note {
+    padding: var(--tp-space-2) var(--tp-space-3) var(--tp-space-3);
+    border-top: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.35;
+}
+
+.metabolic-network-loading,
+.metabolic-network-empty,
+.metabolic-network-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.metabolic-network-loading::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    margin-right: var(--tp-space-2);
+    border: 2px solid var(--tp-color-border-soft);
+    border-top-color: var(--tp-color-brand-700);
+    border-radius: var(--tp-radius-pill);
+    animation: tp-metabolism-spin 780ms linear infinite;
+}
+
+@keyframes tp-metabolism-spin {
+    to {
+    transform: rotate(360deg);
+    }
+}
+
+.metabolic-summary-sentence {
+    margin: var(--tp-space-3) 0 0;
+}
+
+/* protein_metabolic_network.html's own page usage -- unlike protein.html's,
+   which sits inside an already-padded .protein-card, this one sits directly
+   in the .genome-page flow between the hero and .quick-nav. Zero horizontal
+   margin there meant this bordered banner spanned wider than the 18px-inset
+   .quick-nav pill bar right below it. */
+.protein-metabolic-network-summary {
+    margin-left: var(--tp-space-5);
+    margin-right: var(--tp-space-5);
+}
+
+.metabolic-provenance {
+    margin: var(--tp-space-3) 0 0;
+    color: var(--tp-color-text-soft);
+    font-size: var(--tp-font-size-xs);
+}
+
+/* Same story as .protein-metabolic-network-summary just above: this page's
+   own usage is a direct child of .genome-page (right before the closing
+   </div>, after the last .genome-card), not nested in a padded card like
+   protein.html's and metabolism_pathway.html's uses of the same base
+   class -- scoped to this page only via the page-wrapper class already on
+   <div class="genome-page metabolism-page protein-metabolic-network-page">. */
+.protein-metabolic-network-page > .metabolic-provenance {
+    margin-left: var(--tp-space-5);
+    margin-right: var(--tp-space-5);
+}
+
+@media (max-width: 720px) {
+    .metabolic-map-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .metabolic-map-actions {
+        width: 100%;
+    }
+
+    #metabolic-network-cy {
+        min-height: 430px;
+    }
+
+    #viewport {
+        height: 340px;
+    }
+}
+
+#binding-site-evidence {
+    scroll-margin-top: 96px;
+}
+
+/* "from KP13": the value next to it was read from the identical protein in
+   another strain. Quiet, lowercase, never a chip. */
+.shared-value-source {
+    margin-left: var(--tp-space-1);
+    color: var(--tp-color-text-muted);
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.annotation-entries {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.annotation-entry {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--tp-space-3);
+    align-items: baseline;
+    padding: var(--tp-space-2) var(--tp-space-4);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.annotation-entry:last-child {
+    border-bottom: 0;
+}
+
+.annotation-entry:hover {
+    background: var(--tp-color-surface-muted);
+}
+
+.annotation-entry-id {
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    color: var(--tp-color-brand-800);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.annotation-entry-id:hover {
+    text-decoration: underline;
+}
+
+.annotation-entry-name {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: help;
+}
+
+.target-profile-group-label {
+    margin: 0 0 var(--tp-space-2);
+    padding: 0 0 var(--tp-space-2);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+.target-profile-group-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0;
+    margin: 0;
+}
+
+.target-profile-item {
+    position: relative;
+    display: grid;
+    gap: var(--tp-space-1);
+    align-content: start;
+    min-height: 74px;
+    padding: var(--tp-space-2) var(--tp-space-3);
+    min-width: 0;
+    border: 0;
+    border-right: 1px solid var(--tp-color-border-soft);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: inset 3px 0 0 transparent;
+    transition:
+    background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+    border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+    box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.target-profile-item:last-child {
+    border-right: 0;
+}
+
+.target-profile-item:hover {
+    background: color-mix(in srgb, var(--tp-color-surface) 72%, transparent);
+    box-shadow: inset 3px 0 0 var(--tp-color-border-strong);
+}
+
+.target-profile-label {
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: var(--tp-tracking-label);
+    line-height: 1.2;
+}
+
+.target-profile-value {
+    font-family: var(--tp-font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--tp-color-text-primary);
+    overflow-wrap: anywhere;
+}
+
+.target-profile-item[title] {
+    cursor: help;
+}
+
+.cross-reference-group + .cross-reference-group {
+    margin-top: var(--tp-space-4);
+}
+
+.cross-reference-group-label {
+    margin: 0 0 var(--tp-space-2);
+    padding: 0 0 var(--tp-space-2);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+.cross-reference-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+}
+
+@media (max-width: 700px) {
+    .target-profile-group-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .target-profile-item {
+        border-right: 0;
+        border-bottom: 1px solid var(--tp-color-border-soft);
+    }
+
+    .target-profile-item:last-child {
+        border-bottom: 0;
+    }
+}
+
+.sequence-shell {
+    padding: var(--tp-space-3);
+    background: var(--tp-color-surface);
+}
+
+.protein-sequence-fallback {
+    margin: 0;
+    max-height: 320px;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: var(--tp-color-text-secondary);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.5;
+}
+
+.data-details {
+    margin-top: var(--tp-space-3);
+    border: 1px solid var(--tp-color-border);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface);
+    overflow: hidden;
+}
+
+.data-details > summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    cursor: pointer;
+    padding: var(--tp-space-3) var(--tp-space-4);
+    color: var(--tp-color-text-secondary);
+    font-weight: 600;
+    font-size: var(--tp-font-size-sm);
+    letter-spacing: 0;
+    border-bottom: 1px solid transparent;
+    background: var(--tp-color-surface);
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+            border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+            color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.data-details > summary:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.data-details > summary:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+.data-details > summary:hover {
+    color: var(--tp-color-brand-900);
+    background: var(--tp-color-surface-soft);
+}
+
+.data-details[open] > summary {
+    color: var(--tp-color-brand-900);
+    border-bottom-color: var(--tp-color-border-soft);
+    background: var(--tp-color-brand-100);
+}
+
+.data-details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.data-details > summary::marker {
+    content: "";
+}
+
+.data-details > summary::after {
+    content: "";
+    width: var(--tp-chevron-size);
+    height: var(--tp-chevron-size);
+    border-right: var(--tp-chevron-stroke) solid currentColor;
+    border-bottom: var(--tp-chevron-stroke) solid currentColor;
+    transform: rotate(45deg);
+    transform-origin: center;
+    color: var(--tp-color-text-muted);
+    opacity: var(--tp-chevron-opacity);
+    margin-left: auto;
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+/* With a meta count, the count takes the free space and the chevron sits
+   right after it (two auto margins would center the count). */
+.data-details > summary:has(.data-details-summary-meta)::after {
+    margin-left: 0;
+}
+
+.data-details[open] > summary::after,
+.data-details.is-open-visual > summary::after {
+    transform: rotate(-135deg);
+}
+
+.data-details-summary-meta {
+    margin-left: auto;
+    padding-right: var(--tp-space-3);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.structure-evidence-details > summary::after {
+    margin-left: 0;
+}
+
+.data-details .table-shell {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+/* Long ligand lists scroll inside the panel (header stays put) instead of
+   stretching the page by hundreds of rows. */
+.binders-panel .binder-table-wrap:not(.tp-table-shell--with-export),
+.binders-panel .binder-table-wrap .tp-table-shell__scroll {
+    max-height: min(640px, 70vh);
+    overflow: auto;
+}
+
+.binders-panel .binder-tbl thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--tp-color-surface-soft);
+}
+
+/* ── Shared protein-page components (pathogen + human) ──────────────── */
+/* "Show N more": long lists open in place (smooth-details animates them). */
+.list-more > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-2) 0;
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    list-style: none;
+    cursor: pointer;
+}
+
+.list-more > summary::-webkit-details-marker {
+    display: none;
+}
+
+.list-more > summary::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+    transition: transform var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+}
+
+.list-more[open] > summary::after {
+    transform: translateY(1px) rotate(225deg);
+}
+
+.list-more > summary:hover {
+    text-decoration: underline;
+}
+
+.list-more > summary:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+.cross-reference-group .list-more > .cross-reference-chip-list,
+.hx-more > .hx-rows {
+    margin-top: var(--tp-space-2);
+}
+
+/* ── Protein architecture map ─────────────────────────────────────────── */
+.ha-map {
+    display: grid;
+    gap: var(--tp-space-2);
+    margin: 0 0 var(--tp-space-5);
+    padding: var(--tp-space-4) var(--tp-space-4) var(--tp-space-3);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface);
+}
+
+.ha-row {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+    align-items: center;
+    gap: var(--tp-space-4);
+}
+
+.ha-row-label {
+    white-space: nowrap;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+.ha-row-count {
+    margin-left: 4px;
+    color: var(--tp-color-text-soft);
+    font-family: var(--tp-font-mono);
+    letter-spacing: 0;
+}
+
+.ha-row-track {
+    position: relative;
+    height: 18px;
+}
+
+.ha-row--main .ha-row-track {
+    height: 40px;
+}
+
+.ha-backbone {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 4px;
+    margin-top: -2px;
+    border-radius: var(--tp-radius-pill);
+    background: var(--tp-color-border-soft);
+}
+
+/* Topology on the backbone: outside light, inside darker, membrane a bar
+   that crosses it. */
+.ha-topo {
+    position: absolute;
+    top: 50%;
+    height: 4px;
+    margin-top: -2px;
+}
+
+.ha-topo--outside,
+.ha-key--outside {
+    background: var(--tp-color-border-strong);
+}
+
+.ha-topo--inside,
+.ha-key--inside {
+    background: var(--tp-color-text-muted);
+}
+
+.ha-topo--other {
+    background: var(--tp-color-border);
+}
+
+.ha-topo--membrane,
+.ha-key--membrane {
+    background: var(--tp-color-text-primary);
+}
+
+.ha-topo--membrane {
+    top: 4px;
+    height: 32px;
+    margin-top: 0;
+    border-radius: 2px;
+    min-width: 3px;
+}
+
+.ha-signal,
+.ha-key--signal {
+    background: repeating-linear-gradient(
+        135deg,
+        var(--tp-color-text-muted) 0 2px,
+        transparent 2px 5px
+    );
+}
+
+.ha-signal {
+    position: absolute;
+    top: 50%;
+    height: 10px;
+    margin-top: -5px;
+    border-radius: 2px;
+}
+
+.ha-domain,
+.ha-key--domain {
+    border: 1px solid var(--tp-color-text-secondary);
+    background: var(--tp-color-surface-soft);
+}
+
+.ha-domain {
+    position: absolute;
+    top: 50%;
+    height: 24px;
+    margin-top: -12px;
+    padding: 0 6px;
+    border-radius: 6px;
+    color: var(--tp-color-text-primary);
+    cursor: pointer;
+    overflow: visible;
+    transition:
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.ha-domain-label {
+    display: block;
+    overflow: hidden;
+    font-size: var(--tp-font-size-2xs);
+    font-weight: 600;
+    line-height: 22px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ha-domain.is-narrow .ha-domain-label {
+    display: none;
+}
+
+.ha-domain:hover {
+    transform: translateY(-1px);
+    border-color: var(--protein-accent, var(--tp-color-brand-800));
+}
+
+.ha-domain.is-active {
+    border-color: var(--protein-accent, var(--tp-color-brand-800));
+    background: var(--protein-accent, var(--tp-color-brand-800));
+    color: var(--tp-color-on-accent);
+}
+
+.ha-domain:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+.ha-row-track--ticks {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ha-tick {
+    position: absolute;
+    bottom: 0;
+    width: 2px;
+    height: 10px;
+    margin-left: -1px;
+    border-radius: 1px;
+    background: var(--tp-color-text-muted);
+    transition:
+        height var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.ha-tick:hover {
+    height: 16px;
+    background: var(--protein-accent, var(--tp-color-brand-800));
+}
+
+/* Hover read-out for every drawn feature. */
+.ha-map [data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    z-index: 5;
+    padding: 4px 8px;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 6px;
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-shadow-sm);
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-body);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.ha-axis {
+    height: 16px;
+    color: var(--tp-color-text-soft);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-2xs);
+}
+
+.ha-axis span {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+}
+
+.ha-axis span:first-child {
+    transform: none;
+}
+
+.ha-axis .ha-axis-end {
+    transform: translateX(-100%);
+}
+
+.ha-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2) var(--tp-space-4);
+    margin-top: var(--tp-space-1);
+    padding-top: var(--tp-space-3);
+    border-top: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.ha-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+}
+
+.ha-key {
+    display: inline-block;
+    width: 14px;
+    height: 8px;
+    border-radius: 2px;
+}
+
+.ha-key--membrane {
+    width: 4px;
+    height: 12px;
+}
+
+/* ── Sequence: UniProt-style blocks of ten with positions ─────────────── */
+.hseq {
+    max-height: 360px;
+    overflow-y: auto;
+    padding: var(--tp-space-3) var(--tp-space-4);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-secondary);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.9;
+    scrollbar-width: thin;
+}
+
+.hseq-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.1ch;
+    white-space: nowrap;
+}
+
+.hseq-pos {
+    min-width: 5ch;
+    color: var(--tp-color-text-soft);
+    text-align: right;
+    user-select: none;
+}
+
+.hseq-block {
+    letter-spacing: 0.04em;
+}
+
+.hseq mark {
+    padding: 1px 0;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--protein-accent, var(--tp-color-brand-800)) 22%, transparent);
+    color: var(--tp-color-text-primary);
+    animation: hseq-mark 600ms var(--tp-ui-ease-standard);
+}
+
+@keyframes hseq-mark {
+    from {
+        background: color-mix(in srgb, var(--protein-accent, var(--tp-color-brand-800)) 55%, transparent);
+    }
+}
+
+@media (max-width: 700px) {
+    .ha-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2px;
+    }
+
+    .ha-row--axis .ha-row-label {
+        display: none;
+    }
+}
+
+/* PDB coverage heat strip: four steps of the neutral ink. */
+.ha-coverage {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ha-cov {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    background: var(--tp-color-text-secondary);
+}
+
+.ha-cov--1 { opacity: 0.18; }
+.ha-cov--2 { opacity: 0.38; }
+.ha-cov--3 { opacity: 0.6; }
+.ha-cov--4 { opacity: 0.85; }
+
+.ha-key--coverage {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--tp-color-text-secondary) 18%, transparent), var(--tp-color-text-secondary));
+}
+
+/* "Other signatures", disorder and coil rows: thin segments. */
+.ha-seg {
+    position: absolute;
+    top: 6px;
+    height: 6px;
+    min-width: 2px;
+    border-radius: 2px;
+    background: var(--tp-color-text-muted);
+    /* Overlapping signatures build up darker, like a density track. */
+    opacity: 0.3;
+    transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.ha-seg:hover {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .list-more > summary::after,
+    .ha-domain,
+    .ha-tick,
+    .ha-seg,
+    .hseq mark {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Target dossier components, shared by the pathogen and human protein
+   pages (see /design): hero lede and glance, assessment rows, cell diagram,
+   tabbed panels.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Hero lede: what the protein is, in one sentence. */
+.protein-lede {
+    max-width: 92ch;
+    margin: var(--tp-space-3) 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-md);
+    line-height: 1.6;
+}
+
+/* Glance pills keep their width when a protein has only a few of them. */
+.protein-glance {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+/* Assessment: one row per drug-discovery question (label, verdict tag,
+   finding, link). As <details>, the row opens to the readings behind it. */
+.ta-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ta-row {
+    display: grid;
+    grid-template-columns: 170px 200px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--tp-space-4);
+    padding: var(--tp-space-3) var(--tp-space-2);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ta-item > .ta-row {
+    cursor: pointer;
+    list-style: none;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.ta-item > .ta-row::-webkit-details-marker {
+    display: none;
+}
+
+.ta-item > .ta-row:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.ta-item > .ta-row:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+.ta-item > .ta-row::after {
+    content: "";
+    width: var(--tp-chevron-size);
+    height: var(--tp-chevron-size);
+    margin-right: var(--tp-space-2);
+    border-right: var(--tp-chevron-stroke) solid currentColor;
+    border-bottom: var(--tp-chevron-stroke) solid currentColor;
+    color: var(--tp-color-text-muted);
+    opacity: var(--tp-chevron-opacity);
+    transform: rotate(45deg);
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.ta-item[open] > .ta-row::after {
+    transform: rotate(-135deg);
+}
+
+.ta-body {
+    padding: var(--tp-space-3) var(--tp-space-2) var(--tp-space-5);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ta-label {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+.ta-finding {
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.ta-link {
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    .ta-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: var(--tp-space-1) var(--tp-space-3);
+    }
+
+    .ta-status {
+        grid-row: 2;
+    }
+
+    .ta-finding {
+        grid-column: 1 / -1;
+        grid-row: 3;
+    }
+
+    .ta-link {
+        grid-column: 2;
+        grid-row: 1;
+    }
+}
+
+/* Cell diagram: compartments in .is-on light up (human cell or bacterial
+   envelope). Shapes come from the templates; colors only from tokens. */
+.hc-cell {
+    width: 100%;
+    height: auto;
+}
+
+.hc-part {
+    color: var(--tp-color-border-strong);
+    transition: color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+}
+
+.hc-part .hc-fill {
+    fill: var(--tp-color-surface-soft);
+}
+
+.hc-part--cytoplasm .hc-fill {
+    fill: var(--tp-color-surface);
+}
+
+.hc-part .hc-line,
+.hc-part circle:not(.hc-fill) {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+}
+
+.hc-part.hc-part--secreted circle,
+.hc-part.hc-part--extracellular circle {
+    fill: currentColor;
+    stroke: none;
+}
+
+.hc-line--thick {
+    stroke-width: 3;
+}
+
+.hc-part.is-on {
+    color: var(--tp-color-primary);
+}
+
+.hc-part.is-on .hc-fill {
+    fill: color-mix(in srgb, var(--tp-color-primary) 16%, var(--tp-color-surface));
+}
+
+.hc-part--cytoplasm.is-on .hc-fill {
+    fill: color-mix(in srgb, var(--tp-color-primary) 9%, var(--tp-color-surface));
+}
+
+.hc-part--periplasm.is-on .hc-fill {
+    fill: color-mix(in srgb, var(--tp-color-primary) 28%, var(--tp-color-surface));
+}
+
+.hc-part.is-on .hc-line--thick {
+    stroke-width: 4;
+}
+
+.hc-list {
+    display: grid;
+    gap: var(--tp-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.hc-list li {
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+}
+
+.hc-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--tp-color-primary);
+}
+
+/* Tabbed panels: plain .tp-tabs; protein-dossier.js toggles .is-hidden. */
+[data-tab-group] > .tp-tabs {
+    margin-bottom: var(--tp-space-3);
+}
+
+[data-tab-panel].is-hidden {
+    display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ta-item > .ta-row,
+    .ta-item > .ta-row::after,
+    .hc-part {
+        transition: none !important;
+    }
+}
+
+.binder-intel-panel .binder-intel-metrics {
+    margin-top: 0;
+}
+
+/* Membrane topology (see /design): helices take the one accent; membrane,
+   chain and labels stay neutral. */
+.tm-figure {
+    margin: var(--tp-space-4) 0 0;
+}
+
+.tm-diagram {
+    display: block;
+    width: 100%;
+    max-width: 560px;
+    height: auto;
+}
+
+.tm-membrane {
+    fill: var(--tp-color-surface-soft);
+}
+
+.tm-lipid {
+    stroke: var(--tp-color-border-strong);
+    stroke-width: 1.2;
+    stroke-dasharray: 2 3;
+}
+
+.tm-chain {
+    fill: none;
+    stroke: var(--tp-color-text-muted);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.tm-domain {
+    fill: var(--tp-color-surface);
+    stroke: var(--tp-color-text-muted);
+    stroke-width: 1.4;
+}
+
+.tm-helix {
+    fill: var(--tp-color-primary);
+    transition: fill var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tm-helix:hover {
+    fill: var(--tp-color-brand-700);
+}
+
+.tm-side {
+    fill: var(--tp-color-text-muted);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.tm-terminus {
+    fill: var(--tp-color-text-primary);
+    font-family: var(--tp-font-mono);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.tm-domain-size {
+    fill: var(--tp-color-text-muted);
+    font-size: 10px;
+}
+
+.tm-caption {
+    margin-top: var(--tp-space-1);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tm-helix {
+        transition: none !important;
+    }
+}
+
+/* Variant lollipops (see /design): one stem per residue, height = changes
+   reported there (--h, 0.35-1), filled head = disease-linked. */
+.ha-row-track--lollipop {
+    height: 54px;
+}
+
+.ha-pop {
+    width: 1.5px;
+    height: calc(var(--h, 0.5) * 42px);
+    margin-left: -0.75px;
+    background: var(--tp-color-border-strong);
+}
+
+.ha-pop::before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    margin-left: -4px;
+    border: 1.5px solid var(--tp-color-text-muted);
+    border-radius: 50%;
+    background: var(--tp-color-surface);
+    box-sizing: border-box;
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.ha-pop.is-disease::before {
+    border-color: var(--protein-accent, var(--tp-color-primary));
+    background: var(--protein-accent, var(--tp-color-primary));
+}
+
+.ha-pop:hover {
+    height: calc(var(--h, 0.5) * 42px);
+    background: var(--tp-color-text-muted);
+}
+
+.ha-pop:hover::before {
+    transform: scale(1.35);
+}
+
+.ha-key--pop {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--tp-color-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ha-pop::before {
+        transition: none !important;
+    }
+}

@@ -1,14 +1,14 @@
 {% load i18n %}
-<div class="binder-table-wrap">
-    <table class="binder-tbl tp-table tp-table--plain">
+<div class="tp-table-shell binder-table-wrap">
+    <table class="binder-tbl tp-table">
         <thead>
             <tr>
                 <th scope="col">{% trans "Ligand" %}</th>
                 <th scope="col" title="{% trans 'Resolution shown for structures linked to this protein via UniProt. Not available for homolog-sourced crystals.' %}">{% trans "Source crystal" %}</th>
                 {% if show_uniprot %}<th scope="col">{% trans "UniProt (homolog)" %}</th>{% endif %}
-                <th scope="col" class="binder-tbl__props-col">{% trans "MW · LogP · TPSA" %}</th>
-                <th scope="col">{% trans "Lipinski" %}</th>
-                <th scope="col">{% trans "PAINS" %}</th>
+                <th scope="col" class="binder-tbl__props-col" title="{% trans 'Molecular weight (Da) · lipophilicity (LogP) · polar surface area (TPSA, Å²), computed from the structure.' %}">{% trans "MW · LogP · TPSA" %}</th>
+                <th scope="col" title="{% trans 'Lipinski rule of five: MW ≤ 500 Da, LogP ≤ 5, ≤ 5 H-bond donors, ≤ 10 acceptors. Pass suggests the compound could be orally available.' %}">{% trans "Lipinski" %}</th>
+                <th scope="col" title="{% trans 'PAINS: chemical substructures that often give false positives in assays. Flagged compounds deserve extra caution.' %}">{% trans "PAINS" %}</th>
                 <th scope="col" class="binder-tbl__smiles-col">{% trans "SMILES" %}</th>
             </tr>
         </thead>
@@ -21,8 +21,9 @@
                     data-score="{{ binder.score|default:'' }}">
                     <td class="binder-tbl__name">
                         <a href="{% url 'tpwebapp:binder_detail' binder_id=binder.id %}" class="binder-tbl__name-main" onclick="event.stopPropagation()">{{ binder.name }}</a>
+                        {% if binder.shared_from_accession %}<a class="tp-chip binder-tbl__source-link" href="{% url 'tpwebapp:protein' binder.source_protein_id %}" onclick="event.stopPropagation()">{% trans "From" %} {{ binder.shared_from_accession }} ↗</a>{% endif %}
                         {% if binder.external_url %}
-                        <a href="{{ binder.external_url }}" class="tp-chip tp-chip--meta tp-chip--sm binder-tbl__source-link" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="{% trans 'Open source in RCSB PDB' %}">{{ binder.external_label }}</a>
+                        <a href="{{ binder.external_url }}" class="tp-chip binder-tbl__source-link" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="{% trans 'Open source in RCSB PDB' %}">{{ binder.external_label }}</a>
                         {% endif %}
                     </td>
                     <td class="binder-tbl__pdb binder-tbl__crystal">
@@ -35,13 +36,13 @@
                                    onclick="event.stopPropagation()"
                                    title="{% trans 'View source crystal in RCSB PDB' %}">
                                     <span class="binder-tbl__pdb-id">{{ binder.crystal.pdb_code|default:binder.pdb }}</span>
-                                    <svg class="binder-tbl__ext-icon" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M7 1h4v4M11 1L6 6M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    <span class="binder-tbl__ext-icon" aria-hidden="true">{% include "components/icons/external_link.html" %}</span>
                                 </a>
                                 {% if binder.crystal.resolution %}
                                     <span class="binder-crystal-res">{{ binder.crystal.resolution|floatformat:2 }}&thinsp;Å</span>
                                 {% endif %}
                                 {% if binder.crystal.loaded and binder.crystal.structure_id %}
-                                    <a class="btn tp-btn tp-btn--outline tp-btn-with-icon binder-crystal-viewer"
+                                    <a class="btn tp-btn tp-btn--secondary tp-btn-with-icon binder-crystal-viewer"
                                        href="{% url 'tpwebapp:structure' binder.crystal.structure_id %}?protein_id={{ protein.id }}&focus_ligand={{ binder.name|urlencode }}"
                                        onclick="event.stopPropagation()"
                                        title="{% trans 'Open this loaded source crystal in the Target structure viewer, focused on this ligand' %}">
@@ -62,19 +63,19 @@
                     </td>
                     <td>
                         {% if binder.props.lipinski_class %}
-                            <span class="binder-quality binder-quality--{{ binder.props.lipinski_class }}">{{ binder.props.lipinski_label }}</span>
+                            <span class="tp-chip {% if binder.props.lipinski_class == 'ok' %}tp-chip--success{% elif binder.props.lipinski_class == 'check' %}tp-chip--warning{% else %}tp-chip--danger{% endif %}">{{ binder.props.lipinski_label }}</span>
                         {% else %}—{% endif %}
                     </td>
                     <td>
                         {% if binder.props %}
-                            <span class="binder-quality {% if binder.props.pains_alert %}binder-quality--alert{% else %}binder-quality--ok{% endif %}">{% if binder.props.pains_alert %}{{ binder.props.pains_label }}{% else %}✓ Clean{% endif %}</span>
+                            <span class="tp-chip {% if binder.props.pains_alert %}tp-chip--danger{% else %}tp-chip--success{% endif %}">{% if binder.props.pains_alert %}{{ binder.props.pains_label }}{% else %}✓ Clean{% endif %}</span>
                         {% else %}—{% endif %}
                     </td>
                     <td class="binder-tbl__smiles"
                         {% if binder.smiles %}data-smiles="{{ binder.smiles }}"
                         onclick="event.stopPropagation(); copySmiles(this)"
                         title="{% trans 'Click to copy SMILES' %}"{% endif %}>
-                        {% if binder.smiles %}<code>{{ binder.smiles|truncatechars:48 }}</code><svg class="binder-tbl__copy-icon" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="4" y="4" width="8" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 10V2.5A1.5 1.5 0 0 1 3.5 1H9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>{% else %}—{% endif %}
+                        {% if binder.smiles %}<code>{{ binder.smiles|truncatechars:48 }}</code><span class="binder-tbl__copy-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>{% else %}—{% endif %}
                     </td>
                 </tr>
             {% endfor %}

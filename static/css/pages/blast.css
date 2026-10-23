@@ -1,232 +1,283 @@
-/* ── BLAST search pages ── */
+/* ── BLAST search pages (form + results, blastn and blastp) ──
+   Same editorial layout as Add my own data / Upload (see
+   tpw-editorial-redesign): hero and workbench sit directly on the page
+   background, the form and its guide are two columns split by a hairline,
+   no boxed cards or gradient stripes. */
 
 .blast-page {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--tp-space-4);
-    --blast-accent-ink: var(--tp-color-brand-900);
-    --blast-accent-soft: var(--tp-color-info-bg);
-    --blast-accent-soft-2: var(--tp-color-brand-050);
-    --blast-accent-border: var(--tp-color-brand-300);
-    --blast-border: var(--tp-color-border-soft);
-    --blast-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+.blast-page > section ~ section {
+    margin-top: var(--tp-space-5);
 }
 
 .blast-page h1,
 .blast-page h2,
 .blast-page h3 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--tp-tracking-tight);
 }
-.blast-page h1 { font-weight: 700; }
-
-/* ── Hero ── */
-
-.blast-hero {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-hero);
-    background: var(--tp-color-surface);
-    padding: 22px 22px 18px;
-}
-
-.blast-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 55%, var(--tp-color-brand-500) 100%);
-}
-
-.blast-hero > * {
-    position: relative;
-    z-index: 1;
-}
+.blast-page h1 { font-weight: 600; }
 
 .blast-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    margin: 0 0 8px;
-    color: var(--tp-color-text-muted);
-    font-family: var(--blast-mono);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.blast-hero h1 {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    line-height: 1.05;
-    color: var(--blast-accent-ink);
-}
-
-.blast-subtitle {
-    margin: 10px 0 0;
-    max-width: 800px;
-    color: var(--tp-color-text-secondary);
-    font-size: 1.03rem;
-    line-height: 1.52;
-}
-
-.blast-chip-group {
-    margin-top: 14px;
-    gap: 8px;
-    flex-wrap: wrap;
+    gap: var(--tp-space-2);
 }
 
 .blast-genome-note {
-    margin: 10px 0 0;
+    margin: var(--tp-space-3) 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.95rem;
-    line-height: 1.52;
+    font-size: var(--tp-font-size-sm);
 }
 
-/* ── Workbench grid ── */
+.blast-genome-note strong {
+    color: var(--tp-color-text-primary);
+}
+
+/* ── Workbench: form | guide ── */
 
 .blast-workbench {
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
-    gap: 18px;
+    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+    gap: var(--tp-space-5);
     align-items: start;
+    margin: 0 var(--tp-space-5);
 }
-
-/* ── Cards ── */
 
 .blast-card {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface);
-    padding: 16px;
     display: grid;
-    gap: 14px;
+    gap: var(--tp-space-4);
     align-content: start;
+    padding: var(--tp-space-4) 0;
 }
 
-.blast-card h2 {
-    margin: 0;
-    color: var(--blast-accent-ink);
-    font-size: var(--tp-heading-sm);
-    line-height: 1.15;
+.blast-card--guide {
+    gap: var(--tp-space-4);
+    padding-left: var(--tp-space-5);
+    border-left: 1px solid var(--tp-color-border-soft);
 }
 
 .blast-card-note {
-    margin: 5px 0 0;
+    margin: var(--tp-space-2) 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.92rem;
-    line-height: 1.45;
+    font-size: var(--tp-font-size-md);
+    line-height: 1.5;
 }
 
-.blast-card-note--label {
-    margin-bottom: 6px;
-}
-
-/* ── Form elements ── */
+/* ── Form ── */
 
 .blast-form-inner {
     display: grid;
-    gap: 12px;
+    gap: var(--tp-space-4);
+}
+
+.blast-form-inner .tp-ui-field {
+    display: grid;
+    gap: var(--tp-space-2);
 }
 
 .blast-seq-input {
-    font-family: var(--blast-mono) !important;
-    font-size: 0.9rem !important;
-    min-height: 170px;
+    font-family: var(--tp-font-mono) !important;
+    font-size: var(--tp-font-size-sm) !important;
+    min-height: 180px !important;
     resize: vertical;
-    line-height: 1.55 !important;
+    line-height: 1.5 !important;
 }
 
-/* ── Guide list ── */
+/* Plain text, not a box: a left accent bar (pure-text notes never get their
+   own rounded container). */
+.blast-bound-note {
+    margin: 0;
+    padding: 2px 0 2px var(--tp-space-3);
+    border-left: 3px solid var(--tp-color-info-border);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.blast-error {
+    margin: 0;
+    padding: 2px 0 2px var(--tp-space-3);
+    border-left: 3px solid var(--tp-color-danger-border);
+    color: var(--tp-color-danger-ink);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+}
+
+/* Nucleotide / Protein: a two-option segmented control (radio inputs
+   underneath, so it works without JS and keeps keyboard behaviour). */
+.blast-type-field {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.blast-type-field legend {
+    margin-bottom: var(--tp-space-2);
+}
+
+.blast-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-3);
+}
+
+/* ── Guide ── */
 
 .blast-tip-list {
     margin: 0;
-    padding-left: 18px;
-    color: var(--tp-color-text-secondary);
+    padding-left: var(--tp-space-5);
     display: grid;
-    gap: 6px;
-    font-size: 0.9rem;
+    gap: var(--tp-space-2);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
     line-height: 1.5;
+}
+
+.blast-example {
+    padding: var(--tp-space-3) var(--tp-space-4);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface-soft);
+}
+
+.blast-example-label {
+    margin: 0 0 var(--tp-space-2);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
 }
 
 .blast-format-block {
-    border: 1px solid var(--blast-border);
-    border-radius: 10px;
-    background: var(--tp-color-surface-soft);
-    padding: 10px 12px;
-    font-family: var(--blast-mono);
-    font-size: 0.82rem;
+    margin: 0;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.5;
     color: var(--tp-color-text-secondary);
     white-space: pre-wrap;
-    margin: 0;
+    overflow-wrap: anywhere;
 }
 
-/* ── Result pre block ── */
+/* ── Results ── */
 
-.blast-result-pre {
-    margin: 0;
-    max-height: 70vh;
-    overflow: auto;
-    border: 1px solid var(--blast-border);
-    border-radius: 12px;
-    background: var(--tp-color-surface-soft);
-    padding: 14px 16px;
-    white-space: pre;
-    font-size: 0.86rem;
-    line-height: 1.5;
-    font-family: var(--blast-mono);
-    color: var(--tp-color-text-primary);
-    scrollbar-width: thin;
-    scrollbar-color: var(--tp-color-border-soft) transparent;
+.blast-results {
+    margin: 0 var(--tp-space-5);
+    padding-top: var(--tp-space-5);
+    border-top: 1px solid var(--tp-color-border-soft);
 }
-
-/* ── Result head ── */
 
 .blast-result-head {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    gap: 12px;
+    align-items: flex-end;
+    gap: var(--tp-space-3);
     flex-wrap: wrap;
+    margin-bottom: var(--tp-space-4);
 }
 
 .blast-result-head h2 {
     margin: 0;
-    color: var(--blast-accent-ink);
-    font-size: var(--tp-heading-sm);
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-lg);
+}
+
+.blast-result-count {
+    margin: var(--tp-space-1) 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.blast-hit-link {
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+}
+
+.blast-hit-desc {
+    display: block;
+    margin-top: 2px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.35;
+}
+
+.blast-results .tp-table td {
+    font-variant-numeric: tabular-nums;
+}
+
+.blast-raw-output {
+    margin-top: var(--tp-space-4);
+}
+
+.blast-raw-output > summary {
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.blast-result-pre {
+    margin: var(--tp-space-2) 0 0;
+    max-height: 70vh;
+    overflow: auto;
+    padding: var(--tp-space-4) var(--tp-space-4);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface-soft);
+    white-space: pre;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+    color: var(--tp-color-text-primary);
+    scrollbar-width: thin;
+    scrollbar-color: var(--tp-color-border-soft) transparent;
 }
 
 /* ── Animations ── */
 
 .blast-hero,
 .blast-workbench,
-.blast-card {
-    animation: blast-enter 0.34s ease both;
+.blast-results {
+    animation: blast-enter 0.34s ease backwards;
 }
 
-.blast-workbench { animation-delay: 0.04s; }
+.blast-workbench,
+.blast-results { animation-delay: 0.04s; }
 
 @keyframes blast-enter {
     from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: none; }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .blast-hero,
+    .blast-workbench,
+    .blast-results {
+        animation: none;
+        transition: none;
+    }
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 900px) {
     .blast-workbench {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .blast-hero {
-        padding: 18px 16px 16px;
+        grid-template-columns: minmax(0, 1fr);
     }
 
-    .blast-card {
-        padding: 14px;
+    .blast-card--guide {
+        padding-left: 0;
+        padding-top: var(--tp-space-5);
+        border-left: 0;
+        border-top: 1px solid var(--tp-color-border-soft);
     }
 }

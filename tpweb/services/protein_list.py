@@ -18,17 +18,61 @@ MIN_PAGE_SIZE = 10
 MAX_PAGE_SIZE = 100
 DEFAULT_PAGE_SIZE = 25
 
+# Special EC filter value meaning "has any EC number" -- one switch instead
+# of having to tick all seven EC classes by hand.
+EC_ANY_VALUE = "any"
+
+EC_CLASSES = [
+    ("1", "Oxidoreductases"),
+    ("2", "Transferases"),
+    ("3", "Hydrolases"),
+    ("4", "Lyases"),
+    ("5", "Isomerases"),
+    ("6", "Ligases"),
+    ("7", "Translocases"),
+]
+EC_CLASS_NAMES = dict(EC_CLASSES)
+
+# Label for EC filters wherever active criteria are listed. Shown as-is,
+# never run through humanize_identifier (it would mangle "(EC)").
+EC_FILTER_LABEL = "Enzyme (EC)"
+
+
+def ec_filter_value_label(value):
+    """Biologist-readable text for an EC filter value: "Class 1 ·
+    Oxidoreductases", "EC 2.7.1.1", "EC 2.7.1.- and sub-classes" (a prefix
+    matches everything under it), or the any-EC switch."""
+    value = str(value or "").strip()
+    if value == EC_ANY_VALUE:
+        return "Any EC number (all enzymes)"
+    if value in EC_CLASS_NAMES:
+        return f"Class {value} · {EC_CLASS_NAMES[value]}"
+    levels = [level for level in value.split(".") if level]
+    if 0 < len(levels) < 4:
+        padded = ".".join(levels + ["-"] * (4 - len(levels)))
+        return f"EC {padded} and sub-classes"
+    return f"EC {value}"
+
+
+def _is_ec_filter(parameter):
+    return (
+        _selected_parameter_kind(parameter) == "special"
+        and parameter.get("special_key") == "ec_filter"
+    )
+
+
 ACRONYM_TOKENS = {
     "deg": "DEG",
     "ppi": "PPI",
     "dna": "DNA",
     "rna": "RNA",
-    "p2rank": "P2RANK",
+    "p2rank": "P2Rank",
     "fpocket": "FPocket",
     "alphafold": "AlphaFold DB",
     "colabfold": "ColabFold",
     "plddt": "pLDDT",
     "id": "ID",
+    "ec": "EC",
 }
 
 TOKEN_REPLACEMENTS = {
@@ -43,12 +87,39 @@ EXACT_REPLACEMENTS = {
     "human_evalue": "Human E-value",
     "deg_identity": "DEG identity (%)",
     "deg_evalue": "DEG E-value",
-    "hit_in_deg": "Hit in DEG",
     "no_hit": "No hit",
     "ec_number": "EC number",
     "go_term": "GO term",
-    "druggability": "Druggability (FPocket)",
-    "p2rank_probability": "Druggability (P2Rank)",
+    "druggability": "Druggability (FPocket, 0–1)",
+    "p2rank_probability": "Binding-site probability (P2Rank, 0–1)",
+    "priority": "Metabolic priority",
+    # Biologist-readable names for raw pipeline/import column names that the
+    # generic token rules below would otherwise turn into "Ptools Edges",
+    # "S Gene", "N Reactions", "Core Corecruncher", etc.
+    "ptools_betweenness_centrality": "Metabolic centrality (betweenness)",
+    "ptools_edges": "Metabolic connections (reaction degree)",
+    "metabolic_chokepoint": "Metabolic chokepoint",
+    "s_gene": "Gene support, curated metabolic analysis (0–1)",
+    "reaction_support": "Reaction support, curated metabolic analysis (0–1)",
+    "n_reactions": "Number of metabolic reactions",
+    "quadrant": "Metabolic model quadrant",
+    "gut_microbiome_offtarget_norm": "Gut microbiome hits (fraction of genomes, 0–1)",
+    "gut_microbiome_offtarget_counts": "Gut microbiome genomes with a hit",
+    "gut_microbiome_genomes_analyzed": "Gut microbiome genomes screened",
+    "core_roary": "Core gene (Roary)",
+    "core_corecruncher": "Core gene (CoreCruncher)",
+    "colabfold_plddt": "ColabFold model confidence (pLDDT, 0–100)",
+    "colabfold_druggability_score": "Druggability on ColabFold model (FPocket, 0–1)",
+    "colabfold_p2rank_probability": "Binding-site probability on ColabFold model (P2Rank, 0–1)",
+    "pocket_size_outlier": "Unusual pocket size",
+    "pocket_consensus_high_score": "FPocket and P2Rank agree on a strong site",
+    "hit_in_deg": "Essential homolog (DEG)",
+    "off-target": "Off-target",
+    "metabolic network": "Metabolic network",
+    "metabolic model (pan-genome)": "Metabolic priority (curated)",
+    "metabolic priority (curated)": "Metabolic priority (curated)",
+    "y": "Yes",
+    "n": "No",
 }
 
 
@@ -178,6 +249,8 @@ def _format_numeric_filter_value(value):
 
 def _selected_parameter_display_value(parameter, humanize=False):
     kind = _selected_parameter_kind(parameter)
+    if _is_ec_filter(parameter):
+        return ec_filter_value_label(parameter.get("special_value"))
     if kind == "special":
         special_value = parameter.get("display_name") or parameter.get("name", "")
         return humanize_identifier(special_value) if humanize else special_value
@@ -201,6 +274,45 @@ def _selected_parameter_display_value(parameter, humanize=False):
     return f"{operation} {_format_numeric_filter_value(value)}"
 
 
+def _looks_like_identifier(text):
+    """Locus tags, accessions and similar codes (KPN_00002, MGH78578_locus_tag,
+    PA0001) -- humanizing them ("Kpn 00002") breaks the identifier. A token
+    with a digit that isn't a known acronym like p2rank marks one."""
+    for token in re.split(r"[_\-\s]+", text):
+        token_l = token.lower()
+        if (
+            any(ch.isdigit() for ch in token_l)
+            and token_l not in ACRONYM_TOKENS
+            and token_l not in TOKEN_REPLACEMENTS
+        ):
+            return True
+    return False
+
+
+def readable_column_name(name):
+    """An uploaded column's own name, readable but never re-cased:
+    underscores become spaces and only the first letter is capitalized
+    ("locus_tag_MGH78578" -> "Locus tag MGH78578", "KPN_list" -> "KPN list")."""
+    tokens = [token for token in re.split(r"_+", str(name or "").strip()) if token]
+    if not tokens:
+        return str(name or "")
+    label = " ".join(tokens)
+    return label[0].upper() + label[1:]
+
+
+def _identifier_name_label(text):
+    """A name that contains an identifier ("Locus_tag_MGH78578") reads with
+    spaces ("Locus tag MGH78578"); every token keeps its own case, so the
+    identifier itself is untouched. A pure identifier (KPN_00002, PA0001,
+    VK055_2067) -- no plain word in it -- is returned as is."""
+    tokens = [token for token in re.split(r"_+", text) if token]
+    has_word = any(token.isalpha() and len(token) >= 3 and not token.isupper() for token in tokens)
+    if len(tokens) < 2 or not has_word:
+        return text
+    label = " ".join(tokens)
+    return label[0].upper() + label[1:]
+
+
 def humanize_identifier(value):
     text = str(value or "").strip()
     if not text:
@@ -208,6 +320,8 @@ def humanize_identifier(value):
     exact_replacement = EXACT_REPLACEMENTS.get(text.lower())
     if exact_replacement:
         return exact_replacement
+    if _looks_like_identifier(text):
+        return _identifier_name_label(text)
     text = re.sub(r"[_-]+", " ", text)
     text = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
@@ -229,16 +343,69 @@ def humanize_identifier(value):
 
 
 def grouped_selected_parameters(selected_parameters, humanize=False):
-    grouped_data = {}
+    """Display-only summary for the "Applied filters" hero line, CSV export
+    header, and LLM filter-summary tool (a different, unrelated concept from
+    the advanced filter builder's group_id/group_mode used for query
+    building).
+
+    Returns a list of (label, joined_values) pairs, one per score param
+    name. Values picked within the *same* advanced-filter group (or from
+    the plain filter panel, which has no group_id) really do combine as OR,
+    so they're joined with ", " -- e.g. "Core, Accessory". But two
+    *different* advanced groups can target the same score param (e.g. "Core
+    Corecruncher: Core" in one group, "...: Accessory" in another) and those
+    combine as AND, not OR: silently joining them with ", " too would look
+    identical to a same-group OR and misrepresent the filter, so
+    cross-group values are spelled out with the word " AND " instead --
+    e.g. "Core AND Accessory".
+    """
+    values_by_group = {}
+    group_order = {}
+    order = []
     for item in selected_parameters:
         score_param_name = item.get("score_param_name")
         if not score_param_name:
             continue
         option_name = _selected_parameter_display_value(item, humanize=humanize)
-        if humanize:
+        if _is_ec_filter(item):
+            score_param_name = EC_FILTER_LABEL
+        elif humanize:
             score_param_name = humanize_identifier(score_param_name) or score_param_name
-        grouped_data.setdefault(score_param_name, []).append(option_name)
-    return {k: ", ".join(v) for k, v in grouped_data.items()}
+        if score_param_name not in values_by_group:
+            values_by_group[score_param_name] = {}
+            group_order[score_param_name] = []
+            order.append(score_param_name)
+        group_key = item.get("group_id") or ""
+        if group_key not in values_by_group[score_param_name]:
+            values_by_group[score_param_name][group_key] = []
+            group_order[score_param_name].append(group_key)
+        values_by_group[score_param_name][group_key].append(option_name)
+
+    result = []
+    for name in order:
+        group_values = [
+            ", ".join(values_by_group[name][group_key]) for group_key in group_order[name]
+        ]
+        result.append((name, " AND ".join(group_values)))
+    return result
+
+
+def _tag_grouped_option(option_dict, change):
+    """Attach the advanced filter builder's group_id/group_mode (see
+    apply_selected_parameter_filters) to a freshly built option dict, when
+    the change dict that produced it carries one. Also makes the option's
+    dedup id group-scoped, so an advanced-group condition can never collide
+    with (and silently get removed together with, via remove_selected_parameter)
+    an identical condition added from the plain filter panel."""
+    group_id = change.get("group_id")
+    if not group_id:
+        return option_dict
+    return {
+        **option_dict,
+        "group_id": group_id,
+        "group_mode": "any" if str(change.get("group_mode") or "").lower() == "any" else "all",
+        "id": f"{group_id}:{option_dict.get('id')}",
+    }
 
 
 def add_selected_parameter(selected_parameters, option_dict):
@@ -285,7 +452,7 @@ def build_special_filter_payload(kind, value):
             "type": "special",
             "special_key": "ec_filter",
             "special_value": value,
-            "display_name": value,
+            "display_name": ec_filter_value_label(value),
         }
     if kind == "go":
         normalized = value.upper() if not value.upper().startswith("GO:") else value.upper()
@@ -426,6 +593,7 @@ def apply_filter_change(selected_parameters, change):
         if option_id:
             try:
                 option_dict = ScoreParamOptions.objects.get(id=option_id).to_dict()
+                option_dict = _tag_grouped_option(option_dict, change)
                 selected_parameters = add_selected_parameter(selected_parameters, option_dict)
             except (ScoreParamOptions.DoesNotExist, ValueError, TypeError):
                 pass
@@ -446,6 +614,7 @@ def apply_filter_change(selected_parameters, change):
             operation=(change.get("numeric_operation") or "").strip(),
         )
         if payload:
+            payload = _tag_grouped_option(payload, change)
             selected_parameters = add_selected_parameter(selected_parameters, payload)
 
     elif action == "remove_filter":
@@ -454,6 +623,66 @@ def apply_filter_change(selected_parameters, change):
             selected_parameters = remove_selected_parameter(selected_parameters, option_id)
 
     return selected_parameters
+
+
+_FILTER_VALUE_SPLIT_RE = re.compile(r"[\s,;]+")
+
+
+def resolve_filter_values(user, score_param_id, raw_values):
+    """Typed or pasted values for a categorical criterion with too many
+    options to show as chips (e.g. an uploaded locus-tag column). Returns
+    (option_ids, values_not_found); matching ignores case. Only a column the
+    user may read counts."""
+    from tpweb.models.ScoreParam import ScoreParamOptions
+    from tpweb.services.score_params import visible_score_params_queryset
+
+    values = [value for value in _FILTER_VALUE_SPLIT_RE.split(raw_values or "") if value]
+    if not values or not str(score_param_id or "").isdigit():
+        return [], []
+    if not visible_score_params_queryset(user).filter(pk=int(score_param_id)).exists():
+        return [], values
+    options_by_name = {
+        name.casefold(): option_id
+        for option_id, name in ScoreParamOptions.objects.filter(
+            score_param_id=int(score_param_id)
+        ).values_list("id", "name")
+    }
+    option_ids, missing = [], []
+    for value in dict.fromkeys(values):
+        option_id = options_by_name.get(value.casefold())
+        if option_id is None:
+            missing.append(value)
+        elif option_id not in option_ids:
+            option_ids.append(option_id)
+    return option_ids, missing
+
+
+def suggest_filter_values(user, score_param_id, query, limit=10):
+    """Autocomplete for the typed-values filter: up to `limit` option names
+    of a categorical criterion that start with `query` (then ones that only
+    contain it), case-insensitive. Only a column the user may read."""
+    from tpweb.models.ScoreParam import ScoreParamOptions
+    from tpweb.services.score_params import visible_score_params_queryset
+
+    query = (query or "").strip()
+    if not query or not str(score_param_id or "").isdigit():
+        return []
+    if not visible_score_params_queryset(user).filter(pk=int(score_param_id)).exists():
+        return []
+    options = ScoreParamOptions.objects.filter(score_param_id=int(score_param_id))
+    starts = list(
+        options.filter(name__istartswith=query)
+        .order_by("name")
+        .values_list("name", flat=True)[:limit]
+    )
+    if len(starts) < limit:
+        starts += list(
+            options.filter(name__icontains=query)
+            .exclude(name__istartswith=query)
+            .order_by("name")
+            .values_list("name", flat=True)[: limit - len(starts)]
+        )
+    return starts
 
 
 def apply_filter_changes(selected_parameters, changes):
@@ -484,8 +713,170 @@ def selected_parameters_to_filter_map(selected_parameters):
     return parameter_map
 
 
-def apply_selected_parameter_filters(queryset, selected_parameters):
+def _score_q(param_id, effective_fields=None, **lookups):
+    if effective_fields and param_id in effective_fields:
+        return Q(**{f"_shared_score_{param_id}_{key}": value for key, value in lookups.items()})
+    return Q(
+        score_params__score_param_id=param_id,
+        **{f"score_params__{key}": value for key, value in lookups.items()},
+    )
+
+
+def _condition_q(parameter, param_name_by_id, effective_fields=None):
+    """Build a single Q object for one selected_parameters condition, for use
+    OR-combining conditions within an explicit "any" advanced-filter group
+    (see apply_selected_parameter_filters). Only covers categorical and
+    numeric score-param conditions -- the only condition types the advanced
+    filter builder UI exposes -- and returns None for anything else
+    (special/EC/GO/ligand/pathway filters stay AND-only for now)."""
+    kind = _selected_parameter_kind(parameter)
+    if kind == "special":
+        return None
+    param_id = _coerce_score_param_id(parameter.get("score_param_id"))
+    if param_id is None:
+        return None
+
+    if kind == "numeric":
+        operation = _normalize_numeric_operation(parameter.get("operation"))
+        value = _coerce_numeric_filter_value(parameter.get("value"))
+        value_max = _coerce_numeric_filter_value(parameter.get("value_max"))
+        if operation == ">=":
+            if value is None:
+                return None
+            return _score_q(param_id, effective_fields, numeric_value__gte=value)
+        if operation == "<=":
+            if value is None:
+                return None
+            return _score_q(param_id, effective_fields, numeric_value__lte=value)
+        if operation == "between":
+            if value is None and value_max is None:
+                return None
+            if value is None:
+                return _score_q(param_id, effective_fields, numeric_value__lte=value_max)
+            if value_max is None:
+                return _score_q(param_id, effective_fields, numeric_value__gte=value)
+            return _score_q(
+                param_id, effective_fields, numeric_value__gte=value, numeric_value__lte=value_max
+            )
+        return None
+
+    value_name = parameter.get("name")
+    if value_name in ("", None):
+        return None
+    param_name = param_name_by_id.get(param_id, "")
+    if param_name in CORE_GENOME_PARAM_NAMES:
+        if value_name == "Core":
+            return Q(score_params__score_param_id=param_id, score_params__numeric_value__gte=0.5)
+        if value_name == "Accessory":
+            return Q(score_params__score_param_id=param_id, score_params__numeric_value__lt=0.5)
+        return None
+    return _score_q(param_id, effective_fields, value=value_name)
+
+
+def apply_selected_parameter_filters(queryset, selected_parameters, user=None):
+    """Apply every filter in selected_parameters to queryset.
+
+    Each item optionally carries `group_id` / `group_mode` ("all" default /
+    "any"), written by the advanced filter builder (see
+    tpweb/views/ProteinListView.py's ProteinAdvancedFiltersView). Items without a
+    real multi-condition "any" group go through the original AND-only path
+    unchanged -- so every filter added from the simple panel keeps its exact
+    prior query behavior. Only a group_mode="any" group with 2+ conditions
+    gets OR-combined, via its own single .filter() call so it still ANDs
+    correctly against every other group/condition (Django collapses multiple
+    conditions on the same many-valued relation into one join per filter()
+    call, so combining unrelated AND'd conditions into one call would wrongly
+    require them to match the same related row -- each group therefore gets
+    its own call, same as every ungrouped condition already does below)."""
+    effective_fields = set()
+    if user is not None:
+        from tpweb.services.shared_sequence_evidence import annotate_shared_score_values
+
+        param_ids = {
+            pid
+            for p in selected_parameters
+            if (pid := _coerce_score_param_id(p.get("score_param_id"))) is not None
+        }
+        queryset, effective_fields = annotate_shared_score_values(queryset, param_ids, user)
+    or_groups = {}
+    and_items = []
+    for parameter in selected_parameters:
+        group_id = parameter.get("group_id")
+        group_mode = str(parameter.get("group_mode") or "all").strip().lower()
+        if group_id and group_mode == "any":
+            or_groups.setdefault(group_id, []).append(parameter)
+        else:
+            and_items.append(parameter)
+
+    # A singleton "any" group is just its one condition -- OR of one thing --
+    # so fold it back into the plain AND path instead of paying for a
+    # separate combined-Q filter() call.
+    for group_id, items in list(or_groups.items()):
+        if len(items) < 2:
+            and_items.extend(items)
+            del or_groups[group_id]
+
+    # _apply_and_selected_parameter_filters merges same-score_param_id
+    # conditions together (that's the desired "any of these values" reading
+    # within one group -- e.g. Core or Accessory checked together). But two
+    # DIFFERENT advanced-builder groups (distinct group_id) that happen to
+    # touch the same param must stay independent AND'd constraints, not get
+    # swept into that same merge -- so each real group_id gets its own
+    # _apply_and_selected_parameter_filters call (and thus its own .filter()
+    # chain), while every ungrouped/plain-panel item (no group_id at all)
+    # still shares one call, unchanged from before this partitioning existed.
+    and_buckets = {}
+    and_bucket_order = []
+    for parameter in and_items:
+        bucket_key = parameter.get("group_id") or None
+        if bucket_key not in and_buckets:
+            and_buckets[bucket_key] = []
+            and_bucket_order.append(bucket_key)
+        and_buckets[bucket_key].append(parameter)
+
     filtered_queryset = queryset
+    for bucket_key in and_bucket_order:
+        filtered_queryset = _apply_and_selected_parameter_filters(
+            filtered_queryset, and_buckets[bucket_key], effective_fields, user
+        )
+
+    if or_groups:
+        param_name_by_id = {}
+        for parameter in selected_parameters:
+            pid = _coerce_score_param_id(parameter.get("score_param_id"))
+            pname = str(parameter.get("score_param_name") or "").strip().lower()
+            if pid is not None and pname:
+                param_name_by_id[pid] = pname
+        for items in or_groups.values():
+            group_q = Q()
+            has_condition = False
+            for parameter in items:
+                condition = _condition_q(parameter, param_name_by_id, effective_fields)
+                if condition is None:
+                    continue
+                group_q |= condition
+                has_condition = True
+            if has_condition:
+                filtered_queryset = filtered_queryset.filter(group_q)
+
+    return filtered_queryset
+
+
+def _apply_and_selected_parameter_filters(
+    queryset, selected_parameters, effective_fields=None, user=None
+):
+    filtered_queryset = queryset
+
+    def shared_condition(condition, override_condition=None):
+        nonlocal filtered_queryset
+        if user is not None:
+            from tpweb.services.shared_sequence_evidence import shared_relation_condition
+
+            filtered_queryset, condition = shared_relation_condition(
+                filtered_queryset, condition, user, override_condition
+            )
+        return condition
+
     parameter_map = selected_parameters_to_filter_map(selected_parameters)
     param_name_by_id = {}
     for parameter in selected_parameters:
@@ -509,7 +900,7 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
                 filtered_queryset = filtered_queryset.filter(core_q)
             continue
         filtered_queryset = filtered_queryset.filter(
-            Q(score_params__score_param_id=param_id) & Q(score_params__value__in=values)
+            _score_q(param_id, effective_fields, value__in=values)
         )
     special_groups = {}
     for parameter in selected_parameters:
@@ -524,16 +915,33 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
     structure_values = [value.lower() for value in special_groups.get("structure_source", [])]
     if structure_values:
         structure_query = Q()
-        if "none" in structure_values:
+        if "none" in structure_values and user is None:
             structure_query |= Q(structures__isnull=True)
         if "experimental" in structure_values:
-            structure_query |= Q(structures__isnull=False) & ~Q(
-                structures__pdb__experiment__in=PDB_MODEL_EXPERIMENTS
-            )
+            if user is not None:
+                from tpweb.models.BioentryStructure import BioentryStructure
+
+                structure_query |= Q(
+                    Exists(
+                        BioentryStructure.objects.filter(
+                            bioentry_id=OuterRef("pk"),
+                        ).exclude(pdb__experiment__in=PDB_MODEL_EXPERIMENTS)
+                    )
+                )
+            else:
+                structure_query |= Q(structures__isnull=False) & ~Q(
+                    structures__pdb__experiment__in=PDB_MODEL_EXPERIMENTS
+                )
         if "alphafold" in structure_values:
             structure_query |= Q(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
         if "colabfold" in structure_values:
             structure_query |= Q(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD)
+        if user is not None:
+            if structure_query:
+                structure_query = shared_condition(structure_query)
+            if "none" in structure_values:
+                has_structure = shared_condition(Q(structures__isnull=False))
+                structure_query |= ~has_structure
         filtered_queryset = filtered_queryset.filter(structure_query)
 
     ligand_values = [value.lower() for value in special_groups.get("ligand_filter", [])]
@@ -541,30 +949,49 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
         wants_ligands = "yes" in ligand_values
         wants_no_ligands = "no" in ligand_values
         if wants_ligands != wants_no_ligands:
-            filtered_queryset = filtered_queryset.annotate(
-                has_ligand_evidence=Exists(
-                    Binders.objects.filter(locustag_id=OuterRef("accession"))
+            if user is not None:
+                has_ligands = shared_condition(
+                    Q(Exists(Binders.objects.filter(locustag_id=OuterRef("accession"))))
                 )
-            ).filter(has_ligand_evidence=wants_ligands)
+                filtered_queryset = filtered_queryset.filter(
+                    has_ligands if wants_ligands else ~has_ligands
+                )
+            else:
+                filtered_queryset = filtered_queryset.annotate(
+                    has_ligand_evidence=Exists(
+                        Binders.objects.filter(locustag_id=OuterRef("accession"))
+                    )
+                ).filter(has_ligand_evidence=wants_ligands)
 
     ec_values = [value for value in special_groups.get("ec_filter", []) if value]
     if ec_values:
+        from tpweb.services.protein_annotations import annotation_dbnames
+
+        ec_dbnames = annotation_dbnames("ec")
         ec_query = Q()
         for ec_value in ec_values:
+            if ec_value == EC_ANY_VALUE:
+                ec_query |= Q(dbxrefs__dbxref__dbname__in=ec_dbnames)
+                continue
             ec_query |= Q(
-                dbxrefs__dbxref__dbname="ec",
+                dbxrefs__dbxref__dbname__in=ec_dbnames,
                 dbxrefs__dbxref__accession__istartswith=ec_value,
             )
+        ec_query = shared_condition(ec_query, Q(dbxrefs__dbxref__dbname__in=ec_dbnames))
         filtered_queryset = filtered_queryset.filter(ec_query)
 
     go_values = [value for value in special_groups.get("go_filter", []) if value]
     if go_values:
+        from tpweb.services.protein_annotations import annotation_dbnames
+
+        go_dbnames = annotation_dbnames("go")
         go_query = Q()
         for go_value in go_values:
             go_query |= Q(
-                dbxrefs__dbxref__dbname__in=["go", "GO"],
+                dbxrefs__dbxref__dbname__in=go_dbnames,
                 dbxrefs__dbxref__accession__iexact=go_value,
             )
+        go_query = shared_condition(go_query, Q(dbxrefs__dbxref__dbname__in=go_dbnames))
         filtered_queryset = filtered_queryset.filter(go_query)
 
     pathway_values = [
@@ -583,48 +1010,9 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
     for parameter in selected_parameters:
         if _selected_parameter_kind(parameter) != "numeric":
             continue
-        param_id = _coerce_score_param_id(parameter.get("score_param_id"))
-        if param_id is None:
-            continue
-        operation = _normalize_numeric_operation(parameter.get("operation"))
-        if operation is None:
-            continue
-        value = _coerce_numeric_filter_value(parameter.get("value"))
-        value_max = _coerce_numeric_filter_value(parameter.get("value_max"))
-        if operation == ">=":
-            if value is None:
-                continue
-            filtered_queryset = filtered_queryset.filter(
-                score_params__score_param_id=param_id,
-                score_params__numeric_value__gte=value,
-            )
-        elif operation == "<=":
-            if value is None:
-                continue
-            filtered_queryset = filtered_queryset.filter(
-                score_params__score_param_id=param_id,
-                score_params__numeric_value__lte=value,
-            )
-        elif operation == "between":
-            if value is None and value_max is None:
-                continue
-            if value is None:
-                filtered_queryset = filtered_queryset.filter(
-                    score_params__score_param_id=param_id,
-                    score_params__numeric_value__lte=value_max,
-                )
-                continue
-            if value_max is None:
-                filtered_queryset = filtered_queryset.filter(
-                    score_params__score_param_id=param_id,
-                    score_params__numeric_value__gte=value,
-                )
-                continue
-            filtered_queryset = filtered_queryset.filter(
-                score_params__score_param_id=param_id,
-                score_params__numeric_value__gte=value,
-                score_params__numeric_value__lte=value_max,
-            )
+        condition = _condition_q(parameter, param_name_by_id, effective_fields)
+        if condition is not None:
+            filtered_queryset = filtered_queryset.filter(condition)
     return filtered_queryset
 
 
@@ -641,7 +1029,9 @@ def apply_protein_search(queryset, search_query):
     )
 
 
-def find_top_proteins(assembly_name, selected_parameters, search_text=None, limit=10):
+def find_top_proteins(
+    assembly_name, selected_parameters, search_text=None, limit=10, with_total=False
+):
     """Filter+search a genome's proteins and return up to `limit` compact
     dicts ({accession, description, druggability}), with no pagination/HTTP
     concerns. Used by the search_proteins agent tool. Ordering is by
@@ -655,12 +1045,11 @@ def find_top_proteins(assembly_name, selected_parameters, search_text=None, limi
     proteins = Bioentry.objects.filter(biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX)
     if selected_parameters:
         proteins = apply_selected_parameter_filters(proteins, selected_parameters)
-    proteins = apply_protein_search(proteins, search_text)
-    proteins = (
-        proteins.prefetch_related("score_params__score_param")
-        .order_by("accession")
-        .distinct()[: max(1, min(int(limit or 10), 25))]
-    )
+    proteins = apply_protein_search(proteins, search_text).distinct()
+    total = proteins.count() if with_total else None
+    proteins = proteins.prefetch_related("score_params__score_param").order_by("accession")[
+        : max(1, min(int(limit or 10), 25))
+    ]
 
     results = []
     for protein in proteins:
@@ -672,6 +1061,8 @@ def find_top_proteins(assembly_name, selected_parameters, search_text=None, limi
                 "druggability": param_values.get("Druggability"),
             }
         )
+    if with_total:
+        return results, total
     return results
 
 

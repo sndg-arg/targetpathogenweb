@@ -20,7 +20,6 @@ python manage.py import_external_results <genome_name> \\
 
 import gzip
 import json
-import math
 import os
 import shutil
 import sys
@@ -35,6 +34,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB
+from tpweb.services.structure_files import compute_folder_path as _compute_folder_path
 
 
 # ---------------------------------------------------------------------------
@@ -475,12 +475,6 @@ class Command(BaseCommand):
 
 
 # ---------------------------------------------------------------------------
-
-
-def _compute_folder_path(datadir, genome_name):
-    acclen = len(genome_name)
-    mid = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
-    return os.path.join(datadir, mid, genome_name)
 
 
 def _gates_property_pockets(locus_tag, raw):

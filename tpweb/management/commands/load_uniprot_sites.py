@@ -39,6 +39,7 @@ from django.core.management.base import BaseCommand
 from tpweb.services.functional_annotations import (
     load_uniprot_sites_for_genome,
 )
+from tpweb.services.structure_files import mid_shard
 
 DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
 
@@ -70,15 +71,13 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        import math
         from pathlib import Path
 
         assembly_name = options["assembly_name"]
         lst_path = options.get("lst_path")
         if lst_path is None:
             datadir = Path(options["datadir"])
-            acclen = len(assembly_name)
-            folder_name = assembly_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
+            folder_name = mid_shard(assembly_name)
             lst_path = datadir / folder_name / assembly_name / f"{assembly_name}_unips.lst"
 
         stats = load_uniprot_sites_for_genome(
