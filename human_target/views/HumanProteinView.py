@@ -10,6 +10,7 @@ from human_target.services.human_dossier import (
     build_assessment,
     build_glance,
     build_human_dossier,
+    variant_lollipops,
 )
 from human_target.services.human_expression_summary import build_human_expression_context
 from human_target.services.human_protein_summary import (
@@ -64,7 +65,9 @@ class HumanProteinView(PermissionLockedMixin, View):
         if architecture and dossier["variants"]:
             for row in architecture["tick_rows"]:
                 if row["key"] == "variants":
-                    row["items"] = dossier["variants"]
+                    row["items"] = variant_lollipops(dossier["variants"])
+                    row["kind"] = "lollipop"
+                    row["total"] = len(dossier["variants"])
         diseases = build_human_disease_context(human_protein)
         for disease in diseases["diseases"]:
             disease["variant_count"] = dossier["disease_variant_counts"].get(

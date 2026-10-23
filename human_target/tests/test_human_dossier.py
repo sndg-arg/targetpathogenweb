@@ -190,3 +190,20 @@ class AssessmentTests(SimpleTestCase):
         self.assertEqual(by_label["Ligandability"]["status"], "No ligand evidence")
         self.assertEqual(by_label["Tissue selectivity"]["status"], "Broadly expressed")
         self.assertEqual(by_label["Accessibility"]["status"], "Extracellular access")
+
+
+class VariantLollipopTests(SimpleTestCase):
+    def test_variants_group_by_residue_with_disease_marks(self):
+        from human_target.services.human_dossier import variant_lollipops
+
+        variants = [
+            {"start": 816, "left": 83.5, "label": "D816V", "diseases": ["GIST", "MASTSYS"]},
+            {"start": 816, "left": 83.5, "label": "D816H", "diseases": ["GIST"]},
+            {"start": 100, "left": 10.2, "label": "A100T", "diseases": []},
+        ]
+        spots = variant_lollipops(variants)
+        self.assertEqual([s["start"] for s in spots], [100, 816])
+        self.assertEqual(spots[1]["count"], 2)
+        self.assertEqual(spots[1]["diseases"], ["GIST", "MASTSYS"])
+        self.assertEqual((spots[0]["h"], spots[1]["h"]), (0.35, 1.0))
+        self.assertEqual(spots[1]["tip"], "D816V, D816H · GIST, MASTSYS")

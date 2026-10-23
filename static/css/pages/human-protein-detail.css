@@ -329,6 +329,16 @@
     animation: ha-hit 500ms var(--human-ease) both;
 }
 
+/* Lollipops keep their height when lit by the disease filter. */
+.ha-map.is-filtered .ha-row--variants .ha-pop.is-hit {
+    height: calc(var(--h, 0.5) * 42px);
+}
+
+.ha-map.is-filtered .ha-row--variants .ha-pop.is-hit::before {
+    border-color: var(--human-accent);
+    background: var(--human-accent);
+}
+
 @keyframes ha-hit {
     from {
         transform: scaleY(0.2);

@@ -2003,3 +2003,58 @@ body.binder-mol-modal-open {
         transition: none !important;
     }
 }
+
+/* Variant lollipops (see /design): one stem per residue, height = changes
+   reported there (--h, 0.35-1), filled head = disease-linked. */
+.ha-row-track--lollipop {
+    height: 54px;
+}
+
+.ha-pop {
+    width: 1.5px;
+    height: calc(var(--h, 0.5) * 42px);
+    margin-left: -0.75px;
+    background: var(--tp-color-border-strong);
+}
+
+.ha-pop::before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    margin-left: -4px;
+    border: 1.5px solid var(--tp-color-text-muted);
+    border-radius: 50%;
+    background: var(--tp-color-surface);
+    box-sizing: border-box;
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.ha-pop.is-disease::before {
+    border-color: var(--protein-accent, var(--tp-color-primary));
+    background: var(--protein-accent, var(--tp-color-primary));
+}
+
+.ha-pop:hover {
+    height: calc(var(--h, 0.5) * 42px);
+    background: var(--tp-color-text-muted);
+}
+
+.ha-pop:hover::before {
+    transform: scale(1.35);
+}
+
+.ha-key--pop {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--tp-color-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ha-pop::before {
+        transition: none !important;
+    }
+}

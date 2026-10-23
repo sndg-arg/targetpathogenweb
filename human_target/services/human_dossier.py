@@ -123,6 +123,33 @@ def build_variants(raw, length):
     return variants
 
 
+def variant_lollipops(variants):
+    """Variants grouped by residue for the lollipop row: one stem per
+    position, taller with more reported changes there; disease-linked
+    positions are marked so the filled heads show the mutational hot spots."""
+    by_position = {}
+    for variant in variants:
+        spot = by_position.setdefault(
+            variant["start"],
+            {"start": variant["start"], "left": variant["left"], "labels": [], "diseases": []},
+        )
+        spot["labels"].append(variant["label"])
+        for acronym in variant["diseases"]:
+            if acronym not in spot["diseases"]:
+                spot["diseases"].append(acronym)
+    spots = sorted(by_position.values(), key=lambda spot: spot["start"])
+    peak = max((len(spot["labels"]) for spot in spots), default=1)
+    for spot in spots:
+        count = len(spot["labels"])
+        spot["count"] = count
+        # Stem height 0.35-1: a single change still reads as a lollipop.
+        spot["h"] = round(0.35 + 0.65 * (count - 1) / max(peak - 1, 1), 3)
+        spot["tip"] = ", ".join(spot["labels"]) + (
+            f" · {', '.join(spot['diseases'])}" if spot["diseases"] else ""
+        )
+    return spots
+
+
 def disease_variant_counts(variants):
     counts = {}
     for variant in variants:
