@@ -10,8 +10,14 @@ context dict, delegate the shaping" style of `human_protein_summary.py`.
 from __future__ import annotations
 
 
+def named_diseases(comments):
+    """Disease comments that name a disease; UniProt also files bare notes
+    (no name, no acronym) under DISEASE, which are not associations."""
+    return [d for d in comments or [] if (d.get("name") or d.get("acronym") or "").strip()]
+
+
 def build_human_disease_context(human_protein):
-    diseases = human_protein.disease_comments or []
+    diseases = named_diseases(human_protein.disease_comments)
     return {
         "diseases": diseases,
         "has_diseases": bool(diseases),

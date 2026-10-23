@@ -159,7 +159,7 @@ def build_human_function_context(human_protein):
 # Feature types drawn on the architecture map, by row. Anything else stays
 # in the feature table only.
 _TOPOLOGY_TYPES = {"Topological domain", "Transmembrane", "Intramembrane"}
-_DOMAIN_TYPES = {"Domain", "Repeat", "Zinc finger"}
+_DOMAIN_TYPES = {"Domain", "Repeat", "Zinc finger", "DNA binding"}
 _SITE_TYPES = {"Active site", "Binding site", "Site"}
 _PTM_TYPES = {"Modified residue", "Glycosylation", "Lipidation", "Cross-link", "Disulfide bond"}
 _VARIANT_TYPES = {"Natural variant"}

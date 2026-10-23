@@ -96,26 +96,27 @@
     white-space: nowrap;
 }
 
-/* ── Biology: a reading column beside an aside (facts, location). ────── */
+/* ── Biology: facts strip, then prose beside the cell diagram. ───────── */
+.hbio-facts {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+
+.hbio-facts + .hbio-layout {
+    margin-top: var(--tp-space-5);
+}
+
+/* The prose column is only as wide as its text (up to a reading measure),
+   so a one-line function sits right beside the diagram, not across a gap. */
 .hbio-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+    grid-template-columns: fit-content(min(92ch, 100%)) minmax(280px, 360px);
+    justify-content: start;
     gap: var(--tp-space-8);
     align-items: start;
 }
 
-/* No prose: the facts and location run across the full width. */
-.hbio-layout--facts {
-    grid-template-columns: minmax(0, 1fr);
-}
-
-.hbio-layout--facts .hbio-aside {
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
-    align-items: start;
-}
-
-.hbio-layout--facts .hbio-aside .human-identifiers {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+.hbio-layout > :only-child {
+    grid-column: 1 / -1;
 }
 
 .hbio-main > * + * {
@@ -124,15 +125,6 @@
 
 .hbio-main .human-text {
     max-width: 92ch;
-}
-
-.hbio-aside {
-    display: grid;
-    gap: var(--tp-space-5);
-}
-
-.hbio-aside .human-identifiers {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .hbio-aside .hc-cell {
@@ -1170,6 +1162,6 @@
     }
 }
 
-#section-biology > .tp-state-note + .hbio-layout {
+#section-biology > .tp-state-note + .hbio-facts {
     margin-top: var(--tp-space-4);
 }

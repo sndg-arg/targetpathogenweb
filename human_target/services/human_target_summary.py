@@ -9,6 +9,7 @@ from __future__ import annotations
 from django.db.models import Count, Q
 from django.utils import timezone
 
+from human_target.services.human_disease_summary import named_diseases
 from human_target.services.human_dossier import compartments_for
 from human_target.services.human_expression_summary import tissue_levels, tissue_specificity
 
@@ -59,7 +60,7 @@ def summarize(protein, structures, ligands, pathways):
             if xref.get("database") == "DrugBank"
         }
     )
-    protein.disease_count = len(protein.disease_comments or [])
+    protein.disease_count = len(named_diseases(protein.disease_comments))
     protein.pathway_count = pathways.get(protein.pk, 0)
     protein.tissue_specificity, protein.peak_tissue = _expression_summary(protein.expression_json)
     protein.surface_accessible = bool(

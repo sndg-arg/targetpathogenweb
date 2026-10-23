@@ -25,6 +25,9 @@ def build_human_pathway_context(human_protein):
             "relation_count": link.pathway.relation_count,
             "graph_json": link.pathway.graph_json,
             "highlighted_node_id": link.highlighted_node_id,
+            # KEGG groups some genes under a numeric id; the focal node reads
+            # better as this protein's own gene symbol.
+            "focal_label": human_protein.gene_symbol or "",
         }
         for link in links
     ]

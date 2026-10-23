@@ -114,8 +114,9 @@ _SYSTEM_KEYWORDS = [
 _SYSTEM_ORDER = [system for system, _ in _SYSTEM_KEYWORDS] + ["Other"]
 
 
-# Checked first: "cortex of kidney" must not fall into Nervous via "cortex".
-_PRIORITY_SYSTEMS = ("Urinary",)
+# Checked first: "cortex of kidney" must not fall into Nervous via "cortex",
+# nor "adrenal gland" into Urinary via "renal".
+_PRIORITY_SYSTEMS = ("Endocrine", "Urinary")
 
 
 def _system_for_tissue(tissue):
@@ -218,7 +219,7 @@ def build_human_expression_context(human_protein):
     return {
         "has_expression": bool(rows),
         "total_count": len(rows),
-        "gold_count": sum(1 for row in rows if _is_gold(row)),
+        "gold_count": sum(1 for row in present if _is_gold(row)),
         "peak": peak,
         "peak_is_gold": bool(peak and _is_gold(peak)),
         "tissue_count": len(by_tissue),

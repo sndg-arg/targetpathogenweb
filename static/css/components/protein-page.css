@@ -1328,6 +1328,12 @@ body.binder-mol-modal-open {
     transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
+/* With a meta count, the count takes the free space and the chevron sits
+   right after it (two auto margins would center the count). */
+.data-details > summary:has(.data-details-summary-meta)::after {
+    margin-left: 0;
+}
+
 .data-details[open] > summary::after,
 .data-details.is-open-visual > summary::after {
     transform: rotate(-135deg);

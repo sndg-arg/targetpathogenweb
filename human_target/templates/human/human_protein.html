@@ -11,8 +11,8 @@
     styling this page deliberately reuses verbatim (same markup, same tokens) --
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-dossier3">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261023-dossier3">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-dossier4">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261023-dossier4">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -119,9 +119,24 @@
                 {% if overview.caution_text %}
                 <p class="tp-state-note tp-state-note--warning">{{ overview.caution_text }}</p>
                 {% endif %}
-                {# Reading column (function, assembly) beside an aside with the entry facts and location. #}
-                {% if function.function_text or overview.subunit_text or overview.polymorphism_text %}
+                {# Entry facts as one strip; then the prose beside the cell diagram. #}
+                <dl class="target-profile-group-grid human-identifiers hbio-facts">
+                    {% if overview.chromosome %}
+                    <div class="target-profile-item">
+                        <dt class="target-profile-label">{% trans "Chromosome" %}</dt>
+                        <dd class="target-profile-value">{{ overview.chromosome }}</dd>
+                    </div>
+                    {% endif %}
+                    {% for fact in overview.quick_facts %}
+                    <div class="target-profile-item">
+                        <dt class="target-profile-label">{{ fact.label }}</dt>
+                        <dd class="target-profile-value">{{ fact.value }}</dd>
+                    </div>
+                    {% endfor %}
+                </dl>
+                {% if function.function_text or overview.subunit_text or overview.polymorphism_text or overview.subcellular_locations %}
                 <div class="hbio-layout">
+                    {% if function.function_text or overview.subunit_text or overview.polymorphism_text %}
                     <div class="hbio-main">
                         {% if function.function_text %}
                         <p class="human-text hbio-function">{{ function.function_text|linebreaksbr }}</p>
@@ -139,25 +154,9 @@
                         </div>
                         {% endif %}
                     </div>
-                {% else %}
-                <div class="hbio-layout hbio-layout--facts">
-                {% endif %}
+                    {% endif %}
+                    {% if overview.subcellular_locations %}
                     <aside class="hbio-aside">
-                        <dl class="target-profile-group-grid human-identifiers">
-                            {% if overview.chromosome %}
-                            <div class="target-profile-item">
-                                <dt class="target-profile-label">{% trans "Chromosome" %}</dt>
-                                <dd class="target-profile-value">{{ overview.chromosome }}</dd>
-                            </div>
-                            {% endif %}
-                            {% for fact in overview.quick_facts %}
-                            <div class="target-profile-item">
-                                <dt class="target-profile-label">{{ fact.label }}</dt>
-                                <dd class="target-profile-value">{{ fact.value }}</dd>
-                            </div>
-                            {% endfor %}
-                        </dl>
-                        {% if overview.subcellular_locations %}
                         <div class="cross-reference-group hov-cell">
                             <h3 class="cross-reference-group-label">{% trans "Subcellular location" %}</h3>
                             {% include "human/_cell_diagram.html" with compartments=dossier.compartments %}
@@ -165,9 +164,10 @@
                                 {% for loc in overview.subcellular_locations %}<li><span class="hc-dot" aria-hidden="true"></span>{{ loc }}</li>{% endfor %}
                             </ul>
                         </div>
-                        {% endif %}
                     </aside>
+                    {% endif %}
                 </div>
+                {% endif %}
             </section>
 
             {% if diseases.has_diseases %}
@@ -771,6 +771,6 @@
 {% block jsloaded %}
     <script src="{% static 'js/global/quick-nav.js' %}?v=20261022"></script>
     <script src="{% static 'js/pages/protein-architecture.js' %}?v=20261022"></script>
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261023-dossier3"></script>
-    <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261022-premium"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261023-dossier4"></script>
+    <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261023-focal"></script>
 {% endblock %}

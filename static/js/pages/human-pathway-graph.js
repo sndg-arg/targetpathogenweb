@@ -53,9 +53,10 @@
         var graph = pathway.graph_json || {};
         var elements = [];
         (graph.nodes || []).forEach(function (node) {
+            var isFocal = node.id === pathway.highlighted_node_id;
             elements.push({
-                data: { id: node.id, label: node.label || node.id },
-                classes: node.id === pathway.highlighted_node_id ? "is-focal" : "",
+                data: { id: node.id, label: (isFocal && pathway.focal_label) || node.label || node.id },
+                classes: isFocal ? "is-focal" : "",
             });
         });
         (graph.edges || []).forEach(function (edge, index) {

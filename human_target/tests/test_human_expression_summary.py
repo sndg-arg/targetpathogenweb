@@ -57,7 +57,8 @@ class BuildHumanExpressionContextTests(SimpleTestCase):
         context = build_human_expression_context(_FakeHumanProtein(rows))
         self.assertEqual(context["peak"]["tissue"], "testis")
         self.assertTrue(context["peak_is_gold"])
-        self.assertEqual(context["gold_count"], 2)
+        # Gold calls count expression, not gold "absent" calls.
+        self.assertEqual(context["gold_count"], 1)
         self.assertEqual((context["tissue_count"], context["expressed_count"]), (2, 1))
         # Absent liver counts as 0 and heart (score 20) is far below testis.
         self.assertEqual(context["specificity_label"], "Tissue-specific")
@@ -83,3 +84,13 @@ class BuildHumanExpressionContextTests(SimpleTestCase):
         }
         self.assertEqual(systems["Urinary"], ["cortex of kidney"])
         self.assertEqual(systems["Nervous"], ["cerebral cortex"])
+
+    def test_adrenal_gland_is_endocrine_not_urinary(self):
+        rows = [
+            {"tissue": "right adrenal gland", "score": 60.0},
+            {"tissue": "renal medulla", "score": 50.0},
+        ]
+        context = build_human_expression_context(_FakeHumanProtein(rows))
+        systems = {g["system"]: [r["tissue"] for r in g["rows"]] for g in context["system_groups"]}
+        self.assertEqual(systems["Endocrine"], ["right adrenal gland"])
+        self.assertEqual(systems["Urinary"], ["renal medulla"])

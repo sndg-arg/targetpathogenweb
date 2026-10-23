@@ -75,3 +75,11 @@ class StripCitationsTests(SimpleTestCase):
             ),
             "Acts. Binds (By similarity). Z (By similarity).",
         )
+
+
+class NamedDiseasesTests(SimpleTestCase):
+    def test_bare_notes_are_not_disease_associations(self):
+        from human_target.services.human_disease_summary import named_diseases
+
+        comments = [{"name": "", "acronym": ""}, {"name": "Esophageal cancer", "acronym": "ESCR"}]
+        self.assertEqual([d["acronym"] for d in named_diseases(comments)], ["ESCR"])
