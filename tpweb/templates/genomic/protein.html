@@ -5,7 +5,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-arch2">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261022-prio">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261023-bar">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -268,7 +268,7 @@
                                     <span class="tp-chip{% if item.tone == 'success' %} tp-chip--success{% elif item.tone == 'warning' %} tp-chip--warning{% elif item.tone == 'danger' %} tp-chip--danger{% endif %}">{{ item.value }}</span>
                                     {% else %}
                                     <span class="pe-value">{{ item.value }}</span>{% if item.detail %} <span class="pe-detail">{{ item.detail }}</span>{% endif %}
-                                    {% if item.kind == "bar" %}<span class="target-profile-bar" aria-hidden="true"><span class="target-profile-bar-fill" style="width: {{ item.percent }}%;"></span></span>{% endif %}
+                                    {% if item.kind == "bar" %}<span class="tp-bar tp-bar--accent pe-bar" aria-hidden="true"><span class="tp-bar-fill" style="width: {{ item.percent }}%;"></span></span>{% endif %}
                                     {% endif %}
                                     {% if item.note %}<span class="pe-note">{{ item.note }}</span>{% endif %}
                                 </dd>

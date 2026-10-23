@@ -167,19 +167,7 @@
             });
         });
 
-        // A system tile jumps to that system's bars and briefly marks it.
         var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        document.querySelectorAll("[data-expression-system]").forEach(function (tile) {
-            tile.addEventListener("click", function () {
-                var group = document.getElementById("hx-system-" + tile.getAttribute("data-expression-system"));
-                if (!group) return;
-                showPanel("system");
-                group.open = true;
-                group.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
-                group.classList.add("is-flashed");
-                setTimeout(function () { group.classList.remove("is-flashed"); }, 1200);
-            });
-        });
 
         // Bars grow in the first time the section scrolls into view.
         var section = document.getElementById("section-expression");
@@ -193,6 +181,28 @@
             });
         }, { threshold: 0.15 });
         observer.observe(section);
+    }
+
+    // Plain tab groups (GO aspects, references): [data-tab] buttons switch
+    // the [data-tab-panel] with the same key inside their [data-tab-group].
+    function initTabGroups() {
+        document.querySelectorAll("[data-tab-group]").forEach(function (group) {
+            var tabs = group.querySelectorAll("[data-tab]");
+            var panels = group.querySelectorAll("[data-tab-panel]");
+            tabs.forEach(function (tab) {
+                tab.addEventListener("click", function () {
+                    var key = tab.getAttribute("data-tab");
+                    tabs.forEach(function (t) {
+                        var isActive = t === tab;
+                        t.classList.toggle("is-active", isActive);
+                        t.setAttribute("aria-selected", isActive ? "true" : "false");
+                    });
+                    panels.forEach(function (panel) {
+                        panel.classList.toggle("is-hidden", panel.getAttribute("data-tab-panel") !== key);
+                    });
+                });
+            });
+        });
     }
 
     function initBindersTabs() {
@@ -416,5 +426,6 @@
         initBinderMoleculeModal();
         initBinderFilters();
         initExpressionView();
+        initTabGroups();
     });
 })();

@@ -47,18 +47,6 @@
     margin-top: var(--tp-space-4);
 }
 
-/* Shared small-caps label used by every human-only component. */
-.hx-kicker,
-.hx-fact dt,
-.hx-system-name,
-.hs-plddt-band {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-}
-
 /* ── Overview layout: prose beside the cell diagram ──────────────────── */
 .hov-pair {
     display: grid;
@@ -79,12 +67,6 @@
     grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
 }
 
-/* Long UniProt prose reads in two newspaper columns at desktop width. */
-.human-text--columns {
-    max-width: none;
-    columns: 2 340px;
-    column-gap: var(--tp-space-7, 32px);
-}
 
 /* ── Hero lede: what the protein is, in one sentence ─────────────────── */
 .hg-lede {
@@ -95,7 +77,8 @@
     line-height: 1.6;
 }
 
-/* ── Target assessment: one line per drug-discovery question ─────────── */
+/* ── Target assessment: one line per drug-discovery question; the verdict
+   is a tag with the same tones as the pathogen page's verdicts. ──────── */
 .ta-list {
     margin: 0;
     padding: 0;
@@ -105,43 +88,11 @@
 
 .ta-row {
     display: grid;
-    grid-template-columns: 22px 170px 190px minmax(0, 1fr) auto;
-    align-items: baseline;
+    grid-template-columns: 170px 200px minmax(0, 1fr) auto;
+    align-items: center;
     gap: var(--tp-space-4);
     padding: var(--tp-space-3) var(--tp-space-2);
     border-bottom: 1px solid var(--tp-color-border-soft);
-    transition: background var(--tp-ui-motion-fast) var(--human-ease);
-}
-
-.ta-row:hover {
-    background: var(--tp-color-surface-soft);
-}
-
-/* Three-step signal: strong = three, moderate = two, weak = one. */
-.ta-signal {
-    display: inline-flex;
-    align-items: flex-end;
-    gap: 2px;
-    height: 12px;
-}
-
-.ta-signal i {
-    width: 4px;
-    border-radius: 1px;
-    background: var(--tp-color-border-soft);
-}
-
-.ta-signal i:nth-child(1) { height: 5px; }
-.ta-signal i:nth-child(2) { height: 8px; }
-.ta-signal i:nth-child(3) { height: 12px; }
-
-.ta-row--weak .ta-signal i:nth-child(1),
-.ta-row--moderate .ta-signal i:nth-child(-n + 2) {
-    background: var(--tp-color-text-muted);
-}
-
-.ta-row--strong .ta-signal i {
-    background: var(--human-accent);
 }
 
 .ta-label {
@@ -150,17 +101,6 @@
     font-weight: 500;
     letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
-}
-
-.ta-status {
-    color: var(--tp-color-text-primary);
-    font-family: var(--tp-font-head);
-    font-size: var(--tp-font-size-md);
-    font-weight: 600;
-}
-
-.ta-row--weak .ta-status {
-    color: var(--tp-color-text-muted);
 }
 
 .ta-finding {
@@ -175,15 +115,6 @@
     font-weight: 500;
     text-decoration: none;
     white-space: nowrap;
-}
-
-.ta-link span {
-    display: inline-block;
-    transition: transform var(--tp-ui-motion-base) var(--human-ease);
-}
-
-.ta-row:hover .ta-link span {
-    transform: translateX(3px);
 }
 
 /* ── Biology section spacing ──────────────────────────────────────────── */
@@ -202,130 +133,34 @@
 
 @media (max-width: 900px) {
     .ta-row {
-        grid-template-columns: 22px minmax(0, 1fr) auto;
-        gap: 2px var(--tp-space-3);
-    }
-
-    .ta-label {
-        grid-column: 2;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: var(--tp-space-1) var(--tp-space-3);
     }
 
     .ta-status {
-        grid-column: 2;
         grid-row: 2;
     }
 
     .ta-finding {
-        grid-column: 2 / -1;
+        grid-column: 1 / -1;
         grid-row: 3;
     }
 
     .ta-link {
-        grid-column: 3;
+        grid-column: 2;
         grid-row: 1;
     }
 }
 
-/* ── Annotation score: five dots before the value ────────────────────── */
-.hm-meter {
-    display: inline-flex;
-    gap: 3px;
-    margin-right: var(--tp-space-2);
-    vertical-align: middle;
+/* ── Lineage, root to species, in the keywords list ──────────────────── */
+.hk-lineage span + span::before {
+    content: "›";
 }
 
-.hm-meter i {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--tp-color-border-soft);
-}
-
-.hm-meter i.is-on {
-    background: var(--human-accent);
-}
-
-/* ── Lineage: a taxonomy rail, root to species ───────────────────────── */
-.hl-rail {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-3) 0;
-    margin: var(--tp-space-1) 0 0;
-    padding: 0;
-    list-style: none;
-}
-
-.hl-node {
-    position: relative;
-    display: grid;
-    justify-items: start;
-    gap: 6px;
-    padding-right: var(--tp-space-5);
-}
-
-/* The connector runs from each dot to the next one. */
-.hl-node::before {
-    content: "";
-    position: absolute;
-    top: 3px;
-    left: 4px;
-    right: 0;
-    height: 1px;
-    background: var(--tp-color-border);
-}
-
-.hl-node.is-leaf::before {
-    display: none;
-}
-
-.hl-dot {
-    position: relative;
-    z-index: 1;
-    width: 7px;
-    height: 7px;
-    border: 1px solid var(--tp-color-text-muted);
-    border-radius: 50%;
-    background: var(--tp-color-surface);
-    transition:
-        background var(--tp-ui-motion-fast) var(--human-ease),
-        transform var(--tp-ui-motion-fast) var(--human-ease);
-}
-
-.hl-name {
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-xs);
-    white-space: nowrap;
-}
-
-.hl-node:hover .hl-dot {
-    background: var(--tp-color-text-muted);
-    transform: scale(1.25);
-}
-
-.hl-node:hover .hl-name {
-    color: var(--tp-color-text-primary);
-}
-
-.hl-node.is-binomial .hl-name {
+.hk-binomial {
     font-style: italic;
 }
 
-.hl-node.is-leaf .hl-dot {
-    border-color: var(--human-accent);
-    background: var(--human-accent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--human-accent) 18%, transparent);
-}
-
-.hl-node.is-leaf .hl-name {
-    color: var(--tp-color-text-primary);
-    font-weight: 600;
-}
-
-@media (max-width: 700px) {
-    .hl-node {
-        padding-right: var(--tp-space-4);
-    }
-}
 
 /* ── Subcellular location: schematic cell + list ─────────────────────── */
 .hc-layout {
@@ -496,48 +331,59 @@
 .hb-all {
     display: inline-block;
     margin-top: var(--tp-space-3);
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-sm);
+    text-decoration: none;
+}
+
+.hb-all:hover {
+    text-decoration: underline;
+}
+
+/* ── Tabbed panels (GO aspects, references): plain .tp-tabs; the JS
+   toggles .is-hidden on the panels. ───────────────────────────────────── */
+[data-tab-group] > .tp-tabs {
+    margin-bottom: var(--tp-space-3);
+}
+
+[data-tab-panel].is-hidden {
+    display: none;
+}
+
+/* GO terms in two columns, names in full (no truncation). */
+.ha-term-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--tp-space-6);
+}
+
+.ha-term-list--wide {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.ha-term-list .annotation-entry {
+    padding-left: var(--tp-space-1);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ha-term-list .annotation-entry-name {
+    white-space: normal;
+    cursor: auto;
+}
+
+@media (max-width: 700px) {
+    .ha-term-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 /* ── Pharmacology ─────────────────────────────────────────────────────── */
-.hph-lede {
-    align-items: center;
-}
-
-.hph-links {
-    display: grid;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    border-top: 1px solid var(--tp-color-border-soft);
-}
-
-.hph-link {
+.hph-resources {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--tp-space-3);
-    padding: var(--tp-space-2) var(--tp-space-1);
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 500;
-    text-decoration: none;
-    transition:
-        background var(--tp-ui-motion-fast) var(--human-ease),
-        padding var(--tp-ui-motion-base) var(--human-ease);
-}
-
-.hph-link:hover {
-    padding-left: var(--tp-space-3);
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-link);
-}
-
-.hph-link-id {
-    color: var(--tp-color-text-muted);
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 400;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2) var(--tp-space-3);
+    margin-bottom: var(--tp-space-4);
 }
 
 .hph-note {
@@ -837,55 +683,10 @@
     margin-right: var(--tp-space-2);
 }
 
-/* pLDDT: AlphaFold DB's four confidence bands as a quiet four-step meter. */
 .hs-plddt {
     grid-column: 2;
     grid-row: 1 / span 2;
-    display: grid;
-    grid-template-columns: auto auto;
-    align-items: center;
-    justify-items: end;
-    gap: 2px var(--tp-space-2);
-}
-
-.hs-plddt-value {
-    color: var(--tp-color-text-primary);
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-}
-
-.hs-plddt-band {
-    grid-column: 1 / -1;
-    font-size: var(--tp-font-size-2xs);
-}
-
-.hs-plddt-scale {
-    display: inline-flex;
-    gap: 2px;
-}
-
-.hs-plddt-scale i {
-    width: 5px;
-    height: 12px;
-    border-radius: 1px;
-    background: var(--tp-color-border-soft);
-    transition: background var(--tp-ui-motion-base) var(--human-ease);
-}
-
-.hs-plddt[data-band="very-low"] .hs-plddt-scale i:nth-child(-n + 1),
-.hs-plddt[data-band="low"] .hs-plddt-scale i:nth-child(-n + 2),
-.hs-plddt[data-band="confident"] .hs-plddt-scale i:nth-child(-n + 3),
-.hs-plddt[data-band="very-high"] .hs-plddt-scale i {
-    background: var(--tp-color-text-secondary);
-}
-
-.hs-entry.is-active .hs-plddt[data-band="very-low"] .hs-plddt-scale i:nth-child(-n + 1),
-.hs-entry.is-active .hs-plddt[data-band="low"] .hs-plddt-scale i:nth-child(-n + 2),
-.hs-entry.is-active .hs-plddt[data-band="confident"] .hs-plddt-scale i:nth-child(-n + 3),
-.hs-entry.is-active .hs-plddt[data-band="very-high"] .hs-plddt-scale i {
-    background: var(--human-accent);
+    align-self: center;
 }
 
 .hs-stage {
@@ -949,198 +750,27 @@
 }
 
 /* ── Expression atlas ────────────────────────────────────────────────── */
-.hx-lede {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
-    gap: var(--tp-space-6);
-    align-items: end;
-    padding: var(--tp-space-2) 0 var(--tp-space-5);
+.hx-metrics {
+    margin: 0 0 var(--tp-space-5);
 }
 
-.hx-lede-lead {
-    min-width: 0;
-}
-
-.hx-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-2);
-}
-
-.hx-kicker::before {
-    content: "";
-    width: 18px;
-    height: 1px;
-    background: var(--human-accent);
-}
-
-.hx-headline {
-    margin: var(--tp-space-2) 0 var(--tp-space-1);
-    color: var(--tp-color-text-primary);
-    font-family: var(--tp-font-head);
-    /* Design "Subtitle" size: never larger than the section title. */
-    font-size: var(--tp-font-size-lg);
-    font-weight: 600;
-    letter-spacing: var(--tp-tracking-tight);
-    line-height: 1.1;
-    overflow-wrap: anywhere;
-}
-
-.hx-sub {
-    margin: 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
-}
-
-/* Facts separated by vertical hairlines; the line before the first fact
-   of each wrapped row is clipped (negative margin + overflow hidden). */
-.hx-facts {
-    display: flex;
-    flex-wrap: wrap;
-    row-gap: var(--tp-space-4);
-    /* Pull left by one gutter so a row's first fact lines up with the text. */
-    margin: 0 0 0 calc(-1 * var(--tp-space-5));
-    overflow: hidden;
-}
-
-.hx-fact {
-    flex: 1 1 150px;
-    display: grid;
-    align-content: start;
-    gap: var(--tp-space-1);
-    margin-left: -1px;
-    padding: var(--tp-space-1) var(--tp-space-5);
-    border-left: 1px solid var(--tp-color-border-soft);
-}
-
-.hx-fact[title] {
-    cursor: help;
-}
-
-.hx-fact dd {
-    display: grid;
-    gap: 2px;
-    margin: 0;
-}
-
-.hx-fact-value {
-    color: var(--tp-color-text-primary);
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-md);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-}
-
-.hx-fact-note {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-}
-
-/* Anatomical systems: an index of hairline-topped entries (no boxes);
-   click jumps to the system's bars. */
-.hx-systems {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
-    gap: 0 var(--tp-space-5);
-    margin: var(--tp-space-4) 0 var(--tp-space-5);
-}
-
-.hx-system {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 2px var(--tp-space-2);
-    align-items: baseline;
-    padding: var(--tp-space-3) 0 var(--tp-space-3);
-    border: 0;
-    border-top: 1px solid var(--tp-color-border-soft);
-    background: transparent;
-    color: inherit;
-    text-align: left;
-    cursor: pointer;
-    box-shadow: inset 0 0 0 transparent;
-    transition: box-shadow var(--tp-ui-motion-base) var(--human-ease);
-}
-
-.hx-system:hover {
-    box-shadow: inset 0 1px 0 var(--tp-color-text-muted);
-}
-
-.hx-system:hover .hx-system-top {
-    color: var(--tp-color-link);
-}
-
-.hx-system:focus-visible {
-    outline: none;
-    box-shadow: var(--tp-focus-outline);
-}
-
-.hx-system-name {
-    grid-column: 1 / -1;
-}
-
-.hx-system-top {
-    transition: color var(--tp-ui-motion-fast) var(--human-ease);
-    min-width: 0;
-    overflow: hidden;
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 500;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.hx-system-score {
-    color: var(--tp-color-text-secondary);
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-sm);
-    font-variant-numeric: tabular-nums;
-}
-
-.hx-system .hx-bar {
-    grid-column: 1 / -1;
-    margin-top: var(--tp-space-1);
-}
-
-/* Bars: neutral by default; only the single highest value takes the accent. */
-.hx-bar {
-    display: block;
-    height: 4px;
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-border-soft);
-    overflow: hidden;
-}
-
-.hx-bar-fill {
-    display: block;
-    height: 100%;
-    border-radius: inherit;
-    background: var(--tp-color-border-strong);
-    transform-origin: left center;
+/* Bars (.tp-bar) grow in on first view (JS adds .hx-animate, then .is-revealed). */
+.hx-row .tp-bar-fill {
     transition: transform 900ms var(--human-ease);
 }
 
-.hx-row.is-peak .hx-bar-fill,
-.hx-system.is-peak .hx-bar-fill {
-    background: var(--human-accent);
-}
-
-/* Grow-in on first view (JS adds .hx-animate, then .is-revealed). */
-.hx-animate .hx-bar-fill {
+.hx-animate .hx-row .tp-bar-fill {
     transform: scaleX(0);
 }
 
-.hx-animate.is-revealed .hx-bar-fill {
+.hx-animate.is-revealed .hx-row .tp-bar-fill {
     transform: scaleX(1);
 }
 
-.hx-animate.is-revealed .hx-row:nth-child(2) .hx-bar-fill,
-.hx-animate.is-revealed .hx-system:nth-child(2) .hx-bar-fill { transition-delay: 40ms; }
-.hx-animate.is-revealed .hx-row:nth-child(3) .hx-bar-fill,
-.hx-animate.is-revealed .hx-system:nth-child(3) .hx-bar-fill { transition-delay: 80ms; }
-.hx-animate.is-revealed .hx-row:nth-child(4) .hx-bar-fill,
-.hx-animate.is-revealed .hx-system:nth-child(4) .hx-bar-fill { transition-delay: 120ms; }
-.hx-animate.is-revealed .hx-row:nth-child(n + 5) .hx-bar-fill,
-.hx-animate.is-revealed .hx-system:nth-child(n + 5) .hx-bar-fill { transition-delay: 160ms; }
+.hx-animate.is-revealed .hx-row:nth-child(2) .tp-bar-fill { transition-delay: 40ms; }
+.hx-animate.is-revealed .hx-row:nth-child(3) .tp-bar-fill { transition-delay: 80ms; }
+.hx-animate.is-revealed .hx-row:nth-child(4) .tp-bar-fill { transition-delay: 120ms; }
+.hx-animate.is-revealed .hx-row:nth-child(n + 5) .tp-bar-fill { transition-delay: 160ms; }
 
 .human-expression-tabs {
     margin-bottom: var(--tp-space-3);
@@ -1454,8 +1084,7 @@
 /* ── Narrow screens ──────────────────────────────────────────────────── */
 @media (max-width: 900px) {
     .hs-layout,
-    .hp-layout,
-    .hx-lede {
+    .hp-layout {
         grid-template-columns: minmax(0, 1fr);
     }
 
@@ -1487,19 +1116,13 @@
 @media (prefers-reduced-motion: reduce) {
     .hd-summary,
     .hd-chevron,
-    .ta-row,
-    .ta-link span,
     .hx-group-title,
     .hc-part,
-    .hph-link,
-    .hl-dot,
     .ha-domain,
     .ha-tick,
     .list-more > summary::after,
     .hs-entry,
-    .hs-plddt-scale i,
-    .hx-system,
-    .hx-bar-fill,
+    .hx-row .tp-bar-fill,
     .hx-group,
     .hp-index-item,
     #human-structure-viewport,
@@ -1514,7 +1137,7 @@
         animation: none !important;
     }
 
-    .hx-animate .hx-bar-fill {
+    .hx-animate .hx-row .tp-bar-fill {
         transform: none;
     }
 }

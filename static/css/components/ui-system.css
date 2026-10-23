@@ -2210,6 +2210,38 @@ button.tp-chip:hover,
     font-weight: 500;
 }
 
+/* ── Bar (see /design): a 0-100 value as a thin track. Neutral by default;
+   --accent marks the one value that matters (e.g. the peak), tones follow
+   the tag tones. Width comes from an inline style on .tp-bar-fill. ── */
+.tp-bar {
+    display: block;
+    width: 100%;
+    height: 4px;
+    border-radius: var(--tp-radius-pill);
+    background: var(--tp-color-border-soft);
+    overflow: hidden;
+}
+
+.tp-bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--tp-color-border-strong);
+    transform-origin: left center;
+}
+
+.tp-bar--accent .tp-bar-fill {
+    background: var(--tp-color-primary);
+}
+
+.tp-bar--success .tp-bar-fill {
+    background: var(--tp-color-success-ink);
+}
+
+.tp-bar--warning .tp-bar-fill {
+    background: var(--tp-color-warning-ink);
+}
+
 .metric-pill--success {
     border-color: var(--tp-color-success-border);
     background: var(--tp-color-success-bg);

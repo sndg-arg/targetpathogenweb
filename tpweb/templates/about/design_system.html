@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261023-heronote">
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261022-arch2">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261021-phone">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261023-bar">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -127,7 +127,7 @@
     <section class="ds-chapter tp-quick-nav-target" id="components">
         <header class="ds-chapter-head">
             <h2>Components</h2>
-            <nav class="ds-index" aria-label="Components"><a href="#c-buttons">Buttons</a><a href="#c-tags">Tags</a><a href="#c-filters">Filters</a><a href="#c-fields">Fields</a><a href="#c-file">File picker</a><a href="#c-select">Select</a><a href="#c-options">Options</a><a href="#c-tabs">Tabs</a><a href="#c-notes">Notes</a><a href="#c-empty">Empty state</a><a href="#c-messages">Messages</a><a href="#c-values">Long values</a><a href="#c-metrics">Metrics</a><a href="#c-cards">Cards</a><a href="#c-header">Page header</a><a href="#c-section">Section header</a><a href="#c-navigation">Navigation</a><a href="#c-assistant">Assistant button</a><a href="#c-tooltips">Tooltips</a><a href="#c-dialogs">Dialogs</a><a href="#c-tables">Tables</a></nav>
+            <nav class="ds-index" aria-label="Components"><a href="#c-buttons">Buttons</a><a href="#c-tags">Tags</a><a href="#c-filters">Filters</a><a href="#c-fields">Fields</a><a href="#c-file">File picker</a><a href="#c-select">Select</a><a href="#c-options">Options</a><a href="#c-tabs">Tabs</a><a href="#c-notes">Notes</a><a href="#c-empty">Empty state</a><a href="#c-messages">Messages</a><a href="#c-values">Long values</a><a href="#c-metrics">Metrics</a><a href="#c-bars">Bars</a><a href="#c-cards">Cards</a><a href="#c-header">Page header</a><a href="#c-section">Section header</a><a href="#c-navigation">Navigation</a><a href="#c-assistant">Assistant button</a><a href="#c-tooltips">Tooltips</a><a href="#c-dialogs">Dialogs</a><a href="#c-tables">Tables</a></nav>
         </header>
 
         <div class="ds-comp" id="c-buttons">
@@ -384,6 +384,32 @@
                         <td><div class="metric-pill metric-pill--warning ds-metric"><span class="metric-label">Binding site</span><span class="metric-value">0.38</span></div></td>
                         <td><div class="metric-pill metric-pill--danger ds-metric"><span class="metric-label">Binding site</span><span class="metric-value">0.12</span></div></td>
                         <td><a class="metric-pill metric-pill--link ds-metric" href="#c-metrics"><span class="metric-label">Ligands</span><span class="metric-value">12 <span class="metric-pill-jump">See evidence</span></span></a></td></tr>
+                </tbody>
+            </table>
+            </div>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th>With note</th><th>Text value</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><div class="metric-pill ds-metric"><span class="metric-label">Tissue specificity</span><span class="metric-value">τ 0.60 <span class="metric-note">Intermediate</span></span></div></td>
+                        <td><div class="metric-pill ds-metric"><span class="metric-label">Highest expression</span><span class="metric-value metric-value--text">Lateral nuclear group of thalamus</span></div></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <div class="ds-comp" id="c-bars">
+            <h3>Bars</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix">
+                <thead><tr><th>Neutral</th><th>Accent</th><th>Favorable</th><th>Warning</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><span class="tp-bar ds-bar"><span class="tp-bar-fill" style="width: 62%"></span></span></td>
+                        <td><span class="tp-bar tp-bar--accent ds-bar"><span class="tp-bar-fill" style="width: 97%"></span></span></td>
+                        <td><span class="tp-bar tp-bar--success ds-bar"><span class="tp-bar-fill" style="width: 88%"></span></span></td>
+                        <td><span class="tp-bar tp-bar--warning ds-bar"><span class="tp-bar-fill" style="width: 34%"></span></span></td></tr>
                 </tbody>
             </table>
             </div>

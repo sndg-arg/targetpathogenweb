@@ -296,6 +296,10 @@
     min-width: 150px;
 }
 
+.ds-bar {
+    width: 140px;
+}
+
 .ds-card {
     display: grid;
     gap: var(--tp-space-1);

@@ -1669,28 +1669,10 @@ body.residue-modal-open {
     background: var(--tp-color-surface-soft);
 }
 
-/* The value chip carries the tone; no extra side bar or colored label. */
-.target-profile-bar {
-    display: block;
+/* Score bars are the shared .tp-bar component (ui-system.css). */
+.pe-bar {
     margin-top: 1px;
-    width: 100%;
-    height: 3px;
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-border-soft);
-    overflow: hidden;
 }
-
-.target-profile-bar-fill {
-    display: block;
-    height: 100%;
-    border-radius: inherit;
-    background: var(--tp-color-brand-800);
-    opacity: 0.85;
-}
-
-.target-profile-item--good .target-profile-bar-fill { background: var(--tp-color-success-ink); }
-
-.target-profile-item--bad .target-profile-bar-fill { background: var(--tp-color-warning-ink); }
 
 .target-profile-scale {
     display: block;
