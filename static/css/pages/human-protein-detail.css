@@ -104,6 +104,20 @@
     align-items: start;
 }
 
+/* No prose: the facts and location run across the full width. */
+.hbio-layout--facts {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.hbio-layout--facts .hbio-aside {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+    align-items: start;
+}
+
+.hbio-layout--facts .hbio-aside .human-identifiers {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .hbio-main > * + * {
     margin-top: var(--tp-space-5);
 }

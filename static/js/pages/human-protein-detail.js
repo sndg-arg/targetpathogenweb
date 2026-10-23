@@ -92,14 +92,15 @@
 
             var nglStage = getStage();
             nglStage.removeAllComponents();
-            // NGL 0.10's mmCIF parser crashes on the secondary-structure block of
-            // current AlphaFold DB files (_struct_conf); drop it and NGL computes
-            // the helices/sheets itself.
+            // NGL 0.10's mmCIF parser crashes on two blocks of current files: the
+            // secondary structure of AlphaFold DB models (_struct_conf; NGL then
+            // computes helices/sheets itself) and the component dictionary of
+            // RCSB PDB entries (_chem_comp, numeric names). Neither is drawn.
             fetch(entry.url, { credentials: "same-origin" }).then(function (response) {
                 if (!response.ok) throw new Error("HTTP " + response.status);
                 return response.text();
             }).then(function (text) {
-                var cleaned = text.replace(/(^|\n)(loop_\n)?_struct_conf(_type)?\.[\s\S]*?(?=\n#)/g, "$1");
+                var cleaned = text.replace(/(^|\n)(loop_\n)?_(struct_conf|struct_conf_type|chem_comp)\.[\s\S]*?(?=\n#)/g, "$1");
                 return nglStage.loadFile(new Blob([cleaned], { type: "text/plain" }), { ext: "cif", defaultRepresentation: false });
             }).then(function (component) {
                 component.addRepresentation("cartoon", { colorScheme: colorSchemeFor(source) });

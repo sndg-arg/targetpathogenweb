@@ -11,8 +11,8 @@
     styling this page deliberately reuses verbatim (same markup, same tokens) --
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-dossier2">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261023-dossier2">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-dossier3">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261023-dossier3">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -120,6 +120,7 @@
                 <p class="tp-state-note tp-state-note--warning">{{ overview.caution_text }}</p>
                 {% endif %}
                 {# Reading column (function, assembly) beside an aside with the entry facts and location. #}
+                {% if function.function_text or overview.subunit_text or overview.polymorphism_text %}
                 <div class="hbio-layout">
                     <div class="hbio-main">
                         {% if function.function_text %}
@@ -138,6 +139,9 @@
                         </div>
                         {% endif %}
                     </div>
+                {% else %}
+                <div class="hbio-layout hbio-layout--facts">
+                {% endif %}
                     <aside class="hbio-aside">
                         <dl class="target-profile-group-grid human-identifiers">
                             {% if overview.chromosome %}
@@ -767,6 +771,6 @@
 {% block jsloaded %}
     <script src="{% static 'js/global/quick-nav.js' %}?v=20261022"></script>
     <script src="{% static 'js/pages/protein-architecture.js' %}?v=20261022"></script>
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261023-dossier2"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261023-dossier3"></script>
     <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261022-premium"></script>
 {% endblock %}

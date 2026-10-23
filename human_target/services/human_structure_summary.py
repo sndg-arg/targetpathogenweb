@@ -95,7 +95,8 @@ def build_human_structure_context(bioentry):
             "structure_id": pdb.id,
             "code": code,
             "chain": link.chain or "",
-            "resolution": link.resolution or pdb.resolution,
+            # Pdb.resolution defaults to 20 Å, a placeholder rather than a measurement.
+            "resolution": link.resolution or (pdb.resolution if pdb.resolution != 20 else None),
             "url": _structure_url(pdb.id, bioentry.bioentry_id),
             "ligands": _ligand_summary_for_pdb(pdb.id),
         }
@@ -114,6 +115,8 @@ def build_human_structure_context(bioentry):
             xref = xrefs_by_pdb_id.get(code)
             method = str(getattr(xref, "method", "") or "").upper()
             entry["method"] = getattr(xref, "method", "") or ""
+            if getattr(xref, "resolution", None):
+                entry["resolution"] = xref.resolution
             entry["title"] = code
             if "NMR" in method:
                 nmr.append(entry)
