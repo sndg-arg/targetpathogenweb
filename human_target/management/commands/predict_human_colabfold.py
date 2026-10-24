@@ -10,7 +10,7 @@ Selenocysteine (U) is sent as cysteine (C): neither AlphaFold DB nor ColabFold
 models it. A returned model is imported only when its residues match that
 sequence exactly; the protein page says Sec was modeled as Cys.
 
-Usage (in the root `queue` container, which has the cluster SSH config):
+Usage (as root, which owns data/ and has the cluster SSH config mounted):
     python manage.py predict_human_colabfold [--accession P07203 ...] [--dry-run]
 """
 
