@@ -21,11 +21,13 @@ from django.urls import reverse
 from tpweb.models.pdb import Atom, Residue
 
 EXPERIMENT_ALPHAFOLD = "AF"
+EXPERIMENT_COLABFOLD = "CF"
 EXPERIMENT_ALPHAFILL = "AFILL"
 EXPERIMENT_EXPERIMENTAL = "EX"
 
 _SOURCE_LABELS = {
     EXPERIMENT_ALPHAFOLD: "AlphaFold",
+    EXPERIMENT_COLABFOLD: "ColabFold",
     EXPERIMENT_ALPHAFILL: "AlphaFill",
 }
 
@@ -75,7 +77,7 @@ def plddt_band(plddt):
     return "Very low"
 
 
-def build_human_structure_context(bioentry):
+def build_human_structure_context(bioentry, sequence=""):
     links = list(bioentry.structures.select_related("pdb").all())
     xrefs_by_pdb_id = {
         str(xref.pdb_id or "").strip().upper(): xref
@@ -83,6 +85,7 @@ def build_human_structure_context(bioentry):
     }
 
     alphafold = []
+    colabfold = []
     alphafill = []
     xray = []
     nmr = []
@@ -100,14 +103,20 @@ def build_human_structure_context(bioentry):
             "url": _structure_url(pdb.id, bioentry.bioentry_id),
             "ligands": _ligand_summary_for_pdb(pdb.id),
         }
-        if experiment in (EXPERIMENT_ALPHAFOLD, EXPERIMENT_ALPHAFILL):
+        if experiment in (EXPERIMENT_ALPHAFOLD, EXPERIMENT_COLABFOLD, EXPERIMENT_ALPHAFILL):
             # Predicted models carry a placeholder resolution, not a measured one.
             entry["resolution"] = None
-        if experiment == EXPERIMENT_ALPHAFOLD:
-            entry["label"] = _SOURCE_LABELS[EXPERIMENT_ALPHAFOLD]
+        if experiment in (EXPERIMENT_ALPHAFOLD, EXPERIMENT_COLABFOLD):
+            entry["label"] = _SOURCE_LABELS[experiment]
             entry["mean_plddt"] = _mean_plddt_for_pdb(pdb.id)
             entry["plddt_band"] = plddt_band(entry["mean_plddt"])
-            alphafold.append(entry)
+            if experiment == EXPERIMENT_ALPHAFOLD:
+                alphafold.append(entry)
+            else:
+                # predict_human_colabfold sends selenocysteine as cysteine.
+                if "U" in sequence:
+                    entry["method"] = "Sec modeled as Cys"
+                colabfold.append(entry)
         elif experiment == EXPERIMENT_ALPHAFILL:
             entry["label"] = _SOURCE_LABELS[EXPERIMENT_ALPHAFILL]
             alphafill.append(entry)
@@ -140,6 +149,15 @@ def build_human_structure_context(bioentry):
                 "label": "AlphaFold",
                 "count": len(alphafold),
                 "entries": alphafold,
+            }
+        )
+    if colabfold:
+        sub_tabs.append(
+            {
+                "key": "colabfold",
+                "label": "ColabFold",
+                "count": len(colabfold),
+                "entries": colabfold,
             }
         )
     if alphafill:

@@ -66,7 +66,7 @@
         }
 
         function colorSchemeFor(source) {
-            if (source === "alphafold") return "bfactor";
+            if (source === "alphafold" || source === "colabfold") return "bfactor";
             if (source === "alphafill") return "uniform";
             return "chainname";
         }

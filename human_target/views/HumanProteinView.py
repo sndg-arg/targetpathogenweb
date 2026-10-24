@@ -75,7 +75,7 @@ class HumanProteinView(PermissionLockedMixin, View):
             )
 
         pathways = build_human_pathway_context(human_protein)
-        structure = build_human_structure_context(bioentry)
+        structure = build_human_structure_context(bioentry, human_protein.sequence)
         glance = build_glance(dossier, diseases, structure, binders, expression, pathways)
         assessment = build_assessment(dossier, diseases, structure, binders, expression)
 

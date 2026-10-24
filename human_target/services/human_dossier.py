@@ -409,15 +409,14 @@ def build_assessment(dossier, diseases, structure, binders, expression):
     tabs = structure.get("sub_tabs") or []
     experimental = sum(tab["count"] for tab in tabs if tab["key"] in ("xray", "nmr"))
     coverage = dossier.get("pdb_coverage")
-    plddt = next(
-        (
-            entry.get("mean_plddt")
-            for tab in tabs
-            if tab["key"] == "alphafold"
-            for entry in tab["entries"]
-            if entry.get("mean_plddt")
-        ),
-        None,
+    model_tab = next((tab for tab in tabs if tab["key"] in ("alphafold", "colabfold")), None)
+    plddt = (
+        next(
+            (entry["mean_plddt"] for entry in model_tab["entries"] if entry.get("mean_plddt")),
+            None,
+        )
+        if model_tab
+        else None
     )
     if experimental:
         finding = f"{experimental} experimental structure{'s' if experimental != 1 else ''}"
@@ -438,7 +437,7 @@ def build_assessment(dossier, diseases, structure, binders, expression):
                 "label": "Structure",
                 "tone": "moderate",
                 "status": "Predicted only",
-                "finding": "AlphaFold model"
+                "finding": f"{model_tab['label'] if model_tab else 'AlphaFill'} model"
                 + (f", mean pLDDT {plddt:.0f}" if plddt else "")
                 + "; no experimental structure.",
                 "href": "#section-structure",

@@ -49,6 +49,19 @@ class BuildHumanStructureContextTests(TestCase):
         self.assertEqual(entry["mean_plddt"], 80.0)
         self.assertEqual(entry["ligands"], [{"comp": "ATP", "chains": ["A"]}])
 
+    def test_colabfold_entry_gets_own_tab_and_sec_note(self):
+        bioentry = self._make_bioentry("P07203")
+        pdb = PDB.objects.create(code="CF_P07203", experiment="CF", text="")
+        self._add_residue_with_atoms(pdb, "A", 1, "MET", "R", [("CA", 60.0)])
+        BioentryStructure.objects.create(bioentry=bioentry, pdb=pdb, chain="A")
+
+        context = build_human_structure_context(bioentry, "MUK")
+
+        tab = next(tab for tab in context["sub_tabs"] if tab["key"] == "colabfold")
+        self.assertEqual(tab["entries"][0]["mean_plddt"], 60.0)
+        self.assertEqual(tab["entries"][0]["method"], "Sec modeled as Cys")
+        self.assertIsNone(tab["entries"][0]["resolution"])
+
     def test_alphafill_entry_has_ligands_but_no_plddt(self):
         bioentry = self._make_bioentry("P10721")
         pdb = PDB.objects.create(code="AFILL_P10721", experiment="AFILL", text="")

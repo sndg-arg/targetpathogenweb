@@ -370,6 +370,7 @@
                         <p class="hs-loading" id="human-structure-loading">{% trans "Select a structure to load it." %}</p>
                         <figcaption class="hs-caption" id="human-structure-caption"
                                     data-caption-alphafold="{% trans 'AlphaFold DB model · cartoon colored by per-residue confidence (pLDDT)' %}"
+                                    data-caption-colabfold="{% trans 'ColabFold model predicted for this site · cartoon colored by per-residue confidence (pLDDT)' %}"
                                     data-caption-alphafill="{% trans 'AlphaFill model · transplanted ligands shown as sticks' %}"
                                     data-caption-xray="{% trans 'Experimental structure (X-ray / EM) · colored by chain' %}"
                                     data-caption-nmr="{% trans 'Experimental structure (NMR) · colored by chain' %}"></figcaption>
@@ -747,6 +748,6 @@
     <script src="{% static 'js/global/quick-nav.js' %}?v=20261022"></script>
     <script src="{% static 'js/pages/protein-architecture.js' %}?v=20261022"></script>
     <script src="{% static 'js/pages/protein-dossier.js' %}?v=20261023"></script>
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261023-p2"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261024-cf"></script>
     <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261023-focal"></script>
 {% endblock %}
