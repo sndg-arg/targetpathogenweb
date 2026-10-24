@@ -1167,10 +1167,13 @@ body.viewer-settings-open { overflow: hidden; }
     opacity: 0.5;
     font-family: var(--tp-font-mono);
 }
-
-/* Overlay picker: same dropdown, items are checkboxes with a color swatch */
+/* Overlay picker (same dropdown, checkbox items with a color swatch). A short
+   fixed label: never shrinks; the structure picker beside it truncates. */
+   beside it is the one that truncates. */
 .sv-overlay-picker {
-    min-width: 0;
+    flex: 0 0 auto;
+    min-width: auto;
+    max-width: none;
 }
 
 .sv-struct-picker-item[hidden] {
