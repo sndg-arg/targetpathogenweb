@@ -408,6 +408,14 @@ def _tag_grouped_option(option_dict, change):
     }
 
 
+_YES_NO_SPECIAL_KEYS = ("ligand_filter", "tm_filter")
+
+# InterPro topology predictors and the signature ids of a membrane-spanning
+# segment (same sources as protein_architecture's topology track).
+TM_PREDICTOR_DBS = ("Phobius", "TMHMM", "DeepTMHMM")
+TM_SEGMENT_ID_RE = r"^(TRANSMEMBRANE|TMHELIX)$"
+
+
 def add_selected_parameter(selected_parameters, option_dict):
     if not option_dict:
         return selected_parameters
@@ -422,12 +430,12 @@ def add_selected_parameter(selected_parameters, option_dict):
             if _selected_parameter_kind(item) != "numeric"
             or _coerce_score_param_id(item.get("score_param_id")) != option_param_id
         ]
-    elif option_kind == "special" and option_dict.get("special_key") == "ligand_filter":
+    elif option_kind == "special" and option_dict.get("special_key") in _YES_NO_SPECIAL_KEYS:
         selected_parameters = [
             item
             for item in selected_parameters
             if _selected_parameter_kind(item) != "special"
-            or item.get("special_key") != "ligand_filter"
+            or item.get("special_key") != option_dict.get("special_key")
         ]
     option_id = str(option_dict.get("id"))
     if any(str(item.get("id")) == option_id for item in selected_parameters):
@@ -478,6 +486,22 @@ def build_special_filter_payload(kind, value):
             "name": display,
             "type": "special",
             "special_key": "ligand_filter",
+            "special_value": normalized,
+            "display_name": display,
+        }
+    if kind == "tm":
+        normalized = value.strip().lower()
+        if normalized not in ("yes", "no"):
+            return None
+        display = (
+            "Has transmembrane segments" if normalized == "yes" else "No transmembrane segments"
+        )
+        return {
+            "id": f"special:tm:{normalized}",
+            "score_param_name": "transmembrane_segments",
+            "name": display,
+            "type": "special",
+            "special_key": "tm_filter",
             "special_value": normalized,
             "display_name": display,
         }
@@ -962,6 +986,19 @@ def _apply_and_selected_parameter_filters(
                         Binders.objects.filter(locustag_id=OuterRef("accession"))
                     )
                 ).filter(has_ligand_evidence=wants_ligands)
+
+    tm_values = {value.lower() for value in special_groups.get("tm_filter", [])}
+    if len(tm_values & {"yes", "no"}) == 1:
+        from bioseq.models.Seqfeature import Seqfeature
+
+        has_tm = Exists(
+            Seqfeature.objects.filter(
+                bioentry_id=OuterRef("pk"),
+                type_term__ontology__name__in=TM_PREDICTOR_DBS,
+                type_term__identifier__iregex=TM_SEGMENT_ID_RE,
+            )
+        )
+        filtered_queryset = filtered_queryset.filter(has_tm if "yes" in tm_values else ~has_tm)
 
     ec_values = [value for value in special_groups.get("ec_filter", []) if value]
     if ec_values:

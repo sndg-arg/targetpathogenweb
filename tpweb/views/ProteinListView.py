@@ -972,33 +972,51 @@ class ProteinListView(View):
                 }
             )
 
-        active_ligand_value = (function_data or {}).get("ligand_active")
-        filter_groups.append(
-            {
-                "category": "Ligands",
-                "is_ligand_filter": True,
-                "ligand_options": [
-                    {
-                        "value": choice_value,
-                        "label": choice_label,
-                        "active": bool(active_ligand_value)
-                        and active_ligand_value.get("value") == choice_value,
-                        "id": (
-                            active_ligand_value.get("id")
-                            if active_ligand_value
-                            and active_ligand_value.get("value") == choice_value
-                            else None
-                        ),
-                    }
-                    for choice_value, choice_label in (
-                        ("yes", "Has ligand evidence"),
-                        ("no", "No ligand evidence"),
-                    )
-                ],
-                "any_active": bool(active_ligand_value),
-                "param_count": 1 if active_ligand_value else 0,
-            }
-        )
+        # Yes/no evidence filters, one chip pair each.
+        for category, label, kind, search_text, active_key, choices in (
+            (
+                "Ligands",
+                "Ligand evidence",
+                "ligands",
+                "ligand evidence binders pdb chembl zinc",
+                "ligand_active",
+                (("yes", "Has ligand evidence"), ("no", "No ligand evidence")),
+            ),
+            (
+                "Topology",
+                "Transmembrane segments",
+                "tm",
+                "transmembrane segments helix helices membrane topology phobius tmhmm",
+                "tm_active",
+                (("yes", "Has transmembrane segments"), ("no", "No transmembrane segments")),
+            ),
+        ):
+            active_value = (function_data or {}).get(active_key)
+            filter_groups.append(
+                {
+                    "category": category,
+                    "is_choice_filter": True,
+                    "choice_label": label,
+                    "choice_kind": kind,
+                    "choice_search_text": search_text,
+                    "choice_options": [
+                        {
+                            "value": choice_value,
+                            "label": choice_label,
+                            "active": bool(active_value)
+                            and active_value.get("value") == choice_value,
+                            "id": (
+                                active_value.get("id")
+                                if active_value and active_value.get("value") == choice_value
+                                else None
+                            ),
+                        }
+                        for choice_value, choice_label in choices
+                    ],
+                    "any_active": bool(active_value),
+                    "param_count": 1 if active_value else 0,
+                }
+            )
 
         for category in sorted(grouped.keys(), key=_category_sort_key):
             params = sorted(grouped[category], key=lambda entry: _param_sort_key(category, entry))
@@ -2187,6 +2205,7 @@ class ProteinListView(View):
         active_ec_values = []
         active_go_values = []
         active_ligand_value = None
+        active_tm_value = None
         for parameter in selected_parameters:
             if str(parameter.get("type") or "").lower() != "special":
                 continue
@@ -2199,6 +2218,8 @@ class ProteinListView(View):
                 active_go_values.append({"value": special_value, "id": entry_id})
             elif special_key == "ligand_filter" and special_value:
                 active_ligand_value = {"value": special_value, "id": entry_id}
+            elif special_key == "tm_filter" and special_value:
+                active_tm_value = {"value": special_value, "id": entry_id}
 
         ec_class_value_set = {value for value, _ in self.EC_CLASSES} | {EC_ANY_VALUE}
         active_ec_class_set = {
@@ -2225,6 +2246,7 @@ class ProteinListView(View):
             "ec_specific_active": ec_specific_active,
             "go_active": active_go_values,
             "ligand_active": active_ligand_value,
+            "tm_active": active_tm_value,
             "ec_explorer_url": reverse(
                 "tpwebapp:annotation_explorer",
                 kwargs={"genome": genome_url_slug(assembly_name), "annotation_kind": "ec"},

@@ -849,13 +849,13 @@
                                     {% endif %}
                                 </div>
 
-                            {% elif group.is_ligand_filter %}
-                                <div class="filter-param" data-filter-param data-search-text="ligand evidence binders pdb chembl zinc">
+                            {% elif group.is_choice_filter %}
+                                <div class="filter-param" data-filter-param data-search-text="{{ group.choice_search_text }}">
                                     <div class="filter-param-head">
-                                        <span class="filter-param-label">{% trans "Ligand evidence" %}</span>
+                                        <span class="filter-param-label">{{ group.choice_label }}</span>
                                     </div>
                                     <div class="filter-chip-group">
-                                        {% for option in group.ligand_options %}
+                                        {% for option in group.choice_options %}
                                             <form method="POST" action="" class="filter-chip-form">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="return_query" value="{{ query_string }}">
@@ -864,7 +864,7 @@
                                                     <input type="hidden" name="filter_option_id" value="{{ option.id }}">
                                                 {% else %}
                                                     <input type="hidden" name="action" value="add_special_filter">
-                                                    <input type="hidden" name="special_kind" value="ligands">
+                                                    <input type="hidden" name="special_kind" value="{{ group.choice_kind }}">
                                                     <input type="hidden" name="special_value" value="{{ option.value }}">
                                                 {% endif %}
                                                 <button type="submit"
