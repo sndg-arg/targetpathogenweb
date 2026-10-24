@@ -1168,6 +1168,36 @@ body.viewer-settings-open { overflow: hidden; }
     font-family: var(--tp-font-mono);
 }
 
+/* Overlay picker: same dropdown, items are checkboxes with a color swatch */
+.sv-overlay-picker {
+    min-width: 0;
+}
+
+.sv-struct-picker-item[hidden] {
+    display: none;
+}
+
+.sv-overlay-swatch {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--sv-overlay-text-muted);
+    transition: background-color 140ms;
+}
+
+.sv-overlay-item[aria-checked="true"] {
+    font-weight: 600;
+}
+
+.sv-overlay-item[aria-checked="true"] .sv-overlay-swatch {
+    border-color: transparent;
+}
+
+.sv-overlay-item[aria-busy="true"] {
+    cursor: progress;
+}
+
 /* ── 17. Pocket card label ── */
 .pocket-card-label {
     display: flex;

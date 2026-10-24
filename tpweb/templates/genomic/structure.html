@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261023">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261023-list">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261024-overlay">
 {% endblock %}
 
 {% block body %}
@@ -167,6 +167,27 @@
                         data-vmd-url="{% url 'tpwebapp:structure_export' s.id %}">
                         <span class="sv-struct-picker-item-label">{{ s.short_method }}{% if s.display_code %} · {{ s.display_code }}{% endif %}</span>
                         {% if s.resolution %}<span class="sv-struct-picker-item-res">{{ s.resolution }} Å</span>{% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            {# Overlay — other structures of this protein, superposed onto the one in view #}
+            <div class="sv-tb-sep" aria-hidden="true"></div>
+            <div class="sv-struct-picker sv-overlay-picker" id="sv-overlay-picker">
+                <button type="button" class="sv-struct-picker-btn" id="sv-overlay-btn"
+                        aria-haspopup="true" aria-expanded="false"
+                        title="{% trans 'Superpose other structures of this protein on the one in view (sequence alignment, then a C-alpha fit)' %}">
+                    <span class="sv-struct-picker-label">{% trans "Overlay" %}<span class="sv-overlay-count" id="sv-overlay-count" hidden></span></span>
+                    <svg class="sv-struct-picker-chevron" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
+                </button>
+                <ul class="sv-struct-picker-menu" id="sv-overlay-menu" role="menu" hidden>
+                    {% for s in all_structures %}
+                    <li class="sv-struct-picker-item sv-overlay-item" role="menuitemcheckbox" aria-checked="false"
+                        data-overlay-id="{{ s.id }}"{% if s.is_active %} hidden{% endif %}>
+                        <span class="sv-overlay-swatch" aria-hidden="true"></span>
+                        <span class="sv-struct-picker-item-label">{{ s.short_method }}{% if s.display_code %} · {{ s.display_code }}{% endif %}</span>
+                        <span class="sv-struct-picker-item-res sv-overlay-status"></span>
                     </li>
                     {% endfor %}
                 </ul>
@@ -424,6 +445,8 @@ function jsloaded() {
     var activeStructureId = "{{ structure.id }}";
     var isSpinning = false;
     var structureLoadToken = 0;
+    // The loaded component of the structure in view (overlays superpose onto it).
+    var activeComponent = null;
     // Assigned (not re-declared) inside initStructureComponent -- promoted
     // here so the tp:themechange listener below can tell whether "By
     // structure" coloring is currently on screen and needs a repaint.
@@ -1213,6 +1236,7 @@ function jsloaded() {
 
     /* ---- Main NGL init per component load ---- */
     function initStructureComponent(component) {
+        activeComponent = component;
         // NGL 0.10.4's own automatic secondary-structure calculation labels
         // beta strands 's' (structure-utils.js's proteinPolymer), but its
         // sstruc color scheme and sheet-specific spline smoothing only ever
@@ -1513,6 +1537,127 @@ function jsloaded() {
             }
         });
     })();
+
+    /* ---- Overlay: other structures of this protein superposed on the one
+       in view. NGL's component.superpose(target, true, sele, targetSele)
+       aligns the two sequences, then fits the aligned C-alpha atoms (Kabsch)
+       and moves the overlay's coordinates; the camera stays put. Fitted on
+       one chain per structure, so a homooligomer doesn't skew the alignment. ---- */
+    var overlayComponents = {};
+    var OVERLAY_COLOR_TOKENS = [
+        "--tp-color-structure-overlay-1", "--tp-color-structure-overlay-2",
+        "--tp-color-structure-overlay-3", "--tp-color-structure-overlay-4"
+    ];
+    var overlayMenu = document.getElementById("sv-overlay-menu");
+    var overlayBtn = document.getElementById("sv-overlay-btn");
+
+    function overlayFitSele(structureId) {
+        var sele = structureChainSelectors[structureId] || "polymer";
+        var firstChain = sele.match(/:[A-Za-z0-9]+/);
+        return firstChain ? firstChain[0] : "polymer";
+    }
+
+    function updateOverlayCount() {
+        var countEl = document.getElementById("sv-overlay-count");
+        if (!countEl) return;
+        var n = Object.keys(overlayComponents).length;
+        countEl.textContent = n ? " · " + n : "";
+        countEl.hidden = !n;
+    }
+
+    function setOverlayItemState(item, checked, status) {
+        item.setAttribute("aria-checked", checked ? "true" : "false");
+        var statusEl = item.querySelector(".sv-overlay-status");
+        if (statusEl) statusEl.textContent = status || "";
+        var swatch = item.querySelector(".sv-overlay-swatch");
+        if (swatch) swatch.style.background = checked ? item.getAttribute("data-overlay-color") || "" : "";
+    }
+
+    function resetOverlays(activeId) {
+        overlayComponents = {};
+        updateOverlayCount();
+        if (!overlayMenu) return;
+        overlayMenu.querySelectorAll(".sv-overlay-item").forEach(function (item) {
+            item.hidden = item.getAttribute("data-overlay-id") === String(activeId);
+            item.removeAttribute("data-overlay-color");
+            setOverlayItemState(item, false, "");
+        });
+    }
+
+    function toggleOverlay(item) {
+        var overlayId = item.getAttribute("data-overlay-id");
+        if (overlayComponents[overlayId]) {
+            stage.removeComponent(overlayComponents[overlayId]);
+            delete overlayComponents[overlayId];
+            setOverlayItemState(item, false, "");
+            updateOverlayCount();
+            return;
+        }
+        if (!activeComponent || item.getAttribute("aria-busy") === "true") return;
+        var target = activeComponent;
+        var loadToken = structureLoadToken;
+        var colorToken = OVERLAY_COLOR_TOKENS[
+            overlayMenu.querySelectorAll('.sv-overlay-item[aria-checked="true"]').length % OVERLAY_COLOR_TOKENS.length
+        ];
+        var color = tpColor(colorToken);
+        item.setAttribute("data-overlay-color", color);
+        item.setAttribute("aria-busy", "true");
+        setOverlayItemState(item, true, "{% trans 'Loading…' %}");
+        fetch(structureUrls[overlayId])
+            .then(function (response) {
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                return stage.loadFile(structureUrls[overlayId], { ext: structureFormats[overlayId] || "pdb", defaultRepresentation: false });
+            })
+            .then(function (overlay) {
+                item.removeAttribute("aria-busy");
+                if (loadToken !== structureLoadToken || target !== activeComponent) {
+                    stage.removeComponent(overlay);
+                    return;
+                }
+                var sele = overlayFitSele(overlayId);
+                overlay.superpose(target, true, sele, overlayFitSele(activeStructureId));
+                overlay.addRepresentation("cartoon", { sele: sele, color: color, opacity: 0.85 });
+                overlayComponents[overlayId] = overlay;
+                setOverlayItemState(item, true, "");
+                updateOverlayCount();
+            })
+            .catch(function (err) {
+                item.removeAttribute("aria-busy");
+                if (window.console && console.error) console.error("Unable to overlay structure", overlayId, err);
+                setOverlayItemState(item, false, "{% trans 'Failed' %}");
+            });
+    }
+
+    if (overlayBtn && overlayMenu) {
+        document.body.appendChild(overlayMenu);
+        overlayBtn.addEventListener("click", function () {
+            var open = !overlayMenu.hidden;
+            if (!open) {
+                var rect = overlayBtn.getBoundingClientRect();
+                overlayMenu.style.bottom = (window.innerHeight - rect.top + 6) + "px";
+                overlayMenu.style.right = (window.innerWidth - rect.right) + "px";
+            }
+            overlayMenu.hidden = open;
+            overlayBtn.setAttribute("aria-expanded", open ? "false" : "true");
+        });
+        overlayMenu.addEventListener("click", function (ev) {
+            var item = ev.target.closest(".sv-overlay-item");
+            if (item && item.getAttribute("aria-disabled") !== "true") toggleOverlay(item);
+        });
+        document.addEventListener("click", function (ev) {
+            if (!overlayBtn.contains(ev.target) && !overlayMenu.contains(ev.target)) {
+                overlayMenu.hidden = true;
+                overlayBtn.setAttribute("aria-expanded", "false");
+            }
+        });
+        document.addEventListener("keydown", function (ev) {
+            if (ev.key === "Escape" && !overlayMenu.hidden) {
+                overlayMenu.hidden = true;
+                overlayBtn.setAttribute("aria-expanded", "false");
+                overlayBtn.focus();
+            }
+        });
+    }
 
     /* Load the initial (active) structure */
     _loadStructureById(activeStructureId);
