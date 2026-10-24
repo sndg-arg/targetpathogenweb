@@ -1169,7 +1169,6 @@ body.viewer-settings-open { overflow: hidden; }
 }
 /* Overlay picker (same dropdown, checkbox items with a color swatch). A short
    fixed label: never shrinks; the structure picker beside it truncates. */
-   beside it is the one that truncates. */
 .sv-overlay-picker {
     flex: 0 0 auto;
     min-width: auto;
