@@ -1361,6 +1361,8 @@ function jsloaded() {
         };
 
         representations.__main_density = component.addRepresentation("surface", {
+            visible: false,
+            lazy: true,
             sele: "polymer and " + activeChainSelector,
             color: tpColor("--tp-color-structure-density"),
             opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
@@ -1383,6 +1385,8 @@ function jsloaded() {
         /* ---- Heteroatoms: everything co-crystallized with the chain (ligands, cofactors,
            ions), excluding solvent. Empty selection on AlphaFold/ColabFold models -- harmless. ---- */
         representations.__hetero = component.addRepresentation("ball+stick", {
+            visible: false,
+            lazy: true,
             sele: "hetero and not water",
             color: tpColor("--tp-color-structure-hetero", "#cf628c"),
             multipleBond: true
