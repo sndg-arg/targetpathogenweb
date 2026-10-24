@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/genome-page.css' %}?v=20261021-split">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261018-deadcss">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261024-table">
     <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261018-lh">
 {% endblock %}
 
@@ -58,7 +58,7 @@
                 <span class="metric-label">{% trans "Metabolites" %}</span>
                 <span class="metric-value">{{ stats.metabolite_count }}</span>
             </div>
-            <div class="metric-pill metric-pill--warning">
+            <div class="metric-pill">
                 <span class="metric-label">{% trans "Chokepoints" %}</span>
                 <span class="metric-value">{{ stats.chokepoint_count }}</span>
             </div>
@@ -155,7 +155,7 @@
                 </div>
                 <div class="pathway-reaction-equation">
                     <div>
-                        {% for item in reaction.substrates %}
+                        {% for item in reaction.substrates %}{% if not forloop.first %}<span class="metabolite-plus" aria-hidden="true">+</span>{% endif %}
                         <span class="tp-chip{% if item.is_currency %} tp-chip--muted{% endif %}" title="{% trans 'Substrate metabolite' %}: {{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
                         {% empty %}
                         <span class="annotation-empty">—</span>
@@ -164,7 +164,7 @@
                     </div>
                     <span class="metabolite-arrow{% if reaction.reversible %} metabolite-arrow--reversible{% endif %}" title="{% if reaction.reversible %}{% trans "Reversible reaction" %}{% else %}{% trans "Not reversible" %}{% endif %}">{% if reaction.reversible %}&#8652;{% else %}&rarr;{% endif %}</span>
                     <div>
-                        {% for item in reaction.products %}
+                        {% for item in reaction.products %}{% if not forloop.first %}<span class="metabolite-plus" aria-hidden="true">+</span>{% endif %}
                         <span class="tp-chip{% if item.is_currency %} tp-chip--muted{% endif %}" title="{% trans 'Product metabolite' %}: {{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
                         {% empty %}
                         <span class="annotation-empty">—</span>

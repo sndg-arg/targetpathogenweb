@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/genome-page.css' %}?v=20261021-split">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261018-deadcss">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261024-table">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -48,7 +48,7 @@
                 <span class="metric-label">{% trans "Mapped proteins" %}</span>
                 <span class="metric-value">{{ summary.protein_count }}</span>
             </div>
-            <div class="metric-pill metric-pill--warning" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - harder for the pathogen to route around if inhibited." %}">
+            <div class="metric-pill" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - harder for the pathogen to route around if inhibited." %}">
                 <span class="metric-label">{% trans "Chokepoint reactions" %}</span>
                 <span class="metric-value">{{ summary.chokepoint_count }}</span>
             </div>
@@ -86,88 +86,64 @@
             <input type="text" id="metabolism-pathway-search-input" class="form-control tp-ui-search-input" placeholder="{% trans "Search by pathway name or protein..." %}" aria-label="{% trans "Search by pathway name or protein" %}">
         </div>
         <p id="metabolism-pathway-empty" class="tp-state-note tp-state-note--empty metabolism-pathway-search-empty">{% trans "No pathway or protein matches your search." %}</p>
-        <div class="metabolism-pathway-list" id="metabolism-pathway-list">
-            {% for pathway in summary.pathways %}
-            <article class="metabolism-pathway-card{% if forloop.first %} metabolism-pathway-card--top{% endif %}" data-name="{{ pathway.name|lower }}" data-external-id="{{ pathway.external_id|lower }}" data-proteins="{{ pathway.protein_search_blob }}">
-                <span class="metabolism-rank">#{{ forloop.counter }}</span>
-                <div class="metabolism-pathway-body">
-                    <div class="metabolism-pathway-main">
-                        <div>
-                            <div class="metabolism-pathway-title">
-                                <span class="metabolism-source{% if pathway.source == 'MODEL' %} metabolism-source--model{% endif %}">{{ pathway.source }}</span>
-                                <h3><a href="{% url 'tpwebapp:genome_metabolism_pathway' genome=assembly.slug source=pathway.source external_id=pathway.external_id %}">{{ pathway.name }}</a></h3>
-                            </div>
-                            <p class="metabolism-pathway-id">{{ pathway.external_id }}</p>
-                            <div class="metabolism-stat-row">
-                                <div class="metabolism-stat">
-                                    <span class="metabolism-stat-n">{{ pathway.reaction_count }}</span>
-                                    <span class="metabolism-stat-l">{% trans "Reactions" %}</span>
-                                </div>
-                                <div class="metabolism-stat">
-                                    <span class="metabolism-stat-n">{{ pathway.protein_count }}</span>
-                                    <span class="metabolism-stat-l">{% trans "Proteins" %}</span>
-                                </div>
-                                <div class="metabolism-stat" title="{% trans "Reactions that are the sole producer or consumer of a metabolite in this pathway." %}">
-                                    <span class="metabolism-stat-n">{{ pathway.chokepoint_count }}</span>
-                                    <span class="metabolism-stat-l">{% trans "Chokepoints" %}</span>
-                                </div>
-                                <div class="metabolism-stat" title="{% trans "Share of this pathway's reactions that are chokepoints." %}">
-                                    <span class="metabolism-stat-n">{{ pathway.chokepoint_density_pct }}%</span>
-                                    <span class="metabolism-stat-l">{% trans "Density" %}</span>
-                                </div>
-                                <div class="metabolism-stat" title="{% trans "Other pathways in this genome that share reactions with this one." %}">
-                                    <span class="metabolism-stat-n">{{ pathway.connections_count }}</span>
-                                    <span class="metabolism-stat-l">{% trans "Connects to" %}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="metabolism-score-block" title="{% if summary.active_formula_name %}{% trans 'Highest score of any protein in this pathway under your active scoring formula; mean is the average across its proteins.' %}{% else %}{% trans 'Highest protein score in this pathway: pocket druggability (0–1) + 0.15 if chokepoint + 0.1 × centrality, so up to about 1.25. Mean is the average across its proteins.' %}{% endif %}">
-                            <span class="metabolism-score-label">{% trans "Best target score" %}</span>
+        <div class="metabolism-pathway-table-wrap{% if summary.pathways|length > 25 %} is-collapsed{% endif %}" id="metabolism-pathway-list">
+            <table class="tp-table metabolism-pathway-table">
+                <thead>
+                    <tr>
+                        <th class="metabolism-col-rank" scope="col">#</th>
+                        <th scope="col">{% trans "Pathway" %}</th>
+                        <th class="metabolism-col-num" scope="col">{% trans "Reactions" %}</th>
+                        <th class="metabolism-col-num" scope="col">{% trans "Proteins" %}</th>
+                        <th class="metabolism-col-num" scope="col" title="{% trans "Reactions that are the sole producer or consumer of a metabolite in this pathway, and their share of its reactions." %}">{% trans "Chokepoints" %}</th>
+                        <th class="metabolism-col-num" scope="col" title="{% trans "Other pathways in this genome that share reactions with this one." %}">{% trans "Connects to" %}</th>
+                        <th class="metabolism-col-score" scope="col" title="{% if summary.active_formula_name %}{% trans 'Highest score of any protein in this pathway under your active scoring formula; mean is the average across its proteins.' %}{% else %}{% trans 'Highest protein score in this pathway: pocket druggability (0–1) + 0.15 if chokepoint + 0.1 × centrality, so up to about 1.25. Mean is the average across its proteins.' %}{% endif %}">{% trans "Best target score" %}</th>
+                        <th scope="col">{% trans "Top proteins" %}</th>
+                        <th class="metabolism-col-action" scope="col"><span class="sr-only">{% trans "Filter" %}</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pathway in summary.pathways %}
+                    <tr class="metabolism-pathway-row{% if forloop.counter > 25 %} is-extra{% endif %}" data-name="{{ pathway.name|lower }}" data-external-id="{{ pathway.external_id|lower }}" data-proteins="{{ pathway.protein_search_blob }}">
+                        <td class="metabolism-col-rank">{{ forloop.counter }}</td>
+                        <td class="metabolism-col-name">
+                            <a href="{% url 'tpwebapp:genome_metabolism_pathway' genome=assembly.slug source=pathway.source external_id=pathway.external_id %}">{{ pathway.name }}</a>
+                            <span class="metabolism-pathway-id">{{ pathway.source }} · {{ pathway.external_id }}</span>
+                        </td>
+                        <td class="metabolism-col-num">{{ pathway.reaction_count }}</td>
+                        <td class="metabolism-col-num">{{ pathway.protein_count }}</td>
+                        <td class="metabolism-col-num">{{ pathway.chokepoint_count }} <span class="metabolism-density">{{ pathway.chokepoint_density_pct }}%</span></td>
+                        <td class="metabolism-col-num">{{ pathway.connections_count }}</td>
+                        <td class="metabolism-col-score">
                             <span class="metabolism-score-n">{{ pathway.best_target_score }}</span>
                             <span class="metabolism-score-sub">{% trans "mean" %} {{ pathway.mean_target_score }}</span>
-                            <div class="metabolism-score-track">
-                                <div class="metabolism-score-fill" style="width: {{ pathway.best_target_score_width }}%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="metabolism-card-actions">
-                        <a href="{% url 'tpwebapp:genome_metabolism_pathway' genome=assembly.slug source=pathway.source external_id=pathway.external_id %}" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon">
-                            <span>{% trans "Open pathway map" %}</span>
-                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
-                        </a>
-                        <form method="post" action="{{ proteins_url }}" class="metabolism-pathway-filter-form">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="add_special_filter">
-                            <input type="hidden" name="special_kind" value="pathway">
-                            <input type="hidden" name="special_value" value="{{ pathway.source }}:{{ pathway.external_id }}">
-                            <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon" title="{% trans "Show only proteins with a reaction in this pathway on the protein list." %}">
-                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
-                                <span>{% trans "Filter protein list by this pathway" %}</span>
-                            </button>
-                        </form>
-                    </div>
-                    {% if pathway.top_targets %}
-                    <div class="metabolism-target-strip">
-                        {% for target in pathway.top_targets %}
-                        <a href="{% url 'tpwebapp:protein' protein_id=target.protein_id %}"
-                           class="metabolism-target-chip{% if forloop.first %} metabolism-target-chip--top{% endif %}">
-                            <span class="metabolism-target-id">{{ target.accession }}</span>
-                            <span class="metabolism-target-meta" title="{% trans "Pocket = best druggability score, 0–1 (P2Rank when available, otherwise FPocket). Centrality = betweenness centrality in the reaction network (higher = more central)." %}">
-                                {% trans "Pocket" %} {% if target.druggability %}{{ target.druggability|floatformat:2 }}{% else %}—{% endif %}
-                                &middot; {% trans "Centrality" %} {{ target.centrality|floatformat:3 }}
-                            </span>
-                            {% if target.is_chokepoint %}<span class="metabolism-chokepoint-dot" title="{% trans "Chokepoint" %}"></span>{% endif %}
-                        </a>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <p class="tp-state-note tp-state-note--empty">{% trans "No protein-level target evidence is available for this pathway yet." %}</p>
-                    {% endif %}
-                </div>
-            </article>
-            {% endfor %}
+                            <span class="tp-bar{% if forloop.first %} tp-bar--accent{% endif %}"><span class="tp-bar-fill" style="width: {{ pathway.best_target_score_width }}%"></span></span>
+                        </td>
+                        <td class="metabolism-col-targets">
+                            {% for target in pathway.top_targets|slice:":3" %}
+                            <a href="{% url 'tpwebapp:protein' protein_id=target.protein_id %}" class="metabolism-target-link" title="{% trans 'Pocket' %} {% if target.druggability %}{{ target.druggability|floatformat:2 }}{% else %}—{% endif %} · {% trans 'Centrality' %} {{ target.centrality|floatformat:3 }}{% if target.is_chokepoint %} · {% trans 'Chokepoint' %}{% endif %}">{{ target.accession }}{% if target.is_chokepoint %}<span class="metabolism-chokepoint-dot" aria-hidden="true"></span>{% endif %}</a>
+                            {% empty %}
+                            <span class="metabolism-muted">—</span>
+                            {% endfor %}
+                        </td>
+                        <td class="metabolism-col-action">
+                            <form method="post" action="{{ proteins_url }}" class="metabolism-pathway-filter-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="add_special_filter">
+                                <input type="hidden" name="special_kind" value="pathway">
+                                <input type="hidden" name="special_value" value="{{ pathway.source }}:{{ pathway.external_id }}">
+                                <button type="submit" class="btn tp-btn tp-btn--ghost tp-btn--sm" title="{% trans "Show only proteins with a reaction in this pathway on the protein list." %}" aria-label="{% trans "Filter protein list by this pathway" %}">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+        {% if summary.pathways|length > 25 %}
+        <button type="button" class="btn tp-btn tp-btn--secondary tp-btn--sm metabolism-pathway-more" id="metabolism-pathway-more" data-label-more="{% blocktrans with count=summary.pathways|length %}Show all {{ count }} pathways{% endblocktrans %}" data-label-less="{% trans "Show top 25" %}">{% blocktrans with count=summary.pathways|length %}Show all {{ count }} pathways{% endblocktrans %}</button>
+        {% endif %}
         {% else %}
         <p class="tp-state-note tp-state-note--empty">{% trans "No metabolic pathway annotations are loaded for this genome." %}</p>
         {% endif %}
@@ -179,26 +155,34 @@
     var searchInput = document.getElementById("metabolism-pathway-search-input");
     var list = document.getElementById("metabolism-pathway-list");
     var emptyState = document.getElementById("metabolism-pathway-empty");
+    var more = document.getElementById("metabolism-pathway-more");
     if (!searchInput || !list) return;
-    var cards = Array.prototype.slice.call(list.querySelectorAll(".metabolism-pathway-card"));
+    var rows = Array.prototype.slice.call(list.querySelectorAll(".metabolism-pathway-row"));
 
-    function updateEmptyState() {
-        var visibleCount = cards.filter(function (card) { return !card.hidden; }).length;
-        if (emptyState) emptyState.classList.toggle("is-visible", visibleCount === 0);
+    // Top 25 first; "Show all" (or any search) reveals the rest.
+    if (more) {
+        more.addEventListener("click", function () {
+            var collapsed = list.classList.toggle("is-collapsed");
+            more.textContent = collapsed ? more.dataset.labelMore : more.dataset.labelLess;
+        });
     }
 
     searchInput.addEventListener("input", function () {
         var query = searchInput.value.trim().toLowerCase();
-        cards.forEach(function (card) {
-            var name = card.getAttribute("data-name") || "";
-            var externalId = card.getAttribute("data-external-id") || "";
-            var proteins = card.getAttribute("data-proteins") || "";
-            card.hidden = Boolean(query)
+        var visibleCount = 0;
+        rows.forEach(function (row) {
+            var name = row.getAttribute("data-name") || "";
+            var externalId = row.getAttribute("data-external-id") || "";
+            var proteins = row.getAttribute("data-proteins") || "";
+            row.hidden = Boolean(query)
                 && name.indexOf(query) === -1
                 && externalId.indexOf(query) === -1
                 && proteins.indexOf(query) === -1;
+            if (!row.hidden) visibleCount += 1;
         });
-        updateEmptyState();
+        list.classList.toggle("is-searching", Boolean(query));
+        if (more) more.hidden = Boolean(query);
+        if (emptyState) emptyState.classList.toggle("is-visible", visibleCount === 0);
     });
 })();
 </script>

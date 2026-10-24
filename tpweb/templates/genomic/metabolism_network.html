@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/genome-page.css' %}?v=20261021-split">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261018-deadcss">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261024-table">
     <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261018-lh">
 {% endblock %}
 
@@ -50,7 +50,7 @@
                 <span class="metric-label">{% trans "Mapped proteins" %}</span>
                 <span class="metric-value">{{ summary.protein_count }}</span>
             </div>
-            <div class="metric-pill metric-pill--warning" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - harder for the pathogen to route around if inhibited." %}">
+            <div class="metric-pill" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - harder for the pathogen to route around if inhibited." %}">
                 <span class="metric-label">{% trans "Chokepoint reactions" %}</span>
                 <span class="metric-value">{{ summary.chokepoint_count }}</span>
             </div>
