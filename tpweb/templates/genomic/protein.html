@@ -4,8 +4,8 @@
 {% load custom_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-pop">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261023-evid">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261024-met">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261024-met">
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261023">
 {% endblock %}
 
@@ -59,18 +59,6 @@
                             <strong>{% trans "3D evidence" %}:</strong>
                             <span>{{ structure_summary.label }}</span>
                         </span>
-                        {% if metabolic_context %}
-                        <a class="hero-chip tp-chip tp-chip--link" href="#section-metabolic-context" title="{% trans 'Jump to metabolic reactions and pathway context' %}">
-                            <span class="tp-chip-db">{% trans "Metabolism" %}</span>
-                            {% if metabolic_context.in_network %}
-                            {% with reaction_count=metabolic_context.reactions|length %}
-                            <span class="tp-chip-acc">{% blocktrans count count=reaction_count %}{{ count }} reaction{% plural %}{{ count }} reactions{% endblocktrans %}</span>
-                            {% endwith %}
-                            {% else %}
-                            <span class="tp-chip-acc">{% trans "Not in network" %}</span>
-                            {% endif %}
-                        </a>
-                        {% endif %}
                         {% for acc in uniprot_accessions %}
                         <a class="hero-chip tp-chip tp-chip--link" href="https://www.uniprot.org/uniprotkb/{{ acc }}" target="_blank" rel="noopener" title="{% trans 'View on UniProt' %}">
                             <span class="tp-chip-db">UniProt</span>
@@ -112,15 +100,9 @@
                 <a class="metric-pill metric-pill--link" href="{{ verdict.href }}">
                     <span class="metric-label">{{ verdict.label }}</span>
                     <span class="metric-value metric-value--text">{{ verdict.value }} <span class="metric-pill-jump">{% trans "See evidence" %}</span></span>
+                    {% if verdict.label == "Metabolic" and metabolic_context.in_network %}<span class="metric-note">{% blocktrans count count=metabolic_context.reactions|length %}{{ count }} reaction{% plural %}{{ count }} reactions{% endblocktrans %}{% if metabolic_context.is_chokepoint %} · {% trans "chokepoint" %}{% endif %}</span>{% endif %}
                 </a>
                 {% endif %}{% endfor %}
-                {% if metabolic_context.in_network %}
-                <a class="metric-pill metric-pill--link" href="#section-metabolic-context">
-                    <span class="metric-label">{% trans "Metabolic reactions" %}</span>
-                    <span class="metric-value"><span data-count="{{ metabolic_context.reactions|length }}">{{ metabolic_context.reactions|length }}</span> <span class="metric-pill-jump">{% trans "See evidence" %}</span></span>
-                    {% if metabolic_context.is_chokepoint %}<span class="metric-note">{% trans "Chokepoint" %}</span>{% endif %}
-                </a>
-                {% endif %}
             </div>
         </section>
 
@@ -265,7 +247,7 @@
                 <div class="section-head">
                     <div>
                         <h2>{% trans "Metabolic context" %}{% trans "This network is curated, not automatically generated. Hover the values below for details." as metabolic_help %}{% include "components/ui/section_help.html" with text=metabolic_help %}</h2>
-                        <p class="section-subtitle">{% trans "Reactions catalyzed, pathway membership, and centrality in the genome-scale metabolic network." %}</p>
+                        <p class="section-subtitle">{% trans "Its place in the curated genome-scale metabolic network." %}</p>
                     </div>
                     {% if metabolic_context.in_network %}
                     <a href="{% url 'tpwebapp:protein_metabolic_network_page' protein_id=protein.id %}" class="btn tp-btn tp-btn--primary tp-btn--sm tp-btn-with-icon">
@@ -291,58 +273,34 @@
                 {% else %}
 
                 {% if metabolic_context.summary_sentence %}
-                <p class="tp-state-note metabolic-summary-sentence">{{ metabolic_context.summary_sentence }}</p>
+                <p class="protein-lede metabolic-summary-sentence">{{ metabolic_context.summary_sentence }}</p>
                 {% endif %}
 
-                <div class="metabolic-context-preview">
-                    <div class="metabolic-score-stack">
-                        {% if metabolic_context.centrality %}
-                        <div class="metabolic-score-card" title="{% trans "Betweenness centrality of this gene's reaction(s) in the reaction-reaction network. Higher values mean more shortest paths pass through it - a proxy for how central/chokepoint-prone it is in the organism's metabolism." %}">
-                            {% if metabolic_context.has_centrality_percentile %}
-                            <span class="target-evidence-label">{% trans "Relative network centrality" %}</span>
-                            <strong class="target-evidence-value">{{ metabolic_context.centrality_percentile }}%</strong>
-                            <span class="target-evidence-subtext">{% blocktrans with pct=metabolic_context.centrality_percentile %}more central than {{ pct }}% of genes in this genome{% endblocktrans %}</span>
-                            {% else %}
-                            <span class="target-evidence-label">{% trans "Network centrality" %}</span>
-                            <strong class="target-evidence-value">{{ metabolic_context.centrality }}</strong>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                        <div class="metabolic-score-card" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - inhibiting it is harder for the pathogen to route around, making it an attractive drug target." %}">
-                            <span class="target-evidence-label">{% trans "Chokepoint" %}</span>
-                            {% if metabolic_context.is_chokepoint %}
-                            <span class="tp-chip tp-chip--success">
-                                {% include "components/icons/check.html" %}
-                                {% trans "Chokepoint gene" %}
-                            </span>
-                            {% else %}
-                            <span class="tp-chip">{% trans "Not a chokepoint" %}</span>
-                            {% endif %}
-                        </div>
+                <dl class="target-profile-group-grid metabolic-facts">
+                    {% if metabolic_context.centrality %}
+                    <div class="target-profile-item" title="{% trans "Betweenness centrality of this gene's reaction(s) in the reaction-reaction network: how many shortest paths pass through it." %}">
+                        <dt class="target-profile-label">{% trans "Network centrality" %}</dt>
+                        <dd class="target-profile-value">{% if metabolic_context.has_centrality_percentile %}{{ metabolic_context.centrality_percentile }}% <span class="pe-note">{% trans "of genes are less central" %}</span>{% else %}{{ metabolic_context.centrality }}{% endif %}</dd>
                     </div>
-
-                    <div class="metabolic-sidebar-block">
-                        <span class="metabolic-sidebar-title">{% trans "Pathways" %}</span>
-                        {% if metabolic_context.pathways %}
-                        <div class="metabolic-pathway-chips">
-                            {% for pathway in metabolic_context.pathways %}
-                            <a href="{{ pathway.url }}" class="tp-chip tp-chip--{{ pathway.source|lower }}" title="{{ pathway.source }}:{{ pathway.external_id }}">{{ pathway.name }}</a>
-                            {% endfor %}
-                        </div>
-                        {% else %}
-                        <p class="metabolic-no-pathway-note">{% trans "No specific KEGG pathway assigned - this reaction either has no KEGG mapping, or only matches a generic overview map with no route-level information." %}</p>
-                        {% endif %}
+                    {% endif %}
+                    <div class="target-profile-item" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network: harder for the pathogen to route around." %}">
+                        <dt class="target-profile-label">{% trans "Chokepoint" %}</dt>
+                        <dd class="target-profile-value">{% if metabolic_context.is_chokepoint %}<span class="tp-chip tp-chip--success">{% trans "Chokepoint gene" %}</span>{% else %}<span class="tp-chip">{% trans "Not a chokepoint" %}</span>{% endif %}</dd>
                     </div>
-
-                    {% with reaction_count=metabolic_context.reactions|length %}
-                    <div class="metabolic-sidebar-block">
-                        <span class="metabolic-sidebar-title">{% blocktrans count count=reaction_count %}Catalyzed reaction{% plural %}Catalyzed reactions{% endblocktrans %}</span>
-                        <p class="metabolic-reaction-count">
-                            {% blocktrans count count=reaction_count %}{{ count }} reaction mapped to this gene in the metabolic model.{% plural %}{{ count }} reactions mapped to this gene in the metabolic model.{% endblocktrans %}
-                            {% trans "Open the full network to see each one, with substrates/products and the reaction-reaction map." %}
-                        </p>
+                    <div class="target-profile-item">
+                        <dt class="target-profile-label">{% trans "Catalyzed reactions" %}</dt>
+                        <dd class="target-profile-value">{{ metabolic_context.reactions|length }}</dd>
                     </div>
-                    {% endwith %}
+                </dl>
+                <div class="metabolic-pathways">
+                    <span class="target-profile-label">{% trans "Pathways" %}</span>
+                    {% if metabolic_context.pathways %}
+                    <div class="tp-chip-group">
+                        {% for pathway in metabolic_context.pathways %}<a href="{{ pathway.url }}" class="tp-chip tp-chip--{{ pathway.source|lower }}" title="{{ pathway.source }}:{{ pathway.external_id }}">{{ pathway.name }}</a>{% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="pe-note">{% trans "No specific KEGG pathway: no KEGG mapping, or only a generic overview map." %}</p>
+                    {% endif %}
                 </div>
 
                 {% if metabolic_context.import_run %}

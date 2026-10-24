@@ -7,10 +7,6 @@
  * (from metabolism-overview.css -- the same reaction-row component metabolism_pathway.html uses).
  */
 
-.protein-metabolic-network-summary {
-    margin-top: 0;
-}
-
 #metabolic-network-cy {
     min-height: clamp(520px, 70vh, 820px);
 }
@@ -70,4 +66,18 @@
 
 .metabolic-legend-line--cross {
     border-top-style: dashed;
+}
+
+.metabolite-plus {
+    margin: 0 var(--tp-space-1);
+    color: var(--tp-color-text-muted);
+}
+
+.genome-description a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.genome-description a:hover {
+    text-decoration: underline;
 }

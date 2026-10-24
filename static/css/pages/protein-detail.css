@@ -2044,3 +2044,25 @@ body.residue-modal-open {
 .structure-evidence-details .pdb-evidence-note {
     margin-top: 0;
 }
+
+/* Metabolic context: facts strip, then the pathway tags. */
+.metabolic-facts {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.metabolic-facts .pe-note,
+.metabolic-facts .tp-chip {
+    font-family: var(--tp-font-body);
+}
+
+.metabolic-summary-sentence {
+    margin-top: 0;
+}
+
+.metabolic-pathways {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2) var(--tp-space-3);
+    margin-top: var(--tp-space-4);
+}

@@ -4,9 +4,9 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/genome-page.css' %}?v=20261021-split">
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261023-pop">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261024-met">
     <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261018-deadcss">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-metabolic-network.css' %}?v=20261017-system3">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-metabolic-network.css' %}?v=20261024">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -33,36 +33,32 @@
             <div class="genome-hero-content tp-view-head-copy">
                 <p class="tp-view-eyebrow genome-hero-eyebrow">{% trans "Metabolic network" %}</p>
                 <h1 class="tp-view-title">{{ protein.accession }}</h1>
-                <p class="tp-view-lead genome-description">{{ protein.description }}</p>
-                <div class="genome-hero-actions">
-                    <a href="{{ protein_url }}#section-metabolic-context" class="btn tp-btn tp-btn--secondary tp-btn-with-icon">
-                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_left.html" %}</span>
-                        <span>{% trans "Back to protein" %}</span>
-                    </a>
-                </div>
+                <p class="tp-view-lead genome-description"><a href="{{ protein_url }}">{{ protein.description|default:protein.accession }}</a></p>
+                {% if metabolic_context.summary_sentence %}<p class="protein-lede">{{ metabolic_context.summary_sentence }}</p>{% endif %}
             </div>
         </div>
         <div class="tp-metrics genome-metrics" aria-label="{% trans 'Metabolic target summary' %}">
             {% if metabolic_context.centrality %}
             <div class="metric-pill" title="{% trans "Betweenness centrality of this gene's reaction(s) in the reaction-reaction network. Higher values mean more shortest paths pass through it - a proxy for how central/chokepoint-prone it is in the organism's metabolism." %}">
                 <span class="metric-label">{% trans "Network centrality" %}</span>
-                <span class="metric-value">{{ metabolic_context.centrality }}
-                    {% if metabolic_context.centrality_percentile %}
-                    <span class="metric-value-pct">{% blocktrans with pct=metabolic_context.centrality_percentile %}more central than {{ pct }}% of genes{% endblocktrans %}</span>
-                    {% endif %}
-                </span>
+                {% if metabolic_context.has_centrality_percentile %}
+                <span class="metric-value">{{ metabolic_context.centrality_percentile }}%</span>
+                <span class="metric-note">{% blocktrans with value=metabolic_context.centrality %}of genes are less central · betweenness {{ value }}{% endblocktrans %}</span>
+                {% else %}
+                <span class="metric-value">{{ metabolic_context.centrality }}</span>
+                {% endif %}
             </div>
             {% endif %}
-            <div class="metric-pill{% if metabolic_context.is_chokepoint %} metric-pill--warning{% endif %}" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - inhibiting it is harder for the pathogen to route around, making it an attractive drug target." %}">
+            <div class="metric-pill" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - inhibiting it is harder for the pathogen to route around, making it an attractive drug target." %}">
                 <span class="metric-label">{% trans "Chokepoint" %}</span>
-                <span class="metric-value">{% if metabolic_context.is_chokepoint %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</span>
+                <span class="metric-value metric-value--text">{% if metabolic_context.is_chokepoint %}<span class="tp-chip tp-chip--success">{% trans "Chokepoint gene" %}</span>{% else %}{% trans "No" %}{% endif %}</span>
+            </div>
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "Catalyzed reactions" %}</span>
+                <span class="metric-value">{{ metabolic_context.reactions|length }}</span>
             </div>
         </div>
     </section>
-
-    {% if metabolic_context.summary_sentence %}
-    <p class="tp-state-note metabolic-summary-sentence protein-metabolic-network-summary">{{ metabolic_context.summary_sentence }}</p>
-    {% endif %}
 
     <nav class="quick-nav" aria-label="{% trans "Metabolic network sections" %}">
         <a href="#section-pathways" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Pathways" %}</a>
@@ -183,7 +179,7 @@
                 {% if reaction.has_metabolites %}
                 <div class="pathway-reaction-equation">
                     <div>
-                        {% for s in reaction.substrates %}
+                        {% for s in reaction.substrates %}{% if not forloop.first %}<span class="metabolite-plus" aria-hidden="true">+</span>{% endif %}
                         <span class="metabolite-chip{% if s.is_currency %} is-currency{% endif %}" title="{% trans 'Substrate metabolite' %}: {{ s.name }}"><span class="metabolite-chip-label">{% if s.stoichiometry != 1.0 %}{{ s.stoichiometry|floatformat:0 }} {% endif %}{{ s.name }}</span></span>
                         {% empty %}
                         <span class="annotation-empty">—</span>
@@ -191,7 +187,7 @@
                     </div>
                     <span class="metabolite-arrow{% if reaction.reversible %} metabolite-arrow--reversible{% endif %}" title="{% if reaction.reversible %}{% trans "Reversible reaction" %}{% else %}{% trans "Not reversible" %}{% endif %}">{% if reaction.reversible %}&#8652;{% else %}&rarr;{% endif %}</span>
                     <div>
-                        {% for p in reaction.products %}
+                        {% for p in reaction.products %}{% if not forloop.first %}<span class="metabolite-plus" aria-hidden="true">+</span>{% endif %}
                         <span class="metabolite-chip{% if p.is_currency %} is-currency{% endif %}" title="{% trans 'Product metabolite' %}: {{ p.name }}"><span class="metabolite-chip-label">{% if p.stoichiometry != 1.0 %}{{ p.stoichiometry|floatformat:0 }} {% endif %}{{ p.name }}</span></span>
                         {% empty %}
                         <span class="annotation-empty">—</span>
