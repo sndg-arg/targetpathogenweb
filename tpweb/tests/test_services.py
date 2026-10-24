@@ -2271,12 +2271,28 @@ class StructureDownloadsTests(SimpleTestCase):
         )
         self.assertIn('"pdb", "AF_P1_F1")', script)
         self.assertIn(
-            "select fpocket_1, AF_P1_F1 and ((chain A and resi 12+15) or (chain B and resi 3))",
+            "create fpocket_1, (AF_P1_F1 and ((chain A and resi 12+15) or (chain B and resi 3)))"
+            " or (AF_P1_F1 and resn STP and resi 1)",
             script,
         )
-        self.assertIn("select p2rank_pocket1, AF_P1_F1 and ((resi 40))", script)
-        self.assertIn("show spheres, AF_P1_F1 and resn STP and resi 1", script)
+        self.assertIn("create p2rank_pocket1, AF_P1_F1 and ((resi 40))", script)
+        self.assertIn("show spheres, fpocket_1 and resn STP", script)
+        self.assertIn("group fpocket_pockets, fpocket_1", script)
+        self.assertIn("group p2rank_pockets, p2rank_pocket1", script)
+        self.assertNotIn("disable ", script)
         self.assertIn("spectrum b", script)
+
+    def test_pymol_script_disables_pockets_beyond_the_shown_ones(self):
+        from tpweb.services.structure_downloads import pymol_script
+
+        pockets = [
+            {**self.POCKETS[1], "name": f"pocket{i}", "residues": [("", i, "SER")]}
+            for i in range(1, 8)
+        ]
+        script = pymol_script("END\n", "pdb", "M", "title", "experimental", pockets)
+        self.assertIn("disable p2rank_pocket6", script)
+        self.assertIn("disable p2rank_pocket7", script)
+        self.assertNotIn("disable p2rank_pocket5", script)
 
     def test_available_download_sources_counts_by_source(self):
         from tpweb.services.structure_downloads import available_download_sources

@@ -43,7 +43,7 @@ DOWNLOAD_SOURCE_LABELS = {
     STRUCTURE_SOURCE_MODEL: "Other models",
 }
 # Same number of pockets the protein page shows per method; the rest are
-# still defined as PyMOL selections and listed in the TSV.
+# still created as (disabled) PyMOL objects and listed in the TSV.
 SHOWN_POCKETS = {"fpocket": 4, "p2rank": 5}
 POCKET_COLORS = ("magenta", "cyan", "orange", "green", "yellow", "salmon", "slate", "violet")
 
@@ -192,27 +192,35 @@ def pymol_script(structure_text, structure_format, obj_name, title, source, pock
         f"color atomic, {obj} and hetatm and not elem C",
     ]
 
+    # One object per pocket, grouped by method, so each can be shown or
+    # hidden from PyMOL's object panel instead of being painted onto the
+    # protein. Pockets past the ones the page shows start disabled.
     shown = {method: 0 for method in SHOWN_POCKETS}
-    color_index = 0
-    for p in pockets:
-        if not p["residues"]:
-            continue
-        sel = _safe_name(f"{p['method']}_{p['name']}")
-        lines.append(f"select {sel}, {_pymol_residue_selection(obj, p['residues'])}")
-        if shown[p["method"]] >= SHOWN_POCKETS[p["method"]]:
-            continue
-        shown[p["method"]] += 1
+    groups = {}
+    hidden = []
+    for color_index, p in enumerate(q for q in pockets if q["residues"]):
+        name = _safe_name(f"{p['method']}_{p['name']}")
+        atoms = _pymol_residue_selection(obj, p["residues"])
+        if p["method"] == "fpocket" and structure_format == "pdb":
+            atoms = f"({atoms}) or ({obj} and resn STP and resi {p['name']})"
         color = POCKET_COLORS[color_index % len(POCKET_COLORS)]
-        color_index += 1
         score = "" if p["score"] is None else f" {p['score_name']}={p['score']:.2f}"
         lines += [
             f"# {p['method']} pocket {p['name']}{score}",
-            f"show sticks, {sel} and not name N+C+O",
-            f"color {color}, {sel} and elem C",
+            f"create {name}, {atoms}",
+            f"hide everything, {name}",
+            f"show sticks, {name} and not resn STP and not name N+C+O",
+            f"color {color}, {name} and elem C",
+            f"show spheres, {name} and resn STP",
+            f"color {color}, {name} and resn STP",
         ]
-        if p["method"] == "fpocket" and structure_format == "pdb":
-            spheres = f"{obj} and resn STP and resi {p['name']}"
-            lines += [f"show spheres, {spheres}", f"color {color}, {spheres}"]
+        groups.setdefault(p["method"], []).append(name)
+        if shown[p["method"]] < SHOWN_POCKETS[p["method"]]:
+            shown[p["method"]] += 1
+        else:
+            hidden.append(name)
+    lines += [f"group {method}_pockets, {' '.join(names)}" for method, names in groups.items()]
+    lines += [f"disable {name}" for name in hidden]
     lines += [
         "set sphere_scale, 0.35",
         "set sphere_transparency, 0.4",
