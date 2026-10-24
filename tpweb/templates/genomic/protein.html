@@ -638,7 +638,7 @@
                     {% endif %}
 
                     <p class="binders-footnote">
-                        {% blocktrans %}PDB and ChEMBL records on this protein are shown in full. ChEMBL records from similar proteins are capped at the top 100 per protein (by pchembl) and ZINC at the top 50 (Tanimoto ≥ 0.5). Drug-likeness columns (Lipinski, PAINS) are computed from the chemical structure, not measured.{% endblocktrans %}
+                        {% blocktrans %}Similar proteins are UniProt entries with known ligands found by BLASTp (E ≤ 1e-5): up to 150 with ≥ 90% identity over ≥ 90% of this protein and ≥ 70% of the hit, plus the 5 next-best hits sharing a Pfam domain with it. PDB and ChEMBL records on this protein are shown in full. ChEMBL records from similar proteins are capped at the top 100 per protein (by pchembl) and ZINC at the top 50 (Tanimoto ≥ 0.5). Drug-likeness columns (Lipinski, PAINS) are computed from the chemical structure, not measured.{% endblocktrans %}
                     </p>
                 </section>
             {% endif %}

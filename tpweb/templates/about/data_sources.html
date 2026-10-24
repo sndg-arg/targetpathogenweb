@@ -698,6 +698,10 @@
                 <span class="ds-def-term">Direct vs homolog</span>
                 <span class="ds-def-body">{% trans "Direct means the evidence maps to this protein or its UniProt record. Homolog means the evidence comes from a similar protein and should be treated as weaker." %}</span>
             </div>
+            <div class="ds-def-row">
+                <span class="ds-def-term">{% trans "Similar protein" %}</span>
+                <span class="ds-def-body">{% trans "A UniProt protein with known ligands found by BLASTp (E ≤ 1e-5): up to 150 hits with ≥ 90% identity covering ≥ 90% of the query and ≥ 70% of the hit, plus the 5 next-best hits by bit score that share a Pfam domain with the query (HMMER, E ≤ 1e-5)." %}</span>
+            </div>
         </div>
     </section>
 
