@@ -69,6 +69,14 @@
                 renderPropertyChips(target, value);
                 return;
             }
+            if (field === "score") {
+                // "0.99 · High — P2Rank binding-site probability (0-1)": the
+                // value fits the cell, the scale explanation goes to the tooltip.
+                var parts = (value || "").split(" — ");
+                target.textContent = parts[0] || "-";
+                target.title = parts.slice(1).join(" — ");
+                return;
+            }
             if (field === "residues") {
                 var count = (value || "").trim().split(/\s+/).filter(Boolean).length;
                 target.textContent = count ? (count + (count === 1 ? " residue" : " residues")) : "-";

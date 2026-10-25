@@ -249,10 +249,6 @@ a.hero-chip.tp-chip--link .tp-chip-acc {
     padding-bottom: var(--tp-space-5);
 }
 
-.pocket-panel-details .sv-pocket-inspector {
-    margin: var(--tp-space-4) var(--tp-space-5) 0;
-}
-
 .structure-evidence-details .pdb-evidence-subsection {
     margin-top: 0;
     padding: var(--tp-space-5);
@@ -272,99 +268,6 @@ a.hero-chip.tp-chip--link .tp-chip-acc {
 }
 
 .pocket-panel-summary-link:hover { text-decoration: underline; }
-
-.sv-pocket-inspector {
-    padding: var(--tp-space-4);
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-radius-sm);
-    background: var(--tp-color-surface-soft);
-    box-shadow: none;
-}
-
-.sv-pocket-inspector[hidden] {
-    display: none;
-}
-
-.sv-pocket-inspector-head {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--tp-space-2);
-    margin-bottom: var(--tp-space-1);
-}
-
-.sv-pocket-inspector-kicker {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-}
-
-.sv-pocket-inspector-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--tp-space-2);
-}
-
-.sv-pocket-inspector-title {
-    display: block;
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-font-size-sm);
-    line-height: 1.2;
-}
-
-.sv-pocket-inspector-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 0;
-    margin: var(--tp-space-2) 0 0;
-    border-top: 1px solid var(--tp-color-border-soft);
-    border-bottom: 1px solid var(--tp-color-border-soft);
-}
-
-.sv-pocket-inspector-grid div {
-    min-width: 0;
-    padding: var(--tp-space-2) var(--tp-space-3);
-    border-right: 1px solid var(--tp-color-border-soft);
-}
-
-.sv-pocket-inspector-grid div:last-child {
-    border-right: 0;
-}
-
-.sv-pocket-inspector-grid dt {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-}
-
-.sv-pocket-inspector-grid dd {
-    margin: 1px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
-    overflow-wrap: anywhere;
-}
-
-.sv-pocket-inspector-grid dd[data-pocket-field="properties"] {
-    margin-top: var(--tp-space-2);
-}
-
-.sv-pocket-inspector-wide {
-    grid-column: auto;
-}
-
-.sv-pocket-inspector-note {
-    margin: var(--tp-space-2) 0 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    line-height: 1.35;
-}
 
 .pocket-cards {
     display: grid;
@@ -1167,7 +1070,6 @@ body.residue-modal-open {
 
 @media (max-width: 1100px) {
 
-
     .structure-actions {
         row-gap: var(--tp-space-3);
     }
@@ -1182,15 +1084,9 @@ body.residue-modal-open {
         max-width: min(78vw, 520px);
     }
 
-
 }
 
 @media (max-width: 700px) {
-
-
-
-
-
 
     .structure-actions {
         display: grid;
@@ -1201,7 +1097,6 @@ body.residue-modal-open {
         width: 100%;
         text-align: center;
     }
-
 
 }
 
@@ -1678,7 +1573,6 @@ body.residue-modal-open {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-
 }
 
 /* "Show this pocket" under the Binding-site evidence cards, when the best
@@ -1792,9 +1686,6 @@ body.residue-modal-open {
 }
 
 @media (max-width: 860px) {
-
-
-
 
     .pe-items {
         grid-auto-flow: row;

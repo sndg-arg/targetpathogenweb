@@ -62,13 +62,31 @@
     grid-column: 1 / -1;
 }
 
+/* One quiet line in the side list: "Likely same site as FPocket 109 · 1.6 Å".
+   Shared residues and coverage stay in the full-width list and the inspector. */
 .pocket-cards--compact .pocket-consensus {
     margin-top: 0;
+    padding: 0;
+    border-left: 0;
+    color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
 }
 
 .pocket-cards--compact .pocket-consensus-status {
     flex-basis: auto;
+    font-weight: 500;
+}
+
+.pocket-cards--compact .pocket-consensus span:nth-child(n + 3) {
+    display: none;
+}
+
+.pocket-cards--compact .pocket-consensus span::after {
+    content: none !important;
+}
+
+.pocket-cards--compact .pocket-consensus-status::after {
+    content: " ·" !important;
 }
 
 .pocket-cards--compact .pocket-card-layer-label,

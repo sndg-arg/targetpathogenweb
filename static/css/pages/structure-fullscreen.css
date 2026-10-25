@@ -13,6 +13,13 @@ body:has(.sv-root) .tp-footer { display: none !important; }
    of surfacing a scrollbar that clips the floating toolbar/settings modal. */
 body:has(.sv-root) { overflow: hidden; }
 
+/* Assistant button: over the canvas, above the toolbar, so it never covers
+   the pocket list's buttons in the side panel. */
+@media (min-width: 721px) {
+    body:has(.sv-root) .tp-agent-fab-ring { right: calc(320px + 20px); bottom: 82px; }
+    body:has(.sv-root) .tp-agent-fab { right: calc(320px + 22px); bottom: 84px; }
+}
+
 /* ── 2. Root layout ── */
 .sv-root {
 
@@ -38,6 +45,25 @@ body:has(.sv-root) { overflow: hidden; }
     width: 100%;
     height: 100%;
     display: block;
+}
+
+.sv-hover-tip {
+    position: absolute;
+    z-index: 5;
+    padding: var(--tp-space-1) var(--tp-space-2);
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-tooltip-bg);
+    color: var(--tp-tooltip-color);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+
+.sv-hover-tip.is-visible {
+    opacity: 1;
 }
 
 #viewport canvas {
@@ -482,10 +508,16 @@ body:has(.sv-root) { overflow: hidden; }
 
 .sv-pocket-inspector-head {
     display: flex;
-    flex-direction: column;
     align-items: flex-start;
+    justify-content: space-between;
     gap: var(--tp-space-2);
     margin-bottom: var(--tp-space-1);
+}
+
+.sv-pocket-inspector-heading {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
 }
 
 .sv-pocket-inspector-kicker {
@@ -498,15 +530,17 @@ body:has(.sv-root) { overflow: hidden; }
 
 .sv-pocket-inspector-actions {
     display: flex;
-    flex-wrap: wrap;
+    flex-shrink: 0;
     align-items: center;
-    gap: var(--tp-space-2);
+    gap: var(--tp-space-1);
 }
 
 .sv-pocket-inspector-title {
     display: block;
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-lg);
+    font-weight: 600;
     line-height: 1.2;
 }
 
@@ -531,10 +565,10 @@ body:has(.sv-root) { overflow: hidden; }
 
 .sv-pocket-inspector-grid dd {
     margin: 1px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 600;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    line-height: 1.35;
     overflow-wrap: anywhere;
 }
 
@@ -544,13 +578,6 @@ body:has(.sv-root) { overflow: hidden; }
 
 .sv-pocket-inspector-wide {
     grid-column: 1 / -1;
-}
-
-.sv-pocket-inspector-note {
-    margin: var(--tp-space-2) 0 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    line-height: 1.35;
 }
 
 .sv-no-pockets {
