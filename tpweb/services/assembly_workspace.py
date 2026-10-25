@@ -401,7 +401,7 @@ def _cached_score_proteins(assembly_name):
     dicts of primitives (see _score_proteins), not Bioentry instances --
     deliberately kept that way so this cache entry only ever holds simple,
     stable-across-deploys data."""
-    cache_key = f"Target:score_proteins:{assembly_name}"
+    cache_key = _score_proteins_cache_key(assembly_name)
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -502,16 +502,53 @@ def get_overview_target_rankings(assembly_name, user, limit=5):
     twice per page load, the dominant cost on large genomes. Cached by
     genome name (the heuristic ignores `user`), same TTL policy as
     build_assembly_workspace_metrics."""
-    cache_key = f"Target:overview_target_rankings:v2:{assembly_name}:{limit}"
+    cache_key = _rankings_cache_key(assembly_name, limit)
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
-    scored = _cached_score_proteins(assembly_name)
-    top_targets = get_top_targets_by_score(assembly_name, user, limit=limit, scored=scored)
-    unexplored_targets = get_unexplored_targets(assembly_name, user, limit=limit, scored=scored)
-    result = (top_targets, unexplored_targets)
+    result = _overview_target_rankings(
+        assembly_name, user, limit, _cached_score_proteins(assembly_name)
+    )
     cache.set(cache_key, result, OVERVIEW_CACHE_TTL_SECONDS)
     return result
+
+
+def _overview_target_rankings(assembly_name, user, limit, scored):
+    top_targets = get_top_targets_by_score(assembly_name, user, limit=limit, scored=scored)
+    unexplored_targets = get_unexplored_targets(assembly_name, user, limit=limit, scored=scored)
+    return (top_targets, unexplored_targets)
+
+
+def _score_proteins_cache_key(assembly_name):
+    return f"Target:score_proteins:{assembly_name}"
+
+
+def _rankings_cache_key(assembly_name, limit):
+    return f"Target:overview_target_rankings:v2:{assembly_name}:{limit}"
+
+
+def _metrics_cache_key(assembly_name):
+    return f"Target:assembly_workspace_metrics:{assembly_name}"
+
+
+def refresh_genome_overview_caches(assembly_name, ranking_limit=5):
+    """Recompute the genome overview's cached aggregates (evidence metrics,
+    scored proteins, triage rankings) and store them, overwriting whatever is
+    cached. The queue worker runs this for every genome after each pipeline
+    and more often than the TTL, so visitors find them ready instead of
+    paying the genome-wide scan."""
+    cache.set(
+        _metrics_cache_key(assembly_name),
+        _build_assembly_workspace_metrics(assembly_name),
+        OVERVIEW_CACHE_TTL_SECONDS,
+    )
+    scored = _score_proteins(assembly_name)
+    cache.set(_score_proteins_cache_key(assembly_name), scored, OVERVIEW_CACHE_TTL_SECONDS)
+    cache.set(
+        _rankings_cache_key(assembly_name, ranking_limit),
+        _overview_target_rankings(assembly_name, None, ranking_limit, scored),
+        OVERVIEW_CACHE_TTL_SECONDS,
+    )
 
 
 def export_composite_ranking_rows(assembly_name):
@@ -567,7 +604,7 @@ def export_composite_ranking_rows(assembly_name):
 
 
 def build_assembly_workspace_metrics(assembly_name):
-    cache_key = f"Target:assembly_workspace_metrics:{assembly_name}"
+    cache_key = _metrics_cache_key(assembly_name)
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
