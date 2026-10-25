@@ -1228,6 +1228,16 @@ function jsloaded() {
         _loadStructureById(structureId);
     };
 
+    /* Molecular-surface grid resolution (points per Å; NGL's default is 2).
+       The grid spans the structure's bounding box, so a long or large
+       protein at full resolution means tens of millions of points built on
+       the main thread. Cap the grid at ~6M points; small proteins keep 2. */
+    function surfaceScaleFactor(component) {
+        var size = component.structure.getBoundingBox().getSize();
+        var volume = (size.x + 10) * (size.y + 10) * (size.z + 10);
+        return Math.max(0.6, Math.min(2, Math.cbrt(6e6 / volume)));
+    }
+
     /* ---- Main NGL init per component load ---- */
     function initStructureComponent(component) {
         activeComponent = component;
@@ -1360,6 +1370,7 @@ function jsloaded() {
             sele: "polymer and " + activeChainSelector,
             color: tpColor("--tp-color-structure-density"),
             opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
+            scaleFactor: surfaceScaleFactor(component),
             side: "double",
             opaqueBack: true,
             surfaceType: "ms",
@@ -1417,8 +1428,23 @@ function jsloaded() {
             }
         }
 
+        var densityBuilt = false;
         window.ngl_set_mode = function (mode) {
             var isDensity = mode === "density";
+            // The first Surface click builds the whole-protein surface on the
+            // main thread (see useWorker above), which blocks the page for a
+            // moment: paint the loading note first, then build.
+            if (isDensity && !densityBuilt) {
+                densityBuilt = true;
+                setLoadingNoteVisible(true, "{% trans 'Computing surface…' %}");
+                window.requestAnimationFrame(function () {
+                    window.setTimeout(function () {
+                        window.ngl_set_mode(mode);
+                        stage.tasks.onZeroOnce(function () { setLoadingNoteVisible(false); });
+                    }, 30);
+                });
+                return;
+            }
             visible.__main_cartoon = !isDensity;
             visible.__main_density = isDensity;
             representations.__main_cartoon.setVisibility(!isDensity);
