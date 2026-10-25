@@ -197,7 +197,49 @@
         }
     }
 
-    function nodeStyleRules(palette) {
+    // fcose lays the pathways out as a disc; the canvas is wide. Stretch the
+    // overview horizontally (capped) so it fills the canvas and spreads the
+    // crowded center, instead of a small disc with empty margins.
+    function stretchToCanvas(cy, container) {
+        // Shaped by the main component: a small detached pair off to one side
+        // would otherwise make the whole graph look wide already.
+        var parts = cy.elements().components().sort(function (a, b) { return b.length - a.length; });
+        var main = parts[0];
+        var bb = main.boundingBox();
+        if (!bb.w || !bb.h) return;
+        var factor = Math.min(1.9, (container.clientWidth / Math.max(container.clientHeight, 1)) / (bb.w / bb.h));
+        if (factor > 1.05) {
+            var cx = bb.x1 + bb.w / 2;
+            main.nodes().positions(function (node) {
+                var pos = node.position();
+                return { x: cx + (pos.x - cx) * factor, y: pos.y };
+            });
+            bb = main.boundingBox();
+        }
+        // Detached pathways sit in a column right beside the main network,
+        // not wherever fcose dropped them.
+        var y = bb.y1;
+        parts.slice(1).forEach(function (part) {
+            var box = part.boundingBox({ includeLabels: true });
+            var dx = bb.x2 + 40 - box.x1;
+            var dy = y - box.y1;
+            part.nodes().positions(function (node) {
+                var pos = node.position();
+                return { x: pos.x + dx, y: pos.y + dy };
+            });
+            y += box.h + 30;
+        });
+    }
+
+    // Pathway labels in graph units, so they read at ~11px on screen at the
+    // zoom the overview fit at.
+    function overviewFontSize(zoom) {
+        return Math.max(9.5, Math.min(26, 11 / (zoom || 1)));
+    }
+
+    function nodeStyleRules(palette, fontSize) {
+        fontSize = fontSize || 9.5;
+        var fontRatio = fontSize / 9.5;
         var rules = [
             {
                 selector: "node",
@@ -211,12 +253,12 @@
                     "label": "data(displayLabel)",
                     "color": palette.textFaint,
                     "font-family": FONT_STACK,
-                    "font-size": 9.5,
+                    "font-size": fontSize,
                     "font-weight": 600,
                     "text-valign": "bottom",
-                    "text-margin-y": 5,
+                    "text-margin-y": 5 * fontRatio,
                     "text-wrap": "ellipsis",
-                    "text-max-width": "110px",
+                    "text-max-width": (110 * fontRatio) + "px",
                     "text-background-color": palette.ring,
                     "text-background-opacity": 1,
                     "text-background-shape": "roundrectangle",
@@ -410,10 +452,11 @@
 
                 var collapsedElements = buildCollapsedElements(payload);
                 var detailFontScale = 1;
+                var overviewFont = 9.5;
 
                 function combinedStyle(fontScale) {
                     var palette = readPalette();
-                    return nodeStyleRules(palette).concat(window.TPMetabolicReactionGraph.styleRules(palette, fontScale));
+                    return nodeStyleRules(palette, overviewFont).concat(window.TPMetabolicReactionGraph.styleRules(palette, fontScale));
                 }
 
                 var cy = window.cytoscape({
@@ -446,7 +489,16 @@
                 var isDetailView = false;
                 var firstLoad = true;
                 cy.on("layoutstop", function () {
+                    if (!isDetailView) stretchToCanvas(cy, container);
                     cy.fit(cy.elements(), 30);
+                    if (!isDetailView) {
+                        var font = overviewFontSize(cy.zoom());
+                        if (Math.abs(font - overviewFont) > 0.5) {
+                            overviewFont = font;
+                            cy.style(combinedStyle(detailFontScale)).update();
+                            cy.fit(cy.elements(), 30);
+                        }
+                    }
                     if (isDetailView) {
                         // Rescale reaction/metabolite label size from the zoom this specific
                         // pathway's drill-in actually fit at (see item 4's base-size comment
