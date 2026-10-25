@@ -378,6 +378,12 @@ if DEBUG:
 else:
     STATIC_ROOT = env("DJANGO_ROOT", default=str(BASE_DIR / "staticfiles"))
     STATICFILES_DIRS = [str(BASE_DIR / "static")]
+    # collectstatic writes a .gz next to each file and WhiteNoise serves it to
+    # browsers that accept gzip (bundle.js: 9 MB -> a fraction over the wire).
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+    }
     JBROWSE_BASE_URL = env("JBROWSE_BASE_URL", default="http://localhost:3000/")
     SEQS_DATA_DIR = env("SEQS_DATA_DIR", default=str(BASE_DIR / "data/seqs"))
 
