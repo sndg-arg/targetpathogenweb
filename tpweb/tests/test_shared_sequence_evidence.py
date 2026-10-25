@@ -218,6 +218,19 @@ class SharedSequenceEvidenceTests(TestCase):
         self.assertEqual([(row.pk, row.numeric_value) for row in rows], [(original.pk, 0.9)])
         self.assertEqual(rows[0].score_param.name, self.param.name)
 
+    def test_ranking_pass_ignores_a_changed_donor_sequence(self):
+        from tpweb.services.shared_sequence_evidence import attach_score_rows
+
+        self.sequences[self.curated.pk] = "MAX"
+        self.value(self.curated, 0.9)
+        local = self.value(self.target, 0.2)
+        protein = self.fresh()
+        attach_score_rows([protein], {self.param.name})
+        apply_shared_sequence_evidence(
+            [protein], self.user, details=False, score_param_names={self.param.name}
+        )
+        self.assertEqual([row.pk for row in protein.score_params.all()], [local.pk])
+
     def test_zero_curated_value_does_not_fall_back_to_automatic(self):
         self.value(self.curated, 0)
         self.value(self.target, 0.8)

@@ -105,11 +105,19 @@ class SharedSequenceEvidence:
 def _genome(protein):
     from bioseq.models.Biodatabase import Biodatabase
 
+    if isinstance(protein, LightBioentry):
+        return protein.genome
     return protein.biodatabase.name.removesuffix(Biodatabase.PROT_POSTFIX)
 
 
+def _normalized_sequence(text):
+    return str(text).strip().upper().rstrip("*") if text else ""
+
+
 def _sequence(protein):
-    return str(protein.seq.seq).strip().upper().rstrip("*")
+    if isinstance(protein, LightBioentry):
+        return protein.sequence
+    return _normalized_sequence(protein.seq.seq)
 
 
 class ScoreRow:
@@ -131,13 +139,22 @@ class ScoreRow:
 def attach_score_rows(proteins, score_param_names=None):
     """Cache each protein's score values as ScoreRow, read through
     protein.score_params.all() like a prefetch (nothing is saved)."""
-    from tpweb.models.ScoreParam import ScoreParam
-    from tpweb.models.ScoreParamValue import ScoreParamValue
-
     proteins = list(proteins)
     if not proteins:
         return
-    rows = ScoreParamValue.objects.filter(bioentry_id__in=[p.pk for p in proteins])
+    by_protein = _score_rows_by_bioentry([p.pk for p in proteins], score_param_names)
+    for protein in proteins:
+        _cache_relation(protein, "score_params", by_protein.get(protein.pk, []))
+
+
+_RELATION_MODELS = {}
+
+
+def _score_rows_by_bioentry(bioentry_ids, score_param_names=None):
+    from tpweb.models.ScoreParam import ScoreParam
+    from tpweb.models.ScoreParamValue import ScoreParamValue
+
+    rows = ScoreParamValue.objects.filter(bioentry_id__in=bioentry_ids)
     if score_param_names is not None:
         rows = rows.filter(score_param__name__in=score_param_names)
     rows = list(
@@ -149,11 +166,44 @@ def attach_score_rows(proteins, score_param_names=None):
         by_protein.setdefault(bioentry_id, []).append(
             ScoreRow(pk, bioentry_id, params[param_id], value, numeric_value)
         )
-    for protein in proteins:
-        _cache_relation(protein, "score_params", by_protein.get(protein.pk, []))
+    return by_protein
 
 
-_RELATION_MODELS = {}
+class LightBioentry:
+    """Read-only stand-in for another strain's Bioentry in the ranking pass
+    (details=False): just what the score merge reads, loaded with values_list
+    instead of thousands of Bioentry + Biosequence + Biodatabase instances."""
+
+    __slots__ = ("pk", "accession", "description", "genome", "sequence", "score_rows")
+
+    def __init__(self, pk, accession, description, genome, sequence):
+        self.pk = pk
+        self.accession = accession
+        self.description = description
+        self.genome = genome
+        self.sequence = sequence
+        self.score_rows = []
+
+
+def _light_bioentries(bioentry_ids, score_param_names=None):
+    from bioseq.models.Biodatabase import Biodatabase
+    from bioseq.models.Bioentry import Bioentry
+
+    light = {
+        pk: LightBioentry(
+            pk,
+            accession,
+            description or "",
+            (proteome or "").removesuffix(Biodatabase.PROT_POSTFIX),
+            _normalized_sequence(sequence),
+        )
+        for pk, accession, description, proteome, sequence in Bioentry.objects.filter(
+            pk__in=bioentry_ids
+        ).values_list("pk", "accession", "description", "biodatabase__name", "seq__seq")
+    }
+    for bioentry_id, rows in _score_rows_by_bioentry(list(light), score_param_names).items():
+        light[bioentry_id].score_rows = rows
+    return light
 
 
 def _cache_relation(protein, relation, rows):
@@ -219,28 +269,33 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
     # read before any of them is overwritten with merged evidence below.
     loaded = {p.pk: p for p in proteins}
     own_scores = {p.pk: list(p.score_params.all()) for p in proteins}
-    others = {
-        b.pk: b
-        for b in Bioentry.objects.filter(pk__in={m.bioentry_id for m in members} - loaded.keys())
-        .select_related("biodatabase", "seq")
-        .prefetch_related(*relations)
-    }
-    if not details:
-        attach_score_rows(others.values(), score_param_names)
+    other_ids = {m.bioentry_id for m in members} - loaded.keys()
+    if details:
+        others = {
+            b.pk: b
+            for b in Bioentry.objects.filter(pk__in=other_ids)
+            .select_related("biodatabase", "seq")
+            .prefetch_related(*relations)
+        }
+    else:
+        others = _light_bioentries(other_ids, score_param_names)
+    # .source, not .bioentry: a LightBioentry can't be assigned to the FK.
     for member in members:
-        member.bioentry = loaded.get(member.bioentry_id) or others.get(member.bioentry_id)
-    members = [m for m in members if m.bioentry is not None]
+        member.source = loaded.get(member.bioentry_id) or others.get(member.bioentry_id)
+    members = [m for m in members if m.source is not None]
 
     def score_rows(source):
         if source.pk in own_scores:
             return own_scores[source.pk]
+        if isinstance(source, LightBioentry):
+            return source.score_rows
         return list(source.score_params.all())
 
     by_group = {}
     visibility = {}
     access = {}
     for member in members:
-        genome = _genome(member.bioentry)
+        genome = _genome(member.source)
         if genome not in access:
             access[genome] = user_can_access_genome_name(user, genome)
         if access[genome]:
@@ -252,7 +307,7 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
         sequence = _sequence(protein)
         if not sequence:
             continue
-        peers = [m for m in by_group.get(group, []) if _sequence(m.bioentry) == sequence]
+        peers = [m for m in by_group.get(group, []) if _sequence(m.source) == sequence]
         donors = sorted(
             [m for m in peers if m.strain_label in CURATED_STRAINS],
             key=lambda m: (CURATED_STRAINS[m.strain_label], m.locus_tag),
@@ -262,9 +317,9 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
         # every identical occurrence (in memory only; the GenBank record is kept).
         curated_name = next(
             (
-                (m.bioentry.description or "").strip()
+                (m.source.description or "").strip()
                 for m in donors
-                if (m.bioentry.description or "").strip()
+                if (m.source.description or "").strip()
             ),
             "",
         )
@@ -277,7 +332,7 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
                 "locus_tag": m.locus_tag,
                 "protein_accession": m.protein_accession,
                 "bioentry_id": m.bioentry_id,
-                "has_structure": bool(list(m.bioentry.structures.all())) if details else False,
+                "has_structure": bool(list(m.source.structures.all())) if details else False,
                 "curated": m.strain_label in CURATED_STRAINS,
             }
             for m in peers
@@ -292,9 +347,9 @@ def apply_shared_sequence_evidence(proteins, user, details=True, score_param_nam
             for m in donors
             if m.bioentry_id != protein.pk
         ]
-        sources = [m.bioentry for m in donors]
+        sources = [m.source for m in donors]
         fallback_sources = [
-            m.bioentry
+            m.source
             for m in peers
             if m.strain_label not in CURATED_STRAINS and m.bioentry_id != protein.pk
         ]
