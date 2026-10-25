@@ -131,13 +131,7 @@
 
             <div class="sv-tb-sep" aria-hidden="true"></div>
 
-            {# Zoom controls #}
-            <button type="button" class="sv-tb-btn" onclick="ngl_zoom_step(1)" title="{% trans 'Zoom in' %}" aria-label="{% trans 'Zoom in' %}">
-                <span class="sv-tb-icon" aria-hidden="true">{% include "components/icons/zoom_in.html" %}</span>
-            </button>
-            <button type="button" class="sv-tb-btn" onclick="ngl_zoom_step(-1)" title="{% trans 'Zoom out' %}" aria-label="{% trans 'Zoom out' %}">
-                <span class="sv-tb-icon" aria-hidden="true">{% include "components/icons/zoom_out.html" %}</span>
-            </button>
+            {# Reset view; zoom is the wheel or pinch on the canvas (no +/- buttons, so the toolbar fits) #}
             <button type="button" class="sv-tb-btn" id="structure-reset-zoom-btn" onclick="ngl_reset_zoom()"
                     title="{% trans 'Reset view' %}" aria-label="{% trans 'Reset view' %}" disabled>
                 <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
