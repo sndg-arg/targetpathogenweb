@@ -9,11 +9,20 @@ tpw-django-patterns (views delegate to services, not the reverse).
 
 import random
 from collections import defaultdict
+from typing import NamedTuple
 
 from django.db.models import FilteredRelation, Q
 
 from tpweb.models.Binders import Binders
-from tpweb.models.pdb import PDBResidueSet, Property, Residue, ResidueSet, ResidueSetProperty
+from tpweb.models.pdb import (
+    Atom,
+    AtomResidueSet,
+    PDBResidueSet,
+    Property,
+    Residue,
+    ResidueSet,
+    ResidueSetProperty,
+)
 from tpweb.services.pocket_consensus import (
     POCKET_CONSENSUS_DISTANCE,
     nearest_named_center,
@@ -122,13 +131,51 @@ def _inspector_property_summary(residue_set, wanted_properties):
     return " | ".join(items)
 
 
-def _residue_set_core_atoms(residue_set):
-    atoms = []
-    for rsr in residue_set.residue_set_residue.all():
-        for atom_set in rsr.atoms.all():
-            if atom_set.atom_id:
-                atoms.append(atom_set.atom.serial)
-    return atoms
+class _AtomPoint(NamedTuple):
+    """The atom fields pocket geometry reads, loaded with values_list: a
+    structure page otherwise builds thousands of Atom model instances."""
+
+    id: int
+    serial: int
+    x: float
+    y: float
+    z: float
+    bfactor: float
+
+
+_ATOM_POINT_FIELDS = ("id", "serial", "x", "y", "z", "bfactor")
+
+
+def _core_atoms_by_residue_set_residue(residue_sets):
+    """ResidueSetResidue id -> its pocket-core atoms (AtomResidueSet), in one query."""
+    rsr_ids = [rsr.id for rs in residue_sets for rsr in rs.residue_set_residue.all()]
+    by_rsr = defaultdict(list)
+    rows = (
+        AtomResidueSet.objects.filter(pdb_set_id__in=rsr_ids)
+        .order_by("id")
+        .values_list("pdb_set_id", *(f"atom__{name}" for name in _ATOM_POINT_FIELDS))
+    )
+    for rsr_id, *atom in rows:
+        by_rsr[rsr_id].append(_AtomPoint(*atom))
+    return by_rsr
+
+
+def _atom_serials_by_residue(residue_sets):
+    """Residue id -> serials of all its atoms, in one query."""
+    residue_ids = {rsr.residue_id for rs in residue_sets for rsr in rs.residue_set_residue.all()}
+    by_residue = defaultdict(list)
+    rows = Atom.objects.filter(residue_id__in=residue_ids).order_by("id")
+    for residue_id, serial in rows.values_list("residue_id", "serial"):
+        by_residue[residue_id].append(serial)
+    return by_residue
+
+
+def _residue_set_core_atoms(residue_set, core_atoms):
+    return [
+        atom.serial
+        for rsr in residue_set.residue_set_residue.all()
+        for atom in core_atoms.get(rsr.id, [])
+    ]
 
 
 # FPocket alpha-sphere radii ordinarily fall in this range; used only as a
@@ -206,13 +253,14 @@ def _points_are_near_residue_cloud(core_points, residue_points, threshold=5.0, m
     return checked > 0 and (near / checked) >= min_fraction
 
 
-def _residue_set_core_points(residue_set):
-    atoms = []
-    for rsr in residue_set.residue_set_residue.all():
-        for atom_set in rsr.atoms.all():
-            if atom_set.atom_id:
-                atoms.append(atom_set.atom)
-    return _atom_points(atoms)
+def _residue_set_core_points(residue_set, core_atoms):
+    return _atom_points(
+        [
+            atom
+            for rsr in residue_set.residue_set_residue.all()
+            for atom in core_atoms.get(rsr.id, [])
+        ]
+    )
 
 
 def _pocket_center(points):
@@ -379,12 +427,13 @@ def pdb_structure(
         obj.id: obj
         for obj in PDBResidueSet.objects.prefetch_related(
             "properties__property",
-            "residue_set_residue__residue__atoms",
-            "residue_set_residue__atoms__atom",
+            "residue_set_residue__residue",
         ).filter(id__in=pocket_ids + p2_pocket_ids)
     }
     context["pockets"] = [pockets_by_id[i] for i in pocket_ids if i in pockets_by_id]
     context["p2_pockets"] = [pockets_by_id[i] for i in p2_pocket_ids if i in pockets_by_id]
+    core_atoms = _core_atoms_by_residue_set_residue(pockets_by_id.values())
+    atom_serials = _atom_serials_by_residue(pockets_by_id.values())
 
     # FPocket alpha-sphere geometry lives on Residue rows named "STP", one per
     # pocket, keyed by resid == the pocket's own name/number. Bulk-fetch every
@@ -398,18 +447,23 @@ def pdb_structure(
             pass
     alpha_atoms_by_resid = defaultdict(list)
     if pocket_resids:
-        for residue in Residue.objects.prefetch_related("atoms").filter(
-            pdb=pdbobj, resname="STP", resid__in=pocket_resids
-        ):
-            alpha_atoms_by_resid[residue.resid].extend(residue.atoms.all())
+        rows = (
+            Atom.objects.filter(
+                residue__pdb=pdbobj, residue__resname="STP", residue__resid__in=pocket_resids
+            )
+            .order_by("residue_id", "id")
+            .values_list("residue__resid", *_ATOM_POINT_FIELDS)
+        )
+        for resid, *atom in rows:
+            alpha_atoms_by_resid[resid].append(_AtomPoint(*atom))
 
     for p in context["pockets"]:
         p.druggability = [x.value for x in p.properties.all() if x.property == ds][0]
         p.score_label = pocket_score_label(p.druggability, "fpocket")
         p.score_band = pocket_score_band(p.druggability, "fpocket")
         p.atoms = []
-        p.core_atoms = _residue_set_core_atoms(p)
-        residue_core_points = _residue_set_core_points(p)
+        p.core_atoms = _residue_set_core_atoms(p, core_atoms)
+        residue_core_points = _residue_set_core_points(p, core_atoms)
         try:
             pocket_resid = int(p.name)
         except (TypeError, ValueError):
@@ -480,8 +534,7 @@ def pdb_structure(
             p.residues.append(_residue_display_label(rsr.residue))
             p.residue_ids.append(rsr.residue.resid)
             p.comparison_residues.append(rsr.residue)
-            for a in rsr.residue.atoms.all():
-                p.atoms.append(a.serial)
+            p.atoms.extend(atom_serials.get(rsr.residue_id, []))
         if include_pockets_in_graphic_features:
             gf = {
                 "data": data,
@@ -501,8 +554,8 @@ def pdb_structure(
         p2.score_label = pocket_score_label(p2.probability, "p2rank")
         p2.score_band = pocket_score_band(p2.probability, "p2rank")
         p2.atoms = []
-        p2.core_atoms = _residue_set_core_atoms(p2)
-        p2.core_points = _residue_set_core_points(p2)
+        p2.core_atoms = _residue_set_core_atoms(p2, core_atoms)
+        p2.core_points = _residue_set_core_points(p2, core_atoms)
         if p2.core_points:
             p2.core_geometry = "residue_atoms"
             p2.core_button_label = "Predicted site atoms"
@@ -532,8 +585,7 @@ def pdb_structure(
             p2.residues.append(_residue_display_label(rsr.residue))
             p2.residue_ids.append(rsr.residue.resid)
             p2.comparison_residues.append(rsr.residue)
-            for a in rsr.residue.atoms.all():
-                p2.atoms.append(a.serial)
+            p2.atoms.extend(atom_serials.get(rsr.residue_id, []))
         if include_pockets_in_graphic_features:
             gf_p2 = {
                 "data": data,
@@ -554,6 +606,8 @@ def pdb_structure(
         & (~Q(residue_set__name="FPocketPocket"))
         & (~Q(residue_set__name="P2RankPocket"))
     )
+    rss = list(rss)
+    site_core_atoms = _core_atoms_by_residue_set_residue(rss)
     context["residuesets"] = []
     for rs_obj in rss:
         context["residuesets"].append(
@@ -562,7 +616,7 @@ def pdb_structure(
                 "name": rs_obj.name,
                 "description": rs_obj.description,
                 "residues": [x.residue.resid for x in rs_obj.residue_set_residue.all()],
-                "center": _pocket_center(_residue_set_core_points(rs_obj)),
+                "center": _pocket_center(_residue_set_core_points(rs_obj, site_core_atoms)),
             }
         )
         gf = {
