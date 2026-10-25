@@ -5,7 +5,7 @@
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/genome-page.css' %}?v=20261021-split">
     <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261024-table">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261025-copy">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261025-drug">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -76,6 +76,7 @@
             <div class="metabolic-network-genome-toolbar">
                 <div class="metabolic-network-genome-legend">
                     <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-4"></i>{% trans "Chokepoint reaction" %}</span>
+                    <span title="{% trans "A protein catalyzing this reaction has a druggable pocket (FPocket ≥ 0.7 or P2Rank ≥ 0.5)." %}"><i class="metabolic-network-genome-dot metabolic-network-genome-dot--druggable"></i>{% trans "Druggable enzyme" %}</span>
                     <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-1"></i>{% trans "Metabolite" %}</span>
                     <span title="{% trans "Reactions marked reversible in the imported metabolic model get an arrowhead on both ends." %}">&#8652; {% trans "Reversible reaction" %}</span>
                     <span title="{% trans "Ubiquitous cofactors (ATP, water, NAD+, etc.) are left out of the diagram to keep it readable." %}">{% trans "Currency metabolites hidden" %}</span>
@@ -186,8 +187,8 @@
 </div>
 
 {{ graph_payload|json_script:"metabolic-pathway-graph-data" }}
-<script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20261018-chips"></script>
-<script src="{% static 'js/pages/metabolic-pathway-graph.js' %}?v=20261025-pack"></script>
+<script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20261025-drug"></script>
+<script src="{% static 'js/pages/metabolic-pathway-graph.js' %}?v=20261025-drug"></script>
 <script>
 (function () {
     var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

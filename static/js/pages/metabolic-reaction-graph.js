@@ -66,12 +66,17 @@
                 isoenzymeCount: reaction.isoenzyme_count || 0,
                 reversible: Boolean(reaction.reversible),
                 genes: reaction.genes || [],
+                hasDruggableProtein: Boolean(reaction.has_druggable_protein),
                 isReaction: true
             };
             if (parentId) data.parent = parentId;
             elements.push({
                 data: data,
-                classes: ["reaction-node", hasChokepoint ? "has-chokepoint" : ""].join(" ").trim()
+                classes: [
+                    "reaction-node",
+                    hasChokepoint ? "has-chokepoint" : "",
+                    reaction.has_druggable_protein ? "has-druggable" : ""
+                ].join(" ").trim()
             });
         });
 
@@ -232,6 +237,17 @@
                 }
             },
             {
+                // A protein with a druggable pocket catalyzes this step: a thin
+                // accent ring around the node (a fill would read as a metabolite).
+                selector: ".reaction-node.has-druggable",
+                style: {
+                    "outline-color": palette.druggable || palette.edge,
+                    "outline-width": 1.5,
+                    "outline-offset": 2 * fontScale,
+                    "outline-opacity": 1
+                }
+            },
+            {
                 selector: ".metabolite-node",
                 style: {
                     // A richer gradient (plain -> ring) than the reaction junctions'
@@ -308,6 +324,7 @@
             '<dt>EC</dt><dd>' + escapeHtml(data.ecNumbers && data.ecNumbers.length ? data.ecNumbers.join(", ") : "-") + '</dd>',
             '<dt>Reversible</dt><dd>' + (data.reversible ? "Yes" : "No") + '</dd>',
             '<dt>Genes</dt><dd>' + escapeHtml(genes.length ? genes.join(", ") : "-") + '</dd>',
+            (data.hasDruggableProtein ? '<dt>Pocket</dt><dd>Druggable</dd>' : ''),
             '</dl>'
         ].join("");
     }

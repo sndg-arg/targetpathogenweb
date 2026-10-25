@@ -17,6 +17,7 @@
             plain: readToken("--tp-color-text-soft"),
             chokepoint: readToken("--tp-color-warning-ink"),
             chokepointSoft: readToken("--tp-color-warning-bg"),
+            druggable: readToken("--tp-color-primary"),
             edge: readToken("--tp-color-text-primary"),
             ring: readToken("--tp-color-surface"),
             surfaceSoft: readToken("--tp-color-surface-soft"),
