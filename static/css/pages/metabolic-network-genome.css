@@ -3,13 +3,6 @@
  * protein-detail.css (that page never loads here, so every class this page's markup/JS
  * relies on is defined fresh below, even where the name matches the ego-network's). */
 
-.metabolic-network-genome-caption {
-    margin: var(--tp-space-2) 0 var(--tp-space-4);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
-    line-height: 1.5;
-}
-
 .metabolic-network-genome-shell {
     display: flex;
     flex-direction: column;

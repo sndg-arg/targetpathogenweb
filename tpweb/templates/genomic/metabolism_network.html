@@ -5,7 +5,7 @@
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/genome-page.css' %}?v=20261021-split">
     <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20261024-table">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261018-lh">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20261025-copy">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -68,12 +68,9 @@
         <div class="section-head">
             <div>
                 <h2>{% trans "Reaction network" %}</h2>
-                <p class="section-subtitle">{% trans "Each pathway starts collapsed. Click a pathway node to zoom into its reactions, then zoom back out to see the whole network again." %}</p>
+                <p class="section-subtitle">{% trans "Click a pathway to expand its reactions. A reaction shared by several pathways counts once, under its primary route." %}</p>
             </div>
         </div>
-        <p class="metabolic-network-genome-caption">
-            {% trans "Each reaction is counted once, under its primary route, so pathway sizes here may differ slightly from the pathway ranking list for reactions that participate in more than one pathway." %}
-        </p>
 
         <div class="metabolic-network-genome-shell">
             <div class="metabolic-network-genome-toolbar">
