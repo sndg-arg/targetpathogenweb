@@ -5,6 +5,25 @@
 (function () {
     "use strict";
 
+    // Scroll el into view inside its own scrolling panel only. scrollIntoView
+    // also scrolls the page, which on the full viewer (a fixed-height layout)
+    // pushed the whole viewer up and left a blank band below it.
+    function scrollWithinPanel(el, block) {
+        var panel = el.parentElement;
+        while (panel && panel !== document.body) {
+            var overflowY = getComputedStyle(panel).overflowY;
+            if ((overflowY === "auto" || overflowY === "scroll") && panel.scrollHeight > panel.clientHeight) break;
+            panel = panel.parentElement;
+        }
+        if (!panel || panel === document.body) {
+            el.scrollIntoView({ behavior: "smooth", block: block });
+            return;
+        }
+        var offset = el.getBoundingClientRect().top - panel.getBoundingClientRect().top;
+        if (block === "center") offset -= (panel.clientHeight - el.offsetHeight) / 2;
+        panel.scrollBy({ top: offset - 8, behavior: "smooth" });
+    }
+
     // [data-tab] buttons switch the [data-tab-panel] with the same key inside
     // their [data-tab-group].
     function initTabGroups() {
@@ -103,7 +122,7 @@
             var reps = window.representations || {};
             if ((core && reps[core]) || tries > 60) {
                 head.click();
-                card.scrollIntoView({ block: "center" });
+                scrollWithinPanel(card, "center");
                 return;
             }
             tries += 1;

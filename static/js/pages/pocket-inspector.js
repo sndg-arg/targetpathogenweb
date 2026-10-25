@@ -1,6 +1,25 @@
 (function (global) {
     "use strict";
 
+    // Scroll el into view inside its own scrolling panel only. scrollIntoView
+    // also scrolls the page, which on the full viewer (a fixed-height layout)
+    // pushed the whole viewer up and left a blank band below it.
+    function scrollWithinPanel(el, block) {
+        var panel = el.parentElement;
+        while (panel && panel !== document.body) {
+            var overflowY = getComputedStyle(panel).overflowY;
+            if ((overflowY === "auto" || overflowY === "scroll") && panel.scrollHeight > panel.clientHeight) break;
+            panel = panel.parentElement;
+        }
+        if (!panel || panel === document.body) {
+            el.scrollIntoView({ behavior: "smooth", block: block });
+            return;
+        }
+        var offset = el.getBoundingClientRect().top - panel.getBoundingClientRect().top;
+        if (block === "center") offset -= (panel.clientHeight - el.offsetHeight) / 2;
+        panel.scrollBy({ top: offset - 8, behavior: "smooth" });
+    }
+
     /**
      * Shared pocket-card / pocket-inspector DOM layer used by both the embedded
      * structure viewer (protein.html) and the fullscreen one (structure.html).
@@ -67,11 +86,13 @@
                 target.textContent = "-";
                 return;
             }
+            // Short values (volume, counts) read as chips; a sentence-long note
+            // wrapped inside a pill looks broken, so it stays plain text.
             parts.forEach(function (part) {
-                var chip = document.createElement("span");
-                chip.className = "tp-chip";
-                chip.textContent = part;
-                target.appendChild(chip);
+                var item = document.createElement("span");
+                item.className = part.length > 32 ? "sv-pocket-property-note" : "tp-chip";
+                item.textContent = part;
+                target.appendChild(item);
             });
         }
 
@@ -149,7 +170,7 @@
             setPocketInspectorField("properties", card.getAttribute("data-pocket-properties") || "");
             if (pocketInspector) {
                 pocketInspector.hidden = false;
-                pocketInspector.scrollIntoView({ behavior: "smooth", block: "start" });
+                scrollWithinPanel(pocketInspector, "start");
             }
         }
 
