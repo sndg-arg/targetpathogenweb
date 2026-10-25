@@ -153,11 +153,21 @@ def attach_score_rows(proteins, score_param_names=None):
         _cache_relation(protein, "score_params", by_protein.get(protein.pk, []))
 
 
+_RELATION_MODELS = {}
+
+
 def _cache_relation(protein, relation, rows):
     # Cache only this request's projection, using a QuerySet to preserve
     # related-manager .all(), .count(), and iteration. No model row is saved.
-    manager = getattr(protein, relation)
-    queryset = manager.model.objects.none()
+    # The related model is looked up once per relation: building a related
+    # manager per protein was most of the cost when ranking a genome.
+    from django.db.models import QuerySet
+
+    key = (type(protein), relation)
+    if key not in _RELATION_MODELS:
+        _RELATION_MODELS[key] = getattr(protein, relation).model
+    queryset = QuerySet(model=_RELATION_MODELS[key])
+    queryset.query.set_empty()
     queryset._result_cache = list(rows)
     queryset._prefetch_done = True
     if not hasattr(protein, "_prefetched_objects_cache"):
@@ -480,8 +490,37 @@ def annotate_shared_score_values(queryset, param_ids, user):
     return queryset.annotate(**annotations), {p.pk for p in params}
 
 
+INHERITED_PARAMS_CACHE_TTL_SECONDS = 900
+
+
 def inherited_score_param_ids(genome_name, user):
-    """Parameters available from accessible curated sources for this genome."""
+    """Parameters available from accessible curated sources for this genome.
+    Cached per genome and user like the other genome-scoped aggregates: the
+    protein list asks for it twice per request."""
+    from django.core.cache import cache
+    from django.db.models import Max
+    from tpweb.models import IdenticalSequenceMember
+    from tpweb.models.ScoreParam import ScoreParam
+    from tpweb.models.ScoreParamValue import ScoreParamValue
+
+    # New values, parameters or identity links change the key right away
+    # (max primary keys are index lookups); the TTL covers edits in place.
+    stamp = ":".join(
+        str(model.objects.aggregate(Max("pk"))["pk__max"])
+        for model in (ScoreParamValue, ScoreParam, IdenticalSequenceMember)
+    )
+    cache_key = (
+        f"Target:inherited_score_param_ids:{genome_name}:{getattr(user, 'pk', None)}:{stamp}"
+    )
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+    result = _inherited_score_param_ids(genome_name, user)
+    cache.set(cache_key, result, INHERITED_PARAMS_CACHE_TTL_SECONDS)
+    return result
+
+
+def _inherited_score_param_ids(genome_name, user):
     from bioseq.models.Biodatabase import Biodatabase
     from tpweb.models import IdenticalSequenceMember
     from tpweb.models.ScoreParam import ScoreParam
@@ -496,14 +535,14 @@ def inherited_score_param_ids(genome_name, user):
         group_id__in=groups,
         bioentry__isnull=False,
     )
-    by_genome = {}
-    for proteome, bioentry_id in sources.values_list("bioentry__biodatabase__name", "bioentry_id"):
-        source_genome = proteome.removesuffix(Biodatabase.PROT_POSTFIX)
-        by_genome.setdefault(source_genome, []).append(bioentry_id)
+    proteomes = sources.order_by().values_list("bioentry__biodatabase__name", flat=True).distinct()
     result = set()
-    for source_genome, ids in by_genome.items():
+    for proteome in proteomes:
+        source_genome = proteome.removesuffix(Biodatabase.PROT_POSTFIX)
         if not user_can_access_genome_name(user, source_genome):
             continue
+        # A subquery, not a Python list of thousands of ids to bind.
+        ids = sources.filter(bioentry__biodatabase__name=proteome).values("bioentry_id")
         used = ScoreParamValue.objects.filter(bioentry_id__in=ids).values("score_param_id")
         params = ScoreParam.objects.filter(
             score_param_visibility_filter(user, source_genome),
