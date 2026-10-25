@@ -41,4 +41,5 @@ fi
 
 QUEUE_POLL_INTERVAL="${QUEUE_POLL_INTERVAL:-5}"
 
-exec python manage.py tpweb_process_genome_queue --poll-interval "${QUEUE_POLL_INTERVAL}"
+# -u: unbuffered, so the worker's progress lines reach `docker logs` as they happen.
+exec python -u manage.py tpweb_process_genome_queue --poll-interval "${QUEUE_POLL_INTERVAL}"
