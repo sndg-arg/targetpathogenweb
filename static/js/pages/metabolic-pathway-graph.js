@@ -25,6 +25,43 @@
         };
     }
 
+    // Dagre stacks disconnected sub-networks in one tall column, so the fit
+    // zooms far out and labels shrink. Pack them into rows (largest first)
+    // shaped like the canvas instead.
+    function packComponents(cy, container) {
+        var parts = cy.elements().components();
+        if (parts.length < 2) return;
+        var gap = 48;
+        var boxes = parts.map(function (part) {
+            return { part: part, bb: part.boundingBox({ includeLabels: true }) };
+        }).sort(function (a, b) {
+            return (b.bb.w * b.bb.h) - (a.bb.w * a.bb.h);
+        });
+        var area = boxes.reduce(function (sum, box) {
+            return sum + (box.bb.w + gap) * (box.bb.h + gap);
+        }, 0);
+        var aspect = container.clientWidth / Math.max(container.clientHeight, 1);
+        var rowWidth = Math.max(boxes[0].bb.w, Math.sqrt(area * aspect));
+        var x = 0;
+        var y = 0;
+        var rowHeight = 0;
+        boxes.forEach(function (box) {
+            if (x > 0 && x + box.bb.w > rowWidth) {
+                x = 0;
+                y += rowHeight + gap;
+                rowHeight = 0;
+            }
+            var dx = x - box.bb.x1;
+            var dy = y - box.bb.y1;
+            box.part.nodes().positions(function (node) {
+                var pos = node.position();
+                return { x: pos.x + dx, y: pos.y + dy };
+            });
+            x += box.bb.w + gap;
+            rowHeight = Math.max(rowHeight, box.bb.h);
+        });
+    }
+
     function initPathwayGraph() {
         var container = document.getElementById("metabolic-pathway-graph-cy");
         var dataEl = document.getElementById("metabolic-pathway-graph-data");
@@ -67,11 +104,6 @@
             container: container,
             elements: elements,
             style: window.TPMetabolicReactionGraph.styleRules(readPalette()),
-            layout: window.TPMetabolicReactionGraph.flowLayout(roots, {
-                nodeSep: 54,
-                rankSep: 104,
-                padding: 30
-            }),
             minZoom: 0.2,
             maxZoom: 6,
             wheelSensitivity: 1,
@@ -88,6 +120,7 @@
         }
 
         cy.one("layoutstop", function () {
+            packComponents(cy, container);
             cy.fit(cy.elements(), 24);
             // Re-derive label/node size from the zoom this specific pathway actually fit
             // at, so a tiny pathway (fit zoomed way in) and a sprawling one (zoomed way
@@ -95,10 +128,18 @@
             fontScale = window.TPMetabolicReactionGraph.computeFontScale(cy.zoom());
             if (Math.abs(fontScale - 1) > 0.05) {
                 cy.style(window.TPMetabolicReactionGraph.styleRules(readPalette(), fontScale)).update();
+                packComponents(cy, container);
                 cy.fit(cy.elements(), 24);
             }
             container.classList.add("is-ready");
         });
+        // Laid out once without animation, then packed before the canvas fades in.
+        cy.layout(window.TPMetabolicReactionGraph.flowLayout(roots, {
+            nodeSep: 54,
+            rankSep: 104,
+            padding: 30,
+            animate: false
+        })).run();
 
         Array.prototype.forEach.call(
             document.querySelectorAll("[data-pathway-graph-action]"),
