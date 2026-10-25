@@ -1,5 +1,5 @@
 from django.core.cache import cache
-from django.db.models import Count, Prefetch, Q
+from django.db.models import Count, Q
 
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
@@ -157,16 +157,17 @@ def _score_proteins(assembly_name):
     Returned rows are plain dicts, unsorted.
     """
     from tpweb.services.protein_serializer import score_param_value_map
+    from tpweb.services.shared_sequence_evidence import attach_score_rows
 
     proteome_name = assembly_name + Biodatabase.PROT_POSTFIX
-    proteins = Bioentry.objects.filter(biodatabase__name=proteome_name).prefetch_related(
-        Prefetch(
-            "score_params",
-            queryset=ScoreParamValue.objects.filter(
-                score_param__name__in=_SCORE_PROTEINS_PARAM_NAMES
-            ).select_related("score_param"),
+    # Light score rows (values_list), not a prefetch of ~35k ScoreParamValue
+    # model instances: building those was most of a cold overview load.
+    proteins = list(
+        Bioentry.objects.filter(biodatabase__name=proteome_name).only(
+            "bioentry_id", "accession", "description"
         )
     )
+    attach_score_rows(proteins, _SCORE_PROTEINS_PARAM_NAMES)
 
     binder_counts_by_gene = {}
     for row in (
