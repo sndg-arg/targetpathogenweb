@@ -33,6 +33,11 @@ def _merged_helices(segments):
     return helices
 
 
+def count_transmembrane_segments(segments):
+    """Membrane-spanning segments once overlapping predictions are merged."""
+    return len(_merged_helices(segments))
+
+
 def _n_terminal_side(segments, first_helix):
     """Side of the N terminus: the reported domain before the first helix,
     else the opposite of the one right after it, else inside (most common)."""

@@ -114,6 +114,7 @@ EXACT_REPLACEMENTS = {
     "pocket_size_outlier": "Unusual pocket size",
     "pocket_consensus_high_score": "FPocket and P2Rank agree on a strong site",
     "hit_in_deg": "Essential homolog (DEG)",
+    "transmembrane_segments": "Transmembrane segments",
     "off-target": "Off-target",
     "metabolic network": "Metabolic network",
     "metabolic model (pan-genome)": "Metabolic priority (curated)",

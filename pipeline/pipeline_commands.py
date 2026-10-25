@@ -112,6 +112,7 @@ def load_interpro_cmd(working_dir, genome, folder_path):
         f"{PYTHON_BIN} {working_dir}/manage.py load_interpro {genome} --interpro_tsv {protein_file}"
         f" && {PYTHON_BIN} {working_dir}/manage.py load_interpro_go {genome}"
         f" --interpro-tsv {protein_file} --apply"
+        f" && {PYTHON_BIN} {working_dir}/manage.py index_transmembrane_segments {genome}"
     )
 
 

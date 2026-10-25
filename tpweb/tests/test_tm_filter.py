@@ -1,15 +1,17 @@
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Ontology import Ontology
 from bioseq.models.Seqfeature import Seqfeature
 from bioseq.models.Term import Term
+from tpweb.management.commands.index_transmembrane_segments import segment_counts
 from tpweb.services.protein_list import (
     add_selected_parameter,
     apply_selected_parameter_filters,
     build_special_filter_payload,
 )
+from tpweb.services.topology_diagram import count_transmembrane_segments
 
 
 class TransmembraneFilterTests(TestCase):
@@ -53,3 +55,22 @@ class TransmembraneFilterTests(TestCase):
         # Another yes/no filter is kept alongside.
         selected = add_selected_parameter(selected, build_special_filter_payload("ligands", "yes"))
         self.assertEqual(len(selected), 2)
+
+
+class TransmembraneSegmentCountTests(SimpleTestCase):
+    def test_overlapping_predictions_count_once(self):
+        rows = [
+            (1, 10, 30),  # Phobius
+            (1, 12, 31),  # TMHMM, same helix
+            (1, 60, 80),
+            (2, 5, 25),
+            (3, None, None),
+        ]
+        self.assertEqual(segment_counts(rows), {1: 2, 2: 1})
+
+    def test_count_helper_ignores_topology_domains(self):
+        segments = [
+            {"start": 1, "end": 9, "kind": "inside"},
+            {"start": 10, "end": 30, "kind": "membrane"},
+        ]
+        self.assertEqual(count_transmembrane_segments(segments), 1)

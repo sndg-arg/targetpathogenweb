@@ -33,6 +33,16 @@ GATES_METABOLIC_HELP = {
 }
 
 SYSTEM_SCORE_PARAM_DEFINITIONS = {
+    "transmembrane_segments": {
+        "category": "Localization",
+        "description": (
+            "Membrane-spanning segments predicted by InterProScan (Phobius / TMHMM), "
+            "overlapping predictions merged. 0 = soluble."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "1",
+    },
     "human_offtarget": {
         "category": "Off-target",
         "description": (
