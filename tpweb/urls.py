@@ -4,7 +4,7 @@ from .views.ActivityDashboardView import ActivityDashboardView
 from .views.UserManagementView import UserManagementView
 from .views.ProfileView import ProfileView
 from .views.SettingsView import SettingsView
-from .views.AssemblyView import AssemblyView
+from .views.AssemblyView import AssemblyTargetsView, AssemblyView
 from .views.DownloadView import DownloadView
 from .views.GenomesView import GenomesView
 from .views.IndexView import IndexView
@@ -70,6 +70,11 @@ urlpatterns = [
     path("about/us", view=AboutUsView.as_view(), name="about_us"),
     path("design", view=DesignSystemView.as_view(), name="design_system"),
     path("genome/<str:genome>", view=AssemblyView.as_view(), name="assembly"),
+    path(
+        "genome/<str:genome>/targets",
+        view=AssemblyTargetsView.as_view(),
+        name="assembly_targets",
+    ),
     path(
         "genome/<str:genome>/metabolism",
         view=MetabolismPathwayView.as_view(),

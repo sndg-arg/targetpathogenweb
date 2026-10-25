@@ -81,9 +81,6 @@ class AssemblyView(View):
             "prop_rows": build_genome_metadata_rows(props),
         }
         workspace_metrics = build_assembly_workspace_metrics(biodb.name)
-        top_targets_by_score, unexplored_targets = get_overview_target_rankings(
-            biodb.name, request.user, limit=5
-        )
         overview = build_assembly_overview(
             request.user,
             biodb.name,
@@ -98,6 +95,7 @@ class AssemblyView(View):
             "custom_scores_url": reverse("tpwebapp:customparam", kwargs={"genome": slug}),
             "uploaded_data_url": reverse("tpwebapp:uploaded_data", kwargs={"genome": slug}),
             "formula_url": reverse("tpwebapp:formula_form", kwargs={"genome": slug}),
+            "targets_url": reverse("tpwebapp:assembly_targets", kwargs={"genome": slug}),
             "ec_explorer_url": reverse(
                 "tpwebapp:annotation_explorer",
                 kwargs={"genome": slug, "annotation_kind": "ec"},
@@ -141,13 +139,6 @@ class AssemblyView(View):
             "assembly": assembly,
             "overview": overview,
             "workspace_metrics": workspace_metrics,
-            "unexplored_targets": unexplored_targets,
-            "top_targets_by_score": top_targets_by_score,
-            "triage_scoring": {
-                "maximum": int(EVIDENCE_CONVERGENCE_MAX_SCORE),
-                "strong_min": EVIDENCE_CONVERGENCE_STRONG_MIN,
-                "moderate_min": EVIDENCE_CONVERGENCE_MODERATE_MIN,
-            },
             "workspace_links": workspace_links,
             "view_export_url": build_view_export_url(request),
             "jbrowse_url": jbrowse_url,
@@ -291,3 +282,36 @@ class AssemblyView(View):
         delete_genome_workspace(biodb.name, owner=request.user)
         genomes_url = reverse("tpwebapp:genomes_list")
         return redirect(f"{genomes_url}?workspace_deleted={quote_plus(expected_accession)}")
+
+
+class AssemblyTargetsView(View):
+    """The overview's two triage rankings, fetched by the overview once it is
+    shown: scoring every protein of the genome is the slow part of a cold
+    overview load. Same access rules as AssemblyView."""
+
+    template_name = "genomic/_overview_targets.html"
+
+    def get(self, request, genome, *args, **kwargs):
+        internal_name = resolve_genome_from_slug(request.user, genome)
+        if not internal_name:
+            raise Http404("Genome not found")
+        top_targets_by_score, unexplored_targets = get_overview_target_rankings(
+            internal_name, request.user, limit=5
+        )
+        slug = genome_url_slug(internal_name)
+        return render(
+            request,
+            self.template_name,
+            {
+                "top_targets_by_score": top_targets_by_score,
+                "unexplored_targets": unexplored_targets,
+                "triage_scoring": {
+                    "maximum": int(EVIDENCE_CONVERGENCE_MAX_SCORE),
+                    "strong_min": EVIDENCE_CONVERGENCE_STRONG_MIN,
+                    "moderate_min": EVIDENCE_CONVERGENCE_MODERATE_MIN,
+                },
+                "workspace_links": {
+                    "formula_url": reverse("tpwebapp:formula_form", kwargs={"genome": slug}),
+                },
+            },
+        )
