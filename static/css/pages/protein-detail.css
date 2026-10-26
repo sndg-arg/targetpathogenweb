@@ -1957,3 +1957,109 @@ body.residue-modal-open {
     gap: var(--tp-space-2) var(--tp-space-3);
     margin-top: var(--tp-space-4);
 }
+
+/* ── Motion (protein.html opts in with [data-motion]; see protein-dossier.js) ── */
+.tp-structure-motion canvas {
+    transition: opacity 700ms var(--tp-ui-ease-standard);
+}
+
+.tp-structure-entering canvas {
+    opacity: 0;
+}
+
+[data-motion] .protein-card.tp-reveal {
+    animation: none;
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+        opacity 640ms var(--tp-ui-ease-standard),
+        transform 640ms var(--tp-ui-ease-standard);
+}
+
+[data-motion] .protein-card.tp-reveal.is-revealed {
+    opacity: 1;
+    transform: none;
+}
+
+/* Bars grow from zero when their section arrives, and each time an
+   assessment row opens. */
+[data-motion] .tp-reveal .tp-bar-fill {
+    transform: scaleX(0);
+    transition: transform 900ms var(--tp-ui-ease-standard) 220ms;
+}
+
+[data-motion] .tp-reveal.is-revealed .tp-bar-fill {
+    transform: scaleX(1);
+}
+
+[data-motion] .ta-item[open] .ta-body .tp-bar-fill {
+    animation: tp-bar-grow 900ms var(--tp-ui-ease-standard) 80ms both;
+}
+
+@keyframes tp-bar-grow {
+    from { transform: scaleX(0); }
+}
+
+/* Cell diagram: the lit compartment glows in. */
+[data-motion] .tp-reveal.is-revealed .hc-part.is-on {
+    animation: tp-cell-light 1200ms var(--tp-ui-ease-standard) 200ms both;
+}
+
+@keyframes tp-cell-light {
+    from { opacity: 0.2; }
+}
+
+/* Topology: the chain draws itself through the membrane, helices follow. */
+[data-motion] .tp-reveal .tm-chain {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+}
+
+[data-motion] .tp-reveal.is-revealed .tm-chain {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1600ms var(--tp-ui-ease-standard) 250ms;
+}
+
+[data-motion] .tp-reveal .tm-helix,
+[data-motion] .tp-reveal .tm-domain {
+    opacity: 0;
+}
+
+[data-motion] .tp-reveal.is-revealed .tm-helix,
+[data-motion] .tp-reveal.is-revealed .tm-domain {
+    opacity: 1;
+    transition: opacity 500ms var(--tp-ui-ease-standard) 700ms;
+}
+
+/* Tab panels (GO / EC ...) fade in when switched. */
+[data-motion] [data-tab-panel]:not(.is-hidden) {
+    animation: tp-panel-in 260ms var(--tp-ui-ease-standard);
+}
+
+@keyframes tp-panel-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-motion] .protein-card.tp-reveal,
+    [data-motion] .tp-reveal .tp-bar-fill,
+    [data-motion] .tp-reveal .tm-helix,
+    [data-motion] .tp-reveal .tm-domain {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    [data-motion] .tp-reveal .tm-chain {
+        stroke-dasharray: none;
+    }
+
+    [data-motion] .ta-item[open] .ta-body .tp-bar-fill,
+    [data-motion] .tp-reveal.is-revealed .hc-part.is-on,
+    [data-motion] [data-tab-panel]:not(.is-hidden) {
+        animation: none;
+    }
+}

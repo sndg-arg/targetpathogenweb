@@ -297,6 +297,10 @@
             setPocketInspectorField("properties", card.getAttribute("data-pocket-properties") || "");
             if (pocketInspector) {
                 pocketInspector.hidden = false;
+                // Replay the settle-in animation on every selection.
+                pocketInspector.classList.remove("is-entering");
+                void pocketInspector.offsetWidth;
+                pocketInspector.classList.add("is-entering");
                 scrollWithinPanel(pocketInspector, "start");
             }
         }

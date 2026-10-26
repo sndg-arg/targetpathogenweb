@@ -7,7 +7,7 @@
         <rect class="tm-membrane" x="0" y="{{ topo.membrane_y }}" width="{{ topo.width }}" height="{{ topo.membrane_h }}"/>
         <line class="tm-lipid" x1="0" x2="{{ topo.width }}" y1="{{ topo.membrane_y }}" y2="{{ topo.membrane_y }}"/>
         <line class="tm-lipid" x1="0" x2="{{ topo.width }}" y1="{{ topo.membrane_y|add:topo.membrane_h }}" y2="{{ topo.membrane_y|add:topo.membrane_h }}"/>
-        <path class="tm-chain" d="{{ topo.path }}"/>
+        <path class="tm-chain" d="{{ topo.path }}" pathLength="1"/>
         {% if topo.n_domain %}<ellipse class="tm-domain" cx="{{ topo.n_domain.cx }}" cy="{{ topo.n_domain.cy }}" rx="{{ topo.n_domain.rx }}" ry="{{ topo.n_domain.ry }}"><title>{{ topo.n_domain.title }}</title></ellipse>{% endif %}
         {% if topo.c_domain %}<ellipse class="tm-domain" cx="{{ topo.c_domain.cx }}" cy="{{ topo.c_domain.cy }}" rx="{{ topo.c_domain.rx }}" ry="{{ topo.c_domain.ry }}"><title>{{ topo.c_domain.title }}</title></ellipse>{% endif %}
         {% for helix in topo.helices %}

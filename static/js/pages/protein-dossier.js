@@ -130,6 +130,58 @@
         })();
     }
 
+    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Pages that opt in with [data-motion]: sections below the fold rise in
+    // as they scroll into view (their bars grow, the cell diagram lights up,
+    // the topology chain draws itself).
+    function initSectionReveal() {
+        var root = document.querySelector("[data-motion]");
+        if (!root || reduceMotion || !("IntersectionObserver" in window)) return;
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add("is-revealed");
+                observer.unobserve(entry.target);
+            });
+        }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
+        root.querySelectorAll(".protein-card").forEach(function (section) {
+            if (section.getBoundingClientRect().top < window.innerHeight * 0.92) return;
+            section.classList.add("tp-reveal");
+            observer.observe(section);
+        });
+    }
+
+    // Structure viewers: once the camera is framed, start a little farther
+    // and turned, then glide in while the canvas fades up.
+    window.tpStructureReveal = function (stage, viewportEl, delay) {
+        if (reduceMotion || !stage || !stage.viewer || !stage.animationControls) return;
+        if (viewportEl) {
+            viewportEl.classList.add("tp-structure-motion", "tp-structure-entering");
+        }
+        // Below the fold, wait until its section has scrolled in.
+        var pending = viewportEl && viewportEl.closest(".tp-reveal:not(.is-revealed)");
+        if (pending && "MutationObserver" in window) {
+            var watcher = new MutationObserver(function () {
+                if (!pending.classList.contains("is-revealed")) return;
+                watcher.disconnect();
+                window.tpStructureReveal(stage, viewportEl, 300);
+            });
+            watcher.observe(pending, { attributes: true, attributeFilter: ["class"] });
+            return;
+        }
+        window.setTimeout(function () {
+            var viewer = stage.viewer;
+            var z = viewer.camera.position.z;
+            var orientation = viewer.rotationGroup.quaternion.clone();
+            stage.viewerControls.distance(z * 1.6);
+            stage.viewerControls.spin([0, 1, 0], -0.5);
+            if (viewportEl) viewportEl.classList.remove("tp-structure-entering");
+            stage.animationControls.zoom(z, 1200);
+            stage.animationControls.rotate(orientation, 1200);
+        }, delay || 650);
+    };
+
     function ready(fn) {
         if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn);
         else fn();
@@ -139,6 +191,7 @@
         initTabGroups();
         initGlanceCountUp();
         initExpandToggles();
+        initSectionReveal();
         openLinkedPocket();
         openHashTarget();
         window.addEventListener("hashchange", openHashTarget);
