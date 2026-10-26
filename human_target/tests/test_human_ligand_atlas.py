@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.core.cache import cache
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from bioseq.models.Biodatabase import Biodatabase
@@ -16,6 +16,8 @@ from human_target.services.human_targets import HUMAN_BIODATABASE_NAME
 from tpweb.models.Binders import Binders
 
 
+# Never the deployment's Redis: tests run inside the live web container.
+@override_settings(CACHES={"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}})
 class LigandAtlasTests(TestCase):
     def setUp(self):
         cache.clear()

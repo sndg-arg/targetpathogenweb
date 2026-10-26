@@ -45,6 +45,9 @@ def main() -> int:
     from django.test.utils import get_runner
 
     settings.MIGRATION_MODULES = DisableMigrations()
+    # Tests call cache.clear() and cache aggregates; on the cluster they run
+    # inside the live web container, so never let them reach its Redis.
+    settings.CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
     django.setup()
     runner_class = get_runner(settings)
     # interactive=False: this runs unattended (CI, `docker exec`, pre-push
