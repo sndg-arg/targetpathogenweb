@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261026-cell3">
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261023-dossier">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261026-synthesis">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -110,6 +110,9 @@
             {% endif %}
             <a href="#section-identifiers" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Identifiers" %}</a>
             <a href="#section-strings" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "SMILES & InChI" %}</a>
+            {% if show_routes %}
+                <a href="#section-synthesis" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Synthesis" %}{% if routes %} <span class="tp-count">{{ routes|length }}</span>{% endif %}</a>
+            {% endif %}
             {% if external_links %}
                 <a href="#section-external" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "External" %}</a>
             {% endif %}
@@ -289,6 +292,39 @@
                     </div>
                 {% endif %}
             </section>
+
+            {% if show_routes %}
+                <section class="binder-card binder-card--synthesis" id="section-synthesis">
+                    <div class="section-head">
+                        <div>
+                            <h2>{% trans "Synthesis routes" %}</h2>
+                            <p class="section-subtitle">{% trans "Patent reactions that make this compound or a close analog (USPTO-50K, PaRoutes)." %}</p>
+                        </div>
+                    </div>
+                    {% if routes %}
+                        <div class="ta-list">
+                            {% for route in routes %}
+                                <details class="ta-item js-smooth-details"{% if forloop.first %} open{% endif %}>
+                                    <summary class="ta-row">
+                                        <span class="ta-label">{{ route.db_label }}</span>
+                                        <span class="ta-status"><span class="tp-chip{% if not route.is_exact %} tp-chip--muted{% endif %}">{% if route.is_exact %}{% trans "Exact product" %}{% else %}{% blocktrans with pct=route.similarity_pct %}Analog · {{ pct }}% similar{% endblocktrans %}{% endif %}</span></span>
+                                        <span class="ta-finding">{{ route.class_label|default:_("Unclassified reaction") }}{% if route.name %} · {{ route.name }}{% endif %}</span>
+                                    </summary>
+                                    <div class="ta-body">
+                                        {% if route.svg %}<div class="binder-reaction">{{ route.svg|safe }}</div>{% endif %}
+                                        <p class="binder-reaction-meta">
+                                            {% if route.patent_url %}<a href="{{ route.patent_url }}" target="_blank" rel="noopener noreferrer">{% blocktrans with patent=route.patent %}Patent {{ patent }}{% endblocktrans %} →</a>{% else %}{{ route.patent }}{% endif %}
+                                            {% if route.reagents %}<span class="binder-reaction-reagents">{% trans "Reagents and solvents" %}: <code>{{ route.reagents }}</code></span>{% endif %}
+                                        </p>
+                                    </div>
+                                </details>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="tp-state-note tp-state-note--empty">{% trans "No reaction in USPTO-50K or PaRoutes makes this compound or a close analog." %}</p>
+                    {% endif %}
+                </section>
+            {% endif %}
 
             {% if external_links %}
                 <section class="binder-card binder-card--external" id="section-external">

@@ -18,6 +18,7 @@ from tpweb.services.binder_summary import (
     make_binder_svg,
     _potency_from_pchembl,
 )
+from tpweb.services.ligand_reactions import ligand_routes, reactions_loaded
 
 
 SOURCE_LABEL = {
@@ -255,6 +256,8 @@ class BinderDetailView(View):
         notes_items = _parse_notes(binder.notes)
         external_links = _build_external_links(binder, properties)
         siblings = _get_siblings(binder)
+        # Routes are computed for known ligands only (PDB, ChEMBL), never ZINC.
+        show_routes = binder.source != Binders.SOURCE_PROPOSED and reactions_loaded()
 
         ctx = {
             "binder": {
@@ -282,6 +285,8 @@ class BinderDetailView(View):
             "properties": properties,
             "external_links": external_links,
             "siblings": siblings,
+            "show_routes": show_routes,
+            "routes": ligand_routes(binder.smiles) if show_routes else [],
             "protein": {
                 "id": protein.bioentry_id,
                 "accession": protein.accession,

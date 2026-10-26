@@ -112,3 +112,16 @@ Two separate layers, both in `tpweb/middleware/access_control.py`:
   `delete_queryset` route deletion through `unblock_ip()` rather than a plain `obj.delete()`, so
   deleting a row there also busts the middleware's cached blocked-IP set immediately instead of
   leaving that IP wrongly 403'd for up to the cache's TTL.
+
+## Ligand synthesis routes
+- Ligand page (`/binder/<id>`) "Synthesis routes": patent reactions whose product is the ligand
+  (exact, canonical SMILES) or an analog (Morgan r2, Tanimoto ≥ 0.45, only when no exact hit).
+  PDB/ChEMBL ligands only, bacterial and human alike. Stored in `LigandReaction`, keyed by
+  sha256 of `Binders.smiles` as stored (no web-side canonicalization, so RDKit versions can differ).
+- Datasets on the cluster, `/storage/home/agutson/reaction_datasets/`: `uspto50k/data_processed.csv`
+  (USPTO-50K with Schneider classes, from connorcoley/retrosim) and
+  `paroutes2/selected_reactions_all.csv` (PaRoutes v2, Zenodo 7341155, ~3.2 GB).
+- Refresh: `python manage.py predict_ligand_reactions` (as root, in its own container) exports the
+  distinct SMILES, runs `scripts/cluster/match_ligand_reactions.py` in one SLURM job (LigQ_2 conda
+  env, 12 CPUs / 48G via `TPW_REACTIONS_SLURM_*`), copies `routes.tsv.gz` back and loads it with
+  `load_ligand_reactions` (full replace). `--load-only` reloads the last file.

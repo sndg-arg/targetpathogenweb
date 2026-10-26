@@ -120,6 +120,7 @@
 .binder-card--strings,
 .binder-card--provenance,
 .binder-card--external,
+.binder-card--synthesis,
 .binder-card--siblings {
     grid-column: 1 / -1;
 }
@@ -388,4 +389,33 @@
     .binder-hero-mol {
         width: min(240px, 100%);
     }
+}
+
+/* Synthesis routes: one reaction drawing (RDKit SVG, white like the hero
+   structure) per open row, scrolling sideways when it is wider than the card. */
+.binder-reaction {
+    overflow-x: auto;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+}
+
+.binder-reaction svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.binder-reaction-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2) var(--tp-space-5);
+    margin: var(--tp-space-3) 0 0;
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-secondary);
+}
+
+.binder-reaction-reagents code {
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    word-break: break-all;
 }

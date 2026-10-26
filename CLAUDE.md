@@ -24,8 +24,8 @@ Detail lives in `docs/context/` so it isn't loaded every session. Older code com
   (stage 24): SLURM flow and every `TPW_*` env var with its default.
 - `HUMAN_TARGETS.md` — Human Targets (`human_target/` app): storage, pilot ingest, full-proteome bulk
   commands, cross-app template gotcha.
-- `FEATURES.md` — Cross-strain identical-sequence links, Metabolic pathway integration, Access
-  control (login wall vs. IP blocking).
+- `FEATURES.md` — Cross-strain identical-sequence links, Metabolic pathway integration, Ligand
+  synthesis routes, Access control (login wall vs. IP blocking).
 - `CLUSTER_OPS.md` — Debugging on cluster (container names, status/log/SLURM commands, genome
   reset), Moving large files neocranex → nodo0, Importing external analysis results (Gates).
 
