@@ -35,7 +35,6 @@
    annotation/cross-reference groups. */
 .human-text {
     margin: 0;
-    max-width: 78ch;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     line-height: 1.65;
@@ -168,10 +167,6 @@
     font-size: var(--tp-font-size-xs);
     font-style: italic;
     white-space: nowrap;
-}
-
-.hbio-main .human-text {
-    max-width: 92ch;
 }
 
 
