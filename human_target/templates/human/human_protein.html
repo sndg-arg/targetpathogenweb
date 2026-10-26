@@ -135,8 +135,7 @@
                     </div>
                     {% endfor %}
                 </dl>
-                {# One column: the prose at a reading measure, then where the protein
-                   sits (cell diagram, compartments, membrane topology) as one row. #}
+                {# Prose first, then where the protein sits (cell, compartments, topology) as one row. #}
                 {% if function.function_text or overview.subunit_text or overview.polymorphism_text %}
                 <div class="hbio-main">
                     {% if function.function_text %}
