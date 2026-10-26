@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load l10n %}
+{% load human_prose %}
 
 {% block title %}{{ human_protein.uniprot_accession }} · {% trans "Human Targets" %}{% endblock %}
 
@@ -12,7 +13,7 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261026-cell3">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261026-viewer">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261026-prose">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -141,19 +142,19 @@
                         {% if function.function_text %}
                         <div class="cross-reference-group">
                             <h3 class="cross-reference-group-label">{% trans "Function" %}</h3>
-                            <p class="human-text hbio-function">{{ function.function_text|linebreaksbr }}</p>
+                            <p class="human-text hbio-function">{{ function.function_text|uniprot_prose }}</p>
                         </div>
                         {% endif %}
                         {% if overview.subunit_text %}
                         <div class="cross-reference-group">
                             <h3 class="cross-reference-group-label">{% trans "Subunit structure" %}</h3>
-                            <p class="human-text">{{ overview.subunit_text }}</p>
+                            <p class="human-text">{{ overview.subunit_text|uniprot_prose }}</p>
                         </div>
                         {% endif %}
                         {% if overview.polymorphism_text %}
                         <div class="cross-reference-group">
                             <h3 class="cross-reference-group-label">{% trans "Polymorphism" %}</h3>
-                            <p class="human-text">{{ overview.polymorphism_text }}</p>
+                            <p class="human-text">{{ overview.polymorphism_text|uniprot_prose }}</p>
                         </div>
                         {% endif %}
                     </div>

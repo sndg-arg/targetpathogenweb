@@ -70,7 +70,15 @@
 }
 
 .hbio-main > * + * {
-    margin-top: var(--tp-space-5);
+    margin-top: var(--tp-space-7);
+}
+
+/* UniProt's "(By similarity)" / "(Probable)" as a quiet evidence tag. */
+.h-evidence {
+    color: var(--tp-color-text-soft);
+    font-size: var(--tp-font-size-xs);
+    font-style: italic;
+    white-space: nowrap;
 }
 
 .hbio-main .human-text {
