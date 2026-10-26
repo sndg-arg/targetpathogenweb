@@ -111,10 +111,12 @@ class Command(BaseCommand):
         finally:
             _close_remote_session(ssh, scp_client, sftp)
 
+        # The env's own python, no `conda activate`: some nodes (nodo1) don't
+        # mount /home/shared, where the base conda lives.
+        python = f"{conda.conda_env.rstrip('/')}/bin/python"
         command = (
-            f'source "{conda.conda_prefix}/etc/profile.d/conda.sh" && '
-            f'conda activate "{conda.conda_env}" && '
-            f"python {shlex.quote(remote_script)} --ligands {shlex.quote(remote_ligands)} "
+            f"{shlex.quote(python)} {shlex.quote(remote_script)} "
+            f"--ligands {shlex.quote(remote_ligands)} "
             f"--uspto50k {shlex.quote(options['uspto50k'])} "
             f"--paroutes {shlex.quote(options['paroutes'])} "
             f'--out {shlex.quote(remote_routes)} --workers "$SLURM_CPUS_PER_TASK"'
