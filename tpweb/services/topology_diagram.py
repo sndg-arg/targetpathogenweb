@@ -17,6 +17,8 @@ HELIX_WIDTH = 14
 TAIL = 34
 HEIGHT = 230
 DOMAIN_MIN = 40
+# Left column for the side labels, which sit right against the membrane.
+GUTTER = 84
 
 
 def _merged_helices(segments):
@@ -57,8 +59,8 @@ def build_topology_diagram(segments, length, outside_label, inside_label):
         return None
     side = _n_terminal_side(segments, helices[0])
     n_side = side
-    step = (WIDTH - 2 * TAIL - 40) / len(helices)
-    x0 = TAIL + 20 + step / 2
+    step = (WIDTH - GUTTER - 2 * TAIL - 20) / len(helices)
+    x0 = GUTTER + TAIL + step / 2
 
     def edge(s):
         return MEMBRANE_TOP if s == "outside" else MEMBRANE_BOTTOM
@@ -75,6 +77,8 @@ def build_topology_diagram(segments, length, outside_label, inside_label):
         f"Q{first_x - TAIL / 3:.1f} {edge(side):.1f} {first_x:.1f} {edge(side):.1f}",
     ]
     drawn = []
+    # Vertical extent of what is drawn, so the canvas hugs it.
+    ys = [n_start[1], MEMBRANE_TOP - 20, MEMBRANE_BOTTOM + 20]
     for i, helix in enumerate(helices):
         x = x0 + i * step
         top_in = side == "outside"
@@ -94,6 +98,7 @@ def build_topology_diagram(segments, length, outside_label, inside_label):
             residues = helices[i + 1]["start"] - helix["end"] - 1
             y = edge(side)
             peak = y + bulge(side, residues)
+            ys.append(y + bulge(side, residues) * 0.75)
             path.append(f"C{x:.1f} {peak:.1f} {nx:.1f} {peak:.1f} {nx:.1f} {y:.1f}")
     last_x = x0 + (len(helices) - 1) * step
     c_end = (last_x + TAIL, edge(side) + bulge(side, 6) * 0.6)
@@ -103,16 +108,26 @@ def build_topology_diagram(segments, length, outside_label, inside_label):
     c_domain = _terminal_domain(
         c_end, side, (total - helices[-1]["end"]) if total else 0, "C-terminal"
     )
+    n_label = _terminus_label(n_start, n_side, n_domain)
+    c_label = _terminus_label(c_end, side, c_domain)
+    ys += [c_end[1], n_label["y"] - 12, c_label["y"] - 12, n_label["y"] + 4, c_label["y"] + 4]
+    for domain in (n_domain, c_domain):
+        if domain:
+            ys += [domain["cy"] - domain["ry"], domain["cy"] + domain["ry"]]
+    view_y = math.floor(min(ys) - 10)
     return {
         "width": WIDTH,
-        "height": HEIGHT,
+        "view_y": view_y,
+        "height": math.ceil(max(ys) + 10 - view_y),
+        "side_out_y": MEMBRANE_TOP - 8,
+        "side_in_y": MEMBRANE_BOTTOM + 16,
         "membrane_y": MEMBRANE_TOP,
         "membrane_h": MEMBRANE_BOTTOM - MEMBRANE_TOP,
         "path": " ".join(path),
         "helices": drawn,
         "count": len(helices),
-        "n": _terminus_label(n_start, n_side, n_domain),
-        "c": _terminus_label(c_end, side, c_domain),
+        "n": n_label,
+        "c": c_label,
         "n_domain": n_domain,
         "c_domain": c_domain,
         "n_side": n_side,

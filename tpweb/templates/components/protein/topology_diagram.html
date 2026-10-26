@@ -1,9 +1,9 @@
 {% load i18n %}
 {# Membrane topology (tpweb/services/topology_diagram.py): the chain crossing the membrane once per helix. Colors from protein-page.css (.tm-*). #}
 <figure class="tm-figure">
-    <svg class="tm-diagram" viewBox="0 0 {{ topo.width }} {{ topo.height }}" role="img" aria-label="{% blocktrans count count=topo.count %}Membrane topology: {{ count }} transmembrane segment{% plural %}Membrane topology: {{ count }} transmembrane segments{% endblocktrans %}">
-        <text class="tm-side" x="4" y="18">{{ topo.outside_label }}</text>
-        <text class="tm-side" x="4" y="{{ topo.height|add:'-6' }}">{{ topo.inside_label }}</text>
+    <svg class="tm-diagram" viewBox="0 {{ topo.view_y }} {{ topo.width }} {{ topo.height }}" role="img" aria-label="{% blocktrans count count=topo.count %}Membrane topology: {{ count }} transmembrane segment{% plural %}Membrane topology: {{ count }} transmembrane segments{% endblocktrans %}">
+        <text class="tm-side" x="0" y="{{ topo.side_out_y }}">{{ topo.outside_label }}</text>
+        <text class="tm-side" x="0" y="{{ topo.side_in_y }}">{{ topo.inside_label }}</text>
         <rect class="tm-membrane" x="0" y="{{ topo.membrane_y }}" width="{{ topo.width }}" height="{{ topo.membrane_h }}"/>
         <line class="tm-lipid" x1="0" x2="{{ topo.width }}" y1="{{ topo.membrane_y }}" y2="{{ topo.membrane_y }}"/>
         <line class="tm-lipid" x1="0" x2="{{ topo.width }}" y1="{{ topo.membrane_y|add:topo.membrane_h }}" y2="{{ topo.membrane_y|add:topo.membrane_h }}"/>
