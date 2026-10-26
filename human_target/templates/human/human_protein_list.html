@@ -30,15 +30,15 @@
                     <h1 class="tp-view-title">{% trans "Human proteins" %}</h1>
                     <p class="tp-view-lead">{% trans "Curated human proteins with sequence, 3D structure, ligand, expression and pathway evidence." %}</p>
                 </div>
+                <div class="tp-view-head-actions">
+                    <a href="{% url 'human_target:human_ligand_atlas' %}" class="btn tp-btn tp-btn--secondary">{% trans "Ligand coverage" %}</a>
+                </div>
             </div>
             <div class="hero-chips tp-chip-group">
                 <span class="tp-chip">{% blocktrans with shown=dashboard.total_proteins|thousands count count=dashboard.total_proteins %}{{ shown }} protein{% plural %}{{ shown }} proteins{% endblocktrans %}</span>
                 <span class="tp-chip">{% trans "With ligand evidence" %}: {{ dashboard.proteins_with_ligands|thousands }}</span>
                 <span class="tp-chip">{% trans "Ligand records" %}: {{ dashboard.total_ligand_records|thousands }}</span>
             </div>
-            {% if dashboard.ligand_coverage_is_sparse %}
-                <p class="tp-state-note tp-state-note--empty">{% trans "Structure, ligand and pathway data are still being loaded, so those columns may be incomplete for now." %}</p>
-            {% endif %}
         </section>
 
         <section class="toolbar-card">

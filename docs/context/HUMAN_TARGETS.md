@@ -31,7 +31,9 @@ shared components) — zero data/functionality crossover.
   `human_target/templates/human/human_protein.html`). Diseases, Expression, Pathways are not yet
   built — `HumanProtein.disease_comments` is captured at ingest but unused by any template.
 - **URLs**: `/human/proteins` (`human_target:human_protein_list`), `/human/protein/<accession>`
-  (`human_target:human_protein`) — routed via `human_target/urls.py`, included from
+  (`human_target:human_protein`), `/human/ligands` (`human_target:human_ligand_atlas`, Ligand
+  coverage: proteome-wide LigQ_2 summary from `services/human_ligand_atlas.py`, cached and re-warmed
+  by `refresh_human_target_summary`) — routed via `human_target/urls.py`, included from
   `tpwebconfig/urls.py`. Visible in the nav (top-bar "Human Targets" link + mobile nav item in
   `masterpage.html`).
 - **Deploy**: no separate Docker service — `human_target` is just another entry in

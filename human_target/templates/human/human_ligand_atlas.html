@@ -1,0 +1,167 @@
+{% extends "base/masterpage.html" %}
+{% load i18n %}
+{% load static %}
+{% load custom_tags %}
+
+{% block title %}{% trans "Ligand coverage" %} · {% trans "Human Targets" %}{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/human-ligand-atlas.css' %}?v=20261026">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'human_target:human_protein_list' as human_url %}
+        {% trans "Human Targets" as crumb_human %}
+        {% trans "Ligand coverage" as crumb_atlas %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_human crumb_2_url=human_url crumb_3_label=crumb_atlas %}
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="atlas-page" data-motion>
+
+    <section class="tp-page-hero">
+        <div class="tp-view-head">
+            <div class="tp-view-head-copy">
+                <span class="tp-view-eyebrow">{% trans "Human Targets" %}</span>
+                <h1 class="tp-view-title">{% trans "Ligand coverage" %}</h1>
+                <p class="tp-view-lead">{% blocktrans with total=atlas.total_proteins|thousands %}Known and proposed ligands found by LigQ_2 across {{ total }} reviewed human proteins.{% endblocktrans %}</p>
+            </div>
+            <div class="tp-view-head-actions">
+                <a href="{% url 'human_target:human_protein_list' %}?reviewed=1&amp;ligands=1" class="btn tp-btn tp-btn--secondary">{% trans "Browse liganded proteins" %}</a>
+            </div>
+        </div>
+        <div class="tp-metrics atlas-metrics" aria-label="{% trans 'Coverage summary' %}">
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "Reviewed proteins" %}</span>
+                <span class="metric-value">{{ atlas.total_proteins|thousands }}</span>
+            </div>
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "With ligands" %}</span>
+                <span class="metric-value">{{ atlas.proteins_with_ligands|thousands }}</span>
+                <span class="metric-note">{{ atlas.proteins_with_ligands_pct }}%</span>
+            </div>
+            <div class="metric-pill">
+                <span class="metric-label" title="{% trans 'A PDB co-crystal or ChEMBL activity recorded for this exact UniProt entry.' %}">{% trans "Measured on the protein" %}</span>
+                <span class="metric-value">{{ atlas.proteins_direct|thousands }}</span>
+                <span class="metric-note">{{ atlas.proteins_direct_pct }}%</span>
+            </div>
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "Co-crystallized" %}</span>
+                <span class="metric-value">{{ atlas.proteins_cocrystal|thousands }}</span>
+            </div>
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "Ligand records" %}</span>
+                <span class="metric-value">{{ atlas.total_ligand_records|thousands }}</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="atlas-panel">
+        <div class="section-head">
+            <div>
+                <span class="tp-view-eyebrow">{% trans "Per protein" %}</span>
+                <h2>{% trans "Strongest evidence" %}</h2>
+                <p class="section-subtitle">{% trans "Each protein counted once, at its best tier." %}</p>
+            </div>
+        </div>
+        <div class="atlas-rows atlas-rows--wide">
+            {% for row in atlas.ladder %}
+            <div class="atlas-row{% if row.is_none %} is-none{% endif %}">
+                <span class="atlas-row-label">{{ row.label }}</span>
+                <span class="tp-bar{% if forloop.first %} tp-bar--accent{% endif %}" aria-hidden="true"><span class="tp-bar-fill" style="width: {{ row.pct }}%"></span></span>
+                <span class="atlas-row-value">{{ row.count|thousands }}</span>
+                <span class="atlas-row-share">{{ row.pct }}%</span>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="atlas-pair">
+        <section class="atlas-panel">
+            <div class="section-head">
+                <div>
+                    <span class="tp-view-eyebrow">{% trans "By source" %}</span>
+                    <h2>{% trans "Evidence categories" %}</h2>
+                    <p class="section-subtitle">{% trans "Proteins with at least one ligand of each kind." %}</p>
+                </div>
+            </div>
+            <div class="atlas-rows">
+                {% for row in atlas.categories %}
+                {% ifchanged row.tier %}<p class="atlas-group">{{ row.tier }}</p>{% endifchanged %}
+                <div class="atlas-row">
+                    <span class="atlas-row-label">{{ row.label }}</span>
+                    <span class="tp-bar" aria-hidden="true"><span class="tp-bar-fill" style="width: {{ row.pct }}%"></span></span>
+                    <span class="atlas-row-value" title="{% blocktrans with records=row.records|thousands %}{{ records }} ligand records{% endblocktrans %}">{{ row.count|thousands }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="atlas-panel">
+            <div class="section-head">
+                <div>
+                    <span class="tp-view-eyebrow">{% trans "ChEMBL activity" %}</span>
+                    <h2>{% trans "Potency" %}</h2>
+                    <p class="section-subtitle">{% blocktrans with n=atlas.chembl_scored|thousands %}{{ n }} ligand records by pChEMBL (−log₁₀ molar).{% endblocktrans %}</p>
+                </div>
+            </div>
+            <div class="atlas-rows">
+                {% for row in atlas.potency %}
+                <div class="atlas-row">
+                    <span class="atlas-row-label">{{ row.label }} <span class="atlas-row-hint">{{ row.hint }}</span></span>
+                    <span class="tp-bar" aria-hidden="true"><span class="tp-bar-fill" style="width: {{ row.pct }}%"></span></span>
+                    <span class="atlas-row-value">{{ row.count|thousands }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <div class="atlas-pair">
+        <section class="atlas-panel">
+            <div class="section-head">
+                <div>
+                    <span class="tp-view-eyebrow">{% trans "Richness" %}</span>
+                    <h2>{% trans "Known ligands per protein" %}</h2>
+                    <p class="section-subtitle">{% blocktrans with n=atlas.proteins_with_known|thousands %}{{ n }} proteins with PDB or ChEMBL ligands.{% endblocktrans %}</p>
+                </div>
+            </div>
+            <div class="atlas-rows">
+                {% for row in atlas.richness %}
+                <div class="atlas-row">
+                    <span class="atlas-row-label">{{ row.label }}</span>
+                    <span class="tp-bar" aria-hidden="true"><span class="tp-bar-fill" style="width: {{ row.pct }}%"></span></span>
+                    <span class="atlas-row-value">{{ row.count|thousands }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="atlas-panel">
+            <div class="section-head">
+                <div>
+                    <span class="tp-view-eyebrow">{% trans "Structure" %}</span>
+                    <h2>{% trans "Ligands and PDB structures" %}</h2>
+                    <p class="section-subtitle">{% trans "Nearly all also have a predicted model." %}</p>
+                </div>
+            </div>
+            <div class="atlas-rows">
+                {% for row in atlas.structure_matrix %}
+                <div class="atlas-row">
+                    <span class="atlas-row-label">{{ row.label }}</span>
+                    <span class="tp-bar" aria-hidden="true"><span class="tp-bar-fill" style="width: {{ row.pct }}%"></span></span>
+                    <span class="atlas-row-value">{{ row.count|thousands }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <p class="atlas-footnote">{% trans "Reviewed (Swiss-Prot) proteins only. Up to 100 ChEMBL and 50 ZINC ligands are kept per protein; PDB ligands are all kept." %}</p>
+</div>
+{% endblock %}

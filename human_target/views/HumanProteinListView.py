@@ -5,7 +5,7 @@ from django.db.models import F, Q
 from django.shortcuts import render
 from django.views import View
 
-from human_target.services.human_dashboard_summary import build_human_dashboard_context
+from human_target.services.human_ligand_atlas import human_list_headline
 from human_target.services.human_targets import human_proteins_queryset
 from tpweb.views.ProteinListView import ProteinListView
 from tpweb.views.mixins import PermissionLockedMixin
@@ -238,6 +238,6 @@ class HumanProteinListView(PermissionLockedMixin, View):
                 "has_summary": human_proteins_queryset()
                 .filter(summary_updated_at__isnull=False)
                 .exists(),
-                "dashboard": build_human_dashboard_context(),
+                "dashboard": human_list_headline(),
             },
         )
