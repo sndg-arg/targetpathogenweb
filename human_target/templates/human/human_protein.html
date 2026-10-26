@@ -139,7 +139,10 @@
                     {% if function.function_text or overview.subunit_text or overview.polymorphism_text %}
                     <div class="hbio-main">
                         {% if function.function_text %}
-                        <p class="human-text hbio-function">{{ function.function_text|linebreaksbr }}</p>
+                        <div class="cross-reference-group">
+                            <h3 class="cross-reference-group-label">{% trans "Function" %}</h3>
+                            <p class="human-text hbio-function">{{ function.function_text|linebreaksbr }}</p>
+                        </div>
                         {% endif %}
                         {% if overview.subunit_text %}
                         <div class="cross-reference-group">
