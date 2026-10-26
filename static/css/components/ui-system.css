@@ -2702,3 +2702,76 @@ a.metric-pill:focus-visible .metric-pill-jump {
     padding: var(--tp-space-3) var(--tp-space-4);
     border-top: 1px solid var(--tp-color-border-soft);
 }
+
+/* ── Motion (pages with [data-motion], see js/global/tp-motion.js) ──
+   Sections below the fold rise in when reached; numbers count up, bars
+   grow and grids/lists cascade as their section arrives. */
+[data-motion] .tp-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: none !important;
+    transition:
+        opacity 640ms var(--tp-ui-ease-standard),
+        transform 640ms var(--tp-ui-ease-standard);
+}
+
+[data-motion] .tp-reveal.is-revealed {
+    opacity: 1;
+    transform: none;
+}
+
+[data-motion] .tp-motion-section .tp-bar-fill,
+[data-motion] .tp-motion-section .targets-score-fill {
+    transform-origin: left center;
+}
+
+[data-motion] .tp-motion-section:not(.is-revealed) .tp-bar-fill,
+[data-motion] .tp-motion-section:not(.is-revealed) .targets-score-fill {
+    transform: scaleX(0);
+}
+
+[data-motion] .tp-motion-section.is-revealed .tp-bar-fill,
+[data-motion] .tp-motion-section.is-revealed .targets-score-fill {
+    transform: scaleX(1);
+    transition: transform 1000ms var(--tp-ui-ease-standard) 200ms;
+}
+
+[data-motion] .tp-motion-section:not(.is-revealed) .tp-stagger-item {
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+[data-motion] .tp-motion-section.is-revealed .tp-stagger-item {
+    transition:
+        opacity 460ms var(--tp-ui-ease-standard),
+        transform 460ms var(--tp-ui-ease-standard);
+    transition-delay: calc(min(var(--tp-i, 0), 12) * 45ms + 80ms);
+}
+
+/* Content injected after load (lazy rankings, re-rendered rows). */
+[data-motion] .tp-fresh.tp-stagger-item,
+[data-motion] .tp-fresh .tp-stagger-item {
+    animation: tp-ui-enter 460ms var(--tp-ui-ease-standard) backwards;
+    animation-delay: calc(min(var(--tp-i, 0), 12) * 45ms);
+}
+
+[data-motion] .tp-fresh .tp-bar-fill,
+[data-motion] .tp-fresh .targets-score-fill {
+    animation: tp-motion-grow 1000ms var(--tp-ui-ease-standard) 250ms both;
+}
+
+@keyframes tp-motion-grow {
+    from { transform: scaleX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-motion] .tp-reveal,
+    [data-motion] .tp-motion-section .tp-stagger-item,
+    [data-motion] .tp-motion-section .tp-bar-fill,
+    [data-motion] .tp-motion-section .targets-score-fill {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+        animation: none !important;
+    }
+}

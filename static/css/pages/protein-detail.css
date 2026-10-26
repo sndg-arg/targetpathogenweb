@@ -1967,31 +1967,8 @@ body.residue-modal-open {
     opacity: 0;
 }
 
-[data-motion] .protein-card.tp-reveal {
-    animation: none;
-    opacity: 0;
-    transform: translateY(16px);
-    transition:
-        opacity 640ms var(--tp-ui-ease-standard),
-        transform 640ms var(--tp-ui-ease-standard);
-}
-
-[data-motion] .protein-card.tp-reveal.is-revealed {
-    opacity: 1;
-    transform: none;
-}
-
-/* Bars grow from zero when their section arrives, and each time an
-   assessment row opens. */
-[data-motion] .tp-reveal .tp-bar-fill {
-    transform: scaleX(0);
-    transition: transform 900ms var(--tp-ui-ease-standard) 220ms;
-}
-
-[data-motion] .tp-reveal.is-revealed .tp-bar-fill {
-    transform: scaleX(1);
-}
-
+/* Bars grow again each time an assessment row opens (sections, numbers and
+   bars on reveal come from ui-system.css "Motion"). */
 [data-motion] .ta-item[open] .ta-body .tp-bar-fill {
     animation: tp-bar-grow 900ms var(--tp-ui-ease-standard) 80ms both;
 }
@@ -2044,8 +2021,6 @@ body.residue-modal-open {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    [data-motion] .protein-card.tp-reveal,
-    [data-motion] .tp-reveal .tp-bar-fill,
     [data-motion] .tp-reveal .tm-helix,
     [data-motion] .tp-reveal .tm-domain {
         opacity: 1;

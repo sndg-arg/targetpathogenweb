@@ -132,26 +132,6 @@
 
     var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Pages that opt in with [data-motion]: sections below the fold rise in
-    // as they scroll into view (their bars grow, the cell diagram lights up,
-    // the topology chain draws itself).
-    function initSectionReveal() {
-        var root = document.querySelector("[data-motion]");
-        if (!root || reduceMotion || !("IntersectionObserver" in window)) return;
-        var observer = new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-                if (!entry.isIntersecting) return;
-                entry.target.classList.add("is-revealed");
-                observer.unobserve(entry.target);
-            });
-        }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
-        root.querySelectorAll(".protein-card").forEach(function (section) {
-            if (section.getBoundingClientRect().top < window.innerHeight * 0.92) return;
-            section.classList.add("tp-reveal");
-            observer.observe(section);
-        });
-    }
-
     // Structure viewers: once the camera is framed, start a little farther
     // and turned, then glide in while the canvas fades up.
     window.tpStructureReveal = function (stage, viewportEl, delay) {
@@ -191,7 +171,6 @@
         initTabGroups();
         initGlanceCountUp();
         initExpandToggles();
-        initSectionReveal();
         openLinkedPocket();
         openHashTarget();
         window.addEventListener("hashchange", openHashTarget);
