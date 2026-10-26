@@ -576,6 +576,89 @@ body:has(.sv-root) { overflow: hidden; }
     margin-top: var(--tp-space-2);
 }
 
+.sv-pocket-inspector-link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--tp-color-link);
+    font: inherit;
+    cursor: pointer;
+}
+
+.sv-pocket-inspector-link:hover {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+}
+
+.sv-composition-bar {
+    display: flex;
+    height: 6px;
+    margin: var(--tp-space-1) 0 var(--tp-space-2);
+    border-radius: var(--tp-radius-pill);
+    background: var(--tp-color-border-soft);
+    overflow: hidden;
+}
+
+.sv-composition-seg {
+    display: block;
+    height: 100%;
+}
+
+.sv-composition-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px var(--tp-space-3);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-xs);
+    font-variant-numeric: tabular-nums;
+}
+
+.sv-composition-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-1);
+}
+
+.sv-composition-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--tp-radius-pill);
+}
+
+/* One petrol scale, apolar darkest: reads as a gradient of "drug-likeness"
+   rather than four unrelated colors. */
+.sv-composition--hydrophobic { background: var(--tp-color-brand-800); }
+.sv-composition--aromatic { background: var(--tp-color-brand-500); }
+.sv-composition--polar { background: var(--tp-color-brand-200); }
+.sv-composition--charged { background: var(--tp-color-border-strong); }
+
+.sv-pocket-property {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-1) 0;
+    font-size: var(--tp-font-size-xs);
+}
+
+.sv-pocket-property + .sv-pocket-property {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.sv-pocket-property-key {
+    color: var(--tp-color-text-muted);
+}
+
+.sv-pocket-property-value {
+    color: var(--tp-color-text-primary);
+    font-weight: 500;
+}
+
+.sv-pocket-property-detail {
+    display: block;
+    color: var(--tp-color-text-muted);
+    font-weight: 400;
+}
+
 .sv-pocket-inspector-wide {
     grid-column: 1 / -1;
 }
@@ -873,6 +956,17 @@ body:has(.sv-root) { overflow: hidden; }
     line-height: 1.6;
     white-space: pre-wrap;
     word-break: break-word;
+}
+
+/* Residues in aligned columns (the text nodes between cells keep copy as
+   "Phe570 Phe572 ..."). */
+.residue-modal-body:has(> span) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    gap: 0 var(--tp-space-2);
+    align-content: start;
+    overflow-y: auto;
+    white-space: normal;
 }
 
 body.residue-modal-open { overflow: hidden; }
