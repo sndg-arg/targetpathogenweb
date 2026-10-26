@@ -505,6 +505,10 @@
     box-shadow: inset 3px 0 0 var(--tp-color-border-strong);
 }
 
+.hs-entry.is-unavailable {
+    opacity: 0.5;
+}
+
 .hs-entry.is-active {
     background: var(--tp-color-surface-soft);
     box-shadow: inset 3px 0 0 var(--human-accent);
@@ -546,6 +550,34 @@
     align-self: center;
 }
 
+.hs-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    cursor: pointer;
+}
+
+.hs-overlay.is-active {
+    pointer-events: none;
+}
+
+.hs-loading .structure-loading-spinner {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    margin-right: var(--tp-space-2);
+    border: 2px solid var(--tp-color-border-strong);
+    border-top-color: var(--human-accent);
+    border-radius: var(--tp-radius-pill);
+    animation: structure-loading-spin 800ms linear infinite;
+}
+
+.hs-hint {
+    margin: var(--tp-space-2) 0 0;
+    color: var(--tp-color-text-soft);
+    font-size: var(--tp-font-size-xs);
+}
+
 .hs-stage {
     position: relative;
     display: flex;
@@ -582,10 +614,6 @@
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     pointer-events: none;
-}
-
-.hs-stage.is-loading .hs-loading {
-    animation: hs-breathe 1.6s var(--human-ease) infinite;
 }
 
 @keyframes hs-breathe {
@@ -987,7 +1015,7 @@
         transition: none !important;
     }
 
-    .hs-stage.is-loading .hs-loading,
+    .hs-loading .structure-loading-spinner,
     .ha-map.is-filtered .ha-row--variants .ha-tick.is-hit,
     .hseq mark,
     .human-expression-panel:not(.is-hidden) {

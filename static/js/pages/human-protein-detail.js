@@ -78,11 +78,50 @@
             if (stageEl) stageEl.classList.toggle("is-loading", isLoading);
         }
 
-        function loadEntry(entry, source, buttonEl) {
-            if (loadingEl) {
-                loadingEl.textContent = "Loading structure…";
-                loadingEl.style.display = "flex";
+        function showNote(text, withSpinner) {
+            if (!loadingEl) return;
+            loadingEl.textContent = "";
+            if (withSpinner) {
+                var spinner = document.createElement("span");
+                spinner.className = "structure-loading-spinner";
+                spinner.setAttribute("aria-hidden", "true");
+                loadingEl.appendChild(spinner);
             }
+            loadingEl.appendChild(document.createTextNode(text));
+            loadingEl.style.display = "flex";
+        }
+
+        // Same as the pathogen viewer: the page scrolls past the viewer until
+        // it is clicked; then the wheel zooms the structure instead.
+        if (stageEl) {
+            var overlay = document.createElement("div");
+            overlay.className = "hs-overlay";
+            overlay.title = "Click to interact";
+            stageEl.appendChild(overlay);
+            overlay.addEventListener("click", function () {
+                overlay.classList.add("is-active");
+            });
+            viewportEl.addEventListener("wheel", function (event) {
+                if (overlay.classList.contains("is-active")) event.preventDefault();
+            }, { passive: false });
+            document.addEventListener("mousedown", function (event) {
+                if (!stageEl.contains(event.target)) overlay.classList.remove("is-active");
+            }, true);
+            document.addEventListener("wheel", function (event) {
+                if (!stageEl.contains(event.target)) overlay.classList.remove("is-active");
+            }, { passive: true, capture: true });
+        }
+
+        // A structure whose file isn't on the server yet is marked and, when
+        // it was picked automatically, the next one in its list loads instead.
+        function nextEntryButton(buttonEl) {
+            var next = buttonEl && buttonEl.nextElementSibling;
+            while (next && next.classList.contains("is-unavailable")) next = next.nextElementSibling;
+            return next && next.classList.contains("human-structure-entry") ? next : null;
+        }
+
+        function loadEntry(entry, source, buttonEl, auto) {
+            showNote("Loading structure…", true);
             setLoading(true);
             if (captionEl) captionEl.textContent = captionEl.getAttribute("data-caption-" + source) || "";
             document.querySelectorAll(".human-structure-entry.is-active").forEach(function (el) {
@@ -114,10 +153,16 @@
                 setLoading(false);
             }).catch(function () {
                 setLoading(false);
-                if (loadingEl) {
-                    loadingEl.textContent = "Unable to load 3D structure.";
-                    loadingEl.style.display = "flex";
+                if (buttonEl) {
+                    buttonEl.classList.add("is-unavailable");
+                    buttonEl.title = "Structure file not available yet";
                 }
+                var next = auto ? nextEntryButton(buttonEl) : null;
+                if (next) {
+                    loadEntry({ url: next.getAttribute("data-structure-url") }, source, next, true);
+                    return;
+                }
+                showNote("This structure file isn't available yet. Pick another one.", false);
             });
         }
 
@@ -146,7 +191,7 @@
             var firstButton = document.querySelector(
                 '.human-structure-panel[data-structure-panel="' + firstTab.key + '"] .human-structure-entry'
             );
-            loadEntry(firstTab.entries[0], firstTab.key, firstButton);
+            loadEntry(firstTab.entries[0], firstTab.key, firstButton, true);
         }
     }
 
