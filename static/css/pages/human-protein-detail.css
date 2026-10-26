@@ -433,7 +433,6 @@
 }
 
 .hd-body p {
-    max-width: 78ch;
     margin: 0 0 var(--tp-space-2);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
