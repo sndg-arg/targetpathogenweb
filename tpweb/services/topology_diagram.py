@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import math
 
-WIDTH = 560
+WIDTH = 560  # widest drawing (many helices)
+MAX_STEP = 46  # helix spacing cap, so a few helices make a narrow drawing
 MEMBRANE_TOP = 96
 MEMBRANE_BOTTOM = 134
 HELIX_WIDTH = 14
@@ -59,8 +60,16 @@ def build_topology_diagram(segments, length, outside_label, inside_label):
         return None
     side = _n_terminal_side(segments, helices[0])
     n_side = side
-    step = (WIDTH - GUTTER - 2 * TAIL - 20) / len(helices)
-    x0 = GUTTER + TAIL + step / 2
+    # Few helices: a narrow drawing at natural size (readable in a side
+    # column) instead of a 560-wide band shrunk to fit.
+    step = min(MAX_STEP, (WIDTH - GUTTER - 2 * TAIL - 20) / len(helices))
+    natural = GUTTER + 2 * TAIL + 20 + step * len(helices)
+    # Room for a terminal domain blob beside the label column.
+    total = int(length or 0)
+    terminal_lengths = [helices[0]["start"] - 1, (total - helices[-1]["end"]) if total else 0]
+    blob = max((_domain_rx(n) for n in terminal_lengths if n >= DOMAIN_MIN), default=0)
+    width = round(max(natural, GUTTER + 2 * blob + 8))
+    x0 = GUTTER + TAIL + step / 2 + (width - natural) / 2
 
     def edge(s):
         return MEMBRANE_TOP if s == "outside" else MEMBRANE_BOTTOM
@@ -103,10 +112,9 @@ def build_topology_diagram(segments, length, outside_label, inside_label):
     last_x = x0 + (len(helices) - 1) * step
     c_end = (last_x + TAIL, edge(side) + bulge(side, 6) * 0.6)
     path.append(f"Q{last_x + TAIL / 3:.1f} {edge(side):.1f} {c_end[0]:.1f} {c_end[1]:.1f}")
-    total = int(length or 0)
-    n_domain = _terminal_domain(n_start, n_side, helices[0]["start"] - 1, "N-terminal")
+    n_domain = _terminal_domain(n_start, n_side, helices[0]["start"] - 1, "N-terminal", width)
     c_domain = _terminal_domain(
-        c_end, side, (total - helices[-1]["end"]) if total else 0, "C-terminal"
+        c_end, side, (total - helices[-1]["end"]) if total else 0, "C-terminal", width
     )
     n_label = _terminus_label(n_start, n_side, n_domain)
     c_label = _terminus_label(c_end, side, c_domain)
@@ -116,7 +124,7 @@ def build_topology_diagram(segments, length, outside_label, inside_label):
             ys += [domain["cy"] - domain["ry"], domain["cy"] + domain["ry"]]
     view_y = math.floor(min(ys) - 10)
     return {
-        "width": WIDTH,
+        "width": width,
         "view_y": view_y,
         "height": math.ceil(max(ys) + 10 - view_y),
         "side_out_y": MEMBRANE_TOP - 8,
@@ -138,15 +146,20 @@ def build_topology_diagram(segments, length, outside_label, inside_label):
     }
 
 
-def _terminal_domain(end, side, residues, label):
+def _domain_rx(residues):
+    return min(66, 16 + 7 * math.log2(residues))
+
+
+def _terminal_domain(end, side, residues, label, width=WIDTH):
     """A long terminal region (an ectodomain, a cytoplasmic kinase...) drawn
     as a soft domain blob at the end of its tail, sized by residue count."""
     if residues < DOMAIN_MIN:
         return None
-    rx = min(66, 16 + 7 * math.log2(residues))
+    rx = _domain_rx(residues)
     ry = rx * 0.5
     sign = -1 if side == "outside" else 1
-    cx = min(max(end[0], rx + 2), WIDTH - rx - 2)
+    # Clear of the side-label column on the left.
+    cx = min(max(end[0], GUTTER + rx + 4), width - rx - 2)
     cy = end[1] + sign * (ry - 4)
     cy = min(max(cy, ry + 22), HEIGHT - ry - 22)
     return {
