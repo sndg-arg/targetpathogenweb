@@ -132,15 +132,16 @@
 
     var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Structure viewers: once the camera is framed, start a little farther
-    // and turned, then glide in while the canvas fades up.
+    // Full viewer: once the camera is framed, start a little farther back
+    // and ease in while the canvas fades up (like the human viewer's
+    // animated autoView).
     window.tpStructureReveal = function (stage, viewportEl, delay) {
         if (reduceMotion || !stage || !stage.viewer || !stage.animationControls) return;
         if (viewportEl) {
             viewportEl.classList.add("tp-structure-motion", "tp-structure-entering");
         }
         // Below the fold, wait until its section has scrolled in.
-        var pending = viewportEl && viewportEl.closest(".tp-reveal:not(.is-revealed)");
+        var pending = viewportEl && viewportEl.closest(".tp-motion-section:not(.is-revealed)");
         if (pending && "MutationObserver" in window) {
             var watcher = new MutationObserver(function () {
                 if (!pending.classList.contains("is-revealed")) return;
@@ -153,13 +154,10 @@
         window.setTimeout(function () {
             var viewer = stage.viewer;
             var z = viewer.camera.position.z;
-            var orientation = viewer.rotationGroup.quaternion.clone();
-            stage.viewerControls.distance(z * 1.6);
-            stage.viewerControls.spin([0, 1, 0], -0.5);
+            stage.viewerControls.distance(z * 1.25);
             if (viewportEl) viewportEl.classList.remove("tp-structure-entering");
-            stage.animationControls.zoom(z, 1200);
-            stage.animationControls.rotate(orientation, 1200);
-        }, delay || 650);
+            stage.animationControls.zoom(z, 700);
+        }, delay || 400);
     };
 
     function ready(fn) {

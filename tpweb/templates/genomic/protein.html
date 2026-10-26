@@ -5,7 +5,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261026-cell3">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261026-calm">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261026-quiet">
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
 {% endblock %}
 
@@ -29,9 +29,7 @@
 
 {% block body %}
 
-    {# "calm": numbers and bars animate, but sections don't fade in and nothing
-       watches DOM changes -- the 3D viewer and the lazy ligand panels load here. #}
-    <div class="protein-page" data-motion="calm">
+    <div class="protein-page" data-motion>
         <section class="tp-page-hero protein-hero" id="section-overview">
             <div class="protein-hero-top tp-view-head">
                 <div class="protein-hero-content tp-view-head-copy">
@@ -901,7 +899,7 @@
     {{ graphic_features|json_script:"seqfeatures" }}
 
     <script src="{% static 'js/pages/protein-architecture.js' %}?v=20261022"></script>
-    <script src="{% static 'js/pages/protein-dossier.js' %}?v=20261026-motion2"></script>
+    <script src="{% static 'js/pages/protein-dossier.js' %}?v=20261026-quiet"></script>
     <script src="{% static 'js/pages/protein-detail.js' %}?v=20261018-neutral"></script>
     <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20261025-inspector"></script>
     <script src="{% static 'js/pages/ngl-shape-registry.js' %}?v=20260720-shaperegistry1"></script>

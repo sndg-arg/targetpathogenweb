@@ -1,35 +1,17 @@
 /*
- * Page motion for pages that opt in with [data-motion] on their root:
- *   - sections rise in as they scroll into view (above-the-fold ones play
- *     right away),
- *   - their numbers count up, their bars grow, grids and lists cascade,
- *   - content injected later (lazy rankings, re-rendered tables) gets the
- *     same entrance.
- * data-motion="calm" (protein page) keeps numbers, bars and small cascades
- * but skips the section fade-in, table-row cascades and the DOM watcher.
- * Classes: .tp-motion-section (+ .tp-reveal while below the fold) gets
- * .is-revealed; CSS lives in ui-system.css ("Motion"). Honors
- * prefers-reduced-motion by doing nothing.
+ * Quiet page motion for pages that opt in with [data-motion] on their root,
+ * matching the human protein page: the hero's numbers count up once, and
+ * bars grow the first time their section is on screen (also bars injected
+ * later, e.g. the lazy triage ranking). Nothing else moves. Classes:
+ * .tp-motion-section gets .is-revealed; CSS in ui-system.css ("Motion").
+ * Honors prefers-reduced-motion by doing nothing.
  */
 (function () {
     "use strict";
 
     var SECTION_SELECTOR = "section";
-    var NUMBER_SELECTOR = [
-        ".metric-value",
-        ".evidence-headline",
-        ".evidence-bd-value",
-        ".targets-score-number",
-        "[data-countup]"
-    ].join(", ");
-    var STAGGER_SELECTOR = [
-        ".tp-metrics",
-        ".evidence-grid",
-        ".targets-list",
-        ".tp-table tbody",
-        "[data-stagger]"
-    ].join(", ");
-    var STAGGER_LIMIT = 24;
+    // Only the hero's headline numbers, like the human page's glance.
+    var NUMBER_SELECTOR = ".tp-page-hero .metric-value, [data-countup]";
     var COUNT_DURATION = 1000;
 
     var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -101,25 +83,9 @@
         window.requestAnimationFrame(frame);
     }
 
-    function stagger(scope, skipTables) {
-        var containers = [];
-        if (scope.matches && scope.matches(STAGGER_SELECTOR)) containers.push(scope);
-        scope.querySelectorAll(STAGGER_SELECTOR).forEach(function (c) { containers.push(c); });
-        containers.forEach(function (container) {
-            if (skipTables && container.matches("tbody")) return;
-            Array.prototype.slice.call(container.children, 0, STAGGER_LIMIT).forEach(function (child, i) {
-                if (child.classList.contains("tp-stagger-item")) return;
-                child.classList.add("tp-stagger-item");
-                child.style.setProperty("--tp-i", i);
-            });
-        });
-    }
-
     function init() {
         var root = document.querySelector("[data-motion]");
         if (!root || reduceMotion || !("IntersectionObserver" in window)) return;
-        var calm = root.getAttribute("data-motion") === "calm";
-
         var numberObserver = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 if (!entry.isIntersecting) return;
@@ -147,29 +113,19 @@
         });
         sections.forEach(function (section) {
             section.classList.add("tp-motion-section");
-            if (!calm && section.getBoundingClientRect().top > window.innerHeight * 0.92) {
-                section.classList.add("tp-reveal");
-            }
-            stagger(section, calm);
             sectionObserver.observe(section);
         });
         watchNumbers(root);
 
-        // Lazily injected content (triage rankings, re-rendered table rows).
-        if (!calm && "MutationObserver" in window) {
+        // Bars injected later (the genome overview's lazy triage ranking)
+        // grow on arrival.
+        if (root.querySelector("[data-targets-src]") && "MutationObserver" in window) {
             new MutationObserver(function (mutations) {
                 mutations.forEach(function (mutation) {
                     mutation.addedNodes.forEach(function (node) {
                         if (node.nodeType !== 1 || node.closest(".tp-fresh")) return;
-                        if (!node.querySelector(".tp-bar-fill, .targets-score-fill, " + STAGGER_SELECTOR) &&
-                            !node.matches(STAGGER_SELECTOR + ", tr")) return;
+                        if (!node.querySelector(".tp-bar-fill, .targets-score-fill")) return;
                         node.classList.add("tp-fresh");
-                        if (node.matches("tr") && node.parentElement) {
-                            stagger(node.parentElement);
-                        } else {
-                            stagger(node);
-                        }
-                        watchNumbers(node);
                     });
                 });
             }).observe(root, { childList: true, subtree: true });

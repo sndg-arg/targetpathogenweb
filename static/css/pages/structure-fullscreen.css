@@ -1413,17 +1413,6 @@ body.viewer-settings-open { overflow: hidden; }
     opacity: 0;
 }
 
-/* Pocket list arrives in a short cascade. */
-.sv-structure-block:not([hidden]) .pocket-card {
-    animation: tp-ui-enter 360ms var(--tp-ui-ease-standard) backwards;
-}
-
-.sv-structure-block .pocket-card:nth-child(2) { animation-delay: 40ms; }
-.sv-structure-block .pocket-card:nth-child(3) { animation-delay: 80ms; }
-.sv-structure-block .pocket-card:nth-child(4) { animation-delay: 120ms; }
-.sv-structure-block .pocket-card:nth-child(5) { animation-delay: 160ms; }
-.sv-structure-block .pocket-card:nth-child(n + 6) { animation-delay: 200ms; }
-
 /* Selecting a pocket: the detail panel settles in, the composition grows. */
 .sv-pocket-inspector.is-entering {
     animation: sv-inspector-in 320ms var(--tp-ui-ease-standard);
@@ -1446,7 +1435,6 @@ body.viewer-settings-open { overflow: hidden; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .sv-structure-block .pocket-card,
     .sv-pocket-inspector.is-entering,
     .sv-composition-seg {
         animation: none;

@@ -1977,15 +1977,6 @@ body.residue-modal-open {
     from { transform: scaleX(0); }
 }
 
-/* Cell diagram: the lit compartment glows in. */
-[data-motion] .tp-motion-section.is-revealed .hc-part.is-on {
-    animation: tp-cell-light 1200ms var(--tp-ui-ease-standard) 200ms both;
-}
-
-@keyframes tp-cell-light {
-    from { opacity: 0.2; }
-}
-
 /* Topology: the chain draws itself through the membrane, helices follow. */
 [data-motion] .tp-motion-section:not(.is-revealed) .tm-chain {
     stroke-dasharray: 1;
@@ -2033,7 +2024,6 @@ body.residue-modal-open {
     }
 
     [data-motion] .ta-item[open] .ta-body .tp-bar-fill,
-    [data-motion] .tp-motion-section.is-revealed .hc-part.is-on,
     [data-motion] [data-tab-panel]:not(.is-hidden) {
         animation: none;
     }
