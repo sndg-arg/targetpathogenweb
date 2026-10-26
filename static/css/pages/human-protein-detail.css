@@ -69,8 +69,34 @@
     grid-column: 1 / -1;
 }
 
-.hbio-main > * + * {
+.hbio-main > * + *,
+.hbio-main > .cross-reference-group + .cross-reference-group {
     margin-top: var(--tp-space-7);
+}
+
+
+/* Long UniProt prose (EGFR's subunit list...) opens on four lines. */
+.human-text.is-collapsed {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.hbio-more {
+    margin-top: var(--tp-space-2);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.hbio-more:hover {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
 }
 
 /* UniProt's "(By similarity)" / "(Probable)" as a quiet evidence tag. */
