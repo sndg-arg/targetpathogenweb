@@ -16,7 +16,9 @@ Including another URLconf
 
 from django.contrib import admin
 from django.conf import settings
+from django.templatetags.static import static
 from django.urls import include, path
+from django.views.generic import RedirectView
 
 from tpweb.views.UserViews import user_redirect_view
 
@@ -28,6 +30,8 @@ str(tpweb.admin)  # Do not remove, it loads the admin models
 urlpatterns = (
     [
         path(settings.ADMIN_URL, admin.site.urls),
+        # Browsers and bookmark tools ask for /favicon.ico directly.
+        path("favicon.ico", RedirectView.as_view(url=static("img/brand/favicon.ico"))),
         path("~redirect/", view=user_redirect_view, name="redirect"),
         path("", include("tpweb.urls")),
         path("human/", include("human_target.urls")),
