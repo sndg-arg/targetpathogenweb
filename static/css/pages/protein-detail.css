@@ -1978,7 +1978,7 @@ body.residue-modal-open {
 }
 
 /* Cell diagram: the lit compartment glows in. */
-[data-motion] .tp-reveal.is-revealed .hc-part.is-on {
+[data-motion] .tp-motion-section.is-revealed .hc-part.is-on {
     animation: tp-cell-light 1200ms var(--tp-ui-ease-standard) 200ms both;
 }
 
@@ -1987,23 +1987,23 @@ body.residue-modal-open {
 }
 
 /* Topology: the chain draws itself through the membrane, helices follow. */
-[data-motion] .tp-reveal .tm-chain {
+[data-motion] .tp-motion-section:not(.is-revealed) .tm-chain {
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
 }
 
-[data-motion] .tp-reveal.is-revealed .tm-chain {
+[data-motion] .tp-motion-section.is-revealed .tm-chain {
     stroke-dashoffset: 0;
     transition: stroke-dashoffset 1600ms var(--tp-ui-ease-standard) 250ms;
 }
 
-[data-motion] .tp-reveal .tm-helix,
-[data-motion] .tp-reveal .tm-domain {
+[data-motion] .tp-motion-section:not(.is-revealed) .tm-helix,
+[data-motion] .tp-motion-section:not(.is-revealed) .tm-domain {
     opacity: 0;
 }
 
-[data-motion] .tp-reveal.is-revealed .tm-helix,
-[data-motion] .tp-reveal.is-revealed .tm-domain {
+[data-motion] .tp-motion-section.is-revealed .tm-helix,
+[data-motion] .tp-motion-section.is-revealed .tm-domain {
     opacity: 1;
     transition: opacity 500ms var(--tp-ui-ease-standard) 700ms;
 }
@@ -2021,19 +2021,19 @@ body.residue-modal-open {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    [data-motion] .tp-reveal .tm-helix,
-    [data-motion] .tp-reveal .tm-domain {
+    [data-motion] .tp-motion-section:not(.is-revealed) .tm-helix,
+    [data-motion] .tp-motion-section:not(.is-revealed) .tm-domain {
         opacity: 1;
         transform: none;
         transition: none;
     }
 
-    [data-motion] .tp-reveal .tm-chain {
+    [data-motion] .tp-motion-section:not(.is-revealed) .tm-chain {
         stroke-dasharray: none;
     }
 
     [data-motion] .ta-item[open] .ta-body .tp-bar-fill,
-    [data-motion] .tp-reveal.is-revealed .hc-part.is-on,
+    [data-motion] .tp-motion-section.is-revealed .hc-part.is-on,
     [data-motion] [data-tab-panel]:not(.is-hidden) {
         animation: none;
     }
