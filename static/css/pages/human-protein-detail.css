@@ -68,33 +68,68 @@
     box-shadow: none;
 }
 
-.hbio-facts + .hbio-layout {
+.hbio-facts + .hbio-main,
+.hbio-facts + .hbio-place {
     margin-top: var(--tp-space-6);
 }
 
 /* Inside the section, group titles are small labels without their own
    rule: one hairline (under the facts) frames the whole block. */
-.hbio-layout .cross-reference-group-label {
+#section-biology .cross-reference-group-label {
     padding: 0;
     border-bottom: 0;
 }
 
-.hbio-layout .cross-reference-group > .human-text {
+#section-biology .cross-reference-group > .human-text {
     margin-top: var(--tp-space-2);
 }
 
-/* The prose column is only as wide as its text (up to a reading measure),
-   so a one-line function sits right beside the diagram, not across a gap. */
-.hbio-layout {
-    display: grid;
-    grid-template-columns: fit-content(min(92ch, 100%)) minmax(280px, 360px);
-    justify-content: start;
-    gap: var(--tp-space-8);
-    align-items: start;
+/* One column of prose, then where the protein sits as one row: the cell
+   with its compartments beside the membrane topology, top-aligned. */
+.hbio-main + .hbio-place {
+    margin-top: var(--tp-space-8);
 }
 
-.hbio-layout > :only-child {
-    grid-column: 1 / -1;
+.hbio-place {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--tp-space-7) calc(var(--tp-space-8) + var(--tp-space-4));
+}
+
+.hbio-location-body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-3) var(--tp-space-6);
+    margin-top: var(--tp-space-3);
+}
+
+.hbio-location .hc-cell {
+    width: 240px;
+    max-width: 100%;
+}
+
+.hbio-location .hc-list {
+    margin: 0;
+}
+
+.hbio-place > .cross-reference-group {
+    margin-top: 0;
+}
+
+/* At its natural width (the svg's width attribute), not shrunk to fit. */
+.hbio-topology {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+.hbio-topology .tm-figure {
+    margin-top: var(--tp-space-3);
+}
+
+.hbio-topology .tm-diagram {
+    width: auto;
 }
 
 .hbio-main > * + *,
@@ -139,19 +174,6 @@
     max-width: 92ch;
 }
 
-.hbio-aside .hc-cell {
-    max-width: 300px;
-}
-
-.hbio-aside .hc-list {
-    margin-top: var(--tp-space-3);
-}
-
-@media (max-width: 900px) {
-    .hbio-layout {
-        grid-template-columns: minmax(0, 1fr);
-    }
-}
 
 #section-sequence > .data-details {
     margin-top: var(--tp-space-4);

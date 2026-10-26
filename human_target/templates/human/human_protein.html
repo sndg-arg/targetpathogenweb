@@ -13,7 +13,7 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261026-cell3">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261026-bio2">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261026-bio3">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -135,50 +135,51 @@
                     </div>
                     {% endfor %}
                 </dl>
-                {% if function.function_text or overview.subunit_text or overview.polymorphism_text or overview.subcellular_locations or topology %}
-                <div class="hbio-layout">
-                    {% if function.function_text or overview.subunit_text or overview.polymorphism_text or topology %}
-                    <div class="hbio-main">
-                        {% if function.function_text %}
-                        <div class="cross-reference-group">
-                            <h3 class="cross-reference-group-label">{% trans "Function" %}</h3>
-                            <p class="human-text hbio-function{% if function.function_text|length > 1200 %} is-collapsed{% endif %}" id="hbio-function-text">{{ function.function_text|uniprot_prose }}</p>
-                            {% if function.function_text|length > 1200 %}<button type="button" class="hbio-more" data-expand-target="hbio-function-text" data-label-more="{% trans 'Show all' %}" data-label-less="{% trans 'Show less' %}">{% trans "Show all" %}</button>{% endif %}
-                        </div>
-                        {% endif %}
-                        {% if overview.subunit_text %}
-                        <div class="cross-reference-group">
-                            <h3 class="cross-reference-group-label">{% trans "Subunit structure" %}</h3>
-                            <p class="human-text{% if overview.subunit_text|length > 1200 %} is-collapsed{% endif %}" id="hbio-subunit-text">{{ overview.subunit_text|uniprot_prose }}</p>
-                            {% if overview.subunit_text|length > 1200 %}<button type="button" class="hbio-more" data-expand-target="hbio-subunit-text" data-label-more="{% trans 'Show all' %}" data-label-less="{% trans 'Show less' %}">{% trans "Show all" %}</button>{% endif %}
-                        </div>
-                        {% endif %}
-                        {% if overview.polymorphism_text %}
-                        <div class="cross-reference-group">
-                            <h3 class="cross-reference-group-label">{% trans "Polymorphism" %}</h3>
-                            <p class="human-text{% if overview.polymorphism_text|length > 1200 %} is-collapsed{% endif %}" id="hbio-polymorphism-text">{{ overview.polymorphism_text|uniprot_prose }}</p>
-                            {% if overview.polymorphism_text|length > 1200 %}<button type="button" class="hbio-more" data-expand-target="hbio-polymorphism-text" data-label-more="{% trans 'Show all' %}" data-label-less="{% trans 'Show less' %}">{% trans "Show all" %}</button>{% endif %}
-                        </div>
-                        {% endif %}
-                        {% if topology %}
-                        {# In the wide column, where the drawing keeps its natural size. #}
-                        <div class="cross-reference-group hbio-topology">
-                            <h3 class="cross-reference-group-label">{% trans "Membrane topology" %}</h3>
-                            {% include "components/protein/topology_diagram.html" with topo=topology %}
-                        </div>
-                        {% endif %}
+                {# One column: the prose at a reading measure, then where the protein
+                   sits (cell diagram, compartments, membrane topology) as one row. #}
+                {% if function.function_text or overview.subunit_text or overview.polymorphism_text %}
+                <div class="hbio-main">
+                    {% if function.function_text %}
+                    <div class="cross-reference-group">
+                        <h3 class="cross-reference-group-label">{% trans "Function" %}</h3>
+                        <p class="human-text hbio-function{% if function.function_text|length > 1200 %} is-collapsed{% endif %}" id="hbio-function-text">{{ function.function_text|uniprot_prose }}</p>
+                        {% if function.function_text|length > 1200 %}<button type="button" class="hbio-more" data-expand-target="hbio-function-text" data-label-more="{% trans 'Show all' %}" data-label-less="{% trans 'Show less' %}">{% trans "Show all" %}</button>{% endif %}
                     </div>
                     {% endif %}
+                    {% if overview.subunit_text %}
+                    <div class="cross-reference-group">
+                        <h3 class="cross-reference-group-label">{% trans "Subunit structure" %}</h3>
+                        <p class="human-text{% if overview.subunit_text|length > 1200 %} is-collapsed{% endif %}" id="hbio-subunit-text">{{ overview.subunit_text|uniprot_prose }}</p>
+                        {% if overview.subunit_text|length > 1200 %}<button type="button" class="hbio-more" data-expand-target="hbio-subunit-text" data-label-more="{% trans 'Show all' %}" data-label-less="{% trans 'Show less' %}">{% trans "Show all" %}</button>{% endif %}
+                    </div>
+                    {% endif %}
+                    {% if overview.polymorphism_text %}
+                    <div class="cross-reference-group">
+                        <h3 class="cross-reference-group-label">{% trans "Polymorphism" %}</h3>
+                        <p class="human-text{% if overview.polymorphism_text|length > 1200 %} is-collapsed{% endif %}" id="hbio-polymorphism-text">{{ overview.polymorphism_text|uniprot_prose }}</p>
+                        {% if overview.polymorphism_text|length > 1200 %}<button type="button" class="hbio-more" data-expand-target="hbio-polymorphism-text" data-label-more="{% trans 'Show all' %}" data-label-less="{% trans 'Show less' %}">{% trans "Show all" %}</button>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% if overview.subcellular_locations or topology %}
+                <div class="hbio-place">
                     {% if overview.subcellular_locations %}
-                    <aside class="hbio-aside">
-                        <div class="cross-reference-group hov-cell">
-                            <h3 class="cross-reference-group-label">{% trans "Subcellular location" %}</h3>
+                    <div class="cross-reference-group hov-cell hbio-location">
+                        <h3 class="cross-reference-group-label">{% trans "Subcellular location" %}</h3>
+                        <div class="hbio-location-body">
                             {% include "components/protein/cell_diagram.html" with compartments=dossier.compartments %}
                             <ul class="hc-list">
                                 {% for loc in overview.subcellular_locations %}<li><span class="hc-dot" aria-hidden="true"></span>{{ loc }}</li>{% endfor %}
                             </ul>
                         </div>
-                    </aside>
+                    </div>
+                    {% endif %}
+                    {% if topology %}
+                    <div class="cross-reference-group hbio-topology">
+                        <h3 class="cross-reference-group-label">{% trans "Membrane topology" %}</h3>
+                        {% include "components/protein/topology_diagram.html" with topo=topology %}
+                    </div>
                     {% endif %}
                 </div>
                 {% endif %}
