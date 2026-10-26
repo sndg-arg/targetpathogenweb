@@ -58,7 +58,7 @@ test:
 	$(COMPOSE) exec web $(CONTAINER_PYTHON) scripts/run_tests.py
 
 coverage:
-	$(PYTHON) -m coverage run --source=tpweb,pipeline scripts/run_tests.py
+	$(PYTHON) -m coverage run --source=tpweb,human_target,pipeline scripts/run_tests.py
 	$(PYTHON) -m coverage report -m
 
 qa: lint test

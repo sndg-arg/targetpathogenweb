@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from django.core.management import call_command
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase, TransactionTestCase
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
@@ -127,7 +127,9 @@ class _FakeResponse:
         pass
 
 
-class LoadHumanStructuresBulkTests(TestCase):
+class LoadHumanStructuresBulkTests(TransactionTestCase):
+    # Experimental entries load in worker threads, each with its own DB
+    # connection: they only see committed rows, which TestCase never commits.
     def _make_human_protein(self, accession, pdb_ids=()):
         biodatabase, _ = Biodatabase.objects.get_or_create(name="human_curated_prots")
         bioentry = Bioentry.objects.create(

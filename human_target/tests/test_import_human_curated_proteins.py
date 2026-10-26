@@ -301,7 +301,7 @@ class WriteUniprotDbxrefTests(TestCase):
     the only signal that connects the two."""
 
     def _make_bioentry(self, accession):
-        biodatabase = Biodatabase.objects.create(name="human_curated_prots")
+        biodatabase, _ = Biodatabase.objects.get_or_create(name="human_curated_prots")
         return Bioentry.objects.create(
             biodatabase=biodatabase, name=accession, accession=accession, identifier=accession
         )
@@ -331,7 +331,7 @@ class WriteUniprotDbxrefTests(TestCase):
 
 class LoadExpressionTests(TestCase):
     def _make_human_protein(self, accession):
-        biodatabase = Biodatabase.objects.create(name="human_curated_prots")
+        biodatabase, _ = Biodatabase.objects.get_or_create(name="human_curated_prots")
         bioentry = Bioentry.objects.create(
             biodatabase=biodatabase, name=accession, accession=accession, identifier=accession
         )
@@ -419,7 +419,7 @@ class ParseKgmlTests(SimpleTestCase):
 
 class LoadPathwaysTests(TestCase):
     def _make_human_protein(self, accession, gene_id=""):
-        biodatabase = Biodatabase.objects.create(name="human_curated_prots")
+        biodatabase, _ = Biodatabase.objects.get_or_create(name="human_curated_prots")
         bioentry = Bioentry.objects.create(
             biodatabase=biodatabase, name=accession, accession=accession, identifier=accession
         )

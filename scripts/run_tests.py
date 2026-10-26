@@ -53,7 +53,7 @@ def main() -> int:
     # waiting on stdin. keepdb=True reuses that DB instead of dropping it,
     # which is also just faster on repeat runs.
     test_runner = runner_class(verbosity=2, interactive=False, keepdb=True)
-    failures = test_runner.run_tests(["tpweb"])
+    failures = test_runner.run_tests(["tpweb", "human_target"])
     if failures:
         return 1
 
