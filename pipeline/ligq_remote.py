@@ -282,11 +282,38 @@ def run_remote_ligq(cfg_dict, folder_path, genome):
             print("LigQ_2 remote: every protein reuses an identical curated copy; nothing to run.")
             return
 
+    job_id = run_ligq_job(config, local_fasta, local_ligq_dir, genome, run_id_raw=run_id_raw)
+
+    print("LigQ_2 remote: loading results into DB")
+    call_command(
+        "load_ligq_2_results",
+        local_output_dir,
+        max_known_per_protein=config.max_known_per_protein,
+        max_zinc_per_protein=config.max_zinc_per_protein,
+        min_tanimoto=config.min_tanimoto,
+    )
+
+    _record_event(
+        run_id_raw,
+        stage_number=24,
+        status="info",
+        message=f"LigQ_2 stage complete (job {job_id})",
+        payload={"job_id": job_id, "genome": genome},
+    )
+
+
+def run_ligq_job(config, local_fasta, local_ligq_dir, label, *, run_id_raw="", remove_remote=False):
+    """Run LigQ_2 on local_fasta in one SLURM job; output lands in <local_ligq_dir>/output.
+
+    Returns the SLURM job id. remove_remote deletes the remote workdir once the
+    output is copied back (bulk runs whose outputs would otherwise pile up).
+    """
+    local_output_dir = os.path.join(local_ligq_dir, "output")
     _assert_ssh_reachable(config.ssh_host, config.ssh_port, config.ssh_connect_timeout)
 
-    safe_genome = "".join(c if c.isalnum() or c in ("_", "-") else "_" for c in genome)
+    safe_label = "".join(c if c.isalnum() or c in ("_", "-") else "_" for c in label)
     run_label = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    remote_workdir = f"{config.ssh_rootfolder.rstrip('/')}/tpw_ligq/{safe_genome}_{run_label}"
+    remote_workdir = f"{config.ssh_rootfolder.rstrip('/')}/tpw_ligq/{safe_label}_{run_label}"
     remote_input = f"{remote_workdir}/proteins.fasta"
     remote_output_dir = f"{remote_workdir}/output"
     remote_slurm = f"{remote_workdir}/ligq_batch.slurm"
@@ -322,8 +349,8 @@ def run_remote_ligq(cfg_dict, folder_path, genome):
             run_id_raw,
             stage_number=24,
             status="info",
-            message=f"Submitted remote LigQ_2 job {job_id} for {genome}",
-            payload={"job_id": job_id, "remote_workdir": remote_workdir, "genome": genome},
+            message=f"Submitted remote LigQ_2 job {job_id} for {label}",
+            payload={"job_id": job_id, "remote_workdir": remote_workdir, "genome": label},
         )
 
         waited = 0
@@ -381,24 +408,11 @@ def run_remote_ligq(cfg_dict, folder_path, genome):
             check=True,
         )
         os.remove(local_tar)
-        _exec_remote(ssh, f"rm -f {shlex.quote(remote_tar)}")
-
-        print("LigQ_2 remote: loading results into DB")
-        call_command(
-            "load_ligq_2_results",
-            local_output_dir,
-            max_known_per_protein=config.max_known_per_protein,
-            max_zinc_per_protein=config.max_zinc_per_protein,
-            min_tanimoto=config.min_tanimoto,
-        )
-
-        _record_event(
-            run_id_raw,
-            stage_number=24,
-            status="info",
-            message=f"LigQ_2 stage complete (job {job_id})",
-            payload={"job_id": job_id, "genome": genome},
-        )
+        if remove_remote:
+            _exec_remote(ssh, f"rm -rf {shlex.quote(remote_workdir)}")
+        else:
+            _exec_remote(ssh, f"rm -f {shlex.quote(remote_tar)}")
+        return job_id
     finally:
         if not finished and job_id:
             try:

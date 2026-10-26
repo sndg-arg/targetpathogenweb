@@ -115,5 +115,11 @@ shared components) — zero data/functionality crossover.
     completed work. Running this inside a container that gets restarted (e.g. by `make up`/`make
     build` for an unrelated change) silently kills the job and wipes its `/tmp` log — always confirm
     with `ps aux | grep load_human_structures_bulk` after any container restart during a long run.
+  - **LigQ_2 — implemented**: `python manage.py predict_human_ligq [--accession ...] [--chunk-size
+    1000] [--max-chunks N] [--keep-output] [--dry-run]`. Reviewed proteins only, one SLURM job per
+    chunk via `ligq_remote.run_ligq_job` (stage 24's runner minus the genome FASTA dump), loaded with
+    `load_ligq_2_results`. Chunk membership is fixed in `data/human_ligq/chunk_NNN/proteins.fasta`;
+    `FETCHED`/`LOADED` markers make it resumable, and a loaded chunk's output is deleted locally and
+    on the cluster. Run it in its own container (a web redeploy kills `docker exec` jobs).
   - Full plan (phased, pause-and-review between each step, row-count/disk-footprint estimates):
     see the session's saved plan file.
