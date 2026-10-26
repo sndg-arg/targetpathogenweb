@@ -1867,11 +1867,12 @@ body.binder-mol-modal-open {
 }
 
 .hc-part.is-on .hc-fill {
-    fill: color-mix(in srgb, var(--tp-color-primary) 16%, var(--tp-color-surface));
+    fill: color-mix(in srgb, var(--tp-color-primary) 28%, var(--tp-color-surface));
 }
 
+/* Strong enough to read as lit next to a lit organelle; organelles stay darker. */
 .hc-part--cytoplasm.is-on .hc-fill {
-    fill: color-mix(in srgb, var(--tp-color-primary) 9%, var(--tp-color-surface));
+    fill: color-mix(in srgb, var(--tp-color-primary) 14%, var(--tp-color-surface));
 }
 
 .hc-part--periplasm.is-on .hc-fill {

@@ -100,6 +100,10 @@
                 if (!response.ok) throw new Error("HTTP " + response.status);
                 return response.text();
             }).then(function (text) {
+                // ColabFold models are served as PDB, everything else as mmCIF.
+                if (!/^\s*data_/.test(text)) {
+                    return nglStage.loadFile(new Blob([text], { type: "text/plain" }), { ext: "pdb", defaultRepresentation: false });
+                }
                 var cleaned = text.replace(/(^|\n)(loop_\n)?_(struct_conf|struct_conf_type|chem_comp)\.[\s\S]*?(?=\n#)/g, "$1");
                 return nglStage.loadFile(new Blob([cleaned], { type: "text/plain" }), { ext: "cif", defaultRepresentation: false });
             }).then(function (component) {
