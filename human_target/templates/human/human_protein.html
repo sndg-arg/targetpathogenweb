@@ -13,7 +13,7 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261026-cell3">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261026-bio">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261026-bio2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -142,22 +142,22 @@
                         {% if function.function_text %}
                         <div class="cross-reference-group">
                             <h3 class="cross-reference-group-label">{% trans "Function" %}</h3>
-                            <p class="human-text hbio-function{% if function.function_text|length > 600 %} is-collapsed{% endif %}" id="hbio-function-text">{{ function.function_text|uniprot_prose }}</p>
-                            {% if function.function_text|length > 600 %}<button type="button" class="hbio-more" data-expand-target="hbio-function-text" data-label-more="{% trans 'Show all' %}" data-label-less="{% trans 'Show less' %}">{% trans "Show all" %}</button>{% endif %}
+                            <p class="human-text hbio-function{% if function.function_text|length > 1200 %} is-collapsed{% endif %}" id="hbio-function-text">{{ function.function_text|uniprot_prose }}</p>
+                            {% if function.function_text|length > 1200 %}<button type="button" class="hbio-more" data-expand-target="hbio-function-text" data-label-more="{% trans 'Show all' %}" data-label-less="{% trans 'Show less' %}">{% trans "Show all" %}</button>{% endif %}
                         </div>
                         {% endif %}
                         {% if overview.subunit_text %}
                         <div class="cross-reference-group">
                             <h3 class="cross-reference-group-label">{% trans "Subunit structure" %}</h3>
-                            <p class="human-text{% if overview.subunit_text|length > 600 %} is-collapsed{% endif %}" id="hbio-subunit-text">{{ overview.subunit_text|uniprot_prose }}</p>
-                            {% if overview.subunit_text|length > 600 %}<button type="button" class="hbio-more" data-expand-target="hbio-subunit-text" data-label-more="{% trans 'Show all' %}" data-label-less="{% trans 'Show less' %}">{% trans "Show all" %}</button>{% endif %}
+                            <p class="human-text{% if overview.subunit_text|length > 1200 %} is-collapsed{% endif %}" id="hbio-subunit-text">{{ overview.subunit_text|uniprot_prose }}</p>
+                            {% if overview.subunit_text|length > 1200 %}<button type="button" class="hbio-more" data-expand-target="hbio-subunit-text" data-label-more="{% trans 'Show all' %}" data-label-less="{% trans 'Show less' %}">{% trans "Show all" %}</button>{% endif %}
                         </div>
                         {% endif %}
                         {% if overview.polymorphism_text %}
                         <div class="cross-reference-group">
                             <h3 class="cross-reference-group-label">{% trans "Polymorphism" %}</h3>
-                            <p class="human-text{% if overview.polymorphism_text|length > 600 %} is-collapsed{% endif %}" id="hbio-polymorphism-text">{{ overview.polymorphism_text|uniprot_prose }}</p>
-                            {% if overview.polymorphism_text|length > 600 %}<button type="button" class="hbio-more" data-expand-target="hbio-polymorphism-text" data-label-more="{% trans 'Show all' %}" data-label-less="{% trans 'Show less' %}">{% trans "Show all" %}</button>{% endif %}
+                            <p class="human-text{% if overview.polymorphism_text|length > 1200 %} is-collapsed{% endif %}" id="hbio-polymorphism-text">{{ overview.polymorphism_text|uniprot_prose }}</p>
+                            {% if overview.polymorphism_text|length > 1200 %}<button type="button" class="hbio-more" data-expand-target="hbio-polymorphism-text" data-label-more="{% trans 'Show all' %}" data-label-less="{% trans 'Show less' %}">{% trans "Show all" %}</button>{% endif %}
                         </div>
                         {% endif %}
                         {% if topology %}

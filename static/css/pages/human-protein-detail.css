@@ -47,12 +47,40 @@
 }
 
 /* ── Biology: facts strip, then prose beside the cell diagram. ───────── */
+/* Entry facts as a quiet row of figures: no boxes or dividers, so the
+   section reads as prose with its numbers, not a form. */
 .hbio-facts {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-3) var(--tp-space-8);
+    padding: 0 0 var(--tp-space-5);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.hbio-facts .target-profile-item {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+}
+
+.hbio-facts .target-profile-item:hover {
+    background: none;
+    box-shadow: none;
 }
 
 .hbio-facts + .hbio-layout {
-    margin-top: var(--tp-space-5);
+    margin-top: var(--tp-space-6);
+}
+
+/* Inside the section, group titles are small labels without their own
+   rule: one hairline (under the facts) frames the whole block. */
+.hbio-layout .cross-reference-group-label {
+    padding: 0;
+    border-bottom: 0;
+}
+
+.hbio-layout .cross-reference-group > .human-text {
+    margin-top: var(--tp-space-2);
 }
 
 /* The prose column is only as wide as its text (up to a reading measure),
