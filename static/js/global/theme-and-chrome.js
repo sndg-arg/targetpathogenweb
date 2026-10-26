@@ -150,3 +150,24 @@
         window.history.back();
     });
 })();
+
+/* In-page section links (quick nav, "See evidence", ...) replace the URL hash
+ * instead of adding a history entry, so Back (the button above or the
+ * browser's) returns to the previous page, not the previous section. */
+(function () {
+    document.addEventListener("click", function (event) {
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        var link = event.target.closest("a[href^='#']");
+        if (!link || link.target || link.matches("[data-toggle], [data-bs-toggle]")) return;
+        var id = decodeURIComponent(link.getAttribute("href").slice(1));
+        var target = id && document.getElementById(id);
+        if (!target) return;
+        event.preventDefault();
+        if (window.location.hash !== "#" + id) {
+            var oldURL = window.location.href;
+            window.history.replaceState(window.history.state, "", "#" + id);
+            window.dispatchEvent(new HashChangeEvent("hashchange", { oldURL: oldURL, newURL: window.location.href }));
+        }
+        target.scrollIntoView({ block: "start" });
+    });
+})();
