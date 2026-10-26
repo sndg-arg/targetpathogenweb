@@ -1875,9 +1875,14 @@ body.binder-mol-modal-open {
     stroke-width: 2;
 }
 
-/* Strong enough to read as lit next to a lit organelle; organelles stay darker. */
+/* Lit cytoplasm: tinted body with unlit organelles cut out in white, so the
+   tint reads as a highlight rather than as the cell's background. */
 .hc-part--cytoplasm.is-on .hc-fill {
-    fill: color-mix(in srgb, var(--tp-color-primary) 20%, var(--tp-color-surface));
+    fill: color-mix(in srgb, var(--tp-color-primary) 30%, var(--tp-color-surface));
+}
+
+.hc-cell:has(.hc-part--cytoplasm.is-on) .hc-part:not(.is-on) .hc-fill {
+    fill: var(--tp-color-surface);
 }
 
 .hc-part--periplasm.is-on .hc-fill {
