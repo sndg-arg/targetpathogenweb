@@ -33,15 +33,15 @@ Both reuse `load_af_model` completely unchanged, exactly like the pilot
 does -- including catching its SystemExit/CommandError for a graceful
 per-structure skip instead of aborting the whole run.
 
-AlphaFill is intentionally out of scope here -- no bulk source exists for
-it (see the saved full-proteome scaling plan); a future, separate,
-opt-in/rate-limited command would be needed for it.
+AlphaFill is opt-in via --alphafill-dir, staged with
+scripts/cluster/fetch_human_alphafill_bulk.sh using the public rsync bank.
+Only canonical F1 models are loaded, as in the AlphaFold pass.
 
 Usage:
     python manage.py load_human_structures_bulk --alphafold-dir /path/to/extracted \
         [--accession P10721 --accession O00116 ...] [--accession-file PATH] \
         [--datadir /app/targetpathogenweb/data] [--overwrite] [--workers 4] \
-        [--skip-alphafold] [--skip-experimental]
+        [--skip-alphafold] [--skip-experimental] [--alphafill-dir PATH]
 """
 
 import re
@@ -63,6 +63,7 @@ PROGRESS_EVERY = 250
 DEFAULT_EXPERIMENTAL_WORKERS = 4
 
 _AF_FILENAME_RE = re.compile(r"^AF-([A-Za-z0-9]+)-F1-model_v\d+\.cif(\.gz)?$")
+_AFILL_FILENAME_RE = re.compile(r"^AF-([A-Za-z0-9]+)-F1-filled_v(\d+)\.cif(\.gz)?$")
 _EXPTL_METHOD_RE = re.compile(r"_exptl\.method\s+['\"]?([^'\"\n]+)")
 
 
@@ -86,6 +87,24 @@ def _pdb_ids_from_cross_references(cross_references_raw):
     ]
 
 
+def _index_alphafill_dir(directory):
+    """Read a flat or rsync-sharded bank; prefer the newest numeric version."""
+    index = {}
+    versions = {}
+    root = Path(directory)
+    folders = [root, *(entry for entry in root.iterdir() if entry.is_dir())]
+    for folder in folders:
+        for entry in sorted(folder.iterdir()):
+            match = _AFILL_FILENAME_RE.fullmatch(entry.name)
+            if not match or not entry.is_file():
+                continue
+            accession, version = match.group(1), int(match.group(2))
+            if version > versions.get(accession, -1):
+                versions[accession] = version
+                index[accession] = entry
+    return index
+
+
 def _guess_experimental_method(cif_text):
     """Cheap, no-extra-call method label straight out of the CIF we already
     downloaded (e.g. "X-RAY DIFFRACTION", "SOLUTION NMR") -- the pilot got
@@ -98,10 +117,15 @@ def _guess_experimental_method(cif_text):
 class Command(BaseCommand):
     help = (
         "Load AlphaFold-own-model (from an already-extracted bulk archive) and "
-        "deduped experimental PDB structures for the full human proteome."
+        "deduped experimental PDB structures for the full human proteome, with optional AlphaFill."
     )
 
     def add_arguments(self, parser):
+        parser.add_argument(
+            "--alphafill-dir",
+            metavar="PATH",
+            help="Optional flat or rsync-sharded directory of AlphaFill filled_v<N> CIFs.",
+        )
         parser.add_argument(
             "--alphafold-dir",
             default=None,
@@ -138,6 +162,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if not options["skip_alphafold"] and not options["alphafold_dir"]:
             raise CommandError("--alphafold-dir is required unless --skip-alphafold is set.")
+        if options["alphafill_dir"] and not Path(options["alphafill_dir"]).is_dir():
+            raise CommandError("--alphafill-dir must be an existing directory.")
 
         accessions = list(options["accession"] or [])
         if options["accession_file"]:
@@ -164,6 +190,40 @@ class Command(BaseCommand):
             self._load_alphafold(rows, options)
         if not options["skip_experimental"]:
             self._load_experimental(rows, options)
+        if options["alphafill_dir"]:
+            self._load_alphafill(rows, options)
+
+    def _load_alphafill(self, rows, options):
+        index = _index_alphafill_dir(options["alphafill_dir"])
+        if not index:
+            raise CommandError("No canonical AlphaFill filled_v<N> CIF files found.")
+        completed = set()
+        if not options["overwrite"]:
+            completed = set(
+                BioentryStructure.objects.filter(
+                    bioentry_id__in=[row[2] for row in rows],
+                    pdb__experiment="AFILL",
+                    pdb__deprecated=False,
+                ).values_list("bioentry_id", "pdb__code")
+            )
+        loaded = missing = skipped = failed = 0
+        for i, (accession, _cross_refs, bioentry_id) in enumerate(rows, start=1):
+            code = f"AFILL_{accession}"
+            if (bioentry_id, code) in completed:
+                skipped += 1
+            elif accession not in index:
+                missing += 1
+            elif self._call_load_af_model(code, index[accession], accession, "AFILL", options):
+                loaded += 1
+            else:
+                failed += 1
+            if i % PROGRESS_EVERY == 0 or i == len(rows):
+                self.stdout.write(f"  AlphaFill: {i}/{len(rows)} processed")
+        self.stdout.write(
+            f"AlphaFill: loaded={loaded} skipped={skipped} missing={missing} failed={failed}"
+        )
+        if failed:
+            raise CommandError(f"AlphaFill: {failed} structures failed; rerun to retry.")
 
     def _call_load_af_model(self, code, path, accession, experiment, options):
         try:

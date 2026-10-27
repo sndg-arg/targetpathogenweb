@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import SimpleTestCase, TransactionTestCase
 
 from bioseq.models.Biodatabase import Biodatabase
@@ -10,6 +11,7 @@ from bioseq.models.Bioentry import Bioentry
 from human_target.management.commands.load_human_structures_bulk import (
     Command,
     _guess_experimental_method,
+    _index_alphafill_dir,
     _index_alphafold_dir,
     _pdb_ids_from_cross_references,
 )
@@ -18,6 +20,46 @@ from tpweb.models.BioentryStructure import ExperimentalStructureXref
 from tpweb.models.pdb import PDB
 
 _FAKE_CIF_WITH_METHOD = "_exptl.method   'X-RAY DIFFRACTION'\n"
+
+
+class AlphaFillBulkTests(SimpleTestCase):
+    def test_index_selects_latest_canonical_version_in_flat_and_sharded_bank(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "P0").mkdir()
+            for name in (
+                "AF-P07203-F1-filled_v4.cif.gz",
+                "AF-P07203-F1-filled_v10.cif.gz",
+                "AF-P07203-F2-filled_v11.cif.gz",
+                "AF-P07203-F1-model_v12.cif.gz",
+                "AF-P07203-F1-filled_v10.cif.json",
+            ):
+                (root / "P0" / name).touch()
+            (root / "AF-O00116-F1-filled_v4.cif").touch()
+            index = _index_alphafill_dir(root)
+            self.assertEqual(set(index), {"P07203", "O00116"})
+            self.assertEqual(index["P07203"].name, "AF-P07203-F1-filled_v10.cif.gz")
+
+    def test_resume_skips_completed_but_retries_failed_and_missing_links(self):
+        module = "human_target.management.commands.load_human_structures_bulk"
+        rows = [("P1", [], 1), ("P2", [], 2), ("P3", [], 3), ("P4", [], 4)]
+        with (
+            patch(f"{module}._index_alphafill_dir", return_value={"P1": "a", "P2": "b", "P3": "c"}),
+            patch(f"{module}.BioentryStructure.objects.filter") as links,
+            patch.object(Command, "_call_load_af_model", side_effect=[False, True]) as load,
+        ):
+            links.return_value.values_list.return_value = [(1, "AFILL_P1")]
+            with self.assertRaisesMessage(CommandError, "1 structures failed"):
+                Command()._load_alphafill(rows, {"alphafill_dir": "bank", "overwrite": False})
+            self.assertEqual([call.args[2] for call in load.call_args_list], ["P2", "P3"])
+            self.assertTrue(all(call.args[3] == "AFILL" for call in load.call_args_list))
+
+    def test_empty_bank_fails_instead_of_reporting_success(self):
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            self.assertRaisesMessage(CommandError, "No canonical AlphaFill"),
+        ):
+            Command()._load_alphafill([("P1", [], 1)], {"alphafill_dir": tmp})
 
 
 class ExperimentalResumeTests(SimpleTestCase):

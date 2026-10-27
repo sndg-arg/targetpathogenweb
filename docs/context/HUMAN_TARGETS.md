@@ -79,8 +79,20 @@ shared components) — zero data/functionality crossover.
     [--dry-run]`: streams the gzipped file one gene at a time, matches Ensembl gene ids through the
     proteins' stored UniProt `Bgee`/`Ensembl` cross-references, and writes `expression_json` in the
     same shape as the pilot's per-protein heatmap loader (anatomical entity as "tissue").
-  - **AlphaFill**: no bulk path found — deferred entirely for now rather than ~20,400 sequential
-    rate-limited calls for a secondary enrichment layer; would be its own opt-in command later.
+  - **AlphaFill — opt-in bulk support**: the official bank is available at
+    `rsync://rsync.alphafill.eu/alphafill/` (https://alphafill.eu/download). Stage the human
+    subset on the login node with `bash scripts/cluster/fetch_human_alphafill_bulk.sh
+    ACCESSIONS.txt [DEST_DIR] [--dry-run]`, where the input contains one stored HumanProtein
+    accession per line. Filters include only canonical F1 CIFs and their metadata, plus the
+    source license; the full multispecies bank is never mirrored. Import staged files with
+    `python manage.py load_human_structures_bulk --skip-alphafold --skip-experimental
+    --alphafill-dir PATH [--accession ...] [--datadir PATH]`. Supports flat and two-level
+    rsync layouts, selects the newest numeric file version, skips existing nondeprecated links,
+    and retries failures on rerun. Uses `AFILL_<accession>` / experiment `AFILL`, the same as
+    the pilot and existing Structure tab. Loading parses atoms/residues: run the full pass on
+    a compute node with SLURM, with access to the application DB/data, never directly on nodo0.
+    Run `refresh_human_target_summary` after import to update cached coverage counts.
+    Implemented locally; full-proteome download/import remains to be run and audited.
   - One-time bulk download: `scripts/cluster/fetch_human_proteome_bulk.sh`, run by hand over SSH on
     the login node (**neocranex**, not nodo0, not a SLURM compute node — mirrors FastTarget's
     one-time cluster setup), staging into the 2TB IT assigned there
@@ -118,7 +130,8 @@ shared components) — zero data/functionality crossover.
     build` for an unrelated change) silently kills the job and wipes its `/tmp` log — always confirm
     with `ps aux | grep load_human_structures_bulk` after any container restart during a long run.
   - **LigQ_2 — implemented**: `python manage.py predict_human_ligq [--accession ...] [--chunk-size
-    1000] [--max-chunks N] [--keep-output] [--dry-run]`. Reviewed proteins only, one SLURM job per
+    1000] [--max-chunks N] [--keep-output] [--include-unreviewed] [--dry-run]`. Reviewed proteins
+    by default; `--include-unreviewed` adds TrEMBL entries after existing chunks. One SLURM job per
     chunk via `ligq_remote.run_ligq_job` (stage 24's runner minus the genome FASTA dump), loaded with
     `load_ligq_2_results`. Chunk membership is fixed in `data/human_ligq/chunk_NNN/proteins.fasta`;
     `FETCHED`/`LOADED` markers make it resumable, and a loaded chunk's output is deleted locally and
