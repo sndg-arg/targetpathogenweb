@@ -102,5 +102,53 @@ def ligand_routes(smiles):
     return routes
 
 
+def protein_synthesis_routes(bioentry):
+    """One row per known ligand of this protein that has routes: exact matches
+    first, then by best analog similarity; measured-on-this-protein first."""
+    from tpweb.models.Binders import Binders
+
+    by_key = {}
+    binders = (
+        Binders.objects.filter(
+            locustag=bioentry, source__in=(Binders.SOURCE_PDB, Binders.SOURCE_CHEMBL)
+        )
+        .order_by("-is_direct", "-score", "id")
+        .only("id", "ccd_id", "smiles", "source", "is_direct")
+    )
+    for binder in binders.iterator():
+        by_key.setdefault(ligand_smiles_key(binder.smiles), binder)
+    if not by_key:
+        return []
+
+    # Same dedup as ligand_routes: one route per distinct reaction.
+    found = {}
+    for key, is_exact, similarity, reactants, product in LigandReaction.objects.filter(
+        smiles_key__in=list(by_key)
+    ).values_list("smiles_key", "is_exact", "similarity", "reactants", "product"):
+        entry = found.setdefault(key, {"reactions": set(), "exact": 0, "best": None})
+        if (reactants, product) in entry["reactions"]:
+            continue
+        entry["reactions"].add((reactants, product))
+        entry["exact"] += int(is_exact)
+        if similarity is not None and (entry["best"] is None or similarity > entry["best"]):
+            entry["best"] = similarity
+    rows = []
+    for key, entry in found.items():
+        binder = by_key[key]
+        rows.append(
+            {
+                "binder_id": binder.id,
+                "name": binder.ccd_id or f"Binder {binder.id}",
+                "source_label": "PDB" if binder.source == Binders.SOURCE_PDB else "ChEMBL",
+                "is_direct": binder.is_direct,
+                "routes": len(entry["reactions"]),
+                "exact": entry["exact"],
+                "best_pct": round(entry["best"] * 100) if entry["best"] is not None else None,
+            }
+        )
+    rows.sort(key=lambda r: (-r["exact"], -(r["best_pct"] or 0), not r["is_direct"], r["name"]))
+    return rows
+
+
 def reactions_loaded():
     return LigandReaction.objects.exists()

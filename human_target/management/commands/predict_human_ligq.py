@@ -1,4 +1,5 @@
-"""Run LigQ_2 on SLURM for reviewed human proteins and load the ligands into Binders.
+"""Run LigQ_2 on SLURM for human proteins (reviewed, or all with --include-unreviewed)
+and load the ligands into Binders.
 
 Reuses stage 24's remote runner (`pipeline/ligq_remote.run_ligq_job`), one SLURM
 job per chunk of proteins so a failure costs one chunk, not the proteome, and
@@ -13,7 +14,7 @@ Selenocysteine (U) is sent as cysteine (C), as for ColabFold.
 
 Usage (as root, which owns data/ and has the cluster SSH config mounted):
     python manage.py predict_human_ligq [--accession P07203 ...] [--chunk-size 1000]
-        [--max-chunks N] [--keep-output] [--dry-run]
+        [--max-chunks N] [--keep-output] [--include-unreviewed] [--dry-run]
 """
 
 import configparser
@@ -50,6 +51,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--accession", action="append", default=[])
+        parser.add_argument(
+            "--include-unreviewed",
+            action="store_true",
+            help="Also TrEMBL entries (new chunks after the reviewed ones).",
+        )
         parser.add_argument("--datadir", default=str(settings.BASE_DIR / "data"))
         parser.add_argument("--chunk-size", type=int, default=1000)
         parser.add_argument("--max-chunks", type=int, default=0, help="0 = all pending chunks")
@@ -70,7 +76,9 @@ class Command(BaseCommand):
         chunk_dirs = sorted(workdir.glob("chunk_*")) if workdir.is_dir() else []
         assigned = [acc for d in chunk_dirs for acc in fasta_accessions(d / "proteins.fasta")]
 
-        proteins = human_proteins_queryset().filter(is_reviewed=True)
+        proteins = human_proteins_queryset()
+        if not options["include_unreviewed"]:
+            proteins = proteins.filter(is_reviewed=True)
         if options["accession"]:
             proteins = proteins.filter(uniprot_accession__in=options["accession"])
         rows = proteins.order_by("uniprot_accession").values_list("uniprot_accession", "sequence")

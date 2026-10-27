@@ -1109,3 +1109,11 @@
 #section-biology > .tp-state-note + .hbio-facts {
     margin-top: var(--tp-space-4);
 }
+
+/* Ligands ▸ Synthesis routes: one line above the table. */
+.binders-synthesis-note {
+    max-width: var(--tp-measure);
+    margin: 0 0 var(--tp-space-3);
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-secondary);
+}

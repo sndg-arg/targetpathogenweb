@@ -23,6 +23,7 @@ from human_target.services.human_pathway_summary import build_human_pathway_cont
 from human_target.services.human_structure_summary import build_human_structure_context
 from human_target.services.human_targets import get_human_bioentry
 from tpweb.services.binder_summary import create_binders_dict
+from tpweb.services.ligand_reactions import protein_synthesis_routes
 from tpweb.services.protein_annotations import iter_protein_annotations
 from tpweb.views.mixins import PermissionLockedMixin
 
@@ -106,6 +107,7 @@ class HumanProteinView(PermissionLockedMixin, View):
             "xrefs": build_human_xref_context(human_protein),
             "structure": structure,
             "binders": binders,
+            "synthesis_routes": protein_synthesis_routes(bioentry) if binders["total"] else [],
             "ec_badges": list(iter_protein_annotations(bioentry, "ec"))[:6],
             "go_badges": list(iter_protein_annotations(bioentry, "go"))[:6],
             "human_protein_list_url": reverse("human_target:human_protein_list"),

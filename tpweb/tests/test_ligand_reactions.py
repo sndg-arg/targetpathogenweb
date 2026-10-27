@@ -63,3 +63,36 @@ class LigandReactionLoadTests(TestCase):
         )
         self.assertIn("<svg", routes[0]["svg"])
         self.assertEqual(ligand_routes("CCO"), [])
+
+    def test_protein_synthesis_routes_one_row_per_ligand_with_routes(self):
+        from bioseq.models.Biodatabase import Biodatabase
+        from bioseq.models.Bioentry import Bioentry
+
+        from tpweb.models.Binders import Binders
+        from tpweb.services.ligand_reactions import protein_synthesis_routes
+
+        self._load()
+        biodatabase = Biodatabase.objects.create(name="test_prots")
+        bioentry = Bioentry.objects.create(
+            biodatabase=biodatabase, name="P1", accession="P1", identifier="P1"
+        )
+        for ccd, source, direct in (
+            ("ASA", Binders.SOURCE_CHEMBL, True),
+            ("ASA2", Binders.SOURCE_PDB, False),
+        ):
+            Binders.objects.create(
+                ccd_id=ccd,
+                locustag=bioentry,
+                smiles="CC(=O)Oc1ccccc1C(=O)O",
+                source=source,
+                is_direct=direct,
+            )
+        Binders.objects.create(
+            ccd_id="ETH", locustag=bioentry, smiles="CCO", source=Binders.SOURCE_CHEMBL
+        )
+
+        rows = protein_synthesis_routes(bioentry)
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["name"], "ASA")
+        self.assertEqual((rows[0]["routes"], rows[0]["exact"]), (2, 1))

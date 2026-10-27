@@ -13,7 +13,7 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261026-cell3">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261026-full">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261026-synthesis">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -307,6 +307,11 @@
                     <button type="button" class="tp-tab binders-tab {% if binders.default_tab == 'zinc' %}is-active{% endif %}" role="tab" aria-selected="{% if binders.default_tab == 'zinc' %}true{% else %}false{% endif %}" data-binders-tab="zinc">
                         <span>{% trans "ZINC" %}</span>{% if binders.zinc_count %}<span class="tp-count">{{ binders.zinc_count }}{% if binders.zinc_capped %}+{% endif %}</span>{% endif %}
                     </button>
+                    {% if synthesis_routes %}
+                    <button type="button" class="tp-tab binders-tab" role="tab" aria-selected="false" data-binders-tab="synthesis">
+                        <span>{% trans "Synthesis routes" %}</span><span class="tp-count">{{ synthesis_routes|length }}</span>
+                    </button>
+                    {% endif %}
                 </div>
 
                 <div class="binders-panel {% if binders.default_tab != 'pdb_direct' %}is-hidden{% endif %}" data-binders-panel="pdb_direct" role="tabpanel">
@@ -339,6 +344,34 @@
                         {% include "components/binders/table_zinc.html" with binder_list=binders.zinc %}
                     {% else %}<p class="tp-state-note tp-state-note--empty binders-empty">{% trans "No virtual-screening candidates for this protein." %}</p>{% endif %}
                 </div>
+                {% if synthesis_routes %}
+                <div class="binders-panel is-hidden" data-binders-panel="synthesis" role="tabpanel">
+                    <p class="binders-synthesis-note">{% trans "Known ligands with a patent reaction that makes them (exact) or a close analog, from USPTO-50K and PaRoutes. Open one for its routes." %}</p>
+                    <div class="tp-table-shell binder-table-wrap">
+                        <table class="binder-tbl tp-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">{% trans "Ligand" %}</th>
+                                    <th scope="col">{% trans "Evidence" %}</th>
+                                    <th scope="col">{% trans "Best match" %}</th>
+                                    <th scope="col">{% trans "Routes" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in synthesis_routes %}
+                                {% url 'tpwebapp:binder_detail' binder_id=row.binder_id as row_url %}
+                                <tr class="binder-tbl__row" data-href="{{ row_url }}#section-synthesis">
+                                    <td class="binder-tbl__name"><a href="{{ row_url }}#section-synthesis" class="binder-tbl__name-main" onclick="event.stopPropagation()">{{ row.name }}</a></td>
+                                    <td>{{ row.source_label }} · {% if row.is_direct %}{% trans "this protein" %}{% else %}{% trans "homolog" %}{% endif %}</td>
+                                    <td>{% if row.exact %}<span class="tp-chip">{% trans "Exact product" %}</span>{% else %}<span class="tp-chip tp-chip--muted">{% blocktrans with pct=row.best_pct %}Analog · {{ pct }}% similar{% endblocktrans %}</span>{% endif %}</td>
+                                    <td>{{ row.routes }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
             </section>
             {% endif %}
 
