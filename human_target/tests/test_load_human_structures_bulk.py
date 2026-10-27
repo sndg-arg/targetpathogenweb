@@ -19,7 +19,31 @@ from human_target.models.HumanProtein import HumanProtein
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
 from tpweb.models.pdb import PDB
 
-_FAKE_CIF_WITH_METHOD = "_exptl.method   'X-RAY DIFFRACTION'\n"
+_FAKE_CIF_WITH_METHOD = """data_test
+_exptl.method   'X-RAY DIFFRACTION'
+#
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_entity_id
+_atom_site.label_seq_id
+_atom_site.pdbx_PDB_ins_code
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.B_iso_or_equiv
+_atom_site.auth_seq_id
+_atom_site.auth_asym_id
+_atom_site.pdbx_PDB_model_num
+ATOM 1 C CA . ALA A 1 1 ? 0.0 0.0 0.0 1.0 20.0 1 A 1
+#
+"""
 
 
 class AlphaFillBulkTests(SimpleTestCase):
@@ -172,6 +196,12 @@ class _FakeResponse:
 class LoadHumanStructuresBulkTests(TransactionTestCase):
     # Experimental entries load in worker threads, each with its own DB
     # connection: they only see committed rows, which TestCase never commits.
+    def setUp(self):
+        super().setUp()
+        datadir = tempfile.TemporaryDirectory()
+        self.addCleanup(datadir.cleanup)
+        self.datadir = datadir.name
+
     def _make_human_protein(self, accession, pdb_ids=()):
         biodatabase, _ = Biodatabase.objects.get_or_create(name="human_curated_prots")
         bioentry = Bioentry.objects.create(
@@ -194,6 +224,7 @@ class LoadHumanStructuresBulkTests(TransactionTestCase):
             (tmp_path / "AF-P10721-F1-model_v4.cif").write_text("x")
             call_command(
                 "load_human_structures_bulk",
+                datadir=self.datadir,
                 alphafold_dir=str(tmp_path),
                 accession=["P10721"],
                 skip_experimental=True,
@@ -207,6 +238,7 @@ class LoadHumanStructuresBulkTests(TransactionTestCase):
         with tempfile.TemporaryDirectory() as tmp:
             call_command(
                 "load_human_structures_bulk",
+                datadir=self.datadir,
                 alphafold_dir=tmp,
                 accession=["P10721"],
                 skip_experimental=True,
@@ -224,6 +256,7 @@ class LoadHumanStructuresBulkTests(TransactionTestCase):
 
         call_command(
             "load_human_structures_bulk",
+            datadir=self.datadir,
             skip_alphafold=True,
             accession=["P10721", "P10722"],
         )
@@ -232,6 +265,12 @@ class LoadHumanStructuresBulkTests(TransactionTestCase):
         self.assertEqual(ExperimentalStructureXref.objects.filter(pdb_id="1ABC").count(), 2)
         xref = ExperimentalStructureXref.objects.get(pdb_id="1ABC", bioentry__accession="P10721")
         self.assertEqual(xref.method, "X-RAY DIFFRACTION")
+        for accession in ("P10721", "P10722"):
+            self.assertTrue(
+                Bioentry.objects.get(accession=accession)
+                .structures.filter(pdb__code="1ABC", pdb__experiment="EX")
+                .exists()
+            )
 
     @patch("human_target.management.commands.load_human_structures_bulk.requests.get")
     def test_experimental_skips_download_when_pdb_already_loaded(self, mock_get):
@@ -248,6 +287,7 @@ class LoadHumanStructuresBulkTests(TransactionTestCase):
 
         call_command(
             "load_human_structures_bulk",
+            datadir=self.datadir,
             skip_alphafold=True,
             accession=["P10721", "P10722"],
         )
@@ -269,6 +309,7 @@ class LoadHumanStructuresBulkTests(TransactionTestCase):
 
         call_command(
             "load_human_structures_bulk",
+            datadir=self.datadir,
             skip_alphafold=True,
             accession=["P10721", "P10722", "P10723"],
             workers=3,
@@ -277,6 +318,12 @@ class LoadHumanStructuresBulkTests(TransactionTestCase):
         self.assertEqual(mock_get.call_count, 3)
         self.assertEqual(ExperimentalStructureXref.objects.count(), 3)
         self.assertEqual(PDB.objects.filter(experiment="EX").count(), 3)
+        for accession, code in (("P10721", "1ABC"), ("P10722", "2XYZ"), ("P10723", "3QRS")):
+            self.assertTrue(
+                Bioentry.objects.get(accession=accession)
+                .structures.filter(pdb__code=code, pdb__experiment="EX")
+                .exists()
+            )
 
     @patch("human_target.management.commands.load_human_structures_bulk.requests.get")
     def test_experimental_with_no_pdb_xrefs_skips_without_calling_requests(self, mock_get):
@@ -284,6 +331,7 @@ class LoadHumanStructuresBulkTests(TransactionTestCase):
 
         call_command(
             "load_human_structures_bulk",
+            datadir=self.datadir,
             skip_alphafold=True,
             accession=["P10721"],
         )
