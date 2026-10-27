@@ -69,11 +69,11 @@ class Command(BaseCommand):
         if options["overwrite"]:
             self.stderr.write(f"deleting... {code} ")
             pdb_model_qs.delete()
-        if pdb_model_qs.exists():
+        pdb_model = pdb_model_qs.first()
+        if pdb_model is not None and Atom.objects.filter(residue__pdb=pdb_model).exists():
             # The PDB row surviving (e.g. from an earlier ingest) doesn't guarantee
             # *this* bioentry is still linked to it -- re-link if that got lost
             # instead of silently leaving the protein without its structure.
-            pdb_model = pdb_model_qs.first()
             if not BioentryStructure.objects.filter(bioentry=be, pdb=pdb_model).exists():
                 BioentryStructure(bioentry=be, pdb=pdb_model).save()
                 self.stderr.write(
@@ -92,10 +92,22 @@ class Command(BaseCommand):
             try:
                 # A failed chain must not leave an apparently reusable PDB row.
                 with transaction.atomic():
-                    pdb_model = PDB(code=code, experiment=experiment)
-                    pdb_model.save()
+                    if pdb_model is None:
+                        pdb_model = PDB(code=code, experiment=experiment)
+                        pdb_model.save()
+                    else:
+                        # Repair legacy empty imports in place: keep the PDB id
+                        # and every protein link. Failed reparses roll back.
+                        self.stderr.write(f"repairing structure without atoms: {code}")
+                        pdb_model.residues.all().delete()
                     self.load_pdb_file(pdb_model, options["pdb_file"])
-                    BioentryStructure(bioentry=be, pdb=pdb_model).save()
+                    if not Atom.objects.filter(residue__pdb=pdb_model).exists():
+                        raise CommandError(f"Structure {code} contains no atoms.")
+                    BioentryStructure.objects.get_or_create(bioentry=be, pdb=pdb_model)
+                    store_structure_file(
+                        options["pdb_file"],
+                        seqstore.structure(genome, be.accession, code),
+                    )
 
             except OSError as ex:
                 traceback.print_exc()
@@ -103,11 +115,6 @@ class Command(BaseCommand):
             except Exception as ex:
                 traceback.print_exc()
                 raise CommandError(ex) from ex
-
-            store_structure_file(
-                options["pdb_file"],
-                seqstore.structure(genome, be.accession, code),
-            )
 
         self.stderr.write(f"done processing: {code} ")
 

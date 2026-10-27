@@ -53,10 +53,11 @@ from pathlib import Path
 import requests
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Exists, OuterRef
 
 from human_target.services.human_targets import human_proteins_queryset
 from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
-from tpweb.models.pdb import PDB
+from tpweb.models.pdb import PDB, Atom
 
 RCSB_CIF_URL = "https://files.rcsb.org/download/{pdb_id}.cif"
 PROGRESS_EVERY = 250
@@ -201,6 +202,7 @@ class Command(BaseCommand):
         if not options["overwrite"]:
             completed = set(
                 BioentryStructure.objects.filter(
+                    Exists(Atom.objects.filter(residue__pdb_id=OuterRef("pdb_id"))),
                     bioentry_id__in=[row[2] for row in rows],
                     pdb__experiment="AFILL",
                     pdb__deprecated=False,
@@ -241,6 +243,7 @@ class Command(BaseCommand):
                 pdb__code=code,
                 pdb__experiment=experiment,
                 pdb__deprecated=False,
+                pdb__residues__atoms__isnull=False,
             ).exists()
         except SystemExit as exc:
             self.stderr.write(f"  {code} for {accession}: {exc}")
@@ -249,6 +252,7 @@ class Command(BaseCommand):
                 pdb__code=code,
                 pdb__experiment=experiment,
                 pdb__deprecated=False,
+                pdb__residues__atoms__isnull=False,
             ).exists()
         except CommandError as exc:
             self.stderr.write(f"  {code} for {accession} failed: {exc}")
@@ -287,7 +291,11 @@ class Command(BaseCommand):
             )
             # An xref alone is not proof that load_af_model succeeded.
             completed.intersection_update(
-                BioentryStructure.objects.filter(bioentry_id__in=bioentry_ids, pdb__experiment="EX")
+                BioentryStructure.objects.filter(
+                    Exists(Atom.objects.filter(residue__pdb_id=OuterRef("pdb_id"))),
+                    bioentry_id__in=bioentry_ids,
+                    pdb__experiment="EX",
+                )
                 .values_list("bioentry_id", "pdb__code")
                 .iterator(chunk_size=2000)
             )
@@ -371,7 +379,7 @@ class Command(BaseCommand):
         around the ORM calls themselves, only around the shared progress
         counters in the caller."""
         cif_path = Path(tmp_dir) / f"{pdb_id}.cif"
-        if PDB.objects.filter(code=pdb_id, experiment="EX").exists():
+        if PDB.objects.filter(code=pdb_id, experiment="EX", residues__atoms__isnull=False).exists():
             # Already downloaded and parsed by an earlier (possibly
             # interrupted) run -- skip the network fetch entirely, just
             # make sure every member protein ends up linked. load_af_model

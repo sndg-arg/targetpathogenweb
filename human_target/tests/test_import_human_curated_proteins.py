@@ -22,7 +22,7 @@ from human_target.models.HumanPathway import HumanPathway
 from human_target.models.HumanProtein import HumanProtein
 from human_target.models.HumanProteinPathway import HumanProteinPathway
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
-from tpweb.models.pdb import PDB
+from tpweb.models.pdb import PDB, Residue, Atom
 from human_target.management.commands.import_human_curated_proteins import (
     Command,
     _build_human_protein_fields,
@@ -531,7 +531,20 @@ class LoadStructuresTests(TestCase):
 
     def test_ex_xref_is_written_when_load_af_model_relinks_an_existing_row(self):
         bioentry, _human_protein = self._make_human_protein("P10722")
-        PDB.objects.create(code="1ABC", experiment="EX", text="")
+        model = PDB.objects.create(code="1ABC", experiment="EX", text="")
+        residue = Residue.objects.create(pdb=model, chain="A", resname="ALA", resid=1, type="R")
+        Atom.objects.create(
+            residue=residue,
+            serial=1,
+            name="CA",
+            altLoc=" ",
+            x=0,
+            y=0,
+            z=0,
+            occupancy=1,
+            bfactor=20,
+            element="C",
+        )
 
         with tempfile.TemporaryDirectory() as tmp:
             protein_dir = Path(tmp)

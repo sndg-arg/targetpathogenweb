@@ -89,10 +89,12 @@ shared components) — zero data/functionality crossover.
     missing candidates are skipped. The source license is included. Import staged files with
     `python manage.py load_human_structures_bulk --skip-alphafold --skip-experimental
     --alphafill-dir PATH [--accession ...] [--datadir PATH]`. Supports flat and two-level
-    rsync layouts, selects the newest numeric file version, skips existing nondeprecated links,
-    and retries failures on rerun. Uses `AFILL_<accession>` / experiment `AFILL`, the same as
-    the pilot and existing Structure tab. Loading parses atoms/residues: run the full pass on
-    a compute node with SLURM, with access to the application DB/data, never directly on nodo0.
+    rsync layouts, selects the newest numeric file version, skips existing nondeprecated links
+    only when the structure has atoms, and retries failures on rerun. `load_af_model` repairs
+    legacy atomless rows in place, preserving IDs/links and rolling back failed reparses.
+    Uses `AFILL_<accession>` / experiment `AFILL`, the same as the pilot and existing Structure
+    tab. This imports precomputed mmCIFs (permitted on Nodo0 by CLUSTER_DEPLOY.md); use a small
+    pilot first, then a dedicated resource-limited container for the sequential DB import.
     Run `refresh_human_target_summary` after import to update cached coverage counts.
     Implemented locally; full-proteome download/import remains to be run and audited.
   - One-time bulk download: `scripts/cluster/fetch_human_proteome_bulk.sh`, run by hand over SSH on

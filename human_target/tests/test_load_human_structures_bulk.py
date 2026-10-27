@@ -17,7 +17,7 @@ from human_target.management.commands.load_human_structures_bulk import (
 )
 from human_target.models.HumanProtein import HumanProtein
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
-from tpweb.models.pdb import PDB
+from tpweb.models.pdb import PDB, Atom
 
 _FAKE_CIF_WITH_METHOD = """data_test
 _exptl.method   'X-RAY DIFFRACTION'
@@ -214,14 +214,14 @@ class LoadHumanStructuresBulkTests(TransactionTestCase):
             cross_references_raw=cross_refs,
         )
 
-    def test_alphafold_relinks_an_existing_pdb_row_found_in_the_index(self):
+    def test_alphafold_repairs_empty_existing_row_without_changing_its_id(self):
         self._make_human_protein("P10721")
         bioentry = Bioentry.objects.get(accession="P10721")
-        PDB.objects.create(code="AF_P10721", experiment="AF", text="")
+        model = PDB.objects.create(code="AF_P10721", experiment="AF", text="")
 
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
-            (tmp_path / "AF-P10721-F1-model_v4.cif").write_text("x")
+            (tmp_path / "AF-P10721-F1-model_v4.cif").write_text(_FAKE_CIF_WITH_METHOD)
             call_command(
                 "load_human_structures_bulk",
                 datadir=self.datadir,
@@ -231,6 +231,28 @@ class LoadHumanStructuresBulkTests(TransactionTestCase):
             )
 
         self.assertTrue(bioentry.structures.filter(pdb__code="AF_P10721").exists())
+        self.assertEqual(PDB.objects.get(code="AF_P10721").pk, model.pk)
+        self.assertEqual(Atom.objects.filter(residue__pdb=model).count(), 1)
+
+    def test_alphafill_retries_linked_but_empty_row(self):
+        protein = self._make_human_protein("O00116")
+        model = PDB.objects.create(code="AFILL_O00116", experiment="AFILL", text="")
+        from tpweb.models.BioentryStructure import BioentryStructure
+
+        BioentryStructure.objects.create(bioentry=protein.bioentry, pdb=model)
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "AF-O00116-F1-filled_v4.cif").write_text(_FAKE_CIF_WITH_METHOD)
+            call_command(
+                "load_human_structures_bulk",
+                datadir=self.datadir,
+                skip_alphafold=True,
+                skip_experimental=True,
+                alphafill_dir=tmp,
+                accession=["O00116"],
+            )
+        self.assertEqual(PDB.objects.get(code="AFILL_O00116").pk, model.pk)
+        self.assertEqual(Atom.objects.filter(residue__pdb=model).count(), 1)
+        self.assertEqual(BioentryStructure.objects.filter(pdb=model).count(), 1)
 
     def test_alphafold_missing_file_is_skipped_without_error(self):
         self._make_human_protein("P10721")
@@ -278,7 +300,18 @@ class LoadHumanStructuresBulkTests(TransactionTestCase):
         # already loaded by the previous attempt.
         self._make_human_protein("P10721", pdb_ids=["1ABC"])
         self._make_human_protein("P10722", pdb_ids=["1ABC"])
-        PDB.objects.create(code="1ABC", experiment="EX", text="")
+        # Reuse requires actual geometry; an empty legacy row must be fetched again.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp, "1ABC.cif")
+            path.write_text(_FAKE_CIF_WITH_METHOD)
+            call_command(
+                "load_af_model",
+                "1ABC",
+                str(path),
+                "P10721",
+                experiment="EX",
+                datadir=self.datadir,
+            )
         ExperimentalStructureXref.objects.create(
             bioentry=Bioentry.objects.get(accession="P10721"),
             pdb_id="1ABC",
