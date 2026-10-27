@@ -394,6 +394,8 @@
 /* Synthesis routes: one reaction drawing (RDKit SVG, white like the hero
    structure) per open row, scrolling sideways when it is wider than the card. */
 .binder-reaction {
+    width: fit-content;
+    max-width: 100%;
     overflow-x: auto;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);

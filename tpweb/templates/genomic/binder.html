@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261026-cell3">
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261026-synthesis">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261026-synthesis2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -320,7 +320,8 @@
                                     <div class="ta-body">
                                         {% if route.svg %}<div class="binder-reaction">{{ route.svg|safe }}</div>{% endif %}
                                         <p class="binder-reaction-meta">
-                                            {% if route.patent_url %}<a href="{{ route.patent_url }}" target="_blank" rel="noopener noreferrer">{% blocktrans with patent=route.patent %}Patent {{ patent }}{% endblocktrans %} →</a>{% else %}{{ route.patent }}{% endif %}
+                                            <span class="binder-reaction-patents">{% if route.patents|length > 1 %}{% trans "Patents" %}{% else %}{% trans "Patent" %}{% endif %}
+                                                {% for patent in route.patents %}{% if patent.url %}<a href="{{ patent.url }}" target="_blank" rel="noopener noreferrer">{{ patent.number }} →</a>{% else %}{{ patent.number }}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
                                             {% if route.reagents %}<span class="binder-reaction-reagents">{% trans "Reagents and solvents" %}: <code>{{ route.reagents }}</code></span>{% endif %}
                                         </p>
                                     </div>

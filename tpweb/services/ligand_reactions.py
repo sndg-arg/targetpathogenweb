@@ -68,27 +68,37 @@ def ligand_routes(smiles):
     if not smiles:
         return []
     routes = []
+    by_reaction = {}
     for reaction in LigandReaction.objects.filter(smiles_key=ligand_smiles_key(smiles))[
         :MAX_ROUTES
     ]:
+        patent = {
+            "number": patent_number(reaction.reaction_id),
+            "url": patent_url(reaction.reaction_id),
+        }
+        # The same reaction reported in several patents is one route.
+        same = by_reaction.get((reaction.reactants, reaction.product))
+        if same is not None:
+            if patent["number"] not in {p["number"] for p in same["patents"]}:
+                same["patents"].append(patent)
+            continue
         class_label = REACTION_CLASSES.get(reaction.reaction_class, "")
         name = reaction.reaction_name if reaction.reaction_name != class_label else ""
-        routes.append(
-            {
-                "db": reaction.db,
-                "db_label": DB_LABELS.get(reaction.db, reaction.db),
-                "is_exact": reaction.is_exact,
-                "similarity_pct": (
-                    round(reaction.similarity * 100) if reaction.similarity is not None else None
-                ),
-                "class_label": class_label,
-                "name": name,
-                "patent": patent_number(reaction.reaction_id),
-                "patent_url": patent_url(reaction.reaction_id),
-                "reagents": reaction.reagents,
-                "svg": _cached_svg(reaction),
-            }
-        )
+        route = {
+            "db": reaction.db,
+            "db_label": DB_LABELS.get(reaction.db, reaction.db),
+            "is_exact": reaction.is_exact,
+            "similarity_pct": (
+                round(reaction.similarity * 100) if reaction.similarity is not None else None
+            ),
+            "class_label": class_label,
+            "name": name,
+            "patents": [patent],
+            "reagents": reaction.reagents,
+            "svg": _cached_svg(reaction),
+        }
+        by_reaction[(reaction.reactants, reaction.product)] = route
+        routes.append(route)
     return routes
 
 

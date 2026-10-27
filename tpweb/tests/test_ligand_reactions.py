@@ -18,6 +18,9 @@ ROWS = [
     "CC(=O)OC(C)=O.O=C(O)c1cc(Cl)ccc1O\tO=S(=O)(O)O\tCC(=O)Oc1ccc(Cl)cc1C(=O)O\n",
     "CC(=O)Oc1ccccc1C(=O)O\tus50k\texact\t\tUS04927956\t2\tAcylation\t"
     "CC(=O)Cl.O=C(O)c1ccccc1O\t\tCC(=O)Oc1ccccc1C(=O)O\n",
+    # Same reaction as the first row, reported in another patent.
+    "CC(=O)Oc1ccccc1C(=O)O\tpar2\tsimilar\t0.576\tUS20020142971A1;0090;39985\t\t\t"
+    "CC(=O)OC(C)=O.O=C(O)c1cc(Cl)ccc1O\tO=S(=O)(O)O\tCC(=O)Oc1ccc(Cl)cc1C(=O)O\n",
 ]
 
 
@@ -42,7 +45,7 @@ class LigandReactionLoadTests(TestCase):
     def test_load_replaces_rows_and_routes_list_exact_first(self):
         self._load()
         self._load()
-        self.assertEqual(LigandReaction.objects.count(), 2)
+        self.assertEqual(LigandReaction.objects.count(), 3)
         self.assertEqual(
             set(LigandReaction.objects.values_list("smiles_key", flat=True)),
             {ligand_smiles_key("CC(=O)Oc1ccccc1C(=O)O")},
@@ -54,6 +57,9 @@ class LigandReactionLoadTests(TestCase):
         self.assertEqual(routes[0]["class_label"], "Acylation")
         self.assertEqual(routes[0]["name"], "")
         self.assertEqual(routes[1]["similarity_pct"], 58)
-        self.assertEqual(routes[1]["patent"], "US3932466")
+        self.assertEqual(
+            [patent["number"] for patent in routes[1]["patents"]],
+            ["US3932466", "US20020142971A1"],
+        )
         self.assertIn("<svg", routes[0]["svg"])
         self.assertEqual(ligand_routes("CCO"), [])
