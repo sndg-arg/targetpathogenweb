@@ -210,6 +210,21 @@ def _write_excluded_loci_report(local_ligq_dir, skipped_loci):
 
 
 def _build_slurm_script(config, remote_input, remote_output_dir, remote_workdir):
+    # Prefix environments are self-contained; some compute nodes (e.g. nodo1)
+    # do not mount the base Conda installation under /home/shared.
+    if config.conda_env.startswith("/"):
+        env_dir = config.conda_env.rstrip("/")
+        python = f"{env_dir}/bin/python"
+        setup = [
+            f'export PATH={shlex.quote(env_dir + "/bin")}:"$PATH"',
+            f"export CONDA_PREFIX={shlex.quote(env_dir)}",
+        ]
+    else:
+        python = "python"
+        setup = [
+            f"source {shlex.quote(config.conda_prefix + '/etc/profile.d/conda.sh')}",
+            f"conda activate {shlex.quote(config.conda_env)}",
+        ]
     return "\n".join(
         [
             "#!/bin/bash",
@@ -224,8 +239,7 @@ def _build_slurm_script(config, remote_input, remote_output_dir, remote_workdir)
             f"#SBATCH --chdir={remote_workdir}",
             "",
             "set -euo pipefail",
-            f'source "{config.conda_prefix}/etc/profile.d/conda.sh"',
-            f'conda activate "{config.conda_env}"',
+            *setup,
             f'mkdir -p "{remote_output_dir}"',
             'WORKDIR="$(mktemp -d -p /tmp ligq2_run.XXXXXX)"',
             'trap "rm -rf ${WORKDIR}" EXIT',
@@ -233,7 +247,7 @@ def _build_slurm_script(config, remote_input, remote_output_dir, remote_workdir)
             f'ln -s "{config.ligq_data_dir}" databases',
             'echo "[$(date)] starting LigQ_2"',
             (
-                f'python "{config.ligq_dir}/run_ligq_2.py" '
+                f'{shlex.quote(python)} "{config.ligq_dir}/run_ligq_2.py" '
                 f'--input-fasta "{remote_input}" '
                 f'--output-dir "{remote_output_dir}"'
             ),

@@ -180,7 +180,9 @@ conda env: `interproscan`. Key fix: `set -u` must come AFTER `conda activate`.
   - `TPW_LIGQ_USE_REMOTE=1` — activate remote mode
   - `TPW_LIGQ_DIR` — default `/home/agutson/work/LigQ_2`
   - `TPW_LIGQ_DATA_DIR` — default `/home/agutson/work/ligq_data`
-  - `TPW_LIGQ_CONDA_PREFIX` — default `/home/shared/miniconda3.8`
+  - `TPW_LIGQ_CONDA_PREFIX` — default `/home/shared/miniconda3.8`; used only for named
+    environments. Absolute environment paths run their own `bin/python` directly and put
+    their `bin` on PATH, so nodes without `/home/shared` can run LigQ too.
   - `TPW_LIGQ_CONDA_ENV` — default `/home/agutson/work/conda_envs/ligq_2_local` (prefix env, not name)
   - `TPW_LIGQ_SLURM_PARTITION` — default `cpu`
   - `TPW_LIGQ_SLURM_TIME` — default `48:00:00`
