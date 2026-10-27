@@ -83,8 +83,10 @@ shared components) — zero data/functionality crossover.
     `rsync://rsync.alphafill.eu/alphafill/` (https://alphafill.eu/download). Stage the human
     subset on the login node with `bash scripts/cluster/fetch_human_alphafill_bulk.sh
     ACCESSIONS.txt [DEST_DIR] [--dry-run]`, where the input contains one stored HumanProtein
-    accession per line. Filters include only canonical F1 CIFs and their metadata, plus the
-    source license; the full multispecies bank is never mirrored. Import staged files with
+    accession per line. Requests explicit canonical F1 CIF/metadata paths with rsync
+    `--files-from` in batches of 500 accessions, avoiding full multispecies directory scans.
+    Candidate versions default to 1–6 (override with space-separated `TPW_ALPHAFILL_VERSIONS`);
+    missing candidates are skipped. The source license is included. Import staged files with
     `python manage.py load_human_structures_bulk --skip-alphafold --skip-experimental
     --alphafill-dir PATH [--accession ...] [--datadir PATH]`. Supports flat and two-level
     rsync layouts, selects the newest numeric file version, skips existing nondeprecated links,
