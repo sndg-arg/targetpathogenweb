@@ -32,8 +32,8 @@ DB_LABELS = dict(LigandReaction.DB_CHOICES)
 
 
 def patent_number(reaction_id):
-    """'US06413981B1;;562059' -> 'US6413981B1'."""
-    number = (reaction_id or "").split(";;")[0].strip()
+    """'US06413981B1;;562059' or 'US20020142971A1;0090;39985' -> the patent number."""
+    number = (reaction_id or "").split(";")[0].strip()
     return re.sub(r"^US0+", "US", number)
 
 

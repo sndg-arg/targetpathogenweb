@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.views import View
 
 from bioseq.models.Biodatabase import Biodatabase
+from human_target.services.human_targets import HUMAN_BIODATABASE_NAME
 from tpweb.models.Binders import Binders
 from tpweb.services.genome_workspace import (
     display_genome_name,
@@ -242,6 +243,10 @@ class BinderDetailView(View):
 
         if not user_can_access_genome_name(request.user, assembly_name):
             raise Http404("Binder not found")
+        # Human Targets ligands link back to the human protein page, not a genome.
+        is_human = biodb_name == HUMAN_BIODATABASE_NAME
+        if is_human and not request.user.has_perm("tpweb.can_view_human_targets"):
+            raise Http404("Binder not found")
 
         is_pdb = binder.source == Binders.SOURCE_PDB
         if binder.source == Binders.SOURCE_PDB:
@@ -295,10 +300,19 @@ class BinderDetailView(View):
             "assembly_name": assembly_name,
             "assembly_label": display_genome_name(assembly_name),
             "genome": genome_url_slug(assembly_name),
-            "protein_url": reverse("tpwebapp:protein", kwargs={"protein_id": protein.bioentry_id}),
-            "proteins_url": reverse(
-                "tpwebapp:protein_list",
-                kwargs={"genome": genome_url_slug(assembly_name)},
+            "is_human": is_human,
+            "protein_url": (
+                reverse("human_target:human_protein", kwargs={"accession": protein.accession})
+                if is_human
+                else reverse("tpwebapp:protein", kwargs={"protein_id": protein.bioentry_id})
+            ),
+            "proteins_url": (
+                reverse("human_target:human_protein_list")
+                if is_human
+                else reverse(
+                    "tpwebapp:protein_list",
+                    kwargs={"genome": genome_url_slug(assembly_name)},
+                )
             ),
         }
         return render(request, self.template_name, ctx)

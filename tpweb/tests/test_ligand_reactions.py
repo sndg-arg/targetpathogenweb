@@ -25,6 +25,7 @@ class PatentLinkTests(SimpleTestCase):
     def test_drops_paroutes_suffix_and_leading_zeros(self):
         self.assertEqual(patent_number("US06413981B1;;562059"), "US6413981B1")
         self.assertEqual(patent_number("US20040067202A1"), "US20040067202A1")
+        self.assertEqual(patent_number("US20020142971A1;0090;39985"), "US20020142971A1")
         self.assertEqual(patent_url("US04551532"), "https://patents.google.com/patent/US4551532")
         self.assertEqual(patent_url(""), "")
 
