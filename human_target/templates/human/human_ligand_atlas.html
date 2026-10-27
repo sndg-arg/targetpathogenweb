@@ -33,6 +33,7 @@
             </div>
             <div class="tp-view-head-actions">
                 <a href="{% url 'human_target:human_protein_list' %}?reviewed=1&amp;ligands=1" class="btn tp-btn tp-btn--secondary">{% trans "Browse liganded proteins" %}</a>
+                <a href="{% url 'human_target:retrosynthesis_benchmark' %}" class="btn tp-btn tp-btn--secondary">{% trans "Retrosynthesis benchmark" %}</a>
             </div>
         </div>
         <div class="tp-metrics atlas-metrics" aria-label="{% trans 'Coverage summary' %}">

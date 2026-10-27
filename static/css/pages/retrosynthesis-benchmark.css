@@ -1,0 +1,122 @@
+/* ============================================================
+   Human Targets — Retrosynthesis benchmark
+   One fused section of hairline rows; each row pairs a top-1 bar
+   (the one accent) with a neutral top-10 bar.
+   ============================================================ */
+
+.bench-page {
+    color: var(--tp-color-text-primary);
+}
+
+.bench-page > * ~ * {
+    margin-top: var(--tp-space-8);
+}
+
+.bench-metrics {
+    margin-top: var(--tp-space-5);
+}
+
+.bench-panel,
+.bench-footnote {
+    padding: 0 var(--tp-space-5);
+}
+
+.bench-legend {
+    display: flex;
+    gap: var(--tp-space-4);
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+.bench-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-2);
+}
+
+.bench-swatch {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: var(--tp-radius-xs);
+    background: var(--tp-color-border-strong);
+}
+
+.bench-swatch--top1 {
+    background: var(--tp-color-primary);
+}
+
+.bench-rows {
+    margin-top: var(--tp-space-4);
+    display: flex;
+    flex-direction: column;
+}
+
+.bench-row {
+    display: grid;
+    grid-template-columns: minmax(200px, 1fr) minmax(0, 2fr);
+    align-items: center;
+    gap: var(--tp-space-5);
+    padding: var(--tp-space-3) 0;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.bench-row:first-child {
+    border-top: none;
+}
+
+.bench-model {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.bench-model-name {
+    font-family: var(--tp-font-head);
+    font-weight: 600;
+    font-size: var(--tp-font-size-md);
+}
+
+.bench-model-meta,
+.bench-missing {
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+.bench-row.is-unavailable .bench-model-name {
+    color: var(--tp-color-text-muted);
+    font-weight: 500;
+}
+
+.bench-bars {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tp-space-2);
+}
+
+.bench-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 56px;
+    align-items: center;
+    gap: var(--tp-space-3);
+}
+
+.bench-value {
+    font-size: var(--tp-font-size-sm);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.bench-footnote {
+    max-width: var(--tp-measure);
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+@media (max-width: 640px) {
+    .bench-row {
+        grid-template-columns: 1fr;
+        gap: var(--tp-space-2);
+    }
+}

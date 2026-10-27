@@ -105,3 +105,22 @@ class LigandAtlasTests(TestCase):
         response = self.client.get(reverse("human_target:human_ligand_atlas"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Strongest evidence")
+
+
+class RetrosynthesisBenchmarkTests(TestCase):
+    def test_best_models_skip_partial_runs_and_page_renders(self):
+        from human_target.services.retrosynthesis_benchmark import build_benchmark_context
+
+        context = build_benchmark_context()
+        self.assertEqual(context["best_top1"]["name"], "Graph2SMILES")
+        self.assertEqual(context["best_top10"]["top10"], 86.9)
+
+        user = get_user_model().objects.create_user(username="bench-user", password="x")
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="tpweb", codename="can_view_human_targets"
+            )
+        )
+        self.client.force_login(user)
+        response = self.client.get(reverse("human_target:retrosynthesis_benchmark"))
+        self.assertContains(response, "Graph2SMILES")
