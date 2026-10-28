@@ -54,6 +54,20 @@ def _group_by_owner(formula_rows, param_rows):
     return sorted(groups.values(), key=lambda group: group["label"].casefold())
 
 
+def _search_text(item):
+    """Name, genome and owner of any Settings list item, for the search box."""
+    row = item.get("row", item)
+    obj = row.get("obj")
+    owner = getattr(obj, "user", None)
+    parts = [
+        row.get("label", ""),
+        row.get("genome_label", ""),
+        getattr(obj, "name", "") or "",
+        getattr(owner, "name", "") or "",
+    ]
+    return " ".join(str(part) for part in parts).casefold()
+
+
 class SettingsView(PermissionLockedMixin, View):
     """Owner-controlled visibility for scoring formulas and custom params,
     plus (superuser-only) a supervising overview of every user's items and
@@ -93,9 +107,13 @@ class SettingsView(PermissionLockedMixin, View):
             "formula_visibility_choices": FORMULA_VISIBILITY_CHOICES,
             "is_superuser_view": request.user.is_superuser,
         }
+        # The side nav prints a heading whenever "group" changes.
         sections = [
-            {"key": "formulas", "label": _("My scoring formulas"), "count": len(my_formula_rows)},
-            {"key": "data", "label": _("My uploaded data"), "count": len(my_param_rows)},
+            {"key": key, "label": label, "group": _("Your work"), "count": len(rows)}
+            for key, label, rows in (
+                ("formulas", _("Scoring formulas"), my_formula_rows),
+                ("data", _("Uploaded data"), my_param_rows),
+            )
         ]
         collections = {"formulas": my_formula_rows, "data": my_param_rows}
         if request.user.is_superuser:
@@ -121,17 +139,25 @@ class SettingsView(PermissionLockedMixin, View):
             collections.update(
                 shared=[
                     {"row": row, "kind": kind}
-                    for kind, rows in (("formula", shared_formula_rows), ("column", shared_param_rows))
+                    for kind, rows in (
+                        ("formula", shared_formula_rows),
+                        ("column", shared_param_rows),
+                    )
                     for row in rows
                 ],
                 users=context["user_groups"],
                 genomes=context["restricted_genomes"],
             )
             sections.extend(
-                {"key": key, "label": label, "count": len(collections[key])}
+                {
+                    "key": key,
+                    "label": label,
+                    "group": _("Administration"),
+                    "count": len(collections[key]),
+                }
                 for key, label in (
                     ("shared", _("Shared items")),
-                    ("users", _("By user")),
+                    ("users", _("Researchers")),
                     ("genomes", _("Restricted genomes")),
                 )
             )
@@ -158,16 +184,26 @@ class SettingsView(PermissionLockedMixin, View):
                     )
                     for row in rows
                 ]
-        page = Paginator(collections[active_section], 10).get_page(request.GET.get("page"))
+        items = collections[active_section]
+        search_query = request.GET.get("q", "").strip()
+        if search_query:
+            needle = search_query.casefold()
+            items = [item for item in items if needle in _search_text(item)]
+        page = Paginator(items, 20).get_page(request.GET.get("page"))
         query = {"section": active_section}
         if selected_owner:
             query["owner"] = selected_owner["id"]
+        if search_query:
+            query["q"] = search_query
         context.update(
+            search_query=search_query,
             settings_sections=sections,
             active_section=active_section,
             selected_owner=selected_owner,
             page_obj=page,
-            page_numbers=page.paginator.get_elided_page_range(page.number, on_each_side=1, on_ends=1),
+            page_numbers=page.paginator.get_elided_page_range(
+                page.number, on_each_side=1, on_ends=1
+            ),
             pagination_query=urlencode(query),
             settings_return_query=urlencode({**query, "page": page.number}),
         )
@@ -220,9 +256,7 @@ class SettingsView(PermissionLockedMixin, View):
         else:
             messages.error(request, "Unknown action.")
         query = {
-            key: request.GET[key]
-            for key in ("section", "page", "owner")
-            if key in request.GET
+            key: request.GET[key] for key in ("section", "page", "owner", "q") if key in request.GET
         }
         url = reverse("tpwebapp:settings")
         return redirect(f"{url}?{urlencode(query)}" if query else url)

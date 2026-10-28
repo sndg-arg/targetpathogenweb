@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261028-paginated">
+    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261028-workspace">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -23,141 +23,146 @@
         <p class="tp-view-eyebrow">{% trans "Privacy & sharing" %}</p>
         <h1 class="tp-view-title">{% trans "Settings" %}</h1>
         <p class="tp-view-lead">{% trans "Everything you create is private until you share it. Pick who can see each formula and each uploaded column." %}</p>
-        <details class="settings-guide">
-            <summary>{% trans "Who can see my work?" %}</summary>
-            <dl class="settings-legend">
-                <div><dt>{% trans "Only me" %}</dt><dd>{% trans "nobody else sees it" %}</dd></div>
-                <div>{% if gates_viewer %}<dt>{% trans "Gates members" %}</dt><dd>{% trans "accounts approved for the Gates project" %}</dd>{% else %}<dt>{% trans "Project members" %}</dt><dd>{% trans "accounts approved for the project" %}</dd>{% endif %}</div>
-                <div><dt>{% trans "Everyone" %}</dt><dd>{% trans "every signed-in user who can see that genome" %}</dd></div>
-            </dl>
-        </details>
     </section>
 
-    <nav class="tp-tabs settings-tabs" aria-label="{% trans 'Settings sections' %}">
-        {% for section in settings_sections %}
-        <a class="tp-tab{% if active_section == section.key %} is-active{% endif %}" href="?section={{ section.key }}"{% if active_section == section.key %} aria-current="page"{% endif %}>
-            {{ section.label }} <span class="tp-count">{{ section.count }}</span>
-        </a>
-        {% endfor %}
-    </nav>
-
-    {% if active_section == 'formulas' %}
-    <section class="settings-section">
-        <h2 class="tp-section-title">{% trans "My scoring formulas" %}</h2>
-        <p class="section-subtitle settings-section-description">{% trans "Choose who can use each formula. Visibility changes are saved immediately." %}</p>
-        {% if page_obj.object_list %}
-        <ul class="settings-rows">
-            {% for row in page_obj %}{% include "users/_settings_formula_row.html" with show_delete=True %}{% endfor %}
-        </ul>
-        {% else %}
-        <p class="tp-state-note tp-state-note--empty settings-empty">{% trans "You haven't made a formula of your own yet. Build one with Make my own score from any genome's protein list. The built-in formulas (Druggability, Localization) are already available to everyone." %}</p>
-        {% endif %}
-    </section>
-    {% elif active_section == 'data' %}
-    <section class="settings-section">
-        <h2 class="tp-section-title">{% trans "My uploaded data" %}</h2>
-        <p class="section-subtitle settings-section-description">{% trans "Control access to each uploaded column, for each genome. Visibility changes are saved immediately." %}</p>
-        {% if page_obj.object_list %}
-        <ul class="settings-rows">
-            {% for row in page_obj %}{% include "users/_settings_column_row.html" with show_delete=True %}{% endfor %}
-        </ul>
-        <p class="settings-note">{% trans "A shared column shows up for others as an extra option under Columns, Filters and Make my own score on that genome. Deleting it removes it for everyone." %}</p>
-        {% else %}
-        <p class="tp-state-note tp-state-note--empty settings-empty">{% trans "You haven't uploaded data yet. Use Add my own data from any genome's protein list." %}</p>
-        {% endif %}
-    </section>
-    {% elif active_section == 'shared' or selected_owner %}
-    <section class="settings-section">
-        <p class="tp-view-eyebrow">{% trans "Admin only" %}</p>
-        <h2 class="tp-section-title">{% if selected_owner %}{{ selected_owner.label }}{% else %}{% trans "Shared items" %}{% endif %}</h2>
-        {% if selected_owner %}<a class="settings-back" href="?section=users">{% trans "Back to all users" %}</a>{% endif %}
-        <p class="section-subtitle settings-section-description">{% trans "Read-only: only the owner can change who sees their formulas and data. Built-in formula copies are left out." %}</p>
-        {% if page_obj.object_list %}
-        <ul class="settings-rows">
-            {% for item in page_obj %}
-                {% if item.kind == 'formula' %}{% include "users/_settings_formula_row.html" with row=item.row show_owner=True readonly=True %}{% else %}{% include "users/_settings_column_row.html" with row=item.row show_owner=True readonly=True %}{% endif %}
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p class="tp-state-note tp-state-note--empty settings-empty">{% trans "Nothing is shared right now." %}</p>
-        {% endif %}
-    </section>
-    {% elif active_section == 'users' %}
-    <section class="settings-section">
-        <p class="tp-view-eyebrow">{% trans "Admin only" %}</p>
-        <h2 class="tp-section-title">{% trans "By user" %}</h2>
-        <p class="section-subtitle settings-section-description">{% trans "Browse each researcher's formulas and uploaded data. Only the owner can change their visibility." %}</p>
-        {% if page_obj.object_list %}
-        <ul class="settings-rows">
-            {% for group in page_obj %}
-            <li class="settings-row">
-                <div class="settings-row-main">
-                    <a class="settings-item-name" href="?section=users&amp;owner={{ group.id }}">{{ group.label }}</a>
-                    <span class="settings-item-meta">
-                        {% blocktrans count total=group.formulas|length %}{{ total }} formula{% plural %}{{ total }} formulas{% endblocktrans %}
-                        · {% blocktrans count total=group.columns|length %}{{ total }} column{% plural %}{{ total }} columns{% endblocktrans %}
-                        {% if group.shared_count %}· <strong>{% blocktrans count total=group.shared_count %}{{ total }} shared{% plural %}{{ total }} shared{% endblocktrans %}</strong>{% endif %}
-                    </span>
-                </div>
-                <a class="btn tp-btn tp-btn--secondary tp-btn--sm" href="?section=users&amp;owner={{ group.id }}" aria-label="{% blocktrans with name=group.label %}View items by {{ name }}{% endblocktrans %}">{% trans "View items" %}</a>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p class="tp-state-note tp-state-note--empty settings-empty">{% trans "No one has made a formula or uploaded data yet." %}</p>
-        {% endif %}
-    </section>
-    {% elif active_section == 'genomes' %}
-    <section class="settings-section">
-        <p class="tp-view-eyebrow">{% trans "Admin only" %}</p>
-        <h2 class="tp-section-title">{% trans "Restricted genomes" %}</h2>
-        <p class="section-subtitle settings-section-description">
-            {% url 'tpwebapp:genomes_list' as genomes_url %}
-            {% if gates_viewer %}{% blocktrans %}Only Gates members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% else %}{% blocktrans %}Only project members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% endif %}
-        </p>
-        {% if page_obj.object_list %}
-        <ul class="settings-rows">
-            {% for entry in page_obj %}
-            <li class="settings-row">
-                <div class="settings-row-main">
-                    <span class="settings-item-name">{{ entry.label }}</span>
-                    <span class="settings-item-meta">{% trans "Restricted by" %} {{ entry.obj.restricted_by.name|default:entry.obj.restricted_by.get_username|default:"—" }}</span>
-                </div>
-                <div class="settings-row-controls">
-                    <form method="post" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="unrestrict_genome">
-                        <input type="hidden" name="genome_name" value="{{ entry.obj.genome_name }}">
-                        <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Unrestrict" %}</button>
-                    </form>
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p class="tp-state-note tp-state-note--empty settings-empty">{% trans "No restricted genomes." %}</p>
-        {% endif %}
-    </section>
-    {% endif %}
-
-    {% if page_obj.paginator.count %}
-    <div class="settings-footer">
-        <p class="settings-item-meta">{% blocktrans with first=page_obj.start_index last=page_obj.end_index total=page_obj.paginator.count %}{{ first }}–{{ last }} of {{ total }}{% endblocktrans %}</p>
-        {% if page_obj.has_other_pages %}
-        <nav aria-label="{% trans 'Settings pages' %}">
-            <ul class="tp-pagination">
-                {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{{ pagination_query }}&amp;page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a></li>{% endif %}
-                {% for number in page_numbers %}
-                    {% if number == page_obj.paginator.ELLIPSIS %}<li class="page-item disabled"><span class="page-link">{{ number }}</span></li>
-                    {% elif number == page_obj.number %}<li class="page-item active"><span class="page-link" aria-current="page">{{ number }}</span></li>
-                    {% else %}<li class="page-item"><a class="page-link" href="?{{ pagination_query }}&amp;page={{ number }}" aria-label="{% blocktrans %}Page {{ number }}{% endblocktrans %}">{{ number }}</a></li>{% endif %}
+    <div class="settings-layout">
+        <aside class="settings-aside">
+            <nav class="settings-nav" aria-label="{% trans 'Settings sections' %}">
+                {% for section in settings_sections %}
+                {% ifchanged section.group %}<p class="settings-nav-group">{{ section.group }}</p>{% endifchanged %}
+                <a class="settings-nav-link{% if active_section == section.key %} is-active{% endif %}" href="?section={{ section.key }}"{% if active_section == section.key %} aria-current="page"{% endif %}>
+                    <span>{{ section.label }}</span>
+                    <span class="tp-count">{{ section.count }}</span>
+                </a>
                 {% endfor %}
-                {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{{ pagination_query }}&amp;page={{ page_obj.next_page_number }}">{% trans "Next" %}</a></li>{% endif %}
-            </ul>
-        </nav>
-        {% endif %}
+            </nav>
+
+            <div class="settings-legend">
+                <p class="settings-nav-group">{% trans "Visibility" %}</p>
+                <dl>
+                    <div><dt>{% trans "Only me" %}</dt><dd>{% trans "Nobody else sees it." %}</dd></div>
+                    <div>{% if gates_viewer %}<dt>{% trans "Gates members" %}</dt><dd>{% trans "Accounts approved for the Gates project." %}</dd>{% else %}<dt>{% trans "Project members" %}</dt><dd>{% trans "Accounts approved for the project." %}</dd>{% endif %}</div>
+                    <div><dt>{% trans "Everyone" %}</dt><dd>{% trans "Every signed-in user who can see that genome." %}</dd></div>
+                </dl>
+            </div>
+        </aside>
+
+        <section class="settings-panel" aria-labelledby="settings-panel-title">
+            <div class="section-head">
+                <div>
+                    {% if selected_owner %}<a class="settings-back" href="?section=users"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_left.html" %}</span><span>{% trans "All researchers" %}</span></a>{% endif %}
+                    <h2 id="settings-panel-title">
+                        {% if active_section == 'formulas' %}{% trans "Scoring formulas" %}
+                        {% elif active_section == 'data' %}{% trans "Uploaded data" %}
+                        {% elif selected_owner %}{{ selected_owner.label }}
+                        {% elif active_section == 'shared' %}{% trans "Shared items" %}
+                        {% elif active_section == 'users' %}{% trans "Researchers" %}
+                        {% else %}{% trans "Restricted genomes" %}{% endif %}
+                    </h2>
+                    <p class="section-subtitle">
+                        {% if active_section == 'formulas' %}{% trans "Choose who can use each formula. Changes are saved as soon as you pick." %}
+                        {% elif active_section == 'data' %}{% trans "Each column is shared per genome. Shared columns show up for others under Columns, Filters and Make my own score." %}
+                        {% elif selected_owner or active_section == 'shared' %}{% trans "Read-only: only the owner can change who sees an item. Built-in formula copies are left out." %}
+                        {% elif active_section == 'users' %}{% trans "Everyone who has made a formula or uploaded data." %}
+                        {% else %}{% url 'tpwebapp:genomes_list' as genomes_url %}{% if gates_viewer %}{% blocktrans %}Only Gates members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% else %}{% blocktrans %}Only project members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% endif %}{% endif %}
+                    </p>
+                </div>
+                <form class="section-tools settings-search" method="get" role="search">
+                    <input type="hidden" name="section" value="{{ active_section }}">
+                    {% if selected_owner %}<input type="hidden" name="owner" value="{{ selected_owner.id }}">{% endif %}
+                    <span class="tp-btn-icon settings-search-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
+                    <input class="form-control tp-ui-control tp-ui-search-input" type="search" name="q" value="{{ search_query }}" placeholder="{% if active_section == 'users' %}{% trans 'Find a researcher' %}{% elif active_section == 'genomes' %}{% trans 'Find a genome' %}{% else %}{% trans 'Find by name or genome' %}{% endif %}" aria-label="{% trans 'Search this list' %}">
+                </form>
+            </div>
+
+            {% if page_obj.object_list %}
+            <div class="tp-table-shell settings-table-shell">
+                <table class="table tp-table tp-table--compact settings-table settings-table--{{ active_section }}{% if selected_owner %} settings-table--owner{% endif %}">
+                    {% if active_section == 'formulas' %}
+                    <thead><tr><th scope="col">{% trans "Formula" %}</th><th scope="col" class="settings-col-visibility">{% trans "Who can see it" %}</th><th scope="col" class="settings-col-action"><span class="sr-only">{% trans "Delete" %}</span></th></tr></thead>
+                    <tbody>{% for row in page_obj %}{% include "users/_settings_formula_row.html" %}{% endfor %}</tbody>
+                    {% elif active_section == 'data' %}
+                    <thead><tr><th scope="col">{% trans "Column" %}</th><th scope="col">{% trans "Genome" %}</th><th scope="col" class="settings-col-visibility">{% trans "Who can see it" %}</th><th scope="col" class="settings-col-action"><span class="sr-only">{% trans "Delete" %}</span></th></tr></thead>
+                    <tbody>{% for row in page_obj %}{% include "users/_settings_column_row.html" %}{% endfor %}</tbody>
+                    {% elif active_section == 'shared' or selected_owner %}
+                    <thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Genome" %}</th>{% if not selected_owner %}<th scope="col">{% trans "Owner" %}</th>{% endif %}<th scope="col">{% trans "Who can see it" %}</th></tr></thead>
+                    <tbody>{% for item in page_obj %}{% include "users/_settings_item_row.html" with row=item.row kind=item.kind %}{% endfor %}</tbody>
+                    {% elif active_section == 'users' %}
+                    <thead><tr><th scope="col">{% trans "Researcher" %}</th><th scope="col" class="settings-col-number">{% trans "Formulas" %}</th><th scope="col" class="settings-col-number">{% trans "Columns" %}</th><th scope="col" class="settings-col-number">{% trans "Shared" %}</th><th scope="col" class="settings-col-action"><span class="sr-only">{% trans "Open" %}</span></th></tr></thead>
+                    <tbody>
+                        {% for group in page_obj %}
+                        <tr>
+                            <td><a class="settings-name" href="?section=users&amp;owner={{ group.id }}">{{ group.label }}</a></td>
+                            <td class="settings-col-number">{{ group.formulas|length }}</td>
+                            <td class="settings-col-number">{{ group.columns|length }}</td>
+                            <td class="settings-col-number">{{ group.shared_count }}</td>
+                            <td class="settings-col-action"><a class="btn tp-btn tp-btn--ghost tp-btn--sm" href="?section=users&amp;owner={{ group.id }}" title="{% trans 'View items' %}" aria-label="{% blocktrans with name=group.label %}View items by {{ name }}{% endblocktrans %}"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span></a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% else %}
+                    <thead><tr><th scope="col">{% trans "Genome" %}</th><th scope="col">{% trans "Restricted by" %}</th><th scope="col" class="settings-col-action"><span class="sr-only">{% trans "Unrestrict" %}</span></th></tr></thead>
+                    <tbody>
+                        {% for entry in page_obj %}
+                        <tr>
+                            <td class="settings-name">{{ entry.label }}</td>
+                            <td class="settings-muted">{{ entry.obj.restricted_by.name|default:entry.obj.restricted_by.get_username|default:"—" }}</td>
+                            <td class="settings-col-action">
+                                <form method="post" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="unrestrict_genome">
+                                    <input type="hidden" name="genome_name" value="{{ entry.obj.genome_name }}">
+                                    <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Unrestrict" %}</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% endif %}
+                </table>
+            </div>
+
+            <div class="settings-footer">
+                <p>{% blocktrans with first=page_obj.start_index last=page_obj.end_index total=page_obj.paginator.count %}{{ first }}–{{ last }} of {{ total }}{% endblocktrans %}</p>
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="{% trans 'Pages' %}">
+                    <ul class="tp-pagination">
+                        {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{{ pagination_query }}&amp;page={{ page_obj.previous_page_number }}" aria-label="{% trans 'Previous page' %}"><span class="tp-chevron tp-chevron--left" aria-hidden="true"></span></a></li>{% endif %}
+                        {% for number in page_numbers %}
+                            {% if number == page_obj.paginator.ELLIPSIS %}<li class="page-item disabled"><span class="page-link">{{ number }}</span></li>
+                            {% elif number == page_obj.number %}<li class="page-item active"><span class="page-link" aria-current="page">{{ number }}</span></li>
+                            {% else %}<li class="page-item"><a class="page-link" href="?{{ pagination_query }}&amp;page={{ number }}" aria-label="{% blocktrans %}Page {{ number }}{% endblocktrans %}">{{ number }}</a></li>{% endif %}
+                        {% endfor %}
+                        {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{{ pagination_query }}&amp;page={{ page_obj.next_page_number }}" aria-label="{% trans 'Next page' %}"><span class="tp-chevron tp-chevron--right" aria-hidden="true"></span></a></li>{% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+
+            {% elif search_query %}
+            <div class="tp-empty">
+                <p class="tp-empty-title">{% blocktrans with query=search_query %}Nothing matches “{{ query }}”{% endblocktrans %}</p>
+                <div class="tp-empty-actions"><a class="btn tp-btn tp-btn--secondary tp-btn--sm" href="?section={{ active_section }}{% if selected_owner %}&amp;owner={{ selected_owner.id }}{% endif %}">{% trans "Clear search" %}</a></div>
+            </div>
+            {% else %}
+            <div class="tp-empty">
+                {% if active_section == 'formulas' %}
+                <p class="tp-empty-title">{% trans "No formulas yet" %}</p>
+                <p class="tp-empty-text">{% trans "Build one with Make my own score from any genome's protein list. The built-in formulas (Druggability, Localization) are already available to everyone." %}</p>
+                {% elif active_section == 'data' %}
+                <p class="tp-empty-title">{% trans "No uploaded data yet" %}</p>
+                <p class="tp-empty-text">{% trans "Use Add my own data from any genome's protein list." %}</p>
+                {% elif active_section == 'shared' or selected_owner %}
+                <p class="tp-empty-title">{% trans "Nothing is shared right now" %}</p>
+                {% elif active_section == 'users' %}
+                <p class="tp-empty-title">{% trans "No one has made a formula or uploaded data yet" %}</p>
+                {% else %}
+                <p class="tp-empty-title">{% trans "No restricted genomes" %}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </section>
     </div>
-    {% endif %}
 
 </div>
 {% endblock %}

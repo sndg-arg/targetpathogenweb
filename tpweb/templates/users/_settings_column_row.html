@@ -1,14 +1,9 @@
 {% load i18n %}
 {% load custom_tags %}
-<li class="settings-row">
-    <div class="settings-row-main">
-        <span class="settings-item-name">{{ row.obj.name }}</span>
-        <span class="settings-item-meta">{% if show_owner %}{% blocktrans with genome=row.genome_label owner=row.obj.user.name|default:row.obj.user.get_username %}Uploaded column on {{ genome }} · {{ owner }}{% endblocktrans %}{% else %}{% blocktrans with genome=row.genome_label %}On {{ genome }}{% endblocktrans %}{% endif %}</span>
-    </div>
-    <div class="settings-row-controls">
-        {% if readonly %}
-        <span class="settings-visibility-label">{{ row.visibility_label|branded:user }}</span>
-        {% else %}
+<tr>
+    <td class="settings-name">{{ row.obj.name }}</td>
+    <td class="settings-muted">{{ row.genome_label }}</td>
+    <td class="settings-col-visibility">
         <form method="post" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" class="settings-visibility-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="set_param_visibility">
@@ -20,15 +15,14 @@
                 {% endfor %}
             </select>
         </form>
-        {% endif %}
-        {% if show_delete %}
+    </td>
+    <td class="settings-col-action">
         <form method="post" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" onsubmit="return confirm(this.dataset.confirm);" data-confirm="{% blocktrans with name=row.obj.name genome=row.genome_label %}Delete {{ name }} from {{ genome }}? Anyone you shared it with will stop seeing it too.{% endblocktrans %}">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete_param">
             <input type="hidden" name="param_id" value="{{ row.obj.pk }}">
             <input type="hidden" name="genome_name" value="{{ row.genome_name }}">
-            <button type="submit" class="btn tp-btn tp-btn--danger tp-btn--sm" aria-label="{% blocktrans with name=row.obj.name genome=row.genome_label %}Delete {{ name }} from {{ genome }}{% endblocktrans %}">{% trans "Delete" %}</button>
+            <button type="submit" class="btn tp-btn tp-btn--ghost tp-btn--sm settings-delete" title="{% trans 'Delete' %}" aria-label="{% blocktrans with name=row.obj.name genome=row.genome_label %}Delete {{ name }} from {{ genome }}{% endblocktrans %}"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span></button>
         </form>
-        {% endif %}
-    </div>
-</li>
+    </td>
+</tr>

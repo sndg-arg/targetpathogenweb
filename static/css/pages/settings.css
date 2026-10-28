@@ -1,222 +1,354 @@
-/* ── Settings — who can see each scoring formula and uploaded column, plus
-   (admin only) everyone's items and the restricted-genomes list. Plain rows
-   with the name on the left and the control on the right, instead of the
-   old header-bar tables. ── */
+/* ── Settings — a two-column workspace: a quiet section index on the left
+   (your work, then administration, then the visibility glossary) and one
+   paginated, searchable table on the right. ── */
 
 .settings-page {
     color: var(--tp-color-text-primary);
     margin: 0;
 }
 
-.settings-section {
-    padding: var(--tp-space-5);
+.settings-layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: var(--tp-space-8);
+    padding: 0 var(--tp-space-5) var(--tp-space-8);
+    border-top: 1px solid var(--tp-color-border-soft);
 }
 
-.settings-tabs {
-    margin: 0 var(--tp-space-5);
+/* ── Section index ── */
+
+.settings-aside {
+    position: sticky;
+    top: calc(var(--tp-sticky-chrome-h, 0px) + var(--tp-space-5));
+    align-self: start;
+    display: grid;
+    gap: var(--tp-space-6);
+    padding-top: var(--tp-space-5);
 }
 
-.settings-guide {
-    margin-top: var(--tp-space-3);
+.settings-nav {
+    display: grid;
 }
 
-.settings-guide summary,
-.settings-expression summary {
-    width: fit-content;
+.settings-nav-group {
+    margin: 0 0 var(--tp-space-2);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+.settings-nav-link + .settings-nav-group {
+    margin-top: var(--tp-space-5);
+}
+
+.settings-nav-link {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-2) var(--tp-space-3);
+    border-left: 2px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
-    cursor: pointer;
+    font-weight: 500;
+    line-height: 1.35;
+    text-decoration: none;
+    transition:
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.settings-guide summary:hover,
-.settings-expression summary:hover {
+.settings-nav-link:hover {
     color: var(--tp-color-text-primary);
+    border-left-color: var(--tp-color-border-strong);
+    text-decoration: none;
 }
 
-.settings-guide summary:focus-visible,
-.settings-expression summary:focus-visible {
-    outline: 2px solid var(--tp-focus-color);
-    outline-offset: 2px;
+.settings-nav-link.is-active {
+    color: var(--tp-color-link-hover);
+    border-left-color: var(--tp-color-accent-line);
+    font-weight: 600;
 }
 
-.settings-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2) var(--tp-space-6);
-    margin: var(--tp-space-4) 0 0;
-    font-size: var(--tp-font-size-sm);
+.settings-nav-link:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
 }
 
-.settings-legend div {
-    display: flex;
-    gap: var(--tp-space-2);
+.settings-legend dl {
+    display: grid;
+    gap: var(--tp-space-3);
+    margin: 0;
 }
 
 .settings-legend dt {
-    font-weight: 600;
     color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    line-height: 1.35;
 }
 
 .settings-legend dd {
     margin: 0;
     color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.5;
 }
 
-.settings-section-description {
-    margin-top: var(--tp-space-2);
+/* ── Panel ── */
+
+.settings-panel {
+    min-width: 0;
+    padding-top: var(--tp-space-5);
 }
 
-.settings-section-description a,
-.settings-note a,
-.settings-back,
-a.settings-item-name {
+.settings-panel .section-subtitle a {
     color: var(--tp-color-link);
 }
 
 .settings-back {
-    display: inline-block;
-    margin-top: var(--tp-space-2);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-1);
+    margin-bottom: var(--tp-space-2);
+    color: var(--tp-color-link);
     font-size: var(--tp-font-size-sm);
 }
 
-/* ── Rows ── */
-
-.settings-rows {
-    margin: var(--tp-space-3) 0 0;
-    padding: 0;
-    list-style: none;
-}
-
-.settings-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--tp-space-4);
-    padding: var(--tp-space-3) 0;
-    border-top: 1px solid var(--tp-color-border-soft);
-}
-
-.settings-row:last-child {
-    border-bottom: 1px solid var(--tp-color-border-soft);
-}
-
-.settings-row-main {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-    flex: 1;
-}
-
-.settings-item-name {
-    font-weight: 600;
-    overflow-wrap: anywhere;
-    line-height: 1.35;
-}
-
-.settings-item-expression {
-    display: block;
-    margin-top: var(--tp-space-1);
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    max-height: 240px;
-    overflow: auto;
-}
-
-.settings-item-meta {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
-}
-
-.settings-item-meta strong {
-    color: var(--tp-color-text-secondary);
-    font-weight: 600;
-}
-
-.settings-row-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--tp-space-2);
-    flex-shrink: 0;
-}
-
-.settings-row-controls form {
+.settings-search {
+    position: relative;
+    width: 280px;
+    max-width: 100%;
     margin: 0;
 }
 
-/* The select is swapped for the site's custom dropdown (custom-select.js),
-   which fills its container -- so the width lives on the form. */
-.settings-visibility-form {
-    width: 240px;
-    max-width: 100%;
+.settings-search-icon {
+    position: absolute;
+    left: var(--tp-space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    pointer-events: none;
 }
 
-.settings-visibility-form select {
+.settings-search .tp-ui-search-input {
     width: 100%;
-    font-size: var(--tp-font-size-sm);
+    min-width: 0;
+    padding-left: calc(var(--tp-space-3) + 1em + var(--tp-space-2)) !important;
 }
 
-.settings-visibility-label {
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
+/* ── Table: fixed layout so long names and expressions truncate
+   instead of pushing the visibility column off screen. ── */
+
+.settings-table {
+    table-layout: fixed;
+}
+
+.settings-col-visibility {
+    width: 240px;
+}
+
+.settings-col-action {
+    width: 56px;
     text-align: right;
 }
 
-.settings-empty {
-    margin: var(--tp-space-3) 0 0;
-    max-width: var(--tp-measure);
+.settings-col-number {
+    width: 104px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
 }
 
-.settings-note {
-    margin: var(--tp-space-3) 0 0;
-    max-width: var(--tp-measure);
+.settings-table--data th:nth-child(2),
+.settings-table--shared th:nth-child(3),
+.settings-table--owner th:nth-child(3) {
+    width: 28%;
+}
+
+.settings-table--shared th:nth-child(2),
+.settings-table--owner th:nth-child(2) {
+    width: 96px;
+}
+
+.settings-table--shared th:nth-child(4) {
+    width: 18%;
+}
+
+.settings-table--shared th:last-child,
+.settings-table--owner th:last-child {
+    width: 168px;
+}
+
+.settings-table--genomes th:nth-child(2) {
+    width: 32%;
+}
+
+.settings-table--genomes .settings-col-action {
+    width: 128px;
+}
+
+.settings-table td {
+    overflow-wrap: anywhere;
+}
+
+.settings-name {
+    color: var(--tp-color-text-primary);
+    font-weight: 500;
+}
+
+a.settings-name {
+    color: var(--tp-color-link);
+}
+
+.settings-muted {
+    color: var(--tp-color-text-secondary);
+}
+
+.settings-col-action form,
+.settings-visibility-form {
+    margin: 0;
+}
+
+/* custom-select.js swaps the select for a dropdown that fills its form. */
+.settings-visibility-form select {
+    width: 100%;
+}
+
+/* A one-line preview of the formula; click to unfold it in place. */
+.settings-expression {
+    margin-top: 2px;
+}
+
+.settings-expression summary {
+    display: block;
+    list-style: none;
+    cursor: pointer;
+}
+
+.settings-expression summary::-webkit-details-marker {
+    display: none;
+}
+
+.settings-expression code {
+    display: block;
+    overflow: hidden;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
     line-height: 1.5;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-/* The pager stays small even for large research workspaces. */
+.settings-expression summary:hover code,
+.settings-expression[open] code {
+    color: var(--tp-color-text-secondary);
+}
+
+.settings-expression[open] code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.settings-expression summary:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+/* ── Footer: range on the left, pages on the right ── */
+
 .settings-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: var(--tp-space-3);
-    padding: var(--tp-space-4) var(--tp-space-5);
-    border-top: 1px solid var(--tp-color-border-soft);
+    padding-top: var(--tp-space-3);
 }
 
 .settings-footer p {
     margin: 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
     font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 800px) {
-    .settings-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: var(--tp-space-2);
+/* ── Narrow screens: the index becomes a scrolling strip above the
+   table, and the glossary moves below it. ── */
+
+@media (max-width: 900px) {
+    .settings-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+        padding: 0 var(--tp-space-4) var(--tp-space-6);
     }
 
-    .settings-row-controls {
-        flex-shrink: 1;
-        min-width: 0;
-        flex-wrap: wrap;
+    .settings-aside {
+        display: contents;
     }
 
-    .settings-visibility-form {
-        flex: 1;
-        width: auto;
-        min-width: 0;
+    .settings-nav {
+        display: flex;
+        gap: var(--tp-space-4);
+        overflow-x: auto;
+        border-bottom: 1px solid var(--tp-color-border-soft);
+        scrollbar-width: none;
     }
 
-    .settings-visibility-label {
-        text-align: left;
+    .settings-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .settings-nav-group {
+        display: none;
+    }
+
+    .settings-legend .settings-nav-group {
+        display: block;
+    }
+
+    .settings-nav-link {
+        flex: 0 0 auto;
+        margin-bottom: -1px;
+        padding: var(--tp-space-3) 0 var(--tp-space-2);
+        border-left: 0;
+        border-bottom: 2px solid transparent;
+    }
+
+    .settings-nav-link:hover {
+        border-bottom-color: var(--tp-color-border-strong);
+    }
+
+    .settings-nav-link.is-active {
+        border-bottom-color: var(--tp-color-accent-line);
+    }
+
+    .settings-legend {
+        order: 3;
+        padding-top: var(--tp-space-6);
+    }
+
+    .settings-search {
+        width: 100%;
+    }
+
+    .settings-table {
+        min-width: 600px;
     }
 
     .settings-footer nav {
         max-width: 100%;
         overflow-x: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .settings-nav-link,
+    .settings-expression code {
+        transition: none;
     }
 }
