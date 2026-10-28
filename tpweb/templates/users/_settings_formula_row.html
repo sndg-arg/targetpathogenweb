@@ -4,13 +4,18 @@
     <div class="settings-row-main">
         <span class="settings-item-name">{{ row.obj.name }}</span>
         {% if show_owner %}<span class="settings-item-meta">{% trans "Scoring formula" %} · {{ row.obj.user.name|default:row.obj.user.get_username }}</span>{% endif %}
-        {% if row.obj.expression %}<code class="settings-item-expression">{{ row.obj.expression }}</code>{% endif %}
+        {% if row.obj.expression %}
+        <details class="settings-expression">
+            <summary>{% trans "View expression" %}<span class="sr-only">: {{ row.obj.name }}</span></summary>
+            <code class="tp-code-block settings-item-expression" tabindex="0">{{ row.obj.expression }}</code>
+        </details>
+        {% endif %}
     </div>
     <div class="settings-row-controls">
         {% if readonly %}
         <span class="settings-visibility-label">{{ row.visibility_label|branded:user }}</span>
         {% else %}
-        <form method="post" action="{% url 'tpwebapp:settings' %}" class="settings-visibility-form">
+        <form method="post" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" class="settings-visibility-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="set_formula_visibility">
             <input type="hidden" name="formula_id" value="{{ row.obj.pk }}">
@@ -22,11 +27,11 @@
         </form>
         {% endif %}
         {% if show_delete %}
-        <form method="post" action="{% url 'tpwebapp:settings' %}" onsubmit="return confirm(this.dataset.confirm);" data-confirm="{% blocktrans with name=row.obj.name %}Delete the formula {{ name }}? Anyone you shared it with will stop seeing it too.{% endblocktrans %}">
+        <form method="post" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" onsubmit="return confirm(this.dataset.confirm);" data-confirm="{% blocktrans with name=row.obj.name %}Delete the formula {{ name }}? Anyone you shared it with will stop seeing it too.{% endblocktrans %}">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete_formula">
             <input type="hidden" name="formula_id" value="{{ row.obj.pk }}">
-            <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Delete" %}</button>
+            <button type="submit" class="btn tp-btn tp-btn--danger tp-btn--sm" aria-label="{% blocktrans with name=row.obj.name %}Delete formula {{ name }}{% endblocktrans %}">{% trans "Delete" %}</button>
         </form>
         {% endif %}
     </div>

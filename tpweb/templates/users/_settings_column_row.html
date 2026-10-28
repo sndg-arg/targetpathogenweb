@@ -9,7 +9,7 @@
         {% if readonly %}
         <span class="settings-visibility-label">{{ row.visibility_label|branded:user }}</span>
         {% else %}
-        <form method="post" action="{% url 'tpwebapp:settings' %}" class="settings-visibility-form">
+        <form method="post" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" class="settings-visibility-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="set_param_visibility">
             <input type="hidden" name="param_id" value="{{ row.obj.pk }}">
@@ -22,12 +22,12 @@
         </form>
         {% endif %}
         {% if show_delete %}
-        <form method="post" action="{% url 'tpwebapp:settings' %}" onsubmit="return confirm(this.dataset.confirm);" data-confirm="{% blocktrans with name=row.obj.name genome=row.genome_label %}Delete {{ name }} from {{ genome }}? Anyone you shared it with will stop seeing it too.{% endblocktrans %}">
+        <form method="post" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" onsubmit="return confirm(this.dataset.confirm);" data-confirm="{% blocktrans with name=row.obj.name genome=row.genome_label %}Delete {{ name }} from {{ genome }}? Anyone you shared it with will stop seeing it too.{% endblocktrans %}">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete_param">
             <input type="hidden" name="param_id" value="{{ row.obj.pk }}">
             <input type="hidden" name="genome_name" value="{{ row.genome_name }}">
-            <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Delete" %}</button>
+            <button type="submit" class="btn tp-btn tp-btn--danger tp-btn--sm" aria-label="{% blocktrans with name=row.obj.name genome=row.genome_label %}Delete {{ name }} from {{ genome }}{% endblocktrans %}">{% trans "Delete" %}</button>
         </form>
         {% endif %}
     </div>
