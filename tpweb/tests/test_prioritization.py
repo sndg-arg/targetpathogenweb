@@ -111,3 +111,14 @@ class LocalizationTests(SimpleTestCase):
         unknown = [{"key": "Localization", "value": "Unknown"}]
         self.assertEqual(build_localization(unknown)["parts"], [])
         self.assertIsNone(build_localization([]))
+
+
+class RegulatoryIsStrainLocalTests(SimpleTestCase):
+    def test_grn_scores_are_not_shared_across_identical_proteins(self):
+        from types import SimpleNamespace
+
+        from tpweb.services.shared_sequence_evidence import sequence_specific_score
+
+        for name in ("grn_regulated", "GRN_knockout_score"):
+            param = SimpleNamespace(name=name, category="Regulatory (curated)")
+            self.assertFalse(sequence_specific_score(param))

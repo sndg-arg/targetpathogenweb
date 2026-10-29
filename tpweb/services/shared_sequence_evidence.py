@@ -9,11 +9,12 @@ from dataclasses import dataclass, field
 
 CURATED_STRAINS = {"KP13": 0, "ATCC43816": 1}
 STRAIN_LABELS = {"KP13": "KP13", "ATCC43816": "KPATCC", "ST11_VA569": "VA569"}
-# Identical proteins share every curated datum except metabolic context, which
-# comes from each strain's own metabolic model. Conservation (core/soft core) is
-# shared: identical proteins in these strains carry the curated call.
+# Identical proteins share every curated datum except metabolic and regulatory
+# context, which come from each strain's own metabolic model and regulatory
+# network (grn_*). Conservation (core/soft core) is shared: identical proteins
+# in these strains carry the curated call.
 LOCAL_SCORE_CATEGORIES = {"metabolic network", "metabolism"}
-LOCAL_SCORE_PREFIXES = ("ptools_", "metabolic_", "kp_score")
+LOCAL_SCORE_PREFIXES = ("ptools_", "metabolic_", "kp_score", "grn_")
 POCKET_SCORE_BUNDLES = {
     "p2rank_probability": {"p2rank_probability", "best_p2rank_structure", "p2rank_pocket"},
     "Druggability": {"Druggability", "best_fpocket_structure", "fpocket_pocket"},
