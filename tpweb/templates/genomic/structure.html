@@ -1391,7 +1391,8 @@ function jsloaded() {
             aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
             scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
             sele: "backbone and " + activeChainSelector,
-            color: colorForMode(currentColorMode)
+            color: colorForMode(currentColorMode),
+            opacity: mainCartoonOpacity()
         });
         visible.__main_cartoon = true;
         representations.__main_cartoon.sele = "backbone and " + activeChainSelector;
@@ -1410,7 +1411,8 @@ function jsloaded() {
                 aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
                 scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
                 sele: "backbone and " + activeChainSelector,
-                color: colorForMode(mode)
+                color: colorForMode(mode),
+                opacity: mainCartoonOpacity()
             });
             representations.__main_cartoon.sele = "backbone and " + activeChainSelector;
             representations.__main_cartoon.setVisibility(wasVisible);
@@ -1625,6 +1627,22 @@ function jsloaded() {
        and moves the overlay's coordinates; the camera stays put. Fitted on
        one chain per structure, so a homooligomer doesn't skew the alignment. ---- */
     var overlayComponents = {};
+    // With overlays on, the structure in view fades and each overlay is
+    // translucent in its own colour: near-identical models stay tellable
+    // apart instead of one hiding the other.
+    var OVERLAY_OPACITY = 0.7;
+    function mainCartoonOpacity() {
+        return overlayComponents && Object.keys(overlayComponents).length ? 0.45 : 1;
+    }
+    function syncMainCartoonOpacity() {
+        var repr = representations.__main_cartoon;
+        if (!repr) return;
+        try {
+            repr.setParameters({ opacity: mainCartoonOpacity() });
+        } catch (err) {
+            /* representation already disposed by a structure switch */
+        }
+    }
     var OVERLAY_COLOR_TOKENS = [
         "--tp-color-structure-overlay-1", "--tp-color-structure-overlay-2",
         "--tp-color-structure-overlay-3", "--tp-color-structure-overlay-4"
@@ -1639,6 +1657,7 @@ function jsloaded() {
     }
 
     function updateOverlayCount() {
+        syncMainCartoonOpacity();
         var countEl = document.getElementById("sv-overlay-count");
         if (!countEl) return;
         var n = Object.keys(overlayComponents).length;
@@ -1697,7 +1716,7 @@ function jsloaded() {
                 }
                 var sele = overlayFitSele(overlayId);
                 overlay.superpose(target, true, sele, overlayFitSele(activeStructureId));
-                overlay.addRepresentation("cartoon", { sele: sele, color: color, opacity: 0.85 });
+                overlay.addRepresentation("cartoon", { sele: sele, color: color, opacity: OVERLAY_OPACITY });
                 overlayComponents[overlayId] = overlay;
                 setOverlayItemState(item, true, "");
                 updateOverlayCount();
