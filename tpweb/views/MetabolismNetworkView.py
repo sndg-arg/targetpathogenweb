@@ -258,6 +258,7 @@ class ProteinMetabolicNetworkPageView(View):
                 "metabolic_context": metabolic_context,
                 "assembly_name": display_genome_name(assembly_name),
                 "assembly_url": reverse("tpwebapp:assembly", kwargs={"genome": slug}),
+                "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": slug}),
                 "protein_url": reverse(
                     "tpwebapp:protein", kwargs={"protein_id": protein.bioentry_id}
                 ),

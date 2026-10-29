@@ -4,8 +4,11 @@ from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Ontology import Ontology
 from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
+from tpweb.models.RestrictedGenome import RestrictedGenome
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.genome_workspace import (
+    PUBLIC_WORKSPACE_USERNAME,
+    WORKSPACE_GENOME_DELIMITER,
     describe_genome_scope,
     display_genome_name,
     genome_url_slug,
@@ -18,7 +21,7 @@ GENOME_TABLE_COLUMNS = {
     "EntryLength": "Length [bp]",
     "COUNT_CDS": "# Proteins",
     "COUNT_EXPERIMENTAL": "Loaded exp. structures",
-    "COUNT_PDB_XREFS": "PDB xrefs",
+    "COUNT_PDB_XREFS": "PDB entries cited by UniProt",
     "COUNT_EC": "EC-annotated proteins",
 }
 
@@ -149,6 +152,44 @@ def _curated_genome_names(genome_names):
     return {name.removesuffix(Biodatabase.PROT_POSTFIX) for name in curated_proteome_names}
 
 
+def _restricted_genome_names(genome_names):
+    if not genome_names:
+        return set()
+    return set(
+        RestrictedGenome.objects.filter(genome_name__in=genome_names).values_list(
+            "genome_name", flat=True
+        )
+    )
+
+
+def restrictable_genomes():
+    """Shared genomes not restricted yet, for the Restrict picker in Settings.
+    Someone's personal upload is already private and never listed."""
+    public_prefix = f"{PUBLIC_WORKSPACE_USERNAME}{WORKSPACE_GENOME_DELIMITER}"
+    names = (
+        Biodatabase.objects.exclude(Q(name__endswith="_rnas") | Q(name__endswith="_prots"))
+        .filter(Q(name__startswith=public_prefix) | ~Q(name__contains=WORKSPACE_GENOME_DELIMITER))
+        .exclude(name__in=RestrictedGenome.objects.values("genome_name"))
+        .values_list("name", flat=True)
+    )
+    genomes = [{"name": name, "label": display_genome_name(name)} for name in names]
+    return sorted(genomes, key=lambda genome: genome["label"].casefold())
+
+
+def set_genome_restricted(genome_name, restricted, user=None):
+    """Superuser-only toggle backing Settings -> Restricted genomes
+    (tpweb/views/SettingsView.py), the one place to restrict or unrestrict a
+    genome without hand-typing its internal (prefixed) name into the
+    Django admin. See tpweb.services.genome_workspace for where
+    RestrictedGenome actually gets enforced."""
+    if restricted:
+        RestrictedGenome.objects.get_or_create(
+            genome_name=genome_name, defaults={"restricted_by": user}
+        )
+    else:
+        RestrictedGenome.objects.filter(genome_name=genome_name).delete()
+
+
 def build_genome_dto(
     genome,
     user=None,
@@ -158,12 +199,14 @@ def build_genome_dto(
     pdb_xref_counts_by_genome=None,
     ec_counts_by_genome=None,
     curated_genome_names=None,
+    restricted_genome_names=None,
 ):
     protein_counts_by_genome = protein_counts_by_genome or {}
     experimental_counts_by_genome = experimental_counts_by_genome or {}
     pdb_xref_counts_by_genome = pdb_xref_counts_by_genome or {}
     ec_counts_by_genome = ec_counts_by_genome or {}
     curated_genome_names = curated_genome_names or set()
+    restricted_genome_names = restricted_genome_names or set()
 
     workspace_scope = describe_genome_scope(user, genome.name)
     genome_dto = {
@@ -174,6 +217,7 @@ def build_genome_dto(
         "workspace_scope_key": workspace_scope["key"],
         "workspace_scope_label": workspace_scope["label"],
         "has_curated_data": genome.name in curated_genome_names,
+        "is_restricted": genome.name in restricted_genome_names,
     }
     qualifiers = genome.qualifiers_dict()
     protein_count = safe_int(
@@ -229,6 +273,7 @@ def build_genomes_dto(genomes, user=None, columns=GENOME_TABLE_COLUMNS):
     pdb_xref_counts_by_genome = _pdb_xref_counts_by_genome(genome_names)
     ec_counts_by_genome = _ec_counts_by_genome(genome_names)
     curated_names = _curated_genome_names(genome_names)
+    restricted_names = _restricted_genome_names(genome_names)
 
     return [
         build_genome_dto(
@@ -240,6 +285,7 @@ def build_genomes_dto(genomes, user=None, columns=GENOME_TABLE_COLUMNS):
             pdb_xref_counts_by_genome=pdb_xref_counts_by_genome,
             ec_counts_by_genome=ec_counts_by_genome,
             curated_genome_names=curated_names,
+            restricted_genome_names=restricted_names,
         )
         for genome in genomes
     ]

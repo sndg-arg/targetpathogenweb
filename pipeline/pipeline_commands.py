@@ -110,6 +110,9 @@ def load_interpro_cmd(working_dir, genome, folder_path):
     protein_file = os.path.join(folder_path, genome + ".faa.tsv")
     return (
         f"{PYTHON_BIN} {working_dir}/manage.py load_interpro {genome} --interpro_tsv {protein_file}"
+        f" && {PYTHON_BIN} {working_dir}/manage.py load_interpro_go {genome}"
+        f" --interpro-tsv {protein_file} --apply"
+        f" && {PYTHON_BIN} {working_dir}/manage.py index_transmembrane_segments {genome}"
     )
 
 
@@ -161,9 +164,14 @@ def alphafold_cmd(protein_list_line, folder_path, genome):
     alphafold_folder = os.path.join(folder_path, "alphafold")
     parts = protein_list_line.split()
     accession, locustag = parts[0], parts[1]
+    # -np/-nf: this stage is meant to be download-only (see docs/DATA_SOURCES.md).
+    # P2RANK/FPocket are stage 17's job (structures_af / structures_remote.py) --
+    # without these flags TP.alphafold also runs both itself (P2RANK locally,
+    # FPocket via a nested `docker run`), redundant with stage 17 and heavy
+    # enough to violate the nodo0 no-local-compute policy.
     return (
         f"{PYTHON_BIN} -m TP.alphafold -pr ../opt/p2rank/distro/prank"
-        f" -o {alphafold_folder} -T 10 -nc -parsl {accession} -ltag {locustag}"
+        f" -o {alphafold_folder} -T 10 -nc -np -nf -parsl {accession} -ltag {locustag}"
     )
 
 
@@ -298,13 +306,18 @@ def psort_cmd(genome, gram):
         'if [ ! -s "/work/$GENOME.faa" ] && [ -s "/work/$GENOME.faa.gz" ]; then '
         'gzip -dc "/work/$GENOME.faa.gz" > "/work/$GENOME.faa"; '
         "fi; "
-        "rm -f /work/*_psortb_*.txt /work/psort.tsv; "
         f'/usr/local/psortb/bin/psort -{shlex.quote(gram)} -o terse -i "/work/$GENOME.faa"; '
-        "cp /tmp/results/*_psortb_*.txt /work/; "
-        "RAW=$(ls -1 /work/*_psortb_*.txt | tail -n 1); "
+        "set -- /tmp/results/*_psortb_*.txt; "
+        '[ "$#" -eq 1 ] && [ -s "$1" ] || { echo "Missing or ambiguous PSORT output" >&2; exit 1; }; '
+        'RAW="$1"; cp "$RAW" /work/; '
+        'if grep -qE "Fatal error|SCLBLAST_NO_RESULT" "$RAW"; then '
+        'cat "$RAW" >&2; exit 1; fi; '
+        "TMP=$(mktemp /work/.psort.XXXXXX); "
         'awk -F \'\\t\' \'BEGIN{OFS="\\t"; print "gene","Localization"} '
-        'NR>1 && NF>=2 {split($1,a," "); print a[1],$2}\' "$RAW" > /work/psort.tsv; '
-        "chmod 0644 /work/psort.tsv"
+        'NR==1 && ($1!="SeqID" || $2!="Localization") {exit 1} '
+        'NR>1 && NF>=2 {split($1,a," "); print a[1],$2; n++} '
+        'END{if (!n) exit 1}\' "$RAW" > "$TMP"; '
+        'chmod 0644 "$TMP"; mv "$TMP" /work/psort.tsv'
     )
     return (
         f"if command -v docker >/dev/null 2>&1; then "
@@ -328,3 +341,43 @@ def get_binders_cmd(working_dir, genome):
 
 def load_binders_cmd(working_dir, genome):
     return f"{PYTHON_BIN} {working_dir}/manage.py load_binders {genome} --datadir {_data_dir(working_dir)}"
+
+
+# --- Completion steps: fill evidence the main loaders can miss ---
+# Each one only adds what is missing and leaves loaded values alone, so they are
+# safe on any genome and on re-runs. They were manual recoveries for VA569.
+
+
+def genbank_ec_cmd(working_dir, genome, folder_path):
+    gbk_path = os.path.join(folder_path, f"{genome}.gbk.gz")
+    return f"{PYTHON_BIN} {working_dir}/manage.py load_genbank_ec {genome} --genbank {gbk_path} --apply"
+
+
+def microbiome_counts_cmd(working_dir, genome):
+    """Counts plus their normalization; counts alone when the companion tables
+    are missing or incomplete."""
+    base = (
+        f"{PYTHON_BIN} {working_dir}/manage.py recover_microbiome_counts {genome}"
+        f" --apply --datadir {_data_dir(working_dir)}"
+    )
+    return f"{base} --include-normalization || {base}"
+
+
+def experimental_by_sequence_cmd(working_dir, genome):
+    """UniProt/PDB links by exact sequence, for proteins the UniProt mapping missed."""
+    return (
+        f"{PYTHON_BIN} {working_dir}/scripts/recover_experimental_by_sequence.py {genome}"
+        f" --datadir {_data_dir(working_dir)}"
+    )
+
+
+def cached_annotations_cmd(working_dir, genome):
+    """EC/GO from the UniProt entries the sequence recovery downloaded."""
+    return (
+        f"{PYTHON_BIN} {working_dir}/manage.py recover_cached_functional_annotations {genome}"
+        f" --datadir {_data_dir(working_dir)} --apply"
+    )
+
+
+def binder_directness_cmd(working_dir, genome):
+    return f"{PYTHON_BIN} {working_dir}/manage.py recompute_binder_directness {genome}"

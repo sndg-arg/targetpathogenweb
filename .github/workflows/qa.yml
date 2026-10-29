@@ -65,7 +65,7 @@ jobs:
 
       - name: Unit and smoke tests (with coverage)
         run: |
-          python -m coverage run --source=tpweb,pipeline scripts/run_tests.py
+          python -m coverage run --source=tpweb,human_target,pipeline scripts/run_tests.py
           python -m coverage report -m
 
       - name: Lint (whole repo)

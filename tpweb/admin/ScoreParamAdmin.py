@@ -1,10 +1,13 @@
+from tpweb.models.CustomParamShare import CustomParamShare
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from tpweb.models.ScoreParamValue import ScoreParamValue
 
 from django.contrib import admin
 
+from tpweb.admin.private_data import HideResearcherDataMixin
 
-class ScoreParamAdmin(admin.ModelAdmin):
+
+class ScoreParamAdmin(HideResearcherDataMixin, admin.ModelAdmin):
     list_display = [
         "name",
         "category",
@@ -24,7 +27,8 @@ class ScoreParamAdmin(admin.ModelAdmin):
 admin.site.register(ScoreParam, ScoreParamAdmin)
 
 
-class ScoreParamOptionsAdmin(admin.ModelAdmin):
+class ScoreParamOptionsAdmin(HideResearcherDataMixin, admin.ModelAdmin):
+    owner_path = "score_param__"
     list_display = ["name", "description", "score_param_name"]
     search_fields = ["name", "description", "score_param__name"]
     raw_id_fields = ("score_param",)
@@ -37,7 +41,8 @@ class ScoreParamOptionsAdmin(admin.ModelAdmin):
 admin.site.register(ScoreParamOptions, ScoreParamOptionsAdmin)
 
 
-class ScoreParamValueAdmin(admin.ModelAdmin):
+class ScoreParamValueAdmin(HideResearcherDataMixin, admin.ModelAdmin):
+    owner_path = "score_param__"
     list_display = ["bioentry_accession", "score_param_name", "value", "numeric_value"]
     search_fields = ["bioentry__accession", "score_param__name"]
     raw_id_fields = (
@@ -55,3 +60,14 @@ class ScoreParamValueAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ScoreParamValue, ScoreParamValueAdmin)
+
+
+class CustomParamShareAdmin(HideResearcherDataMixin, admin.ModelAdmin):
+    owner_path = "score_param__"
+    list_display = ["score_param", "genome_name", "visibility", "shared_at"]
+    list_filter = ["visibility"]
+    search_fields = ["score_param__name", "genome_name"]
+    raw_id_fields = ("score_param",)
+
+
+admin.site.register(CustomParamShare, CustomParamShareAdmin)

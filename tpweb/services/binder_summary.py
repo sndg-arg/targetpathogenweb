@@ -12,11 +12,14 @@ module instead of from each other.
 
 from __future__ import annotations
 
+import hashlib
 import re
+from functools import lru_cache
 
+from django.core.cache import cache
 from django.db.models import Q
 from rdkit import Chem
-from rdkit.Chem import Crippen, Descriptors, Lipinski
+from rdkit.Chem import Crippen, Descriptors, Lipinski, rdMolDescriptors
 from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem.FilterCatalog import FilterCatalog, FilterCatalogParams
 
@@ -26,6 +29,115 @@ KNOWN_BINDER_CAP = 100
 ZINC_BINDER_CAP = 50
 
 _PAINS_CATALOG = None
+
+_SUBSCRIPT = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+_SUPERSCRIPT = str.maketrans("0123456789+-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻")
+
+
+def _format_molecular_formula(formula):
+    """Render RDKit's raw Hill-notation formula (e.g. "H2O7P2-2") with real
+    subscript element counts and a superscript charge, instead of plain
+    digits with an ASCII +/- charge suffix indistinguishable from the
+    formula itself."""
+    if not formula:
+        return formula
+    charge = re.search(r"([+-])(\d*)$", formula)
+    if not charge:
+        return formula.translate(_SUBSCRIPT)
+    base = formula[: charge.start()].translate(_SUBSCRIPT)
+    # Chemistry convention writes the charge digit(s) before the sign when
+    # superscripted (e.g. "2-" -> "²⁻"), the reverse of RDKit's raw order.
+    magnitude, sign = charge.group(2), charge.group(1)
+    return base + (magnitude + sign).translate(_SUPERSCRIPT)
+
+
+def compute_binder_properties(smiles):
+    """Compute physicochemical descriptors + drug-likeness from a SMILES string,
+    for the binder detail page's full property panel (a superset of
+    _binder_table_properties, which only computes what the compact binder-list
+    table cells need)."""
+    if not smiles:
+        return None
+    try:
+        mol = Chem.MolFromSmiles(smiles)
+    except Exception:
+        return None
+    if mol is None:
+        return None
+
+    mw = Descriptors.MolWt(mol)
+    logp = Crippen.MolLogP(mol)
+    hbd = Lipinski.NumHDonors(mol)
+    hba = Lipinski.NumHAcceptors(mol)
+    tpsa = Descriptors.TPSA(mol)
+    rotb = Lipinski.NumRotatableBonds(mol)
+    aromatic_rings = rdMolDescriptors.CalcNumAromaticRings(mol)
+    heavy_atoms = mol.GetNumHeavyAtoms()
+    num_rings = rdMolDescriptors.CalcNumRings(mol)
+    formula = rdMolDescriptors.CalcMolFormula(mol)
+    fraction_csp3 = rdMolDescriptors.CalcFractionCSP3(mol)
+
+    lipinski_checks = [
+        {"name": "MW ≤ 500 Da", "value": f"{mw:.1f}", "ok": mw <= 500},
+        {"name": "LogP ≤ 5", "value": f"{logp:.2f}", "ok": logp <= 5},
+        {"name": "H-bond donors ≤ 5", "value": hbd, "ok": hbd <= 5},
+        {"name": "H-bond acceptors ≤ 10", "value": hba, "ok": hba <= 10},
+    ]
+    lipinski_violations = sum(0 if c["ok"] else 1 for c in lipinski_checks)
+
+    veber_checks = [
+        {"name": "Rotatable bonds ≤ 10", "value": rotb, "ok": rotb <= 10},
+        {"name": "TPSA ≤ 140 Å²", "value": f"{tpsa:.1f}", "ok": tpsa <= 140},
+    ]
+    veber_violations = sum(0 if c["ok"] else 1 for c in veber_checks)
+
+    permeability_checks = [
+        {"name": "TPSA ≤ 90 Å²", "value": f"{tpsa:.1f}", "ok": tpsa <= 90},
+        {"name": "−1 ≤ LogP ≤ 5", "value": f"{logp:.2f}", "ok": -1 <= logp <= 5},
+    ]
+    permeability_ok = all(c["ok"] for c in permeability_checks)
+
+    try:
+        pains_params = FilterCatalogParams()
+        pains_params.AddCatalog(FilterCatalogParams.FilterCatalogs.PAINS)
+        pains_catalog = FilterCatalog(pains_params)
+        match = pains_catalog.GetFirstMatch(mol)
+        pains_hit = match.GetDescription() if match else None
+    except Exception:
+        pains_hit = None
+
+    try:
+        inchi = Chem.MolToInchi(mol)
+        inchi_key = Chem.MolToInchiKey(mol)
+    except Exception:
+        inchi = ""
+        inchi_key = ""
+
+    return {
+        "mw": f"{mw:.2f}",
+        "logp": f"{logp:.2f}",
+        "hbd": hbd,
+        "hba": hba,
+        "tpsa": f"{tpsa:.2f}",
+        "rotb": rotb,
+        "aromatic_rings": aromatic_rings,
+        "heavy_atoms": heavy_atoms,
+        "num_rings": num_rings,
+        "formula": _format_molecular_formula(formula),
+        "fraction_csp3": f"{fraction_csp3:.2f}",
+        "inchi": inchi,
+        "inchi_key": inchi_key,
+        "lipinski_checks": lipinski_checks,
+        "lipinski_violations": lipinski_violations,
+        "lipinski_pass": lipinski_violations <= 1,
+        "veber_checks": veber_checks,
+        "veber_violations": veber_violations,
+        "veber_pass": veber_violations == 0,
+        "permeability_checks": permeability_checks,
+        "permeability_ok": permeability_ok,
+        "permeability_label": "High" if permeability_ok else "Check",
+        "pains_hit": pains_hit,
+    }
 
 
 def make_binder_svg(smiles):
@@ -55,10 +167,33 @@ def _pains_alert(mol):
         return False
 
 
+BINDER_PROPS_CACHE_TTL_SECONDS = 7 * 24 * 3600
+
+
 def _binder_table_properties(smiles):
-    """Small-molecule descriptors for binder tables; not a full ADMET prediction."""
+    """Small-molecule descriptors for binder tables; not a full ADMET prediction.
+
+    Cached per SMILES: the PAINS substructure scan alone took ~1.5 s for the
+    177 compounds of a single protein page, on every visit, for values that
+    only depend on the molecule. In-process first, then the shared cache so
+    every gunicorn worker benefits."""
     if not smiles:
         return {}
+    return dict(_cached_binder_table_properties(smiles))
+
+
+@lru_cache(maxsize=20000)
+def _cached_binder_table_properties(smiles):
+    cache_key = "Target:binder_props:" + hashlib.sha1(smiles.encode("utf-8")).hexdigest()
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+    props = _compute_binder_table_properties(smiles)
+    cache.set(cache_key, props, BINDER_PROPS_CACHE_TTL_SECONDS)
+    return props
+
+
+def _compute_binder_table_properties(smiles):
     try:
         mol = Chem.MolFromSmiles(smiles)
     except Exception:
@@ -350,6 +485,7 @@ def _build_binder_summary(tab_data):
             "id": best.get("id"),
             "name": best.get("name"),
             "source_label": _binder_source_label(best),
+            "is_direct": bool(best.get("is_direct")),
             "score_label": _binder_score_label(best),
             "external_url": best.get("external_url"),
             "external_label": best.get("external_label"),
@@ -371,8 +507,22 @@ def create_binders_dict(protein, search_query="", structures=None):
     - chembl_homolog→ ChEMBL hit brought in by homology.
     - zinc          → ZINC virtual-screening candidate (tanimoto-scored).
     """
-    binders_qs = Binders.objects.filter(locustag=protein).order_by(
-        "source", "is_direct", "ccd_id", "id"
+    shared = getattr(protein, "shared_sequence_evidence", None)
+    source_filter = Q(locustag=protein)
+    if shared:
+        curated = shared.curated_binder_accessions
+        curated_kinds = (
+            Binders.objects.filter(locustag_id__in=curated)
+            .values_list("source", flat=True)
+            .distinct()
+        )
+        source_filter = Q(locustag_id__in=curated) | (
+            Q(locustag_id__in=shared.binder_accessions) & ~Q(source__in=curated_kinds)
+        )
+    binders_qs = (
+        Binders.objects.filter(source_filter)
+        .select_related("locustag")
+        .order_by("source", "is_direct", "ccd_id", "id")
     )
     loaded_ex_structures = _loaded_experimental_structure_map(structures)
     pdb_resolution_map = {
@@ -395,8 +545,25 @@ def create_binders_dict(protein, search_query="", structures=None):
     chembl_homolog = []
     zinc = []
 
+    seen = set()
     for binder in binders_qs:
+        identity = (
+            binder.source,
+            binder.ccd_id,
+            binder.pdb_id,
+            binder.smiles,
+            binder.score,
+            binder.notes,
+            binder.is_direct,
+        )
+        if identity in seen:
+            continue
+        seen.add(identity)
         dto = _binder_to_dto(binder, loaded_ex_structures, pdb_resolution_map)
+        dto["shared_from_accession"] = (
+            binder.locustag_id if binder.locustag_id != protein.accession else ""
+        )
+        dto["source_protein_id"] = binder.locustag.pk
         if binder.source == Binders.SOURCE_PDB:
             if binder.is_direct:
                 pdb_direct.append(dto)

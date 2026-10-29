@@ -17,11 +17,7 @@ from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Atom
-
-
-def mkdir(dirpath):
-    if not os.path.exists(dirpath):
-        os.makedirs(dirpath)
+from tpweb.services.cif_compat import quote_bare_cif_tokens
 
 
 def store_structure_file(pdb_file, destination):
@@ -73,8 +69,18 @@ class Command(BaseCommand):
         if options["overwrite"]:
             self.stderr.write(f"deleting... {code} ")
             pdb_model_qs.delete()
-        if pdb_model_qs.exists():
-            self.stderr.write(f"structure {code} already exists")
+        pdb_model = pdb_model_qs.first()
+        if pdb_model is not None and Atom.objects.filter(residue__pdb=pdb_model).exists():
+            # The PDB row surviving (e.g. from an earlier ingest) doesn't guarantee
+            # *this* bioentry is still linked to it -- re-link if that got lost
+            # instead of silently leaving the protein without its structure.
+            if not BioentryStructure.objects.filter(bioentry=be, pdb=pdb_model).exists():
+                BioentryStructure(bioentry=be, pdb=pdb_model).save()
+                self.stderr.write(
+                    f"structure {code} already exists; re-linked missing bioentry link"
+                )
+            else:
+                self.stderr.write(f"structure {code} already exists")
             sys.exit(1)
         else:
             if forced_experiment:
@@ -84,25 +90,31 @@ class Command(BaseCommand):
                 uniprot_file = os.path.join(pdb_dir, f"{code}_uniprot.txt")
                 experiment = "AF" if os.path.exists(uniprot_file) else "CF"
             try:
-                pdb_model = PDB(code=code, experiment=experiment)
-                pdb_model.save()
-                self.load_pdb_file(pdb_model, options["pdb_file"])
-                BioentryStructure(bioentry=be, pdb=pdb_model).save()
+                # A failed chain must not leave an apparently reusable PDB row.
+                with transaction.atomic():
+                    if pdb_model is None:
+                        pdb_model = PDB(code=code, experiment=experiment)
+                        pdb_model.save()
+                    else:
+                        # Repair legacy empty imports in place: keep the PDB id
+                        # and every protein link. Failed reparses roll back.
+                        self.stderr.write(f"repairing structure without atoms: {code}")
+                        pdb_model.residues.all().delete()
+                    self.load_pdb_file(pdb_model, options["pdb_file"])
+                    if not Atom.objects.filter(residue__pdb=pdb_model).exists():
+                        raise CommandError(f"Structure {code} contains no atoms.")
+                    BioentryStructure.objects.get_or_create(bioentry=be, pdb=pdb_model)
+                    store_structure_file(
+                        options["pdb_file"],
+                        seqstore.structure(genome, be.accession, code),
+                    )
 
             except OSError as ex:
                 traceback.print_exc()
-                self.stderr.write(f"error processing pockets from {options['struct_name']}: {ex}")
+                raise CommandError(f"Could not read {code}: {ex}") from ex
             except Exception as ex:
                 traceback.print_exc()
                 raise CommandError(ex) from ex
-
-            # if not os.path.exists(seqstore.structure_dir(genome, be.accession)):
-            #    os.makedirs(seqstore.structure_dir(genome, be.accession))
-
-            store_structure_file(
-                options["pdb_file"],
-                seqstore.structure(genome, be.accession, code),
-            )
 
         self.stderr.write(f"done processing: {code} ")
 
@@ -118,7 +130,7 @@ class Command(BaseCommand):
                     icode=residue.id[2],
                     type="R" if not residue.id[0].strip() else residue.id[0].strip(),
                     resname=residue.resname.strip(),
-                    disordered=residue.is_disordered(),
+                    disordered=bool(residue.is_disordered()),
                 )
                 if is_aa(residue, standard=True):
                     residue_model.seq_order = idx
@@ -199,7 +211,6 @@ class Command(BaseCommand):
             )
 
     def load_pdb_file(self, pdb_model, pdb_path):
-
         is_cif = pdb_path.lower().endswith((".cif", ".cif.gz"))
         parser = MMCIFParser(QUIET=True) if is_cif else PDBParser(PERMISSIVE=True, QUIET=True)
         if pdb_path.endswith(".gz"):
@@ -219,24 +230,15 @@ class Command(BaseCommand):
 
     @staticmethod
     def _sanitize_cif(pdb_path):
-        """Biopython's MMCIF2Dict tokenizer raises "Opening quote in middle of
-        word" on a bare apostrophe it can't resolve as a matched quote pair --
-        seen both in ATOM/HETATM rows (nucleotide prime-notation atom names
-        like O5', C1', common in ATP/nucleotide ligands) and in plain
-        _chem_comp-style name fields (e.g. "ADENOSINE-5'-TRIPHOSPHATE").
-        target-human-web's own 3Dmol.js viewer hit the identical parser bug
-        client-side and works around it the same way (sanitizeCif(): swap '
-        for *). Applied file-wide rather than only on ATOM/HETATM rows, since
-        the offending apostrophe can appear in other single-line data items
-        too and we don't read compound names/titles back out of these files
-        for anything -- losing the literal apostrophe there is harmless."""
+        """Protect bare prime-notation tokens while preserving quoted metadata."""
         with open(pdb_path, encoding="utf-8", errors="replace") as fh:
             content = fh.read()
-        if "'" not in content:
+        sanitized = quote_bare_cif_tokens(content)
+        if sanitized == content:
             return pdb_path
         th = tempfile.NamedTemporaryFile(
             mode="w", suffix=".cif", dir="/tmp", delete=False, encoding="utf-8"
         )
-        th.write(content.replace("'", "*"))
+        th.write(sanitized)
         th.close()
         return th.name

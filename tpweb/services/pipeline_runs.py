@@ -1,6 +1,7 @@
 import os
 import signal
 import subprocess
+import time
 
 from django.db.models import Case, IntegerField, Value, When
 from django.db import transaction
@@ -24,6 +25,10 @@ def _models():
     return PipelineRun, PipelineStageEvent
 
 
+class PipelineRunConflict(RuntimeError):
+    """Raised when a run is requested for a genome that already has an active one."""
+
+
 def create_pipeline_run(
     *,
     genome_upload_id=None,
@@ -35,6 +40,25 @@ def create_pipeline_run(
     metadata=None,
 ):
     PipelineRun, _ = _models()
+    # Two runs of the same genome at once (e.g. a manual resume while an old
+    # run still says "running") write into the same workspace and leave
+    # contradictory status -- refuse instead. A dead run is failed by
+    # reconcile_genome_uploads after 24 h, or cancelled right away with
+    # `manage.py cancel_pipeline_run <id>`.
+    active = (
+        PipelineRun.objects.filter(
+            internal_accession=internal_accession,
+            status__in=[PipelineRun.STATUS_SUBMITTED, PipelineRun.STATUS_RUNNING],
+        )
+        .order_by("-id")
+        .first()
+    )
+    if active is not None:
+        raise PipelineRunConflict(
+            f"Pipeline run #{active.id} for {internal_accession} is still {active.status}. "
+            f"Cancel it first (python manage.py cancel_pipeline_run {active.id}) or wait for it "
+            "to finish."
+        )
     metadata = dict(metadata or {})
     upload = None
     if genome_upload_id:
@@ -232,23 +256,65 @@ def _scancel_remote_job(job_id):
     return result.returncode == 0
 
 
+def _pid_alive(pid):
+    try:
+        os.kill(int(pid), 0)
+    except (OSError, ValueError):
+        return False
+    return True
+
+
+# How long to give a SIGTERM'd orchestrator to actually exit before we
+# escalate to SIGKILL. SIGTERM alone isn't reliable here -- some child
+# tools in the pipeline (BLAST, mid-CUDA-op ColabFold) ignore or defer it,
+# same class of issue documented for `docker kill` on the queue container.
+# A surviving orchestrator kept running after a workspace reset is exactly
+# what left a genome's pipeline silently advancing stages against a
+# Biodatabase that had already been deleted out from under it.
+CANCEL_GRACE_PERIOD_SECONDS = 2
+
+
+def terminate_launch_pid(pid):
+    """Best-effort SIGTERM, escalating to SIGKILL if still alive after
+    CANCEL_GRACE_PERIOD_SECONDS. Shared by cancel_pipeline_run (explicit
+    cancel) and the stale-PipelineRun reconciliation path
+    (genome_upload_status.reconcile_genome_uploads) -- marking a run FAILED
+    for being unresponsive must not leave its process (if it somehow isn't
+    actually dead) running uncontrolled. Returns True if a kill signal was
+    sent at all."""
+    if not pid:
+        return False
+
+    sent = False
+    try:
+        os.killpg(int(pid), signal.SIGTERM)
+        sent = True
+    except Exception:
+        try:
+            os.kill(int(pid), signal.SIGTERM)
+            sent = True
+        except Exception:
+            pass
+
+    if sent:
+        time.sleep(CANCEL_GRACE_PERIOD_SECONDS)
+        if _pid_alive(pid):
+            try:
+                os.killpg(int(pid), signal.SIGKILL)
+            except Exception:
+                try:
+                    os.kill(int(pid), signal.SIGKILL)
+                except Exception:
+                    pass
+    return sent
+
+
 def cancel_pipeline_run(run):
     PipelineRun, _ = _models()
     if run is None:
         return False
 
-    cancelled = False
-    pid = getattr(run, "launch_pid", None)
-    if pid:
-        try:
-            os.killpg(int(pid), signal.SIGTERM)
-            cancelled = True
-        except Exception:
-            try:
-                os.kill(int(pid), signal.SIGTERM)
-                cancelled = True
-            except Exception:
-                pass
+    cancelled = terminate_launch_pid(getattr(run, "launch_pid", None))
 
     remote_job_id = str(getattr(run, "remote_job_id", "") or "").strip()
     remote_cancelled = False

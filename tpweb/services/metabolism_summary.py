@@ -74,6 +74,27 @@ def _progress_width(value, min_value, max_value):
     return max(0, min(100, round(width, 1)))
 
 
+# Same "Druggable pocket" bar as the protein page's assessment.
+DRUGGABLE_FPOCKET_MIN = 0.7
+DRUGGABLE_P2RANK_MIN = 0.5
+
+
+def druggable_protein_ids(protein_ids):
+    """Proteins with a druggable pocket: FPocket >= 0.7 or P2Rank >= 0.5."""
+    rows = ScoreParamValue.objects.filter(
+        bioentry_id__in=protein_ids,
+        score_param__name__in=["Druggability", "p2rank_probability"],
+        score_param__user__isnull=True,
+    ).values_list("bioentry_id", "score_param__name", "numeric_value", "value")
+    druggable = set()
+    for bioentry_id, name, numeric_value, value in rows:
+        score = numeric_value if numeric_value is not None else _to_float(value)
+        threshold = DRUGGABLE_P2RANK_MIN if name == "p2rank_probability" else DRUGGABLE_FPOCKET_MIN
+        if score >= threshold:
+            druggable.add(bioentry_id)
+    return druggable
+
+
 def _score_maps(proteome_name):
     score_rows = (
         ScoreParamValue.objects.filter(

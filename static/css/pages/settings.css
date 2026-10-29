@@ -1,0 +1,560 @@
+/* ── Settings — a two-column workspace: a quiet section index on the left
+   (your work, then administration, then the visibility glossary) and one
+   paginated, searchable table on the right. ── */
+
+.settings-page {
+    color: var(--tp-color-text-primary);
+    margin: 0;
+}
+
+.settings-layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: var(--tp-space-8);
+    padding: 0 var(--tp-space-5) var(--tp-space-8);
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+/* ── Section index ── */
+
+.settings-aside {
+    position: sticky;
+    top: calc(var(--tp-sticky-chrome-h, 0px) + var(--tp-space-5));
+    align-self: start;
+    display: grid;
+    gap: var(--tp-space-6);
+    padding-top: var(--tp-space-5);
+}
+
+.settings-nav {
+    display: grid;
+}
+
+.settings-nav-group,
+.settings-group-label {
+    margin: 0 0 var(--tp-space-2);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+.settings-nav-link + .settings-nav-group {
+    margin-top: var(--tp-space-5);
+}
+
+.settings-nav-link {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-2) var(--tp-space-3);
+    border-left: 2px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    line-height: 1.35;
+    text-decoration: none;
+    transition:
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.settings-nav-link:hover {
+    color: var(--tp-color-text-primary);
+    border-left-color: var(--tp-color-border-strong);
+    text-decoration: none;
+}
+
+.settings-nav-link.is-active {
+    color: var(--tp-color-link-hover);
+    border-left-color: var(--tp-color-accent-line);
+    font-weight: 600;
+}
+
+.settings-nav-link:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+.settings-legend dl {
+    display: grid;
+    gap: var(--tp-space-3);
+    margin: 0;
+}
+
+.settings-legend dt {
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.settings-legend dd {
+    margin: 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.5;
+}
+
+/* ── Panel ── */
+
+.settings-panel {
+    min-width: 0;
+    padding-top: var(--tp-space-5);
+}
+
+.settings-panel .section-subtitle a {
+    color: var(--tp-color-link);
+}
+
+.settings-search {
+    position: relative;
+    width: 280px;
+    max-width: 100%;
+    margin: 0;
+}
+
+.settings-search-icon {
+    position: absolute;
+    left: var(--tp-space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    pointer-events: none;
+}
+
+.settings-search .tp-ui-search-input {
+    width: 100%;
+    min-width: 0;
+    padding-left: calc(var(--tp-space-3) + 1em + var(--tp-space-2)) !important;
+}
+
+/* ── Table: fixed layout so long names and expressions truncate
+   instead of pushing the visibility column off screen. ── */
+
+.settings-table {
+    table-layout: fixed;
+}
+
+.settings-col-visibility {
+    width: 240px;
+}
+
+.settings-col-action {
+    width: 56px;
+    text-align: right;
+}
+
+.settings-col-number {
+    width: 104px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.settings-table--data th:nth-child(2) {
+    width: 28%;
+}
+
+.settings-table--genomes th:nth-child(2) {
+    width: 32%;
+}
+
+.settings-table--genomes .settings-col-action {
+    width: 128px;
+}
+
+.settings-table td {
+    overflow-wrap: anywhere;
+}
+
+.settings-name {
+    color: var(--tp-color-text-primary);
+    font-weight: 500;
+}
+
+.settings-muted {
+    color: var(--tp-color-text-secondary);
+}
+
+/* ── Researchers (admin): one disclosure per person. The summary line is
+   the overview; opening it shows only what they shared. ── */
+
+.settings-people {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-people > li {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-person summary {
+    display: flex;
+    align-items: baseline;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-3) var(--tp-space-3);
+    list-style: none;
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.settings-person summary::-webkit-details-marker {
+    display: none;
+}
+
+.settings-person summary:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.settings-person summary:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+.settings-person-name {
+    flex: 1;
+    min-width: 0;
+    color: var(--tp-color-text-primary);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+/* "1 shared   2 only me": two counts, the number carries the weight. */
+.settings-person-meta,
+.settings-person-text {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-1) var(--tp-space-4);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-variant-numeric: tabular-nums;
+}
+
+.settings-person-meta {
+    white-space: nowrap;
+}
+
+.settings-person-meta strong,
+.settings-person-text strong {
+    color: var(--tp-color-text-primary);
+    font-weight: 600;
+}
+
+.settings-person-chevron {
+    align-self: center;
+    margin-left: var(--tp-space-1);
+    transition: transform 180ms var(--tp-ui-ease-standard);
+}
+
+.settings-person[open] > summary .settings-person-chevron,
+.settings-person.is-open-visual > summary .settings-person-chevron {
+    transform: rotate(-135deg);
+}
+
+/* Two labelled groups, stacked: Shared, then Only me. */
+.settings-person-body {
+    display: grid;
+    gap: var(--tp-space-5);
+    padding: var(--tp-space-2) var(--tp-space-3) var(--tp-space-5);
+}
+
+.settings-person-text {
+    margin: 0;
+}
+
+.settings-person-hint {
+    margin: var(--tp-space-1) 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.5;
+}
+
+/* Shared items: hairline rows, name + kind on the left, who sees it right. */
+.settings-shared-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.settings-shared-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--tp-space-4);
+    padding: var(--tp-space-2) 0;
+    border-top: 1px solid var(--tp-color-border-soft);
+    /* Same size as the Only me line and the table rows elsewhere. */
+    font-size: var(--tp-font-size-sm);
+}
+
+.settings-shared-item:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.settings-shared-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--tp-space-3);
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+}
+
+.settings-shared-main .settings-expression {
+    flex-basis: 100%;
+}
+
+.settings-shared-meta,
+.settings-shared-visibility {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.settings-shared-visibility {
+    color: var(--tp-color-text-secondary);
+    text-align: right;
+}
+
+.settings-col-action form,
+.settings-visibility-form {
+    margin: 0;
+}
+
+/* Restricted genomes: pick a shared genome, then Restrict. */
+.settings-restrict-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2);
+    margin: 0 0 var(--tp-space-5);
+}
+
+.settings-restrict-field {
+    width: 360px;
+    max-width: 100%;
+}
+
+.settings-restrict-field select {
+    width: 100%;
+}
+
+/* custom-select.js swaps the select for a dropdown that fills its form. */
+.settings-visibility-form select {
+    width: 100%;
+}
+
+/* ── In-place feedback (settings.js) ── */
+
+.settings-results {
+    transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.settings-results.is-loading {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.settings-visibility-form {
+    position: relative;
+}
+
+.settings-visibility-form.is-saving {
+    opacity: 0.7;
+}
+
+/* A small check beside the dropdown once the change is saved; the text
+   stays for screen readers only. */
+.settings-save-state {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    width: 6px;
+    height: 11px;
+    margin: -7px 0 0 var(--tp-space-2);
+    overflow: hidden;
+    border-right: 2px solid var(--tp-color-success-ink);
+    border-bottom: 2px solid var(--tp-color-success-ink);
+    color: transparent;
+    font-size: 0;
+    opacity: 0;
+    transform: rotate(45deg) scale(0.6);
+    transition:
+        opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform 180ms var(--tp-ui-ease-standard);
+    pointer-events: none;
+}
+
+.settings-visibility-form.is-saved .settings-save-state {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+}
+
+.settings-table tbody tr.is-leaving {
+    opacity: 0;
+    transition: opacity 180ms var(--tp-ui-ease-standard);
+}
+
+/* A one-line preview of the formula; click to unfold it in place. */
+.settings-expression {
+    margin-top: 2px;
+}
+
+.settings-expression summary {
+    display: block;
+    list-style: none;
+    cursor: pointer;
+}
+
+.settings-expression summary::-webkit-details-marker {
+    display: none;
+}
+
+.settings-expression code {
+    display: block;
+    overflow: hidden;
+    color: var(--tp-color-text-muted);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.5;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.settings-expression summary:hover code,
+.settings-expression[open] code {
+    color: var(--tp-color-text-secondary);
+}
+
+.settings-expression[open] code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.settings-expression summary:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+/* ── Footer: range on the left, pages on the right ── */
+
+.settings-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--tp-space-3);
+    padding-top: var(--tp-space-3);
+}
+
+.settings-footer p {
+    margin: 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Narrow screens: the index becomes a scrolling strip above the
+   table, and the glossary moves below it. ── */
+
+@media (max-width: 900px) {
+    .settings-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+        padding: 0 var(--tp-space-4) var(--tp-space-6);
+    }
+
+    .settings-aside {
+        display: contents;
+    }
+
+    .settings-nav {
+        display: flex;
+        gap: var(--tp-space-4);
+        overflow-x: auto;
+        border-bottom: 1px solid var(--tp-color-border-soft);
+        scrollbar-width: none;
+    }
+
+    .settings-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .settings-nav-group {
+        display: none;
+    }
+
+    .settings-legend .settings-nav-group {
+        display: block;
+    }
+
+    .settings-nav-link {
+        flex: 0 0 auto;
+        margin-bottom: -1px;
+        padding: var(--tp-space-3) 0 var(--tp-space-2);
+        border-left: 0;
+        border-bottom: 2px solid transparent;
+    }
+
+    .settings-nav-link:hover {
+        border-bottom-color: var(--tp-color-border-strong);
+    }
+
+    .settings-nav-link.is-active {
+        border-bottom-color: var(--tp-color-accent-line);
+    }
+
+    .settings-legend {
+        order: 3;
+        padding-top: var(--tp-space-6);
+    }
+
+    .settings-search {
+        width: 100%;
+    }
+
+    .settings-table {
+        min-width: 600px;
+    }
+
+    .settings-footer nav {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    .settings-person summary {
+        flex-wrap: wrap;
+    }
+
+    .settings-person-meta {
+        white-space: normal;
+    }
+
+    .settings-shared-item {
+        flex-direction: column;
+        gap: var(--tp-space-1);
+    }
+
+    .settings-shared-visibility {
+        text-align: left;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .settings-nav-link,
+    .settings-person summary,
+    .settings-person-chevron,
+    .settings-expression code,
+    .settings-results,
+    .settings-save-state,
+    .settings-table tbody tr.is-leaving {
+        transition: none;
+    }
+}

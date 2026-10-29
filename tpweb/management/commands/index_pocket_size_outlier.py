@@ -15,16 +15,16 @@ executive summary to read.
 """
 
 import re
+import math
 
 from django.core.management.base import BaseCommand, CommandError
 from tqdm import tqdm
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
-from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import Property, PDBResidueSet, ResidueSet, ResidueSetProperty
 from tpweb.models.ScoreParamValue import ScoreParamValue
-from tpweb.services.pocket_geometry import volume_outlier_map
+from tpweb.services.pocket_geometry import volume_outlier_map, filter_pdbresidueset_by_chain
 from tpweb.services.score_params import ensure_system_score_param
 from tpweb.services.structure_sources import structure_matches_identifier
 
@@ -58,27 +58,47 @@ def _resolve_curated_pocket(bioentry, links, fpocket_rs):
     if not matching_pdb_ids:
         return None
 
-    return PDBResidueSet.objects.filter(
-        pdb_id__in=matching_pdb_ids,
-        residue_set=fpocket_rs,
-        name=pocket_number,
-    ).first()
+    for link in links:
+        if link.pdb_id not in matching_pdb_ids:
+            continue
+        pocket = filter_pdbresidueset_by_chain(
+            PDBResidueSet.objects.filter(
+                pdb_id=link.pdb_id,
+                residue_set=fpocket_rs,
+                name=pocket_number,
+            ),
+            link.chain,
+        ).first()
+        if pocket is not None:
+            return pocket
+    return None
 
 
 def _resolve_auto_pocket(links, fpocket_rs, druggability_prop):
     """Max-druggability FPocket pocket across ALL of this protein's linked structures."""
-    pdb_ids = [link.pdb_id for link in links]
-    if not pdb_ids:
-        return None
-    return (
-        PDBResidueSet.objects.filter(
-            pdb_id__in=pdb_ids,
-            residue_set=fpocket_rs,
-            properties__property=druggability_prop,
+    candidates = []
+    for link in links:
+        pocket = (
+            filter_pdbresidueset_by_chain(
+                PDBResidueSet.objects.filter(
+                    pdb_id=link.pdb_id,
+                    residue_set=fpocket_rs,
+                    properties__property=druggability_prop,
+                ),
+                link.chain,
+            )
+            .order_by("-properties__value", "pk")
+            .first()
         )
-        .order_by("-properties__value")
-        .first()
-    )
+        if pocket is not None:
+            score = (
+                pocket.properties.filter(property=druggability_prop)
+                .values_list("value", flat=True)
+                .first()
+            )
+            if score is not None:
+                candidates.append((score, -pocket.pk, pocket))
+    return max(candidates, key=lambda row: row[:2])[2] if candidates else None
 
 
 class Command(BaseCommand):
@@ -126,14 +146,31 @@ class Command(BaseCommand):
                     pdbresidue_set__residue_set=fpocket_rs,
                     property=volume_prop,
                 ).values_list("pdbresidue_set_id", "value")
-                outlier_cache[pdb_id] = volume_outlier_map(volumes)
+                outlier_cache[pdb_id] = volume_outlier_map(
+                    (pid, value)
+                    for pid, value in volumes
+                    if value is not None and math.isfinite(value) and value > 0
+                )
             return outlier_cache[pdb_id]
 
-        proteins = Bioentry.objects.filter(biodatabase=genome)
+        proteins = Bioentry.objects.filter(biodatabase=genome).prefetch_related("structures__pdb")
+        existing = {
+            row.bioentry_id: row
+            for row in ScoreParamValue.objects.filter(
+                bioentry__biodatabase=genome, score_param=score_param
+            )
+        }
         flagged = 0
         skipped = 0
+        preserved = 0
         for protein in tqdm(proteins, total=proteins.count()):
-            links = list(BioentryStructure.objects.filter(bioentry=protein).select_related("pdb"))
+            previous = existing.get(protein.pk)
+            if previous and (
+                str(previous.value or "").strip() or previous.numeric_value is not None
+            ):
+                preserved += 1
+                continue
+            links = list(protein.structures.all())
             if not links:
                 skipped += 1
                 continue
@@ -145,9 +182,11 @@ class Command(BaseCommand):
                 skipped += 1
                 continue
 
-            is_outlier, _median, _mad = outlier_map_for(pocket.pdb_id).get(
-                pocket.id, (False, None, None)
-            )
+            verdict = outlier_map_for(pocket.pdb_id).get(pocket.id)
+            if verdict is None:
+                skipped += 1
+                continue
+            is_outlier, _median, _mad = verdict
             ScoreParamValue.objects.update_or_create(
                 bioentry=protein,
                 score_param=score_param,
@@ -158,5 +197,5 @@ class Command(BaseCommand):
 
         self.stdout.write(
             f"Done. {flagged} proteins flagged as pocket-size outliers, "
-            f"{skipped} skipped (no resolvable pocket)."
+            f"{skipped} skipped (no resolvable pocket/volume), {preserved} existing values preserved."
         )

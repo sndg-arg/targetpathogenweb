@@ -1,0 +1,115 @@
+from tpweb.services.topology_diagram import build_topology_diagram
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.http import Http404
+from django.shortcuts import render
+from django.urls import reverse
+from django.views import View
+
+from human_target.services.human_disease_summary import build_human_disease_context
+from human_target.services.human_dossier import (
+    build_assessment,
+    build_glance,
+    build_human_dossier,
+    variant_lollipops,
+)
+from human_target.services.human_expression_summary import build_human_expression_context
+from human_target.services.human_protein_summary import (
+    build_human_function_context,
+    build_human_overview_context,
+    build_human_sequence_context,
+    build_human_xref_context,
+)
+from human_target.services.human_pathway_summary import build_human_pathway_context
+from human_target.services.human_structure_summary import build_human_structure_context
+from human_target.services.human_targets import get_human_bioentry
+from tpweb.services.binder_summary import create_binders_dict
+from tpweb.services.ligand_reactions import protein_synthesis_routes
+from tpweb.services.protein_annotations import iter_protein_annotations
+from tpweb.views.mixins import PermissionLockedMixin
+
+EXPRESSION_PAGE_SIZE = 40
+
+
+class HumanProteinView(PermissionLockedMixin, View):
+    template_name = "human/human_protein.html"
+    page_title = "Human Targets"
+    locked_message = "Human Targets is available to project collaborators."
+
+    def test_func(self):
+        return self.request.user.has_perm("tpweb.can_view_human_targets")
+
+    def get(self, request, accession, *args, **kwargs):
+        bioentry = get_human_bioentry(accession)
+        human_protein = getattr(bioentry, "human_protein", None) if bioentry else None
+        if bioentry is None or human_protein is None:
+            raise Http404("Human protein not found")
+
+        structures = list(bioentry.structures.select_related("pdb").all())
+        binders_search_query = request.GET.get("binder_search", "").strip()
+        binders = create_binders_dict(
+            bioentry, search_query=binders_search_query, structures=structures
+        )
+
+        expression = build_human_expression_context(human_protein)
+        expr_paginator = Paginator(expression["ranked"], EXPRESSION_PAGE_SIZE)
+        try:
+            expression["ranked_page"] = expr_paginator.page(request.GET.get("expr_page"))
+        except PageNotAnInteger:
+            expression["ranked_page"] = expr_paginator.page(1)
+        except EmptyPage:
+            expression["ranked_page"] = expr_paginator.page(expr_paginator.num_pages)
+
+        dossier = build_human_dossier(human_protein)
+        sequence = build_human_sequence_context(human_protein)
+        # Variants on the map carry their residue change and diseases.
+        architecture = sequence["architecture"]
+        if architecture and dossier["variants"]:
+            for row in architecture["tick_rows"]:
+                if row["key"] == "variants":
+                    row["items"] = variant_lollipops(dossier["variants"])
+                    row["kind"] = "lollipop"
+                    row["total"] = len(dossier["variants"])
+        diseases = build_human_disease_context(human_protein)
+        for disease in diseases["diseases"]:
+            disease["variant_count"] = dossier["disease_variant_counts"].get(
+                disease.get("acronym") or "", 0
+            )
+
+        pathways = build_human_pathway_context(human_protein)
+        structure = build_human_structure_context(bioentry, human_protein.sequence)
+        glance = build_glance(dossier, diseases, structure, binders, expression, pathways)
+        assessment = build_assessment(dossier, diseases, structure, binders, expression)
+
+        context = {
+            "bioentry": bioentry,
+            "human_protein": human_protein,
+            # Minimal dict exposing `.id` = bioentry pk, matching the shape
+            # the shared `components/binders/table_*.html` partials expect
+            # (they read `protein.id` for the "Open crystal" structure-viewer
+            # link) -- mirrors ProteinView's `proteinDTO["id"]` convention.
+            "protein": {"id": bioentry.bioentry_id},
+            "accession": human_protein.uniprot_accession,
+            "overview": build_human_overview_context(human_protein),
+            "function": build_human_function_context(human_protein),
+            "diseases": diseases,
+            "dossier": dossier,
+            "expression": expression,
+            "pathways": pathways,
+            "glance": glance,
+            "assessment": assessment,
+            "sequence": sequence,
+            "topology": build_topology_diagram(
+                (architecture or {}).get("topology"),
+                human_protein.sequence_length,
+                "Extracellular",
+                "Cytoplasm",
+            ),
+            "xrefs": build_human_xref_context(human_protein),
+            "structure": structure,
+            "binders": binders,
+            "synthesis_routes": protein_synthesis_routes(bioentry) if binders["total"] else [],
+            "ec_badges": list(iter_protein_annotations(bioentry, "ec"))[:6],
+            "go_badges": list(iter_protein_annotations(bioentry, "go"))[:6],
+            "human_protein_list_url": reverse("human_target:human_protein_list"),
+        }
+        return render(request, self.template_name, context)

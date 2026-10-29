@@ -1,0 +1,374 @@
+{% extends "base/masterpage.html" %}
+{% load i18n %}
+{% load static %}
+{% load custom_tags %}
+
+{% block title %}{% trans "Human Targets" %} · {% trans "Target Pathogen" %}{% endblock %}
+
+{% block head %}
+    {# Same page CSS as the pathogen protein table: same hero, toolbar, table and pagination. #}
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-list.css' %}?v=20261023">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261029-resize">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Human Targets" as crumb_human %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_human %}
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+    <div class="proteins-page">
+        <section class="tp-page-hero proteins-hero">
+            <div class="hero-top tp-view-head">
+                <div class="tp-view-head-copy">
+                    <span class="tp-view-eyebrow">{% trans "Human Targets" %}</span>
+                    <h1 class="tp-view-title">{% trans "Human proteins" %}</h1>
+                    <p class="tp-view-lead">{% trans "Curated human proteins with sequence, 3D structure, ligand, expression and pathway evidence." %}</p>
+                </div>
+                <div class="tp-view-head-actions">
+                    <a href="{% url 'human_target:human_ligand_atlas' %}" class="btn tp-btn tp-btn--secondary">{% trans "Ligand coverage" %}</a>
+                </div>
+            </div>
+            <div class="hero-chips tp-chip-group">
+                <span class="tp-chip">{% blocktrans with shown=dashboard.total_proteins|thousands count count=dashboard.total_proteins %}{{ shown }} protein{% plural %}{{ shown }} proteins{% endblocktrans %}</span>
+                <span class="tp-chip">{% trans "With ligand evidence" %}: {{ dashboard.proteins_with_ligands|thousands }}</span>
+                <span class="tp-chip">{% trans "Ligand records" %}: {{ dashboard.total_ligand_records|thousands }}</span>
+            </div>
+        </section>
+
+        <section class="toolbar-card">
+            <form method="GET" action="{{ request.path }}" class="search-form tp-ui-toolbar-form" id="human-search-form" role="search">
+                {% for key, value in request.GET.items %}{% if key != "q" and key != "page" and key != "size" %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
+                <div class="toolbar-search-row tp-ui-search-row tp-ui-toolbar-row tp-ui-toolbar-row--stack-sm">
+                    <div class="search-autocomplete tp-ui-search">
+                        <input type="text"
+                               class="form-control search-input tp-ui-search-input"
+                               name="q"
+                               placeholder="{% trans 'Search by accession, gene or name...' %}"
+                               value="{{ query }}"
+                               aria-label="{% trans 'Search human proteins' %}">
+                    </div>
+                    <div class="toolbar-search-actions tp-ui-search-actions tp-ui-group">
+                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
+                            <span>{% trans "Search" %}</span>
+                        </button>
+                        {% trans "Clear search" as clear_search_label %}
+                        {% if query %}
+                            {% include "components/buttons/clear_action.html" with label=clear_search_label href=request.path %}
+                        {% else %}
+                            {% include "components/buttons/clear_action.html" with label=clear_search_label disabled="1" %}
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+
+            <div class="toolbar-controls-row tp-ui-toolbar-row tp-ui-toolbar-row--between">
+                <div class="toolbar-controls-left tp-ui-group">
+                    <div class="per-page-control tp-ui-control" title="{% trans 'Proteins per page' %}">
+                        <span class="per-page-label">{% trans "Rows" %}</span>
+                        <select id="human-page-size" name="size" form="human-search-form" class="per-page-select form-control tp-select--sm">
+                            {% for option in page_sizes %}<option value="{{ option }}"{% if option == page_size %} selected{% endif %}>{{ option }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="toolbar-workbench" aria-label="{% trans 'Protein list controls' %}">
+                        <div class="toolbar-workbench__group toolbar-workbench__group--primary">
+                            <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn" title="{% trans 'Narrow the table by evidence: structure, ligands, drugs, disease, expression.' %}">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
+                                <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
+                                <span class="toolbar-action-btn__meta">{% if active_pills %}{% blocktrans count total=active_pills|length %}{{ total }} active{% plural %}{{ total }} active{% endblocktrans %}{% else %}{% trans "No filters" %}{% endif %}</span>
+                            </button>
+                        </div>
+                        <div class="toolbar-workbench__group toolbar-workbench__group--secondary" aria-label="{% trans 'Table display' %}">
+                            <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon toolbar-action-btn toolbar-action-btn--secondary" id="open-columns-btn">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/columns.html" %}</span>
+                                <span class="toolbar-action-btn__title">{% trans "Columns" %}</span>
+                                <span class="toolbar-action-btn__meta" data-columns-meta data-label="{% trans 'visible' %}">{{ columns|length }} {% trans "visible" %}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if not has_summary %}<p class="tp-state-note tp-state-note--empty">{% trans "Evidence columns and filters fill in once the summary is computed (refresh_human_target_summary)." %}</p>{% endif %}
+        </section>
+
+        {% if active_pills %}
+        <section class="filter-tray" role="region" aria-label="{% trans 'Active criteria' %}">
+            <div class="filter-tray-head">
+                <span class="filter-tray-label">{% trans "Active criteria" %}</span>
+                <span class="filter-tray-count tp-chip">{{ active_pills|length }}</span>
+            </div>
+            <div class="filter-tray-pills">
+                {% for pill in active_pills %}
+                <a href="{{ pill.url }}" class="filter-pill tp-chip tp-chip--filter">
+                    <span><strong>{{ pill.category }}:</strong> {{ pill.label }}</span>
+                    <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                </a>
+                {% endfor %}
+            </div>
+            <div class="filter-tray-actions">
+                <a href="{{ clear_filters_url }}" class="btn tp-btn tp-btn--danger tp-btn-with-icon filter-tray-clear-btn">
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
+                    <span>{% trans "Clear all" %}</span>
+                </a>
+            </div>
+        </section>
+        {% endif %}
+
+        <section class="protein-workspace">
+            <div class="protein-table-panel">
+                {% if not proteins.object_list %}
+                <div class="tp-empty protein-empty-state">
+                    <p class="tp-empty-title">{% if query or active_pills %}{% trans "No human proteins match the current search and filters" %}{% else %}{% trans "No human proteins loaded yet" %}{% endif %}</p>
+                    {% if query %}
+                    <div class="tp-empty-actions">
+                        <a href="{{ request.path }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+                            <span>{% trans "Clear search" %}</span>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p class="protein-table-results" role="status">
+                    {% if total_count != all_count %}
+                        {% blocktrans with filtered=total_count|thousands total=all_count|thousands %}<strong>{{ filtered }}</strong> of {{ total }} proteins match the current search and filters{% endblocktrans %}
+                    {% else %}
+                        {% blocktrans with total=total_count|thousands %}Showing all <strong>{{ total }}</strong> proteins{% endblocktrans %}
+                    {% endif %}
+                </p>
+                <section class="table-wrap tp-table-shell">
+                    <table class="table tp-table tp-table--compact protein-table" id="human-proteins-table">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th class="th-sortable{% if sort == 'protein' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}"><a href="{{ sort_urls.protein }}" class="th-sort-link">{% trans "Protein" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th>{% trans "Description" %}</th>
+                            <th class="th-sortable{% if sort == 'gene' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}"><a href="{{ sort_urls.gene }}" class="th-sort-link">{% trans "Gene" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th data-col="length" class="th-sortable{% if sort == 'length' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}"><a href="{{ sort_urls.length }}" class="th-sort-link">{% trans "Length" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th data-col="structures" class="th-sortable{% if sort == 'structures' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}" title="{% trans '3D structures loaded; experimental ones in brackets.' %}"><a href="{{ sort_urls.structures }}" class="th-sort-link">{% trans "Structures" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th data-col="ligands" class="th-sortable{% if sort == 'ligands' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}" title="{% trans 'Ligand evidence records: on this exact protein / all, including similar proteins.' %}"><a href="{{ sort_urls.ligands }}" class="th-sort-link">{% trans "Ligands" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th data-col="drugs" class="th-sortable{% if sort == 'drugs' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}" title="{% trans 'Drugs and investigational compounds DrugBank links to this protein.' %}"><a href="{{ sort_urls.drugs }}" class="th-sort-link">{% trans "DrugBank" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th data-col="diseases" class="th-sortable{% if sort == 'diseases' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}" title="{% trans 'Disease associations curated on the UniProt record.' %}"><a href="{{ sort_urls.diseases }}" class="th-sort-link">{% trans "Diseases" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th data-col="tissue" class="th-sortable{% if sort == 'tissue' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}" title="{% trans 'Tau over Bgee expression: 0 = same in every tissue, 1 = a single tissue.' %}"><a href="{{ sort_urls.tissue }}" class="th-sort-link">{% trans "Tissue specificity" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th data-col="pathways" class="th-sortable{% if sort == 'pathways' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}" title="{% trans 'KEGG pathways the protein takes part in.' %}"><a href="{{ sort_urls.pathways }}" class="th-sort-link">{% trans "Pathways" %}<span class="th-sort-icon" aria-hidden="true"></span></a></th>
+                            <th data-col="location">{% trans "Location" %}</th>
+                            <th data-col="uniprot">{% trans "UniProt" %}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for hp in proteins %}
+                            {% url 'human_target:human_protein' hp.uniprot_accession as protein_url %}
+                            <tr class="protein-row">
+                                <td class="rank-col">{{ proteins.start_index|add:forloop.counter0 }}</td>
+                                <td class="acc-col"><a href="{{ protein_url }}">{{ hp.uniprot_accession }}</a></td>
+                                <td class="desc-col">{{ hp.protein_name|default:"—" }}</td>
+                                <td class="gene-col">{{ hp.gene_symbol|default:"—" }}</td>
+                                <td data-col="length">{% if hp.sequence_length %}{{ hp.sequence_length }} aa{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td data-col="structures">{% if hp.structure_count %}<a href="{{ protein_url }}#section-structure" class="tp-chip">{{ hp.structure_count }}{% if hp.experimental_structure_count %} ({{ hp.experimental_structure_count }} exp.){% endif %}</a>{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td data-col="ligands">{% if hp.ligand_count %}<a href="{{ protein_url }}#section-binders" class="tp-chip tp-chip--code">{{ hp.direct_ligand_count }} / {{ hp.ligand_count }}</a>{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td data-col="drugs">{% if hp.drugbank_count %}<a href="{{ protein_url }}#section-pharmacology" class="tp-chip tp-chip--success">{{ hp.drugbank_count }}</a>{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td data-col="diseases">{% if hp.disease_count %}<a href="{{ protein_url }}#section-diseases" class="tp-chip">{{ hp.disease_count }}</a>{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td data-col="tissue">{% if hp.tissue_specificity is not None %}<span class="human-tau">τ {{ hp.tissue_specificity|floatformat:2 }}</span>{% if hp.peak_tissue %}<span class="human-peak" title="{% trans 'Highest expression' %}">{{ hp.peak_tissue|capfirst }}</span>{% endif %}{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td data-col="pathways">{% if hp.pathway_count %}<a href="{{ protein_url }}#section-pathways" class="tp-chip">{{ hp.pathway_count }}</a>{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td data-col="location">{% if hp.surface_accessible %}<span class="tp-chip" title="{% trans 'Cell membrane or secreted: reachable by antibodies.' %}">{% trans "Cell surface" %}</span>{% else %}<span class="metric-na">—</span>{% endif %}</td>
+                                <td data-col="uniprot">{% if hp.is_reviewed %}<span class="tp-chip">{% trans "Reviewed" %}</span>{% else %}<span class="tp-chip tp-chip--muted">{% trans "Unreviewed" %}</span>{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+
+                <div class="pagination-row">
+                    <form method="GET" action="{{ request.path }}" class="pagination-label">
+                        {% for key, value in request.GET.items %}{% if key != "page" %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
+                        {% trans "Page" %}
+                        {% if proteins.paginator.num_pages > 1 %}
+                            <input type="number" name="page" class="page-jump-input" value="{{ proteins.number }}" min="1" max="{{ proteins.paginator.num_pages }}" aria-label="{% trans 'Go to page' %}">
+                        {% else %}
+                            1
+                        {% endif %}
+                        {% trans "of" %} {{ proteins.paginator.num_pages|thousands }} · {{ total_count|thousands }} {% trans "matching proteins" %}
+                    </form>
+                    {% if proteins.paginator.num_pages > 1 %}
+                    <ul class="pagination tp-pagination">
+                        <li class="page-item {% if not proteins.has_previous %}disabled{% endif %}">
+                            {% if proteins.has_previous %}
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ proteins.previous_page_number }}">
+                                    <span class="sr-only">{% trans "Previous page" %}</span>
+                                    <span class="tp-chevron tp-chevron--left" aria-hidden="true"></span>
+                                </a>
+                            {% else %}
+                                <span class="page-link" aria-hidden="true"><span class="tp-chevron tp-chevron--left"></span></span>
+                            {% endif %}
+                        </li>
+                        {% for p in page_numbers %}
+                            {% if p %}
+                                <li class="page-item {% if p == proteins.number %}active{% endif %}">
+                                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ p }}">{{ p|thousands }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        <li class="page-item {% if not proteins.has_next %}disabled{% endif %}">
+                            {% if proteins.has_next %}
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ proteins.next_page_number }}">
+                                    <span class="sr-only">{% trans "Next page" %}</span>
+                                    <span class="tp-chevron tp-chevron--right" aria-hidden="true"></span>
+                                </a>
+                            {% else %}
+                                <span class="page-link" aria-hidden="true"><span class="tp-chevron tp-chevron--right"></span></span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+
+    <div class="tp-overlay" id="filters-overlay"></div>
+    <aside class="filters-drawer" id="filters-drawer" aria-hidden="true" aria-label="{% trans 'Filters' %}">
+        <div class="drawer-head">
+            <h2>{% trans "Filters" %}</h2>
+            <button class="btn tp-btn tp-btn--ghost drawer-close-btn" type="button" id="close-filters-btn" aria-label="{% trans 'Close' %}">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+            </button>
+        </div>
+        <div class="drawer-body">
+            {% if active_pills %}
+            <div class="drawer-active-summary">
+                <div class="drawer-active-header">
+                    <span class="drawer-active-label">{% trans "Applied" %}</span>
+                </div>
+                <div class="active-filters">
+                    {% for pill in active_pills %}
+                    <a href="{{ pill.url }}" class="filter-pill tp-chip tp-chip--filter">
+                        <span><strong>{{ pill.category }}:</strong> {{ pill.label }}</span>
+                        <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="drawer-search">
+                <span class="drawer-search-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
+                <input type="search" id="filter-search-input" class="drawer-search-input" placeholder="{% trans 'Search criteria, evidence, or values…' %}" autocomplete="off" aria-label="{% trans 'Search criteria' %}">
+                <button type="button" class="drawer-search-clear" id="filter-search-clear" hidden aria-label="{% trans 'Clear search' %}">&times;</button>
+            </div>
+
+            <div class="drawer-catalogue-meta">
+                <span class="drawer-catalogue-count">{% blocktrans with groups=filter_categories|length total=filter_option_count %}{{ total }} criteria across {{ groups }} categories{% endblocktrans %}</span>
+                <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon drawer-catalogue-toggle" id="filter-expand-all" data-expand-all="false" data-label-expand="{% trans 'Expand all' %}" data-label-collapse="{% trans 'Collapse all' %}">
+                    <span data-expand-all-label>{% trans "Expand all" %}</span>
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
+                </button>
+            </div>
+
+            <form method="GET" action="{{ request.path }}" id="filters-apply-form" class="drawer-filter-catalogue">
+                {% for key, value in keep_params.items %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+                {% for group in filter_categories %}
+                <details class="filter-group js-smooth-details" data-filter-group{% if group.active_count %} open{% endif %}>
+                    <summary class="filter-group-summary">
+                        <span class="filter-group-name">{% trans group.category %}</span>
+                        <span class="filter-group-meta">
+                            {% if group.active_count %}<span class="tp-count filter-group-selected-count">{{ group.active_count }}</span>{% endif %}
+                            <span class="filter-group-chevron" aria-hidden="true"></span>
+                        </span>
+                    </summary>
+                    <div class="filter-group-body">
+                        <div class="filter-param" data-filter-param data-search-text="{{ group.category|lower }} {{ group.hint|lower }}{% for chip in group.chips %} {{ chip.label|lower }}{% endfor %}">
+                            <div class="filter-param-head">
+                                <span class="filter-param-label">{% trans group.hint %}</span>
+                            </div>
+                            <div class="filter-chip-group">
+                                {% for chip in group.chips %}
+                                <label class="filter-chip human-filter-chip{% if chip.active %} filter-chip--active{% endif %}" data-server-active="{{ chip.active|yesno:'true,false' }}">
+                                    <input type="{% if group.single %}radio{% else %}checkbox{% endif %}" name="{{ chip.name }}" value="{{ chip.value }}"{% if chip.active %} checked{% endif %}>
+                                    <span class="filter-chip-label">{% trans chip.label %}</span>
+                                    <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </details>
+                {% endfor %}
+                <p class="filter-search-no-results tp-state-note tp-state-note--empty" id="filter-search-no-results" hidden>{% trans "No criteria match the search." %}</p>
+            </form>
+        </div>
+        <div class="drawer-foot">
+            <div class="drawer-foot-actions">
+                {% trans "Clear all criteria" as clear_filters_label %}
+                {% if active_pills %}
+                    {% include "components/buttons/clear_action.html" with label=clear_filters_label href=clear_filters_url classes="btn tp-btn tp-btn--danger tp-btn-with-icon drawer-clear-btn" %}
+                {% else %}
+                    {% include "components/buttons/clear_action.html" with label=clear_filters_label disabled="1" classes="btn tp-btn tp-btn--danger tp-btn-with-icon drawer-clear-btn" %}
+                {% endif %}
+                <button type="submit" form="filters-apply-form" class="btn tp-btn tp-btn--primary tp-btn-with-icon drawer-done-btn" id="filters-apply-btn" disabled>
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>
+                    <span>{% trans "Apply filters" %}</span>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <div class="tp-overlay" id="columns-overlay"></div>
+    <aside class="filters-drawer columns-drawer" id="columns-modal" aria-hidden="true" aria-label="{% trans 'Columns' %}">
+        <div class="drawer-head">
+            <h2>{% trans "Columns" %}</h2>
+            <button class="btn tp-btn tp-btn--ghost drawer-close-btn" type="button" id="close-columns-btn" aria-label="{% trans 'Close' %}">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+            </button>
+        </div>
+        <div class="drawer-body columns-body">
+            <div class="columns-fixed-note">
+                <span class="columns-fixed-note__label">{% trans "Always shown" %}</span>
+                <div class="columns-fixed-note__chips">
+                    {% for label in fixed_columns %}<span class="tp-chip columns-fixed-chip">{% trans label %}</span>{% endfor %}
+                </div>
+            </div>
+            <section class="columns-section">
+                <header class="columns-section-head">
+                    <h3>{% trans "Optional columns" %}</h3>
+                    <span class="tp-count" id="columns-selected-count">{{ columns|length }}</span>
+                </header>
+                <p class="columns-section-hint">{% trans "Click the eye to show or hide a column." %}</p>
+                <div class="columns-order-list">
+                    {% for column in columns %}
+                    <div class="columns-row columns-row--selected human-columns-row" data-column-row data-column-name="{{ column.name }}" data-default="{{ column.default|yesno:'true,false' }}">
+                        <div class="columns-row-copy">
+                            <span class="columns-row-label">{% trans column.label %}</span>
+                            <span class="columns-row-category">{% trans column.category %}</span>
+                        </div>
+                        <button type="button" class="columns-icon-btn columns-visibility-btn" data-columns-toggle aria-pressed="true" aria-label="{% trans 'Hide column' %}" data-label-hide="{% trans 'Hide column' %}" data-label-show="{% trans 'Show column' %}">
+                            <span class="columns-icon columns-icon--visible">{% include "components/icons/eye.html" %}</span>
+                            <span class="columns-icon columns-icon--hidden">{% include "components/icons/eye_off.html" %}</span>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+        <div class="drawer-foot columns-foot">
+            <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon columns-restore-link" id="columns-restore-btn">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
+                <span>{% trans "Restore defaults" %}</span>
+            </button>
+            <button type="button" class="btn tp-btn tp-btn--primary tp-btn-with-icon drawer-done-btn" id="columns-apply-btn">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>
+                <span>{% trans "Apply" %}</span>
+            </button>
+        </div>
+    </aside>
+
+    <script src="{% static 'js/pages/human-protein-list.js' %}?v=20261023"></script>
+{% endblock %}

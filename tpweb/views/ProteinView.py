@@ -4,12 +4,21 @@ from django.http import Http404
 from django.views import View
 
 import itertools
+import re
 
 from bioseq.io.BioIO import BioIO
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
-from .StructureView import pdb_structure
+from tpweb.services.structure_summary import pdb_structure
+from tpweb.services.identical_sequences import identical_siblings_for_bioentry
+from tpweb.services.topology_diagram import build_topology_diagram
+from tpweb.services.protein_architecture import (
+    build_interpro_architecture,
+    coverage_cells,
+    format_sequence,
+)
+from tpweb.services.shared_sequence_evidence import apply_shared_sequence_evidence
 from tpweb.services.protein_annotations import (
     annotation_dbnames,
     annotation_name as _annotation_name,
@@ -40,10 +49,15 @@ from tpweb.services.structure_sources import (
 )
 from tpweb.services.protein_summary import (
     annotate_selected_source_status as _annotate_selected_source_status,
+    build_localization,
     build_protein_executive_context as _build_protein_executive_context,
 )
 from tpweb.services.binder_summary import create_binders_dict
 from tpweb.services.cross_references import build_protein_cross_references
+from tpweb.services.structure_downloads import available_download_sources
+
+# RefSeq (WP_000001.1) or INSDC/GenBank (WHR11391.1) protein IDs.
+PROTEIN_ACCESSION_RE = re.compile(r"^(?:(?:NP|WP|XP|YP|AP)_\d+|[A-Z]{3}\d{5,7})(?:\.\d+)?$")
 
 
 def _short_method(method_str):
@@ -336,10 +350,13 @@ def serialize_prot(protein: Bioentry):
         "id": protein.bioentry_id,
         "accession": protein.accession,
         "description": protein.description,
+        # Gene qualifiers sometimes hold the protein ID itself (RefSeq WP_… or
+        # GenBank WHR11391.1); those aren't gene names, so leave them out.
         "gene": " ".join(
-            g for g in protein.genes() if not g.startswith(("NP_", "WP_", "XP_", "YP_", "AP_"))
-        )
-        or " ".join(protein.genes()),
+            g
+            for g in protein.genes()
+            if g != protein.accession and not PROTEIN_ACCESSION_RE.match(g)
+        ),
         "size": protein.seq.length,
         "assembly_id": bdb.biodatabase_id,
         "assembly_name": bdb.name,
@@ -435,6 +452,50 @@ def serialize_prot(protein: Bioentry):
     return protein2, features, annotations, graphic_features
 
 
+BINDERS_LAZY_THRESHOLD = 30
+
+
+class ProteinBindersPanelsView(View):
+    """Just the ligand-evidence tab panels of a protein page, fetched by the
+    page when the user reaches that section. Same access rules as
+    ProteinView."""
+
+    template_name = "genomic/_binders_panels.html"
+
+    def get(self, request, protein_id, *args, **kwargs):
+        protein = (
+            Bioentry.objects.filter(bioentry_id=protein_id)
+            .select_related("biodatabase")
+            .prefetch_related(
+                Prefetch(
+                    "experimental_structure_xrefs",
+                    queryset=ExperimentalStructureXref.objects.order_by("resolution"),
+                ),
+            )
+            .first()
+        )
+        if protein is None or not protein.biodatabase.name.endswith(Biodatabase.PROT_POSTFIX):
+            raise Http404("Protein not found")
+        assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
+        if not user_can_access_genome_name(request.user, assembly_name):
+            raise Http404("Protein not found")
+        apply_shared_sequence_evidence([protein], request.user)
+        links = protein.structures.all()
+        if not getattr(protein, "shared_sequence_evidence", None):
+            links = links.select_related("pdb")
+        structures = _sort_structures_by_preference(links)
+        binders = create_binders_dict(
+            protein,
+            search_query=request.GET.get("binder_search", "").strip(),
+            structures=structures,
+        )
+        return render(
+            request,
+            self.template_name,
+            {"binders": binders, "protein": {"id": protein.bioentry_id}},
+        )
+
+
 class ProteinView(View):
     template_name = "genomic/protein.html"
 
@@ -455,7 +516,7 @@ class ProteinView(View):
                 ),
                 "structures__pdb__residue_sets__properties__property",
             )
-            .get()
+            .first()
         )
         # bioentry_id is shared across a genome's <name>, <name>_prots, and
         # <name>_rnas biodatabases (same numeric id space, different rows) --
@@ -465,23 +526,40 @@ class ProteinView(View):
         # catastrophically slowly: a whole-chromosome Bioentry can carry
         # thousands of GenBank features that this view and its template only
         # expect a handful of per protein.
-        if not protein.biodatabase.name.endswith(Biodatabase.PROT_POSTFIX):
+        if protein is None or not protein.biodatabase.name.endswith(Biodatabase.PROT_POSTFIX):
             raise Http404("Protein not found")
         assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
         if not user_can_access_genome_name(request.user, assembly_name):
             raise Http404("Protein not found")
+        apply_shared_sequence_evidence([protein], request.user)
         proteinDTO, features, annotations, graphic_features = serialize_prot(protein)
         # No consumer of `structures` in this view or the services it calls
         # (_build_experimental_structures, _sort_structures_by_preference,
         # summarize_structure_sources, create_binders_dict) reads
         # `s.pdb.residues` -- that used to only back the chain-name derivation
         # inside pdb_structure(), which now derives chains via a `.values_list`
-        # query instead of a full residue fetch (see StructureView.py). Dropping
+        # query instead of a full residue fetch (see structure_summary.py). Dropping
         # this prefetch removes an expensive full-residue-table pull per linked
         # structure, on every protein page load.
         structures = protein.structures.all()
         structures = _sort_structures_by_preference(structures)
+        shared_evidence = getattr(protein, "shared_sequence_evidence", None)
+        if shared_evidence:
+            structures.sort(key=lambda link: link.pk not in shared_evidence.curated_structure_ids)
         experimental_structures = _build_experimental_structures(protein, structures)
+        sequence_length = len(proteinDTO["seq"] or "")
+        architecture = build_interpro_architecture(features, sequence_length)
+        # Gram-negative inner-membrane proteins: the non-cytoplasmic side is the periplasm.
+        topology = build_topology_diagram(
+            (architecture or {}).get("topology"), sequence_length, "Periplasm", "Cytoplasm"
+        )
+        structure_coverage = coverage_cells(
+            [
+                (xref.uniprot_start, xref.uniprot_end)
+                for xref in protein.experimental_structure_xrefs.all()
+            ],
+            sequence_length,
+        )
         binders_search_query = request.GET.get("binder_search", "").strip()
         binders = create_binders_dict(
             protein, search_query=binders_search_query, structures=structures
@@ -506,6 +584,7 @@ class ProteinView(View):
         pipeline_status = annotate_pipeline_status_for_genome(
             get_pipeline_status(), proteinDTO["assembly_name"]
         )
+        identical_sequence_siblings = identical_siblings_for_bioentry(protein, request.user)
 
         # structures/structure_summary/binders were already fetched above with
         # this request's search query and sort order -- passing them in lets
@@ -525,6 +604,7 @@ class ProteinView(View):
         conservation_profile = executive_context["conservation_profile"]
         microbiome_context = executive_context["microbiome_context"]
         metabolic_context = executive_context["metabolic_context"]
+        gates_metabolic_priority = executive_context["gates_metabolic_priority"]
         target_summary = executive_context["target_summary"]
         score_breakdown = executive_context["score_breakdown"]
 
@@ -673,20 +753,34 @@ class ProteinView(View):
             "protein": proteinDTO,
             "predicted_structures": [],
             "features": features,
+            "architecture": architecture,
+            "topology": topology,
+            "structure_coverage": structure_coverage,
+            "sequence_lines": format_sequence(proteinDTO["seq"]),
             "annotations": annotations,
             "ec_annotations": ec_all,
             "go_annotations": go_all,
             "graphic_features": graphic_features,
             "binders": binders,
+            # Above this many ligand records the tables load separately
+            # (ProteinBindersPanelsView) instead of with the page.
+            "binders_lazy_threshold": BINDERS_LAZY_THRESHOLD,
             "structure_summary": structure_summary,
+            "structure_download_sources": available_download_sources(structures),
             "experimental_structures": experimental_structures,
+            "identical_sequence_siblings": identical_sequence_siblings,
+            "shared_sequence_evidence": shared_evidence,
+            "shared_score_sources": shared_evidence.score_sources if shared_evidence else {},
             "target_profile": target_profile,
+            "prioritization": executive_context["prioritization"],
+            "localization": build_localization(target_profile),
             "target_summary": target_summary,
             "score_breakdown": score_breakdown,
             "selected_pocket_evidence": selected_pocket_evidence,
             "conservation_profile": conservation_profile,
             "microbiome_context": microbiome_context,
             "metabolic_context": metabolic_context,
+            "gates_metabolic_priority": gates_metabolic_priority,
             "experimental_xrefs": experimental_xrefs,
             "ec_badges": ec_badges,
             "go_badges": go_badges,
@@ -710,7 +804,15 @@ class ProteinView(View):
                 if (getattr(s.pdb, "experiment", "") or "").upper() in _PDB_MODEL_EXPERIMENTS
             ]
 
-            if experimental:
+            curated_structures = [
+                s
+                for s in structures
+                if shared_evidence and s.pk in shared_evidence.curated_structure_ids
+            ]
+            if curated_structures:
+                primary_link = curated_structures[0]
+                alt_link = next((s for s in structures if s.pdb_id != primary_link.pdb_id), None)
+            elif experimental:
                 primary_link = experimental[0]
                 alt_link = (
                     predicted[0]
@@ -733,6 +835,11 @@ class ProteinView(View):
                 target_chain=(primary_link.chain or "").strip() or None,
             )
             dto["viewer_structure_id"] = primary_display.id
+            if primary_link.bioentry_id != protein.pk:
+                dto["shared_primary_protein"] = {
+                    "id": primary_link.bioentry_id,
+                    "accession": primary_link.bioentry.accession,
+                }
             dto["primary_structure_label"] = primary_viewer["short_label"]
             dto["primary_structure_detail_label"] = primary_viewer["detail_label"]
             dto["primary_structure_source_name"] = primary_viewer["source_name"]
@@ -781,6 +888,38 @@ class ProteinView(View):
                 else:
                     entry["slot_key"] = ""
 
+            # The best FPocket pocket can sit on a loaded structure that is
+            # neither of the two the viewer offers (primary/alt). Give that one
+            # its own pocket panel and NGL overlays too, so "Show this pocket"
+            # can switch the embedded viewer to it instead of sending the user
+            # to the full viewer.
+            best_pocket_pdb_id = ((selected_pocket_evidence or {}).get("fpocket") or {}).get(
+                "viewer_pdb_id"
+            )
+            if best_pocket_pdb_id and not (selected_pocket_evidence or {}).get(
+                "selected_source_visible"
+            ):
+                best_link = next(
+                    (link for link in structures if link.pdb_id == best_pocket_pdb_id), None
+                )
+                best_entry = next(
+                    (
+                        entry
+                        for entry in experimental_structures
+                        if entry.get("loaded_structure_id") == best_pocket_pdb_id
+                        and entry.get("slot_key")
+                    ),
+                    None,
+                )
+                if best_link is not None and best_entry is not None:
+                    dto["pocket_structure_slot"] = best_entry["slot_key"]
+                    if best_entry["slot_key"] not in ("primary", "alt"):
+                        dto["pocket_structure"] = pdb_structure(
+                            best_link.pdb,
+                            [],
+                            target_chain=(best_link.chain or "").strip() or None,
+                        )
+
             predicted_structures = _build_predicted_structures(
                 predicted, protein_length, primary_link=primary_link, alt_link=alt_link
             )
@@ -791,6 +930,15 @@ class ProteinView(View):
             dto["experimental_structures"],
             dto["binders"],
             dto["metabolic_context"],
+        )
+        # The section is worth showing only for more than the UniProt link the
+        # hero already carries.
+        xrefs = dto["cross_references"]
+        dto["cross_references_extra"] = bool(
+            xrefs.get("structure")
+            or xrefs.get("chemistry")
+            or xrefs.get("pathways")
+            or any(item.get("source") != "UniProt" for item in xrefs.get("sequence") or [])
         )
 
         return render(request, self.template_name, dto)

@@ -2,41 +2,29 @@
    chemistry-oriented layout (physchem, drug-likeness, provenance, siblings). */
 
 .binder-page {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    color: var(--tp-ink);
+    font-family: var(--tp-font-body);
+    color: var(--tp-color-text-primary);
     margin: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--tp-space-4);
-    --binder-accent: var(--tp-color-brand-800);
-    --binder-accent-ink: var(--tp-color-brand-900);
-    --binder-accent-soft: var(--tp-color-brand-100);
-    --binder-accent-border: var(--tp-color-brand-300);
-    --binder-pass: var(--tp-color-success-ink);
-    --binder-pass-soft: var(--tp-color-success-bg);
-    --binder-pass-border: var(--tp-color-success-border);
-    --binder-fail: var(--tp-color-danger-ink);
-    --binder-fail-soft: var(--tp-color-danger-bg);
-    --binder-fail-border: var(--tp-color-danger-border);
-    --binder-warn: var(--tp-color-warning-ink);
-    --binder-warn-soft: var(--tp-color-warning-bg);
-    --binder-warn-border: var(--tp-color-warning-border);
 }
 
 .binder-page h1,
 .binder-page h2,
 .binder-page h3 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
-    letter-spacing: 0.2px;
+    letter-spacing: 0;
 }
-.binder-page h1 { font-weight: 700; }
+.binder-page h1 { font-weight: 600; }
 
 .binder-page code {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.92em;
+    font-family: var(--tp-font-mono);
+    font-size: 0.9em;
     background: var(--tp-color-surface-soft);
-    padding: 1px 6px;
-    border-radius: 4px;
+    padding: 1px var(--tp-space-2);
+    border-radius: var(--tp-radius-xs);
     border: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-primary);
 }
@@ -59,21 +47,12 @@
 .binder-card:nth-of-type(3) { animation-delay: 140ms; }
 .binder-card:nth-of-type(4) { animation-delay: 170ms; }
 
-/* ── Hero ─────────────────────────────────────────────────────────── */
-
-/* No longer boxed via .tp-page-hero -- sits directly on the page
-   background (see tpw-editorial-redesign), so it needs its own padding
-   now instead of inheriting that shared class's. */
-.binder-hero {
-    padding: 20px 18px;
-}
-
 .binder-hero-top {
     display: flex;
     justify-content: space-between;
-    gap: 18px;
+    gap: var(--tp-space-5);
     align-items: flex-start;
-    margin-top: 8px;
+    margin-top: var(--tp-space-2);
 }
 
 .binder-hero-content {
@@ -81,40 +60,21 @@
     width: 100%;
 }
 
-.binder-hero-eyebrow {
-    margin: 6px 0 10px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
 .binder-hero h1 {
-    margin: 0;
-    font-size: var(--tp-heading-lg);
-    line-height: 1.1;
-    color: var(--binder-accent-ink);
     word-break: break-all;
 }
 
 .binder-description {
-    margin: 10px 0 0;
+    margin: var(--tp-space-3) 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 1rem;
-    line-height: 1.42;
-    max-width: 920px;
-}
-
-.binder-context {
-    margin: 10px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: 0.95rem;
+    font-size: var(--tp-font-size-md);
+    line-height: 1.35;
+    max-width: var(--tp-measure);
 }
 
 .binder-context-id {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    color: var(--binder-accent-ink);
+    font-family: var(--tp-font-mono);
+    color: var(--tp-color-brand-900);
     font-weight: 600;
     text-decoration: none;
 }
@@ -130,171 +90,7 @@
 }
 
 .binder-hero .hero-chip-list {
-    margin-top: 12px;
-}
-
-.binder-pdb-chip {
-    text-decoration: none !important;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    transition: background 120ms ease, border-color 120ms ease;
-}
-
-.binder-pdb-chip:hover {
-    border-color: var(--binder-accent-border) !important;
-    background: var(--binder-accent-soft) !important;
-}
-
-.binder-ext-icon {
-    width: 10px;
-    height: 10px;
-    flex-shrink: 0;
-    color: var(--tp-color-text-muted);
-}
-
-.binder-formula-chip {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.8rem !important;
-    letter-spacing: 0.01em;
-}
-
-/* ── Metric pills ─────────────────────────────────────────────────── */
-
-.binder-metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 10px;
-    margin-top: 14px;
-}
-
-/* Shared stat-card idiom with genome-overview.css / assembly.html -- same
-   border-radius, padding, label size and value size, so the "number in a
-   pill" concept looks identical whichever page it's on. */
-.binder-page .metric-pill {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    background: var(--tp-color-surface-soft);
-    padding: 10px 12px;
-    min-height: 68px;
-    display: grid;
-    align-content: center;
-    gap: 2px;
-}
-
-.binder-page .metric-label {
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--tp-color-text-muted);
-}
-
-.binder-page .metric-value {
-    color: var(--binder-accent-ink);
-    font-size: 1.45rem;
-    line-height: 1.1;
-    font-weight: 600;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-}
-
-.metric-unit {
-    font-size: 0.78rem;
-    font-weight: 500;
-    color: var(--tp-color-text-muted);
-}
-
-.binder-page .metric-value--text {
-    font-size: 0.96rem;
-    word-break: break-all;
-}
-
-.binder-page .metric-value--ok {
-    color: var(--binder-pass);
-}
-
-.binder-page .metric-value--warn {
-    color: var(--binder-warn);
-}
-
-.binder-page .metric-value a {
-    color: inherit;
-    text-decoration: none;
-}
-
-.binder-page .metric-value a:hover,
-.binder-page .metric-value a:focus-visible {
-    text-decoration: underline;
-    outline: none;
-}
-
-/* ── Quick-nav ────────────────────────────────────────────────────── */
-
-.binder-page .quick-nav {
-    position: sticky;
-    top: -2px;
-    z-index: 25;
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 8px;
-    overflow-x: auto;
-    padding: 8px 10px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-surface-soft);
-    /* This box's own border needs to align with the 18px text inset used
-       by the unboxed hero around it. */
-    margin: 0 18px;
-}
-
-.binder-page .quick-nav::-webkit-scrollbar {
-    height: 6px;
-}
-
-.binder-page .quick-nav::-webkit-scrollbar-thumb {
-    background: var(--tp-color-border-strong);
-    border-radius: 999px;
-}
-
-.binder-page .quick-nav .quick-nav-link {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 36px;
-    padding: 0.32rem 0.85rem;
-    line-height: 1.1;
-    font-weight: 500;
-    border-radius: 999px;
-    border: 1px solid var(--tp-color-border) !important;
-    background: var(--tp-color-surface) !important;
-    color: var(--tp-color-text-secondary) !important;
-    white-space: nowrap;
-    text-decoration: none !important;
-}
-
-.binder-page .quick-nav .quick-nav-link:hover,
-.binder-page .quick-nav .quick-nav-link:focus-visible {
-    color: var(--tp-color-text-primary) !important;
-    border-color: var(--tp-color-border-strong) !important;
-    background: var(--tp-color-surface-muted) !important;
-}
-
-.binder-page .quick-nav .quick-nav-link.is-active,
-.binder-page .quick-nav .quick-nav-link[aria-current="true"] {
-    color: var(--tp-color-link-hover) !important;
-    border-color: var(--binder-accent-border) !important;
-    background: var(--tp-color-brand-100) !important;
-    text-decoration: none !important;
-}
-
-.tp-dark .binder-page .quick-nav .quick-nav-link.is-active,
-.tp-dark .binder-page .quick-nav .quick-nav-link[aria-current="true"] {
-    background: var(--tp-color-brand-200) !important;
-    border-color: var(--tp-color-brand-300) !important;
-    color: var(--tp-color-brand-900) !important;
+    margin-top: var(--tp-space-3);
 }
 
 /* ── Grid + panels ────────────────────────────────────────────────── */
@@ -306,40 +102,17 @@
    protein.html's .protein-grid. */
 .binder-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 32px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--tp-space-7);
 }
 
 .binder-card {
-    padding: 16px 18px;
-    scroll-margin-top: 128px;
-}
-
-.binder-card--identifiers {
-    display: flex;
-    flex-direction: column;
-}
-
-.binder-card h2 {
-    margin: 0;
-    font-size: var(--tp-heading-sm);
-    font-weight: 600;
-    color: var(--binder-accent-ink);
-}
-
-.binder-page .section-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 12px;
-}
-
-.binder-page .section-subtitle {
-    margin: 4px 0 0;
-    color: var(--tp-color-text-muted);
-    font-size: 0.86rem;
-    line-height: 1.45;
+    padding: var(--tp-space-4) var(--tp-space-5);
+    /* Clearance for the sticky .quick-nav when a nav link jumps here: nav
+       height (44px link height + 1px bottom border = 45px) minus its -2px
+       sticky offset, plus ~24px breathing room -- same box model as
+       protein-detail.css/genome-overview.css's .quick-nav. */
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 68px);
 }
 
 .binder-card--properties,
@@ -347,6 +120,7 @@
 .binder-card--strings,
 .binder-card--provenance,
 .binder-card--external,
+.binder-card--synthesis,
 .binder-card--siblings {
     grid-column: 1 / -1;
 }
@@ -360,6 +134,8 @@
 @media (prefers-reduced-motion: reduce) {
     .binder-hero,
     .binder-page .quick-nav,
+    .binder-page .quick-nav .quick-nav-link,
+    .binder-page .quick-nav .quick-nav-link::after,
     .binder-card {
         animation: none !important;
         transition: none !important;
@@ -375,7 +151,7 @@
     margin: 0 auto;
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: var(--tp-radius-md);
     overflow: hidden;
     display: grid;
     place-items: center;
@@ -387,212 +163,30 @@
     display: block;
 }
 
-/* ── Identifiers / dl rows ────────────────────────────────────────── */
-
-.binder-identifiers {
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    /* The grid stretches this card to match Structure's height (its 2D
-       diagram is usually taller than this short row list) -- center the
-       rows in that space instead of leaving them pinned to the top with
-       dead air below, which read as an unfinished/cut-off card. */
-    flex: 1;
-    justify-content: center;
-}
-
-.binder-id-row {
-    display: grid;
-    grid-template-columns: 160px minmax(0, 1fr);
-    gap: 12px;
-    align-items: baseline;
-}
-
-.binder-id-row dt {
-    color: var(--tp-color-text-muted);
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
-.binder-id-row dd {
-    margin: 0;
-    color: var(--tp-color-text-primary);
-    font-weight: 500;
-    overflow-wrap: anywhere;
-}
-
-.binder-id-row-sub {
-    color: var(--tp-color-text-muted);
-    font-weight: 400;
-}
-
-@media (max-width: 640px) {
-    .binder-id-row {
-        grid-template-columns: 1fr;
-        gap: 2px;
-    }
-}
-
-/* ── Physicochemical properties grid ──────────────────────────────── */
-
-.property-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px;
-}
-
-.property-cell {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    background: var(--tp-color-surface);
-    padding: 10px 12px;
-    display: grid;
-    gap: 4px;
-    min-height: 68px;
-    align-content: center;
-}
-
-.property-label {
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--tp-color-text-muted);
-}
-
-.property-label small {
-    text-transform: none;
-    letter-spacing: 0;
-    font-weight: 500;
-    color: var(--tp-color-text-muted);
-}
-
-.property-value {
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: var(--binder-accent-ink);
-    line-height: 1.2;
-}
-
-.property-value--text {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.95rem;
-    word-break: break-all;
-}
-
-.property-unit {
-    font-size: 0.78rem;
-    font-weight: 500;
-    color: var(--tp-color-text-muted);
-}
-
-/* ── Drug-likeness ────────────────────────────────────────────────── */
-
-.druglike-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 14px;
-}
-
-.druglike-block {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-surface);
-    padding: 14px 16px;
-}
-
-.druglike-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px 10px;
-    margin-bottom: 10px;
-}
-
-.druglike-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--binder-accent-ink);
-}
-
-.druglike-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border: 1px solid transparent;
-    /* Never let the pill's own text wrap mid-phrase ("0" / "violations" on
-       separate lines) -- if the card is too narrow for title + badge on one
-       row, .druglike-head wraps them onto their own rows instead, and the
-       badge itself always stays a single, whole line. */
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.druglike-badge.is-pass {
-    background: var(--binder-pass-soft);
-    color: var(--binder-pass);
-    border-color: var(--binder-pass-border);
-}
-
-.druglike-badge.is-fail {
-    background: var(--binder-fail-soft);
-    color: var(--binder-fail);
-    border-color: var(--binder-fail-border);
-}
-
-.druglike-badge.is-warn {
-    background: var(--binder-warn-soft);
-    color: var(--binder-warn);
-    border-color: var(--binder-warn-border);
-}
-
-.druglike-badge-count {
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    opacity: 0.8;
-    text-transform: none;
-    letter-spacing: 0;
-}
-
 .druglike-checks {
     margin: 0;
     padding: 0;
     list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
 }
 
 .druglike-checks li {
     display: grid;
     grid-template-columns: 22px 1fr auto;
     align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    font-size: 0.9rem;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-2) 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    font-size: var(--tp-font-size-sm);
 }
 
 .druglike-checks li.is-ok .check-icon {
-    color: var(--binder-pass);
-    font-weight: 800;
+    color: var(--tp-color-success-ink);
+    font-weight: 600;
 }
 
 .druglike-checks li.is-bad .check-icon {
-    color: var(--binder-fail);
-    font-weight: 800;
+    color: var(--tp-color-danger-ink);
+    font-weight: 600;
 }
 
 .check-name {
@@ -600,27 +194,16 @@
 }
 
 .check-value {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.85rem;
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
-    color: var(--binder-accent-ink);
-}
-
-.druglike-note {
-    margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    color: var(--tp-color-text-secondary);
-}
-
-.druglike-note code {
-    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-brand-900);
 }
 
 /* ── Chemical strings (SMILES / InChI / InChIKey) ─────────────────── */
 
 .binder-string-block {
-    margin-bottom: 12px;
+    margin-bottom: var(--tp-space-3);
 }
 
 .binder-string-block:last-child {
@@ -631,30 +214,20 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 6px;
+    gap: var(--tp-space-3);
+    margin-bottom: var(--tp-space-2);
 }
 
 .binder-string-label {
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tp-tracking-label);
     color: var(--tp-color-text-muted);
 }
 
 .binder-string-value {
-    margin: 0;
-    padding: 10px 12px;
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.85rem;
-    line-height: 1.5;
-    color: var(--tp-color-text-secondary);
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
+    font-size: var(--tp-font-size-sm);
 }
 
 .binder-string-value--short {
@@ -669,31 +242,15 @@
     list-style: none;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 8px;
+    column-gap: var(--tp-space-5);
 }
 
 .binder-links li {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    background: var(--tp-color-surface-soft);
-}
-
-.binder-link-category {
-    font-size: 0.7rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--binder-accent-ink);
-    background: var(--binder-accent-soft);
-    padding: 3px 8px;
-    border-radius: 999px;
-    border: 1px solid var(--binder-accent-border);
-    flex: 0 0 auto;
-    white-space: nowrap;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-2) 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
 }
 
 .binder-links a {
@@ -715,50 +272,40 @@
 .siblings-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 14px;
+    gap: var(--tp-space-4);
 }
 
 .siblings-group {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-surface-soft);
-    padding: 12px 14px;
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface);
+    padding: var(--tp-space-3) var(--tp-space-4);
 }
 
 .siblings-group-title {
-    margin: 0 0 4px;
-    font-size: 0.85rem;
+    margin: 0 0 var(--tp-space-1);
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--binder-accent-ink);
+    letter-spacing: var(--tp-tracking-label);
+    color: var(--tp-color-text-muted);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--tp-space-2);
 }
 
 .siblings-group-desc {
-    margin: 0 0 8px;
-    font-size: 0.82rem;
+    margin: 0 0 var(--tp-space-2);
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-muted);
-    line-height: 1.4;
+    line-height: 1.35;
 }
 
 .siblings-col-hint {
     font-weight: 400;
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.75em;
+    font-family: var(--tp-font-mono);
+    font-size: 0.9em;
     opacity: 0.8;
-}
-
-.siblings-group-count {
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface);
-    padding: 1px 8px;
-    border-radius: 999px;
-    border: 1px solid var(--tp-color-border-soft);
 }
 
 .siblings-list {
@@ -767,42 +314,110 @@
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--tp-space-1);
 }
 
 .siblings-list li a {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    padding: 6px 10px;
-    border-radius: 8px;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-2) var(--tp-space-3);
+    border-radius: var(--tp-radius-sm);
     text-decoration: none;
     color: var(--tp-color-text-primary);
-    transition: background 120ms ease;
+    transition: background 140ms ease;
 }
 
 .siblings-list li a:hover,
 .siblings-list li a:focus-visible {
-    background: var(--binder-accent-soft);
+    background: var(--tp-color-surface-soft);
     outline: none;
 }
 
 .siblings-meta {
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--tp-font-mono);
 }
 
 .siblings-col-head {
     display: flex;
     justify-content: space-between;
-    padding: 0 10px 4px;
-    font-size: var(--tp-font-label);
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    padding: 0 var(--tp-space-3) var(--tp-space-1);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
     border-bottom: 1px solid var(--tp-color-border-soft);
-    margin-bottom: 4px;
+    margin-bottom: var(--tp-space-1);
+}
+
+/* ── Dossier layout (2026-10): the molecule sits in the hero; facts and
+   drug-likeness use the shared protein-page components. ─────────────── */
+.binder-hero-mol {
+    flex: 0 0 auto;
+    width: 240px;
+    margin: 0;
+}
+
+.binder-hero-mol .binder-svg-box {
+    max-width: none;
+}
+
+.binder-hero-mol figcaption {
+    margin-top: var(--tp-space-1);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    text-align: center;
+}
+
+.binder-facts {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
+
+.binder-card--druglikeness .druglike-checks {
+    max-width: 520px;
+}
+
+@media (max-width: 760px) {
+    .binder-hero-top {
+        flex-direction: column;
+    }
+
+    .binder-hero-mol {
+        width: min(240px, 100%);
+    }
+}
+
+/* Synthesis routes: one reaction drawing (RDKit SVG, white like the hero
+   structure) per open row, scrolling sideways when it is wider than the card. */
+.binder-reaction {
+    width: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+}
+
+.binder-reaction svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.binder-reaction-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2) var(--tp-space-5);
+    margin: var(--tp-space-3) 0 0;
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-secondary);
+}
+
+.binder-reaction-reagents code {
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    word-break: break-all;
 }

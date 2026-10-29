@@ -23,43 +23,6 @@
         }
     }
 
-    function initQuickNav() {
-        var nav = document.querySelector(".quick-nav");
-        if (!nav) return;
-        var links = Array.from(nav.querySelectorAll("a[href^='#']"));
-        var targets = links
-            .map(function (link) {
-                var id = (link.getAttribute("href") || "").slice(1);
-                var section = id ? document.getElementById(id) : null;
-                return section ? { link: link, section: section } : null;
-            })
-            .filter(Boolean);
-        if (!targets.length) return;
-
-        function setActive(sectionId) {
-            targets.forEach(function (entry) {
-                var isActive = entry.section.id === sectionId;
-                entry.link.classList.toggle("is-active", isActive);
-                entry.link.setAttribute("aria-current", isActive ? "true" : "false");
-            });
-        }
-
-        function updateActive() {
-            var triggerLine = Math.round(window.innerHeight * 0.32);
-            var active = targets[0];
-            for (var i = targets.length - 1; i >= 0; i--) {
-                if (targets[i].section.getBoundingClientRect().top <= triggerLine) {
-                    active = targets[i];
-                    break;
-                }
-            }
-            setActive(active.section.id);
-        }
-
-        window.addEventListener("scroll", updateActive, { passive: true });
-        updateActive();
-    }
-
     function initCopySequence() {
         var button = document.getElementById("copy-human-sequence");
         var source = document.getElementById("human-raw-sequence");
@@ -96,23 +59,71 @@
             if (!stage) {
                 var rootStyle = getComputedStyle(document.documentElement);
                 var bg = (rootStyle.getPropertyValue("--tp-color-structure-bg") || "").trim()
-                    || (rootStyle.getPropertyValue("--tp-color-surface-panel") || "").trim();
+                    || (rootStyle.getPropertyValue("--tp-color-surface-muted") || "").trim();
                 stage = new window.NGL("human-structure-viewport", { backgroundColor: bg || undefined });
             }
             return stage;
         }
 
         function colorSchemeFor(source) {
-            if (source === "alphafold") return "bfactor";
+            if (source === "alphafold" || source === "colabfold") return "bfactor";
             if (source === "alphafill") return "uniform";
             return "chainname";
         }
 
-        function loadEntry(entry, source, buttonEl) {
-            if (loadingEl) {
-                loadingEl.textContent = "Loading structure…";
-                loadingEl.style.display = "flex";
+        var stageEl = viewportEl.closest(".hs-stage");
+        var captionEl = document.getElementById("human-structure-caption");
+
+        function setLoading(isLoading) {
+            if (stageEl) stageEl.classList.toggle("is-loading", isLoading);
+        }
+
+        function showNote(text, withSpinner) {
+            if (!loadingEl) return;
+            loadingEl.textContent = "";
+            if (withSpinner) {
+                var spinner = document.createElement("span");
+                spinner.className = "structure-loading-spinner";
+                spinner.setAttribute("aria-hidden", "true");
+                loadingEl.appendChild(spinner);
             }
+            loadingEl.appendChild(document.createTextNode(text));
+            loadingEl.style.display = "flex";
+        }
+
+        // Same as the pathogen viewer: the page scrolls past the viewer until
+        // it is clicked; then the wheel zooms the structure instead.
+        if (stageEl) {
+            var overlay = document.createElement("div");
+            overlay.className = "hs-overlay";
+            overlay.title = "Click to interact";
+            stageEl.appendChild(overlay);
+            overlay.addEventListener("click", function () {
+                overlay.classList.add("is-active");
+            });
+            viewportEl.addEventListener("wheel", function (event) {
+                if (overlay.classList.contains("is-active")) event.preventDefault();
+            }, { passive: false });
+            document.addEventListener("mousedown", function (event) {
+                if (!stageEl.contains(event.target)) overlay.classList.remove("is-active");
+            }, true);
+            document.addEventListener("wheel", function (event) {
+                if (!stageEl.contains(event.target)) overlay.classList.remove("is-active");
+            }, { passive: true, capture: true });
+        }
+
+        // A structure whose file isn't on the server yet is marked and, when
+        // it was picked automatically, the next one in its list loads instead.
+        function nextEntryButton(buttonEl) {
+            var next = buttonEl && buttonEl.nextElementSibling;
+            while (next && next.classList.contains("is-unavailable")) next = next.nextElementSibling;
+            return next && next.classList.contains("human-structure-entry") ? next : null;
+        }
+
+        function loadEntry(entry, source, buttonEl, auto) {
+            showNote("Loading structure…", true);
+            setLoading(true);
+            if (captionEl) captionEl.textContent = captionEl.getAttribute("data-caption-" + source) || "";
             document.querySelectorAll(".human-structure-entry.is-active").forEach(function (el) {
                 el.classList.remove("is-active");
             });
@@ -120,16 +131,38 @@
 
             var nglStage = getStage();
             nglStage.removeAllComponents();
-            nglStage.loadFile(entry.url, { ext: "cif", defaultRepresentation: false }).then(function (component) {
+            // NGL 0.10's mmCIF parser crashes on two blocks of current files: the
+            // secondary structure of AlphaFold DB models (_struct_conf; NGL then
+            // computes helices/sheets itself) and the component dictionary of
+            // RCSB PDB entries (_chem_comp, numeric names). Neither is drawn.
+            fetch(entry.url, { credentials: "same-origin" }).then(function (response) {
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                return response.text();
+            }).then(function (text) {
+                // ColabFold models are served as PDB, everything else as mmCIF.
+                if (!/^\s*data_/.test(text)) {
+                    return nglStage.loadFile(new Blob([text], { type: "text/plain" }), { ext: "pdb", defaultRepresentation: false });
+                }
+                var cleaned = text.replace(/(^|\n)(loop_\n)?_(struct_conf|struct_conf_type|chem_comp)\.[\s\S]*?(?=\n#)/g, "$1");
+                return nglStage.loadFile(new Blob([cleaned], { type: "text/plain" }), { ext: "cif", defaultRepresentation: false });
+            }).then(function (component) {
                 component.addRepresentation("cartoon", { colorScheme: colorSchemeFor(source) });
                 component.addRepresentation("ball+stick", { sele: "hetero and not water", colorScheme: "element" });
-                component.autoView();
+                component.autoView(600);
                 if (loadingEl) loadingEl.style.display = "none";
+                setLoading(false);
             }).catch(function () {
-                if (loadingEl) {
-                    loadingEl.textContent = "Unable to load 3D structure.";
-                    loadingEl.style.display = "flex";
+                setLoading(false);
+                if (buttonEl) {
+                    buttonEl.classList.add("is-unavailable");
+                    buttonEl.title = "Structure file not available yet";
                 }
+                var next = auto ? nextEntryButton(buttonEl) : null;
+                if (next) {
+                    loadEntry({ url: next.getAttribute("data-structure-url") }, source, next, true);
+                    return;
+                }
+                showNote("This structure file isn't available yet. Pick another one.", false);
             });
         }
 
@@ -158,8 +191,46 @@
             var firstButton = document.querySelector(
                 '.human-structure-panel[data-structure-panel="' + firstTab.key + '"] .human-structure-entry'
             );
-            loadEntry(firstTab.entries[0], firstTab.key, firstButton);
+            loadEntry(firstTab.entries[0], firstTab.key, firstButton, true);
         }
+    }
+
+    function initExpressionView() {
+        var tabs = document.querySelectorAll("[data-expression-tab]");
+        var panels = document.querySelectorAll("[data-expression-panel]");
+        if (!tabs.length || !panels.length) return;
+
+        function showPanel(target) {
+            tabs.forEach(function (t) {
+                var isActive = t.getAttribute("data-expression-tab") === target;
+                t.classList.toggle("is-active", isActive);
+                t.setAttribute("aria-selected", isActive ? "true" : "false");
+            });
+            panels.forEach(function (panel) {
+                panel.classList.toggle("is-hidden", panel.getAttribute("data-expression-panel") !== target);
+            });
+        }
+
+        tabs.forEach(function (tab) {
+            tab.addEventListener("click", function () {
+                showPanel(tab.getAttribute("data-expression-tab"));
+            });
+        });
+
+        var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        // Bars grow in the first time the section scrolls into view.
+        var section = document.getElementById("section-expression");
+        if (!section || reduceMotion || !("IntersectionObserver" in window)) return;
+        section.classList.add("hx-animate");
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                section.classList.add("is-revealed");
+                observer.disconnect();
+            });
+        }, { threshold: 0.15 });
+        observer.observe(section);
     }
 
     function initBindersTabs() {
@@ -252,7 +323,7 @@
         function applyFilters(bar) {
             var panel = bar.closest(".binders-panel");
             var rows = panel.querySelectorAll(".binder-tbl__row");
-            var activeChips = bar.querySelectorAll(".binder-filter-chip.is-active");
+            var activeChips = bar.querySelectorAll(".binder-filter-chip.filter-chip--active");
             var filters = Array.from(activeChips).map(function (c) { return c.dataset.filter; });
             var shown = 0;
             rows.forEach(function (row) {
@@ -294,26 +365,65 @@
             var clear = e.target.closest(".binder-filter-clear");
             if (chip) {
                 e.stopPropagation();
-                chip.classList.toggle("is-active");
+                chip.classList.toggle("filter-chip--active");
                 applyFilters(chip.closest(".binder-filter-bar"));
             }
             if (clear) {
                 e.stopPropagation();
                 clear.closest(".binder-filter-bar")
-                    .querySelectorAll(".binder-filter-chip.is-active")
-                    .forEach(function (c) { c.classList.remove("is-active"); });
+                    .querySelectorAll(".binder-filter-chip.filter-chip--active")
+                    .forEach(function (c) { c.classList.remove("filter-chip--active"); });
                 applyFilters(clear.closest(".binder-filter-bar"));
             }
         });
     }
 
+    // "Show its variants on the protein map": keep that disease's variants
+    // lit on the map, dim the rest, and bring the map into view.
+    function initDiseaseVariants() {
+        var map = document.getElementById("protein-map");
+        var filter = document.getElementById("protein-map-filter");
+        var buttons = document.querySelectorAll("[data-show-disease]");
+        if (!map || !buttons.length) return;
+        var ticks = map.querySelectorAll(".ha-row--variants .ha-tick");
+        var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        function show(acronym) {
+            var hits = 0;
+            ticks.forEach(function (tick) {
+                var diseases = (tick.dataset.diseases || "").split(" ");
+                var hit = Boolean(acronym) && diseases.indexOf(acronym) !== -1;
+                tick.classList.toggle("is-hit", hit);
+                if (hit) hits += 1;
+            });
+            map.classList.toggle("is-filtered", Boolean(acronym));
+            if (filter) {
+                filter.hidden = !acronym;
+                filter.querySelector("span").textContent = acronym
+                    ? hits + " variant" + (hits === 1 ? "" : "s") + " reported in " + acronym + "."
+                    : "";
+            }
+        }
+
+        buttons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                var acronym = button.getAttribute("data-show-disease");
+                show(acronym);
+                if (acronym) {
+                    map.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+                }
+            });
+        });
+    }
+
     ready(function () {
-        initQuickNav();
         initCopySequence();
+        initDiseaseVariants();
         initStructureViewer();
         initBindersTabs();
         initBinderRowNavigation();
         initBinderMoleculeModal();
         initBinderFilters();
+        initExpressionView();
     });
 })();

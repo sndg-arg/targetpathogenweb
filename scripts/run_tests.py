@@ -45,6 +45,9 @@ def main() -> int:
     from django.test.utils import get_runner
 
     settings.MIGRATION_MODULES = DisableMigrations()
+    # Tests call cache.clear() and cache aggregates; on the cluster they run
+    # inside the live web container, so never let them reach its Redis.
+    settings.CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
     django.setup()
     runner_class = get_runner(settings)
     # interactive=False: this runs unattended (CI, `docker exec`, pre-push
@@ -53,7 +56,7 @@ def main() -> int:
     # waiting on stdin. keepdb=True reuses that DB instead of dropping it,
     # which is also just faster on repeat runs.
     test_runner = runner_class(verbosity=2, interactive=False, keepdb=True)
-    failures = test_runner.run_tests(["tpweb"])
+    failures = test_runner.run_tests(["tpweb", "human_target"])
     if failures:
         return 1
 

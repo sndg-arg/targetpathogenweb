@@ -1,4 +1,3 @@
-import math
 import os
 import re
 
@@ -10,6 +9,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.BioentryDbxref import BioentryDbxref
 from bioseq.models.Dbxref import Dbxref
+from tpweb.services.structure_files import compute_folder_path as _compute_folder_path
 
 
 UNIPROT_EMPTY_VALUES = {"", "-", "na", "n/a", "nan", "none", "null"}
@@ -168,9 +168,3 @@ def _parse_uniprot_accessions(value):
         if token and token.lower() not in UNIPROT_EMPTY_VALUES:
             accessions.append(token)
     return accessions
-
-
-def _compute_folder_path(datadir, genome_name):
-    acclen = len(genome_name)
-    mid = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
-    return os.path.join(datadir, mid, genome_name)
