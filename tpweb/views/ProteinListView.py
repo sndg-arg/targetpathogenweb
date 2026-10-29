@@ -100,7 +100,11 @@ from tpweb.services.custom_param_sharing import (
     custom_files,
     label_shared_columns,
 )
-from tpweb.services.score_params import genome_score_param_names, visible_score_params_queryset
+from tpweb.services.score_params import (
+    column_help,
+    genome_score_param_names,
+    visible_score_params_queryset,
+)
 from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_ALPHAFOLD,
     PDB_EXPERIMENT_COLABFOLD,
@@ -1564,7 +1568,7 @@ class ProteinListView(View):
         ]
         score_dict, tcolumns = build_score_dict_and_columns(ordered_params)
         selected_col_descriptions = {
-            score_param.name: (score_param.description or "") for score_param in ordered_params
+            score_param.name: column_help(score_param) for score_param in ordered_params
         }
         if "Score" in tcolumns:
             selected_col_descriptions["Score"] = (

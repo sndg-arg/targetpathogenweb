@@ -122,3 +122,22 @@ class RegulatoryIsStrainLocalTests(SimpleTestCase):
         for name in ("grn_regulated", "GRN_knockout_score"):
             param = SimpleNamespace(name=name, category="Regulatory (curated)")
             self.assertFalse(sequence_specific_score(param))
+
+
+class SmallScoreDisplayTests(SimpleTestCase):
+    def test_tiny_scores_switch_to_scientific_notation(self):
+        from tpweb.templatetags.custom_tags import score_metric_display
+
+        self.assertEqual(score_metric_display("0.0003059", "grn_knockout_score"), "3.06e-04")
+        self.assertEqual(score_metric_display("0.196", "grn_knockout_score"), "0.196")
+        self.assertEqual(score_metric_display("0", "grn_knockout_score"), "0.000")
+
+    def test_uploaded_grn_columns_get_the_shared_help(self):
+        from types import SimpleNamespace
+
+        from tpweb.services.score_params import GATES_REGULATORY_HELP, column_help
+
+        blank = SimpleNamespace(name="GRN_category", description="")
+        self.assertEqual(column_help(blank), GATES_REGULATORY_HELP["grn_role"])
+        own = SimpleNamespace(name="GRN_category", description="Her text")
+        self.assertEqual(column_help(own), "Her text")

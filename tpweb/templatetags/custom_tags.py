@@ -57,6 +57,9 @@ def score_metric_display(value, column_name):
         or column_key.endswith("_score")
         or column_key.endswith("_norm")
     ):
+        # Below 0.001 three decimals would read 0.000: switch to 1.23e-04.
+        if 0 < abs(numeric) < 0.001:
+            return f"{numeric:.2e}"
         return f"{numeric:.3f}"
     return f"{numeric:g}"
 

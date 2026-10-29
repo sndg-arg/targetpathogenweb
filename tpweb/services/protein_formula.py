@@ -6,6 +6,7 @@ from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam
 from tpweb.services.genome_workspace import user_can_view_restricted_genomes
 from tpweb.services.protein_list import humanize_identifier
+from tpweb.services.score_params import column_help
 from tpweb.services.workspace import get_public_workspace_user, resolve_workspace_user
 
 
@@ -90,7 +91,7 @@ def build_col_descriptions(formula_term_list):
             f"{choice.name}: {choice.description}" for choice in choices if choice.description
         )
         descriptions[term.score_param.name] = (
-            f"{term.score_param.description}. Possible values: {choice_names}. {choice_details}"
+            f"{column_help(term.score_param)}. Possible values: {choice_names}. {choice_details}"
         )
     return descriptions
 

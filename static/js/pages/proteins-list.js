@@ -1548,31 +1548,19 @@ if (copyShareLinkBtn) {
 
 // Resizable protein-table columns: drag the right edge of a header to set
 // that column's width (cells clip with an ellipsis), double-click the edge to
-// reset. Widths are a per-browser convenience, kept in localStorage by
-// column label -- never required for the page to work.
+// reset. Widths last until the page reloads: a reload brings the standard
+// layout back. (Older builds kept them in localStorage; that key is cleared.)
 (function initColumnResize() {
     const table = document.getElementById("proteins_table");
     if (!table) return;
-    const STORAGE_KEY = "tpw:protein-col-widths";
+    try {
+        window.localStorage.removeItem("tpw:protein-col-widths");
+    } catch (error) {
+        /* storage unavailable: nothing to clear */
+    }
     const MIN_WIDTH = 60;
     const styleEl = document.createElement("style");
     document.head.appendChild(styleEl);
-
-    function readWidths() {
-        try {
-            return JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "{}") || {};
-        } catch (error) {
-            return {};
-        }
-    }
-
-    function writeWidths(widths) {
-        try {
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(widths));
-        } catch (error) {
-            /* storage unavailable: widths just won't persist */
-        }
-    }
 
     const headers = Array.from(table.querySelectorAll("thead th"));
     function columnKey(th) {
@@ -1592,8 +1580,7 @@ if (copyShareLinkBtn) {
         styleEl.textContent = rules.join("\n");
     }
 
-    let widths = readWidths();
-    applyWidths(widths);
+    const widths = {};
 
     // Skip "#" (index 0): fixed narrow column, pinned on desktop.
     headers.slice(1).forEach(function (th) {
@@ -1602,6 +1589,7 @@ if (copyShareLinkBtn) {
         handle.setAttribute("aria-hidden", "true");
         handle.title = window.TPW_PROTEINS_I18N.resizeColumn || "";
         th.appendChild(handle);
+        th.classList.add("is-resizable");
 
         handle.addEventListener("click", function (event) {
             event.preventDefault();
@@ -1612,7 +1600,6 @@ if (copyShareLinkBtn) {
             event.stopPropagation();
             delete widths[columnKey(th)];
             applyWidths(widths);
-            writeWidths(widths);
         });
         handle.addEventListener("pointerdown", function (event) {
             event.preventDefault();
@@ -1631,7 +1618,6 @@ if (copyShareLinkBtn) {
                 document.removeEventListener("pointermove", onMove);
                 document.removeEventListener("pointerup", onUp);
                 document.body.classList.remove("is-resizing-column");
-                writeWidths(widths);
             }
             document.addEventListener("pointermove", onMove);
             document.addEventListener("pointerup", onUp);

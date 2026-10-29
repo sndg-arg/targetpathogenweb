@@ -3396,6 +3396,11 @@ a.filter-pill .filter-pill-remove {
 
 /* Column resize handle (proteins-list.js initColumnResize): a thin grab
    strip on each header's right edge, visible on hover. */
+/* Room for the handle so it never sits on top of the label or sort arrow. */
+.protein-table thead th.is-resizable {
+    padding-right: calc(var(--tp-table-cell-px) + var(--tp-space-2));
+}
+
 .protein-table thead th .th-resize-handle {
     position: absolute;
     top: 0;

@@ -49,6 +49,21 @@ GATES_REGULATORY_HELP = {
     "grn_transcription_factor": "The gene encodes a transcription factor.",
     "grn_regulated": "The gene is regulated by at least one transcription factor.",
 }
+# Same help for the GRN columns researchers upload under their own names, so the
+# header tooltip reads the same in every strain even when an upload had no
+# description.
+GRN_COLUMN_HELP = {
+    **GATES_REGULATORY_HELP,
+    "grn_category": GATES_REGULATORY_HELP["grn_role"],
+    "grn_target_gene": GATES_REGULATORY_HELP["grn_regulated"],
+}
+
+
+def column_help(score_param):
+    """The column's own description, else the shared help for its name."""
+    description = (score_param.description or "").strip()
+    return description or GRN_COLUMN_HELP.get(str(score_param.name).strip().lower(), "")
+
 
 SYSTEM_SCORE_PARAM_DEFINITIONS = {
     "transmembrane_segments": {
