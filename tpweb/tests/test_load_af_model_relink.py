@@ -8,6 +8,7 @@ missing (found via the Human Targets re-ingest: structures logged as
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+from uuid import uuid4
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -38,14 +39,18 @@ class LoadAfModelRelinkTests(TestCase):
         )
 
     def _make_bioentry(self, accession):
-        biodatabase = Biodatabase.objects.create(name="human_curated_prots")
+        # A reused test DB can already contain canonical bioseq fixtures.
+        # Allocate our own fixture instead of depending on a real accession being free.
+        token = uuid4().hex[:10]
+        biodatabase = Biodatabase.objects.create(name=f"relink_test_{token}")
+        accession = f"{accession}_{token}"
         return Bioentry.objects.create(
             biodatabase=biodatabase, name=accession, accession=accession, identifier=accession
         )
 
     def test_relinks_existing_pdb_row_missing_its_bioentry_link(self):
         bioentry = self._make_bioentry("P10721")
-        pdb_model = PDB.objects.create(code="AF_P10721", experiment="AF", text="")
+        pdb_model = PDB.objects.create(code=f"AF_{bioentry.accession}", experiment="AF", text="")
         self._populate(pdb_model)
         self.assertFalse(
             BioentryStructure.objects.filter(bioentry=bioentry, pdb=pdb_model).exists()
@@ -53,19 +58,23 @@ class LoadAfModelRelinkTests(TestCase):
 
         with tempfile.NamedTemporaryFile(suffix=".cif") as f:
             with self.assertRaises(SystemExit):
-                call_command("load_af_model", "AF_P10721", f.name, "P10721", experiment="AF")
+                call_command(
+                    "load_af_model", pdb_model.code, f.name, bioentry.accession, experiment="AF"
+                )
 
         self.assertTrue(BioentryStructure.objects.filter(bioentry=bioentry, pdb=pdb_model).exists())
 
     def test_does_not_duplicate_an_already_existing_link(self):
         bioentry = self._make_bioentry("P10721")
-        pdb_model = PDB.objects.create(code="AF_P10721", experiment="AF", text="")
+        pdb_model = PDB.objects.create(code=f"AF_{bioentry.accession}", experiment="AF", text="")
         self._populate(pdb_model)
         BioentryStructure.objects.create(bioentry=bioentry, pdb=pdb_model)
 
         with tempfile.NamedTemporaryFile(suffix=".cif") as f:
             with self.assertRaises(SystemExit):
-                call_command("load_af_model", "AF_P10721", f.name, "P10721", experiment="AF")
+                call_command(
+                    "load_af_model", pdb_model.code, f.name, bioentry.accession, experiment="AF"
+                )
 
         self.assertEqual(
             BioentryStructure.objects.filter(bioentry=bioentry, pdb=pdb_model).count(), 1
@@ -73,7 +82,7 @@ class LoadAfModelRelinkTests(TestCase):
 
     def test_repair_preserves_existing_id_and_links(self):
         bioentry = self._make_bioentry("P10721")
-        model = PDB.objects.create(code="AF_P10721", experiment="AF", text="")
+        model = PDB.objects.create(code=f"AF_{bioentry.accession}", experiment="AF", text="")
         link = BioentryStructure.objects.create(bioentry=bioentry, pdb=model)
         with (
             tempfile.TemporaryDirectory() as datadir,
@@ -96,7 +105,7 @@ class LoadAfModelRelinkTests(TestCase):
 
     def test_empty_reparse_fails_without_claiming_success(self):
         bioentry = self._make_bioentry("P10721")
-        model = PDB.objects.create(code="AF_P10721", experiment="AF", text="")
+        model = PDB.objects.create(code=f"AF_{bioentry.accession}", experiment="AF", text="")
         link = BioentryStructure.objects.create(bioentry=bioentry, pdb=model)
         residue = Residue.objects.create(pdb=model, chain="A", resname="ALA", resid=1, type="R")
         with (

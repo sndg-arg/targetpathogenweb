@@ -9,6 +9,7 @@ built directly from the real field paths, not guessed.
 import json
 import tempfile
 from pathlib import Path
+from uuid import uuid4
 
 from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase
@@ -523,7 +524,9 @@ class LoadStructuresTests(TestCase):
     earlier one would end up linked but missing from its own bookkeeping."""
 
     def _make_human_protein(self, accession):
-        biodatabase, _ = Biodatabase.objects.get_or_create(name="human_curated_prots")
+        token = uuid4().hex[:10]
+        biodatabase = Biodatabase.objects.create(name=f"structure_test_{token}")
+        accession = f"{accession}_{token}"
         bioentry = Bioentry.objects.create(
             biodatabase=biodatabase, name=accession, accession=accession, identifier=accession
         )
@@ -531,7 +534,9 @@ class LoadStructuresTests(TestCase):
 
     def test_ex_xref_is_written_when_load_af_model_relinks_an_existing_row(self):
         bioentry, _human_protein = self._make_human_protein("P10722")
-        model = PDB.objects.create(code="1ABC", experiment="EX", text="")
+        accession = bioentry.accession
+        pdb_id = f"EX_{uuid4().hex[:10].upper()}"
+        model = PDB.objects.create(code=pdb_id, experiment="EX", text="")
         residue = Residue.objects.create(pdb=model, chain="A", resname="ALA", resid=1, type="R")
         Atom.objects.create(
             residue=residue,
@@ -550,13 +555,13 @@ class LoadStructuresTests(TestCase):
             protein_dir = Path(tmp)
             xray_dir = protein_dir / "PDB-X-Ray"
             xray_dir.mkdir()
-            (xray_dir / "P10722_1ABC.cif").write_text("x", encoding="utf-8")
+            (xray_dir / f"{accession}_{pdb_id}.cif").write_text("x", encoding="utf-8")
 
             Command()._load_structures(
-                protein_dir, "P10722", bioentry, "/app/targetpathogenweb/data", False
+                protein_dir, accession, bioentry, "/app/targetpathogenweb/data", False
             )
 
-        self.assertTrue(bioentry.structures.filter(pdb__code="1ABC").exists())
+        self.assertTrue(bioentry.structures.filter(pdb__code=pdb_id).exists())
         self.assertTrue(
-            ExperimentalStructureXref.objects.filter(bioentry=bioentry, pdb_id="1ABC").exists()
+            ExperimentalStructureXref.objects.filter(bioentry=bioentry, pdb_id=pdb_id).exists()
         )
