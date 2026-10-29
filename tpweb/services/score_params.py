@@ -32,6 +32,24 @@ GATES_METABOLIC_HELP = {
     ),
 }
 
+# Curated gene regulatory network (GRN) analysis (Gates project, loaded by
+# load_gates_regulatory_score from the columns its author uploaded). Only the
+# top-400 GRN genes of an analyzed genome carry values.
+GATES_REGULATORY_CATEGORY = "Regulatory (curated)"
+GATES_REGULATORY_ROLES = ("Master regulator", "Structural hub", "Bottleneck", "Peripheral")
+GATES_REGULATORY_HELP = {
+    "grn_knockout_score": (
+        "How much the gene regulatory network is disrupted when the gene is removed in silico "
+        "(cohesion, communication efficiency, modular fragmentation and regulatory reach). "
+        "Higher = more disruption. Only the top 400 GRN genes have a value."
+    ),
+    "grn_role": (
+        "Structural role in the gene regulatory network, from its centrality and knockout scores."
+    ),
+    "grn_transcription_factor": "The gene encodes a transcription factor.",
+    "grn_regulated": "The gene is regulated by at least one transcription factor.",
+}
+
 SYSTEM_SCORE_PARAM_DEFINITIONS = {
     "transmembrane_segments": {
         "category": "Localization",
@@ -348,6 +366,37 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "default_operation": "=",
         "default_value": "Non-priority target",
         "options": ("Priority target", "Second priority targets", "Non-priority target"),
+    },
+    "grn_knockout_score": {
+        "category": GATES_REGULATORY_CATEGORY,
+        "description": GATES_REGULATORY_HELP["grn_knockout_score"],
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "grn_role": {
+        "category": GATES_REGULATORY_CATEGORY,
+        "description": GATES_REGULATORY_HELP["grn_role"],
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "Master regulator",
+        "options": GATES_REGULATORY_ROLES,
+    },
+    "grn_transcription_factor": {
+        "category": GATES_REGULATORY_CATEGORY,
+        "description": GATES_REGULATORY_HELP["grn_transcription_factor"],
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "Y",
+        "options": ("Y", "N"),
+    },
+    "grn_regulated": {
+        "category": GATES_REGULATORY_CATEGORY,
+        "description": GATES_REGULATORY_HELP["grn_regulated"],
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "Y",
+        "options": ("Y", "N"),
     },
 }
 

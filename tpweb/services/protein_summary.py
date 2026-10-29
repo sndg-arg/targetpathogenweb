@@ -19,7 +19,7 @@ from tpweb.services.assembly_workspace import OVERVIEW_CACHE_TTL_SECONDS
 from tpweb.services.binder_summary import create_binders_dict
 from tpweb.services.metabolism_summary import build_target_metabolic_sentence
 from tpweb.services.genome_workspace import genome_url_slug
-from tpweb.services.score_params import GATES_METABOLIC_HELP
+from tpweb.services.score_params import GATES_METABOLIC_HELP, GATES_REGULATORY_HELP
 from tpweb.services.structure_sources import (
     STRUCTURE_SOURCE_EXPERIMENTAL,
     STRUCTURE_SOURCE_MIXED,
@@ -574,6 +574,35 @@ def build_gates_metabolic_priority(raw_scores):
     }
 
 
+# Structural roles from the curated GRN analysis that mark a gene as central.
+_GATES_CENTRAL_ROLES = {"Master regulator", "Structural hub", "Bottleneck"}
+
+
+def _format_knockout_score(value):
+    number = _float_or_none(value)
+    if number is None:
+        return value
+    return f"{number:.2e}" if 0 < abs(number) < 0.01 else f"{number:.3f}"
+
+
+def build_gates_regulatory(raw_scores):
+    """The Gates-project curated gene regulatory network (GRN) reading
+    (load_gates_regulatory_score). Only the top-400 GRN genes of an analyzed
+    genome have values; any other protein gets None."""
+    role = _raw_score(raw_scores, "grn_role")
+    knockout = _raw_score(raw_scores, "grn_knockout_score")
+    if not role and not knockout:
+        return None
+    return {
+        "role": role,
+        "knockout": _format_knockout_score(knockout) if knockout else "",
+        "transcription_factor": _raw_score(raw_scores, "grn_transcription_factor") == "Y",
+        "regulated": _raw_score(raw_scores, "grn_regulated") == "Y",
+        "is_central": role in _GATES_CENTRAL_ROLES,
+        "help": GATES_REGULATORY_HELP,
+    }
+
+
 def build_microbiome_context(raw_scores):
     count = _format_score_value(_raw_score(raw_scores, "gut_microbiome_offtarget_counts"))
     total = _format_score_value(_raw_score(raw_scores, "gut_microbiome_genomes_analyzed"))
@@ -852,6 +881,7 @@ def build_prioritization(
     conservation_profile,
     microbiome_context,
     gates_metabolic_priority,
+    gates_regulatory=None,
 ):
     """ "Prioritization evidence" as separate questions, each with a verdict
     (tone = success / warning / idle, the design-system chip variants), plus the
@@ -959,6 +989,65 @@ def build_prioritization(
                 "summary": "Metabolic",
                 "summary_value": gates["priority"] or "—",
                 "tone": {"success": "success", "warning": "warning"}.get(gates["tone"], "idle"),
+                "items": items,
+                "badge": "Curated",
+            }
+        )
+
+    # Regulatory (curated)
+    grn = gates_regulatory
+    if grn:
+        help_text = grn["help"]
+        items = []
+        if grn["role"]:
+            items.append(
+                {
+                    "label": "Network role",
+                    "kind": "chip",
+                    "value": grn["role"],
+                    "tone": "success" if grn["is_central"] else "",
+                    "tooltip": help_text["grn_role"],
+                    "key": "grn_role",
+                }
+            )
+        if grn["knockout"]:
+            items.append(
+                {
+                    "label": "Knockout impact",
+                    "kind": "number",
+                    "value": grn["knockout"],
+                    "note": "Higher means removing the gene disrupts the network more.",
+                    "tooltip": help_text["grn_knockout_score"],
+                    "key": "grn_knockout_score",
+                }
+            )
+        items += [
+            {
+                "label": "Transcription factor",
+                "kind": "chip",
+                "value": "Yes" if grn["transcription_factor"] else "No",
+                "tone": "",
+                "tooltip": help_text["grn_transcription_factor"],
+                "key": "grn_transcription_factor",
+            },
+            {
+                "label": "Regulated by a transcription factor",
+                "kind": "chip",
+                "value": "Yes" if grn["regulated"] else "No",
+                "tone": "",
+                "tooltip": help_text["grn_regulated"],
+                "key": "grn_regulated",
+            },
+        ]
+        groups.append(
+            {
+                "key": "regulatory",
+                "title": "Regulatory",
+                "question": "How central is the gene in the regulatory network?",
+                "verdict": grn["role"] or "In the regulatory network",
+                "summary": "Regulatory",
+                "summary_value": grn["role"] or "Top 400",
+                "tone": "success" if grn["is_central"] else "idle",
                 "items": items,
                 "badge": "Curated",
             }
@@ -1691,6 +1780,7 @@ def build_protein_executive_context(
     target_profile = build_target_profile(raw_scores, microbiome_context=microbiome_context)
     metabolic_context = build_metabolic_context(protein, raw_scores)
     gates_metabolic_priority = build_gates_metabolic_priority(raw_scores)
+    gates_regulatory = build_gates_regulatory(raw_scores)
 
     if binders is None:
         binders = create_binders_dict(protein, search_query=search_query, structures=structures)
@@ -1702,6 +1792,7 @@ def build_protein_executive_context(
         conservation_profile,
         microbiome_context,
         gates_metabolic_priority,
+        gates_regulatory,
     )
 
     target_summary = build_target_executive_summary(
@@ -1727,6 +1818,7 @@ def build_protein_executive_context(
         "microbiome_context": microbiome_context,
         "metabolic_context": metabolic_context,
         "gates_metabolic_priority": gates_metabolic_priority,
+        "gates_regulatory": gates_regulatory,
         "structure_summary": structure_summary,
         "binders": binders,
         "target_summary": target_summary,
