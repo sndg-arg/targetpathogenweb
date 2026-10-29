@@ -154,17 +154,8 @@
     font-variant-numeric: tabular-nums;
 }
 
-.settings-table--data th:nth-child(2),
-.settings-table--shared th:nth-child(3) {
+.settings-table--data th:nth-child(2) {
     width: 28%;
-}
-
-.settings-table--shared th:nth-child(2) {
-    width: 96px;
-}
-
-.settings-table--shared th:last-child {
-    width: 280px;
 }
 
 .settings-table--genomes th:nth-child(2) {
@@ -281,6 +272,52 @@
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
     line-height: 1.5;
+}
+
+/* Shared items: hairline rows, name + kind on the left, who sees it right. */
+.settings-shared-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.settings-shared-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--tp-space-4);
+    padding: var(--tp-space-2) 0;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-shared-item:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.settings-shared-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--tp-space-3);
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+}
+
+.settings-shared-main .settings-expression {
+    flex-basis: 100%;
+}
+
+.settings-shared-meta,
+.settings-shared-visibility {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.settings-shared-visibility {
+    color: var(--tp-color-text-secondary);
+    text-align: right;
 }
 
 .settings-col-action form,
@@ -480,8 +517,13 @@
         white-space: normal;
     }
 
-    .settings-person-body .tp-table-shell {
-        overflow-x: auto;
+    .settings-shared-item {
+        flex-direction: column;
+        gap: var(--tp-space-1);
+    }
+
+    .settings-shared-visibility {
+        text-align: left;
     }
 }
 

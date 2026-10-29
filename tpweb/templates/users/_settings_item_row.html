@@ -1,15 +1,14 @@
 {% load i18n %}
 {% load custom_tags %}
-<tr>
-    <td>
+<li class="settings-shared-item">
+    <div class="settings-shared-main">
         <span class="settings-name">{{ row.obj.name }}</span>
+        <span class="settings-shared-meta">{% if kind == 'formula' %}{% trans "Scoring formula" %}{% else %}{% trans "Uploaded column" %} · {{ row.genome_label }}{% endif %}</span>
         {% if kind == 'formula' and row.obj.expression %}
         <details class="settings-expression">
             <summary title="{% trans 'Show the whole expression' %}"><code>{{ row.obj.expression }}</code><span class="sr-only">: {{ row.obj.name }}</span></summary>
         </details>
         {% endif %}
-    </td>
-    <td class="settings-muted">{% if kind == 'formula' %}{% trans "Formula" %}{% else %}{% trans "Column" %}{% endif %}</td>
-    <td class="settings-muted">{{ row.genome_label|default:"—" }}</td>
-    <td>{{ row.visibility_label|branded:user }}</td>
-</tr>
+    </div>
+    <span class="settings-shared-visibility">{{ row.visibility_label|branded:user }}</span>
+</li>

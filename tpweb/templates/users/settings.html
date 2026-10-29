@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261029-summary">
+    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261029-sharedlist">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -89,12 +89,9 @@
                             <div class="settings-person-group">
                                 <p class="settings-group-label">{% trans "Shared" %} <span class="tp-count">{{ person.shared|length }}</span></p>
                                 {% if person.shared %}
-                                <div class="tp-table-shell">
-                                    <table class="table tp-table tp-table--compact settings-table settings-table--shared">
-                                        <thead><tr><th scope="col">{% trans "Item" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Genome" %}</th><th scope="col">{% trans "Who can see it" %}</th></tr></thead>
-                                        <tbody>{% for item in person.shared %}{% include "users/_settings_item_row.html" with row=item.row kind=item.kind %}{% endfor %}</tbody>
-                                    </table>
-                                </div>
+                                <ul class="settings-shared-list">
+                                    {% for item in person.shared %}{% include "users/_settings_item_row.html" with row=item.row kind=item.kind %}{% endfor %}
+                                </ul>
                                 {% else %}
                                 <p class="settings-person-text">{% trans "Nothing shared yet." %}</p>
                                 {% endif %}
