@@ -17,7 +17,7 @@ from tpweb.services.custom_param_sharing import (
     update_column_visibility,
 )
 from tpweb.services.genome_workspace import display_genome_name
-from tpweb.services.genomes import set_genome_restricted
+from tpweb.services.genomes import restrictable_genomes, set_genome_restricted
 from tpweb.services.visibility_settings import (
     FORMULA_VISIBILITY_CHOICES,
     all_shareable_custom_params,
@@ -127,6 +127,8 @@ class SettingsView(PermissionLockedMixin, View):
         active_section = request.GET.get("section", "formulas")
         if active_section not in collections:
             active_section = "formulas"
+        if active_section == "genomes":
+            context["restrictable_genomes"] = restrictable_genomes()
         items = collections[active_section]
         search_query = request.GET.get("q", "").strip()
         if search_query:
@@ -196,4 +198,10 @@ class SettingsView(PermissionLockedMixin, View):
                 return False, "Couldn't unrestrict that genome."
             set_genome_restricted(genome_name, False, request.user)
             return True, f"{display_genome_name(genome_name)} is public again."
+        if action == "restrict_genome" and request.user.is_superuser:
+            genome_name = request.POST.get("genome_name", "").strip()
+            if genome_name not in {genome["name"] for genome in restrictable_genomes()}:
+                return False, "Couldn't restrict that genome."
+            set_genome_restricted(genome_name, True, request.user)
+            return True, f"{display_genome_name(genome_name)} is restricted now."
         return False, "Unknown action."

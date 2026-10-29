@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261019-mobile">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261029-norestrict">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -169,20 +169,6 @@
                                     <td class="genome-actions-cell">
                                         <div class="genome-actions-inline">
                                             <a href="{% url 'tpwebapp:protein_list' genome.slug %}" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Explore proteins" %}</a>
-                                            {% if user.is_superuser %}
-                                            <form method="post" class="genome-restrict-form">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="genome_name" value="{{ genome.internal_name }}">
-                                                <input type="hidden" name="search" value="{{ search_query }}">
-                                                {% if genome.is_restricted %}
-                                                    <input type="hidden" name="action" value="unrestrict_genome">
-                                                    <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Unrestrict" %}</button>
-                                                {% else %}
-                                                    <input type="hidden" name="action" value="restrict_genome">
-                                                    <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Restrict" %}</button>
-                                                {% endif %}
-                                            </form>
-                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>

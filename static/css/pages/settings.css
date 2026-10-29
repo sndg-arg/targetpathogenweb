@@ -325,6 +325,24 @@
     margin: 0;
 }
 
+/* Restricted genomes: pick a shared genome, then Restrict. */
+.settings-restrict-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2);
+    margin: 0 0 var(--tp-space-5);
+}
+
+.settings-restrict-field {
+    width: 360px;
+    max-width: 100%;
+}
+
+.settings-restrict-field select {
+    width: 100%;
+}
+
 /* custom-select.js swaps the select for a dropdown that fills its form. */
 .settings-visibility-form select {
     width: 100%;

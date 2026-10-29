@@ -7,6 +7,8 @@ from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStruct
 from tpweb.models.RestrictedGenome import RestrictedGenome
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.genome_workspace import (
+    PUBLIC_WORKSPACE_USERNAME,
+    WORKSPACE_GENOME_DELIMITER,
     describe_genome_scope,
     display_genome_name,
     genome_url_slug,
@@ -160,9 +162,23 @@ def _restricted_genome_names(genome_names):
     )
 
 
+def restrictable_genomes():
+    """Shared genomes not restricted yet, for the Restrict picker in Settings.
+    Someone's personal upload is already private and never listed."""
+    public_prefix = f"{PUBLIC_WORKSPACE_USERNAME}{WORKSPACE_GENOME_DELIMITER}"
+    names = (
+        Biodatabase.objects.exclude(Q(name__endswith="_rnas") | Q(name__endswith="_prots"))
+        .filter(Q(name__startswith=public_prefix) | ~Q(name__contains=WORKSPACE_GENOME_DELIMITER))
+        .exclude(name__in=RestrictedGenome.objects.values("genome_name"))
+        .values_list("name", flat=True)
+    )
+    genomes = [{"name": name, "label": display_genome_name(name)} for name in names]
+    return sorted(genomes, key=lambda genome: genome["label"].casefold())
+
+
 def set_genome_restricted(genome_name, restricted, user=None):
-    """Superuser-only toggle backing the Restrict/Unrestrict button on the
-    Genomes list (tpweb/views/GenomesView.py) -- lets the owner flag a
+    """Superuser-only toggle backing Settings -> Restricted genomes
+    (tpweb/views/SettingsView.py), the one place to restrict or unrestrict a
     genome without hand-typing its internal (prefixed) name into the
     Django admin. See tpweb.services.genome_workspace for where
     RestrictedGenome actually gets enforced."""

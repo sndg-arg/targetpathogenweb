@@ -172,9 +172,8 @@ class RouteSmokeTests(LoggedInTestCase):
 
 
 class GenomeRestrictActionTests(TestCase):
-    """The Restrict/Unrestrict button on the Genomes list (superuser-only,
-    see GenomesView.post) is the in-app alternative to hand-typing a
-    genome's internal name into the RestrictedGenome admin."""
+    """Settings -> Restricted genomes (superuser-only) is the one place to
+    restrict or unrestrict a genome; the Genomes list no longer takes POSTs."""
 
     def setUp(self):
         self.superuser = get_user_model().objects.create_user(
@@ -186,32 +185,52 @@ class GenomeRestrictActionTests(TestCase):
         self.genome_name = f"{PUBLIC_WORKSPACE_USERNAME}__NC_999999.1"
         Biodatabase.objects.create(name=self.genome_name)
 
-    def test_non_superuser_post_is_forbidden(self):
-        self.client.force_login(self.staff_user)
-
-        response = self.client.post(
-            reverse("tpwebapp:genomes_list"),
-            {"action": "restrict_genome", "genome_name": self.genome_name},
-        )
-
-        self.assertEqual(response.status_code, 403)
-        self.assertFalse(RestrictedGenome.objects.filter(genome_name=self.genome_name).exists())
-
-    def test_superuser_can_restrict_and_unrestrict(self):
+    def test_genomes_list_no_longer_restricts(self):
         self.client.force_login(self.superuser)
 
         response = self.client.post(
             reverse("tpwebapp:genomes_list"),
             {"action": "restrict_genome", "genome_name": self.genome_name},
         )
+
+        self.assertEqual(response.status_code, 405)
+        self.assertFalse(RestrictedGenome.objects.filter(genome_name=self.genome_name).exists())
+
+    def test_non_superuser_cannot_restrict_from_settings(self):
+        self.client.force_login(self.staff_user)
+
+        self.client.post(
+            reverse("tpwebapp:settings"),
+            {"action": "restrict_genome", "genome_name": self.genome_name},
+        )
+
+        self.assertFalse(RestrictedGenome.objects.filter(genome_name=self.genome_name).exists())
+
+    def test_superuser_can_restrict_and_unrestrict_from_settings(self):
+        self.client.force_login(self.superuser)
+
+        response = self.client.post(
+            reverse("tpwebapp:settings"),
+            {"action": "restrict_genome", "genome_name": self.genome_name},
+        )
         self.assertEqual(response.status_code, 302)
         self.assertTrue(RestrictedGenome.objects.filter(genome_name=self.genome_name).exists())
 
         self.client.post(
-            reverse("tpwebapp:genomes_list"),
+            reverse("tpwebapp:settings"),
             {"action": "unrestrict_genome", "genome_name": self.genome_name},
         )
         self.assertFalse(RestrictedGenome.objects.filter(genome_name=self.genome_name).exists())
+
+    def test_settings_only_offers_shared_unrestricted_genomes(self):
+        from tpweb.services.genomes import restrictable_genomes
+
+        Biodatabase.objects.create(name="user-ana__NC_000001.1")
+        Biodatabase.objects.create(name=f"{self.genome_name}_prots")
+
+        self.assertEqual([g["name"] for g in restrictable_genomes()], [self.genome_name])
+        RestrictedGenome.objects.create(genome_name=self.genome_name)
+        self.assertEqual(restrictable_genomes(), [])
 
 
 class AssemblyViewTests(LoggedInTestCase):

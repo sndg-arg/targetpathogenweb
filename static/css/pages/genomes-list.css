@@ -235,11 +235,6 @@
     justify-content: center;
 }
 
-.genome-restrict-form {
-    display: inline-flex;
-    margin: 0;
-}
-
 .genome-status-note {
     margin: var(--tp-space-2) 0 0;
     font-size: var(--tp-font-size-sm);

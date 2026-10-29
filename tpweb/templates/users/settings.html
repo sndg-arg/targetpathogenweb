@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261029-sharedlist">
+    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261029-restrict">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -60,7 +60,7 @@
                         {% if active_section == 'formulas' %}{% trans "Choose who can use each formula. Changes are saved as soon as you pick." %}
                         {% elif active_section == 'data' %}{% trans "Each column is shared per genome. Shared columns show up for others under Columns, Filters and Make my own score." %}
                         {% elif active_section == 'users' %}{% trans "What each researcher has and what they shared. Only me items are counted, never shown." %}
-                        {% else %}{% url 'tpwebapp:genomes_list' as genomes_url %}{% if gates_viewer %}{% blocktrans %}Only Gates members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% else %}{% blocktrans %}Only project members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% endif %}{% endif %}
+                        {% else %}{% if gates_viewer %}{% trans "Only Gates members can see these genomes and everything on them. This is the one place to restrict or unrestrict a genome." %}{% else %}{% trans "Only project members can see these genomes and everything on them. This is the one place to restrict or unrestrict a genome." %}{% endif %}{% endif %}
                     </p>
                 </div>
                 <form class="section-tools settings-search" method="get" role="search">
@@ -71,6 +71,19 @@
             </div>
 
             <div class="settings-results" data-settings-results>
+            {% if active_section == 'genomes' %}
+            <form method="post" data-no-page-loader class="settings-restrict-form" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="restrict_genome">
+                <div class="settings-restrict-field">
+                    <select name="genome_name" class="form-control tp-ui-control" aria-label="{% trans 'Genome to restrict' %}"{% if not restrictable_genomes %} disabled{% endif %}>
+                        <option value="">{% if restrictable_genomes %}{% trans "Choose a genome to restrict" %}{% else %}{% trans "Every shared genome is already restricted" %}{% endif %}</option>
+                        {% for genome in restrictable_genomes %}<option value="{{ genome.name }}">{{ genome.label }}</option>{% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn tp-btn tp-btn--primary"{% if not restrictable_genomes %} disabled{% endif %}>{% trans "Restrict" %}</button>
+            </form>
+            {% endif %}
             {% if page_obj.object_list %}
             {% if active_section == 'users' %}
             <ul class="settings-people">
