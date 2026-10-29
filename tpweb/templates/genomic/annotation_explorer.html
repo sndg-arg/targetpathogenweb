@@ -468,8 +468,20 @@
                 });
             }
 
-            updateSelection("", "");
             updateVisibleRowCount();
+            // ?select=<term> (the EC/GO links on a protein page): open with that
+            // term picked, so its ring and its ancestors take the active colours.
+            const preselect = new URLSearchParams(window.location.search).get("select") || "";
+            const preselectButton = rowButtons.find(function (b) { return b.dataset.accession === preselect; });
+            if (preselect && (preselectButton || getNodeIdByAccession(preselect))) {
+                updateSelection(
+                    preselect,
+                    preselectButton ? preselectButton.dataset.name || "" : nodeDescriptor(getNodeIdByAccession(preselect))
+                );
+                if (preselectButton) preselectButton.scrollIntoView({ block: "nearest" });
+            } else {
+                updateSelection("", "");
+            }
         }
 
         if (document.readyState === "loading") {

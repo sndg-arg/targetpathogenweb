@@ -736,7 +736,7 @@
                     <ul class="annotation-entries annotation-term-list" role="tabpanel" data-tab-panel="go">
                         {% for go in go_annotations %}
                         <li class="annotation-entry">
-                            <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="annotation-entry-id">{{ go.accession }}</a>
+                            <a href="{% url 'tpwebapp:annotation_explorer' genome=protein.genome annotation_kind='go' %}?select={{ go.accession|urlencode }}" class="annotation-entry-id" title="{% trans 'Show it among the GO terms of this genome' %}">{{ go.accession }}</a>
                             <span class="annotation-entry-name">{{ go.name|default:"—" }}</span>
                         </li>
                         {% endfor %}
@@ -746,7 +746,7 @@
                     <ul class="annotation-entries annotation-term-list{% if go_annotations %} is-hidden{% endif %}" role="tabpanel" data-tab-panel="ec">
                         {% for ec in ec_annotations %}
                         <li class="annotation-entry">
-                            <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="annotation-entry-id">{{ ec.accession }}</a>
+                            <a href="{% url 'tpwebapp:annotation_explorer' genome=protein.genome annotation_kind='ec' %}?select={{ ec.accession|urlencode }}" class="annotation-entry-id" title="{% trans 'Show it in the EC tree of this genome' %}">{{ ec.accession }}</a>
                             <span class="annotation-entry-name">{{ ec.name|default:"—" }}</span>
                         </li>
                         {% endfor %}
