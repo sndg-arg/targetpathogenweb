@@ -70,7 +70,8 @@
 
 .profile-capabilities {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* Same overall width as the details rows above, so both blocks line up. */
+    grid-template-columns: repeat(2, minmax(0, 300px));
     gap: var(--tp-space-3) var(--tp-space-6);
     margin: 0;
     padding: 0;
