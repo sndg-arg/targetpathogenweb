@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261028-workspace">
+    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261029-inplace">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -17,7 +17,7 @@
 {% endblock %}
 
 {% block body %}
-<div class="settings-page">
+<div class="settings-page" data-saved-label="{% trans 'Saved' %}" data-error-label="{% trans 'Something went wrong. Please try again.' %}">
 
     <section class="tp-page-hero">
         <p class="tp-view-eyebrow">{% trans "Privacy & sharing" %}</p>
@@ -30,7 +30,7 @@
             <nav class="settings-nav" aria-label="{% trans 'Settings sections' %}">
                 {% for section in settings_sections %}
                 {% ifchanged section.group %}<p class="settings-nav-group">{{ section.group }}</p>{% endifchanged %}
-                <a class="settings-nav-link{% if active_section == section.key %} is-active{% endif %}" href="?section={{ section.key }}"{% if active_section == section.key %} aria-current="page"{% endif %}>
+                <a class="settings-nav-link{% if active_section == section.key %} is-active{% endif %}" data-settings-link data-no-page-loader href="?section={{ section.key }}"{% if active_section == section.key %} aria-current="page"{% endif %}>
                     <span>{{ section.label }}</span>
                     <span class="tp-count">{{ section.count }}</span>
                 </a>
@@ -50,7 +50,7 @@
         <section class="settings-panel" aria-labelledby="settings-panel-title">
             <div class="section-head">
                 <div>
-                    {% if selected_owner %}<a class="settings-back" href="?section=users"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_left.html" %}</span><span>{% trans "All researchers" %}</span></a>{% endif %}
+                    {% if selected_owner %}<a class="settings-back" data-settings-link data-no-page-loader href="?section=users"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_left.html" %}</span><span>{% trans "All researchers" %}</span></a>{% endif %}
                     <h2 id="settings-panel-title">
                         {% if active_section == 'formulas' %}{% trans "Scoring formulas" %}
                         {% elif active_section == 'data' %}{% trans "Uploaded data" %}
@@ -75,6 +75,7 @@
                 </form>
             </div>
 
+            <div class="settings-results" data-settings-results>
             {% if page_obj.object_list %}
             <div class="tp-table-shell settings-table-shell">
                 <table class="table tp-table tp-table--compact settings-table settings-table--{{ active_section }}{% if selected_owner %} settings-table--owner{% endif %}">
@@ -92,11 +93,11 @@
                     <tbody>
                         {% for group in page_obj %}
                         <tr>
-                            <td><a class="settings-name" href="?section=users&amp;owner={{ group.id }}">{{ group.label }}</a></td>
+                            <td><a class="settings-name" data-settings-link data-no-page-loader href="?section=users&amp;owner={{ group.id }}">{{ group.label }}</a></td>
                             <td class="settings-col-number">{{ group.formulas|length }}</td>
                             <td class="settings-col-number">{{ group.columns|length }}</td>
                             <td class="settings-col-number">{{ group.shared_count }}</td>
-                            <td class="settings-col-action"><a class="btn tp-btn tp-btn--ghost tp-btn--sm" href="?section=users&amp;owner={{ group.id }}" title="{% trans 'View items' %}" aria-label="{% blocktrans with name=group.label %}View items by {{ name }}{% endblocktrans %}"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span></a></td>
+                            <td class="settings-col-action"><a class="btn tp-btn tp-btn--ghost tp-btn--sm" data-settings-link data-no-page-loader href="?section=users&amp;owner={{ group.id }}" title="{% trans 'View items' %}" aria-label="{% blocktrans with name=group.label %}View items by {{ name }}{% endblocktrans %}"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span></a></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -108,7 +109,7 @@
                             <td class="settings-name">{{ entry.label }}</td>
                             <td class="settings-muted">{{ entry.obj.restricted_by.name|default:entry.obj.restricted_by.get_username|default:"—" }}</td>
                             <td class="settings-col-action">
-                                <form method="post" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}">
+                                <form method="post" data-no-page-loader action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="unrestrict_genome">
                                     <input type="hidden" name="genome_name" value="{{ entry.obj.genome_name }}">
@@ -127,13 +128,13 @@
                 {% if page_obj.has_other_pages %}
                 <nav aria-label="{% trans 'Pages' %}">
                     <ul class="tp-pagination">
-                        {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{{ pagination_query }}&amp;page={{ page_obj.previous_page_number }}" aria-label="{% trans 'Previous page' %}"><span class="tp-chevron tp-chevron--left" aria-hidden="true"></span></a></li>{% endif %}
+                        {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" data-settings-link data-no-page-loader href="?{{ pagination_query }}&amp;page={{ page_obj.previous_page_number }}" aria-label="{% trans 'Previous page' %}"><span class="tp-chevron tp-chevron--left" aria-hidden="true"></span></a></li>{% endif %}
                         {% for number in page_numbers %}
                             {% if number == page_obj.paginator.ELLIPSIS %}<li class="page-item disabled"><span class="page-link">{{ number }}</span></li>
                             {% elif number == page_obj.number %}<li class="page-item active"><span class="page-link" aria-current="page">{{ number }}</span></li>
-                            {% else %}<li class="page-item"><a class="page-link" href="?{{ pagination_query }}&amp;page={{ number }}" aria-label="{% blocktrans %}Page {{ number }}{% endblocktrans %}">{{ number }}</a></li>{% endif %}
+                            {% else %}<li class="page-item"><a class="page-link" data-settings-link data-no-page-loader href="?{{ pagination_query }}&amp;page={{ number }}" aria-label="{% blocktrans %}Page {{ number }}{% endblocktrans %}">{{ number }}</a></li>{% endif %}
                         {% endfor %}
-                        {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{{ pagination_query }}&amp;page={{ page_obj.next_page_number }}" aria-label="{% trans 'Next page' %}"><span class="tp-chevron tp-chevron--right" aria-hidden="true"></span></a></li>{% endif %}
+                        {% if page_obj.has_next %}<li class="page-item"><a class="page-link" data-settings-link data-no-page-loader href="?{{ pagination_query }}&amp;page={{ page_obj.next_page_number }}" aria-label="{% trans 'Next page' %}"><span class="tp-chevron tp-chevron--right" aria-hidden="true"></span></a></li>{% endif %}
                     </ul>
                 </nav>
                 {% endif %}
@@ -142,7 +143,7 @@
             {% elif search_query %}
             <div class="tp-empty">
                 <p class="tp-empty-title">{% blocktrans with query=search_query %}Nothing matches “{{ query }}”{% endblocktrans %}</p>
-                <div class="tp-empty-actions"><a class="btn tp-btn tp-btn--secondary tp-btn--sm" href="?section={{ active_section }}{% if selected_owner %}&amp;owner={{ selected_owner.id }}{% endif %}">{% trans "Clear search" %}</a></div>
+                <div class="tp-empty-actions"><a class="btn tp-btn tp-btn--secondary tp-btn--sm" data-settings-link data-no-page-loader href="?section={{ active_section }}{% if selected_owner %}&amp;owner={{ selected_owner.id }}{% endif %}">{% trans "Clear search" %}</a></div>
             </div>
             {% else %}
             <div class="tp-empty">
@@ -161,8 +162,10 @@
                 {% endif %}
             </div>
             {% endif %}
+            </div>
         </section>
     </div>
 
 </div>
+    <script src="{% static 'js/pages/settings.js' %}?v=20261029-inplace"></script>
 {% endblock %}

@@ -217,6 +217,57 @@ a.settings-name {
     width: 100%;
 }
 
+/* ── In-place feedback (settings.js) ── */
+
+.settings-results {
+    transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.settings-results.is-loading {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.settings-visibility-form {
+    position: relative;
+}
+
+.settings-visibility-form.is-saving {
+    opacity: 0.7;
+}
+
+/* A small check beside the dropdown once the change is saved; the text
+   stays for screen readers only. */
+.settings-save-state {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    width: 6px;
+    height: 11px;
+    margin: -7px 0 0 var(--tp-space-2);
+    overflow: hidden;
+    border-right: 2px solid var(--tp-color-success-ink);
+    border-bottom: 2px solid var(--tp-color-success-ink);
+    color: transparent;
+    font-size: 0;
+    opacity: 0;
+    transform: rotate(45deg) scale(0.6);
+    transition:
+        opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform 180ms var(--tp-ui-ease-standard);
+    pointer-events: none;
+}
+
+.settings-visibility-form.is-saved .settings-save-state {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+}
+
+.settings-table tbody tr.is-leaving {
+    opacity: 0;
+    transition: opacity 180ms var(--tp-ui-ease-standard);
+}
+
 /* A one-line preview of the formula; click to unfold it in place. */
 .settings-expression {
     margin-top: 2px;
@@ -348,7 +399,10 @@ a.settings-name {
 
 @media (prefers-reduced-motion: reduce) {
     .settings-nav-link,
-    .settings-expression code {
+    .settings-expression code,
+    .settings-results,
+    .settings-save-state,
+    .settings-table tbody tr.is-leaving {
         transition: none;
     }
 }

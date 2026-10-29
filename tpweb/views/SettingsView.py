@@ -2,6 +2,7 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -210,53 +211,52 @@ class SettingsView(PermissionLockedMixin, View):
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
+        ok, message = self._apply(request)
+        # settings.js saves in place and only needs the outcome.
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"ok": ok, "message": message}, status=200 if ok else 400)
+        (messages.success if ok else messages.error)(request, message)
+        query = {
+            key: request.GET[key] for key in ("section", "page", "owner", "q") if key in request.GET
+        }
+        url = reverse("tpwebapp:settings")
+        return redirect(f"{url}?{urlencode(query)}" if query else url)
+
+    def _apply(self, request):
+        """Run the posted action; returns (ok, message)."""
         action = request.POST.get("action")
         if action == "set_formula_visibility":
             formula = ScoreFormula.objects.filter(pk=request.POST.get("formula_id")).first()
             visibility = request.POST.get("visibility")
             if formula is None or not set_formula_visibility(formula, request.user, visibility):
-                messages.error(request, "Couldn't update that formula's visibility.")
-            else:
-                messages.success(request, f"Updated visibility for {formula.name}.")
-        elif action == "delete_formula":
+                return False, "Couldn't update that formula's visibility."
+            return True, f"Updated visibility for {formula.name}."
+        if action == "delete_formula":
             formula = ScoreFormula.objects.filter(pk=request.POST.get("formula_id")).first()
             name = formula.name if formula else ""
             if formula is None or not delete_own_formula(formula, request.user):
-                messages.error(request, "Couldn't delete that formula.")
-            else:
-                messages.success(request, f"Deleted {name}.")
-        elif action == "set_param_visibility":
+                return False, "Couldn't delete that formula."
+            return True, f"Deleted {name}."
+        if action == "set_param_visibility":
             param = ScoreParam.objects.filter(pk=request.POST.get("param_id")).first()
             genome_name = request.POST.get("genome_name", "").strip()
             visibility = request.POST.get("visibility")
             if param is None or not update_column_visibility(
                 param, genome_name, request.user, visibility
             ):
-                messages.error(request, "Couldn't update that column's visibility.")
-            else:
-                messages.success(
-                    request,
-                    f"Updated who can see {param.name} on {display_genome_name(genome_name)}.",
-                )
-        elif action == "delete_param":
+                return False, "Couldn't update that column's visibility."
+            return True, f"Updated who can see {param.name} on {display_genome_name(genome_name)}."
+        if action == "delete_param":
             param = ScoreParam.objects.filter(pk=request.POST.get("param_id")).first()
             genome_name = request.POST.get("genome_name", "").strip()
             name = param.name if param else ""
             if param is None or not delete_column(param, genome_name, request.user):
-                messages.error(request, "Couldn't delete that column.")
-            else:
-                messages.success(
-                    request, f"Deleted {name} from {display_genome_name(genome_name)}."
-                )
-        elif action == "unrestrict_genome" and request.user.is_superuser:
+                return False, "Couldn't delete that column."
+            return True, f"Deleted {name} from {display_genome_name(genome_name)}."
+        if action == "unrestrict_genome" and request.user.is_superuser:
             genome_name = request.POST.get("genome_name", "").strip()
-            if genome_name:
-                set_genome_restricted(genome_name, False, request.user)
-                messages.success(request, f"{display_genome_name(genome_name)} is public again.")
-        else:
-            messages.error(request, "Unknown action.")
-        query = {
-            key: request.GET[key] for key in ("section", "page", "owner", "q") if key in request.GET
-        }
-        url = reverse("tpwebapp:settings")
-        return redirect(f"{url}?{urlencode(query)}" if query else url)
+            if not genome_name:
+                return False, "Couldn't unrestrict that genome."
+            set_genome_restricted(genome_name, False, request.user)
+            return True, f"{display_genome_name(genome_name)} is public again."
+        return False, "Unknown action."

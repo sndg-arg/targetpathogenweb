@@ -101,3 +101,11 @@ class SettingsNavigationTests(SimpleTestCase):
         ):
             response = settings_view.SettingsView().post(request)
         self.assertEqual(response.url, "/settings/?section=data&page=2&q=kp")
+
+    def test_ajax_post_answers_json_instead_of_redirecting(self):
+        request = RequestFactory().post(
+            "/settings/?section=data", {"action": "nope"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
+        response = settings_view.SettingsView().post(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertJSONEqual(response.content, {"ok": False, "message": "Unknown action."})

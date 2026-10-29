@@ -10,19 +10,20 @@
         {% endif %}
     </td>
     <td class="settings-col-visibility">
-        <form method="post" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" class="settings-visibility-form">
+        <form method="post" data-no-page-loader action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" class="settings-visibility-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="set_formula_visibility">
             <input type="hidden" name="formula_id" value="{{ row.obj.pk }}">
-            <select name="visibility" class="form-control tp-ui-control" aria-label="{% blocktrans with name=row.obj.name %}Who can see {{ name }}{% endblocktrans %}" onchange="this.form.submit()">
+            <select name="visibility" class="form-control tp-ui-control" aria-label="{% blocktrans with name=row.obj.name %}Who can see {{ name }}{% endblocktrans %}">
                 {% for value, label in formula_visibility_choices %}
                 <option value="{{ value }}" {% if value == row.visibility %}selected{% endif %}>{{ label|branded:user }}</option>
                 {% endfor %}
             </select>
+            <span class="settings-save-state" role="status"></span>
         </form>
     </td>
     <td class="settings-col-action">
-        <form method="post" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" onsubmit="return confirm(this.dataset.confirm);" data-confirm="{% blocktrans with name=row.obj.name %}Delete the formula {{ name }}? Anyone you shared it with will stop seeing it too.{% endblocktrans %}">
+        <form method="post" data-no-page-loader action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" data-confirm="{% blocktrans with name=row.obj.name %}Delete the formula {{ name }}? Anyone you shared it with will stop seeing it too.{% endblocktrans %}">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete_formula">
             <input type="hidden" name="formula_id" value="{{ row.obj.pk }}">

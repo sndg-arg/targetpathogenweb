@@ -4,20 +4,21 @@
     <td class="settings-name">{{ row.obj.name }}</td>
     <td class="settings-muted">{{ row.genome_label }}</td>
     <td class="settings-col-visibility">
-        <form method="post" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" class="settings-visibility-form">
+        <form method="post" data-no-page-loader action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" class="settings-visibility-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="set_param_visibility">
             <input type="hidden" name="param_id" value="{{ row.obj.pk }}">
             <input type="hidden" name="genome_name" value="{{ row.genome_name }}">
-            <select name="visibility" class="form-control tp-ui-control" aria-label="{% blocktrans with name=row.obj.name %}Who can see {{ name }}{% endblocktrans %}" onchange="this.form.submit()">
+            <select name="visibility" class="form-control tp-ui-control" aria-label="{% blocktrans with name=row.obj.name %}Who can see {{ name }}{% endblocktrans %}">
                 {% for value, label in row.choices %}
                 <option value="{{ value }}" {% if value == row.visibility %}selected{% endif %}>{{ label|branded:user }}</option>
                 {% endfor %}
             </select>
+            <span class="settings-save-state" role="status"></span>
         </form>
     </td>
     <td class="settings-col-action">
-        <form method="post" action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" onsubmit="return confirm(this.dataset.confirm);" data-confirm="{% blocktrans with name=row.obj.name genome=row.genome_label %}Delete {{ name }} from {{ genome }}? Anyone you shared it with will stop seeing it too.{% endblocktrans %}">
+        <form method="post" data-no-page-loader action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}" data-confirm="{% blocktrans with name=row.obj.name genome=row.genome_label %}Delete {{ name }} from {{ genome }}? Anyone you shared it with will stop seeing it too.{% endblocktrans %}">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete_param">
             <input type="hidden" name="param_id" value="{{ row.obj.pk }}">
