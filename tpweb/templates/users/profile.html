@@ -23,13 +23,12 @@
         <section class="tp-page-hero">
             <p class="tp-view-eyebrow">{% trans "Account" %}</p>
             <h1 class="tp-view-title">{% trans "My profile" %}</h1>
-            <p class="tp-view-lead">{% blocktrans with who=user.email|default:user.get_username role=role_display %}Signed in as {{ who }} · {{ role }}{% endblocktrans %}</p>
+            <p class="tp-view-lead">{{ user.email|default:user.get_username }} · {{ role_display }}</p>
         </section>
 
         <section class="profile-block">
             <div class="profile-block-head">
                 <h2 class="tp-section-title">{% trans "Personal details" %}</h2>
-                <p class="section-subtitle">{% trans "How you appear on what you share, and where we write to you." %}</p>
             </div>
             <dl class="profile-fields">
                 <div class="profile-field">
@@ -59,7 +58,6 @@
         <section class="profile-block">
             <div class="profile-block-head">
                 <h2 class="tp-section-title">{% trans "Access" %}</h2>
-                <p class="section-subtitle">{% blocktrans with role=role_display %}What your {{ role }} account can do.{% endblocktrans %}</p>
             </div>
             <div>
                 <ul class="profile-capabilities">
@@ -72,12 +70,12 @@
                 </ul>
                 {% if not has_full_access %}
                 {% if user.wants_collaborator_access %}
-                <p class="tp-state-note profile-access-note">{% trans "Collaborator access requested. An administrator will review it; you'll keep using this same account." %}</p>
+                <p class="tp-state-note profile-access-note">{% trans "Access request pending review." %}</p>
                 {% else %}
                 <form method="post" action="{% url 'tpwebapp:request_access' %}" class="profile-request-access">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                    <span>{% trans "Need more access, like collaborative-project genomes or uploads?" %}</span>
+                    <span>{% trans "Need more access?" %}</span>
                     <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Request access" %}</button>
                 </form>
                 {% endif %}
@@ -89,11 +87,9 @@
         <section class="profile-block">
             <div class="profile-block-head">
                 <h2 class="tp-section-title">{% trans "Privacy & sharing" %}</h2>
-                <p class="section-subtitle">{% trans "Your formulas and uploaded data start as Only me." %}</p>
             </div>
             <div class="profile-privacy">
-                <p>{% trans "Decide who can see each formula and uploaded column: only you, project members, or everyone signed in." %}</p>
-                <a class="btn tp-btn tp-btn--secondary tp-btn--sm" href="{% url 'tpwebapp:settings' %}">{% trans "Manage sharing" %}</a>
+                <a class="btn tp-btn tp-btn--secondary tp-btn--sm" href="{% url 'tpwebapp:settings' %}">{% trans "Manage who sees your work" %}</a>
             </div>
         </section>
         {% endif %}
