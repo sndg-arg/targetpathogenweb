@@ -46,12 +46,15 @@ def _researcher_summaries(formula_rows, param_rows):
                     "formulas": 0,
                     "columns": 0,
                     "private": 0,
+                    "private_formulas": 0,
+                    "private_columns": 0,
                     "shared": [],
                 },
             )
             group[f"{kind}s"] += 1
             if row["visibility"] == "private":
                 group["private"] += 1
+                group[f"private_{kind}s"] += 1
             else:
                 group["shared"].append({"row": row, "kind": kind})
     return sorted(groups.values(), key=lambda group: group["label"].casefold())

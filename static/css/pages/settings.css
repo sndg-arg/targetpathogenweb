@@ -30,7 +30,8 @@
     display: grid;
 }
 
-.settings-nav-group {
+.settings-nav-group,
+.settings-group-label {
     margin: 0 0 var(--tp-space-2);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
@@ -232,11 +233,25 @@
     overflow-wrap: anywhere;
 }
 
-.settings-person-meta {
-    color: var(--tp-color-text-muted);
+/* "1 shared   2 only me": two counts, the number carries the weight. */
+.settings-person-meta,
+.settings-person-text {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-1) var(--tp-space-4);
+    color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
     font-variant-numeric: tabular-nums;
+}
+
+.settings-person-meta {
     white-space: nowrap;
+}
+
+.settings-person-meta strong,
+.settings-person-text strong {
+    color: var(--tp-color-text-primary);
+    font-weight: 600;
 }
 
 .settings-person-chevron {
@@ -250,18 +265,21 @@
     transform: rotate(-135deg);
 }
 
+/* Two labelled groups, stacked: Shared, then Only me. */
 .settings-person-body {
-    padding: 0 var(--tp-space-3) var(--tp-space-4);
+    display: grid;
+    gap: var(--tp-space-5);
+    padding: var(--tp-space-2) var(--tp-space-3) var(--tp-space-5);
 }
 
-.settings-person-body .settings-table {
-    margin-bottom: var(--tp-space-2);
+.settings-person-text {
+    margin: 0;
 }
 
-.settings-private-note {
-    margin: var(--tp-space-2) 0 0;
+.settings-person-hint {
+    margin: var(--tp-space-1) 0 0;
     color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
+    font-size: var(--tp-font-size-xs);
     line-height: 1.5;
 }
 

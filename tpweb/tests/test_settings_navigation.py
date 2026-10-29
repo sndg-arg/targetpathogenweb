@@ -63,6 +63,7 @@ class SettingsNavigationTests(SimpleTestCase):
         )
         (person,) = context["page_obj"]
         self.assertEqual((person["formulas"], person["columns"], person["private"]), (2, 1, 2))
+        self.assertEqual((person["private_formulas"], person["private_columns"]), (1, 1))
         self.assertEqual([item["row"]["obj"] for item in person["shared"]], [shared])
         self.assertNotIn("Secret score", repr(context))
 

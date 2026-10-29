@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261029-private2">
+    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261029-summary">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -80,24 +80,37 @@
                         <summary>
                             <span class="settings-person-name">{{ person.label }}</span>
                             <span class="settings-person-meta">
-                                {% blocktrans count total=person.formulas %}{{ total }} formula{% plural %}{{ total }} formulas{% endblocktrans %}
-                                · {% blocktrans count total=person.columns %}{{ total }} column{% plural %}{{ total }} columns{% endblocktrans %}
-                                · {% blocktrans count total=person.shared|length %}{{ total }} shared{% plural %}{{ total }} shared{% endblocktrans %}
+                                <span>{% blocktrans count total=person.shared|length %}<strong>{{ total }}</strong> shared{% plural %}<strong>{{ total }}</strong> shared{% endblocktrans %}</span>
+                                <span>{% blocktrans with total=person.private %}<strong>{{ total }}</strong> only me{% endblocktrans %}</span>
                             </span>
                             <span class="tp-chevron tp-chevron--down settings-person-chevron" aria-hidden="true"></span>
                         </summary>
                         <div class="settings-person-body">
-                            {% if person.shared %}
-                            <div class="tp-table-shell">
-                                <table class="table tp-table tp-table--compact settings-table settings-table--shared">
-                                    <thead><tr><th scope="col">{% trans "Shared item" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Genome" %}</th><th scope="col">{% trans "Who can see it" %}</th></tr></thead>
-                                    <tbody>{% for item in person.shared %}{% include "users/_settings_item_row.html" with row=item.row kind=item.kind %}{% endfor %}</tbody>
-                                </table>
+                            <div class="settings-person-group">
+                                <p class="settings-group-label">{% trans "Shared" %} <span class="tp-count">{{ person.shared|length }}</span></p>
+                                {% if person.shared %}
+                                <div class="tp-table-shell">
+                                    <table class="table tp-table tp-table--compact settings-table settings-table--shared">
+                                        <thead><tr><th scope="col">{% trans "Item" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Genome" %}</th><th scope="col">{% trans "Who can see it" %}</th></tr></thead>
+                                        <tbody>{% for item in person.shared %}{% include "users/_settings_item_row.html" with row=item.row kind=item.kind %}{% endfor %}</tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <p class="settings-person-text">{% trans "Nothing shared yet." %}</p>
+                                {% endif %}
                             </div>
-                            {% endif %}
-                            {% if person.private %}
-                            <p class="settings-private-note">{% blocktrans count total=person.private %}{{ total }} item is set to Only me and stays private to its owner.{% plural %}{{ total }} items are set to Only me and stay private to their owner.{% endblocktrans %}</p>
-                            {% endif %}
+                            <div class="settings-person-group">
+                                <p class="settings-group-label">{% trans "Only me" %} <span class="tp-count">{{ person.private }}</span></p>
+                                {% if person.private %}
+                                <p class="settings-person-text">
+                                    {% if person.private_formulas %}<span>{% blocktrans count total=person.private_formulas %}<strong>{{ total }}</strong> scoring formula{% plural %}<strong>{{ total }}</strong> scoring formulas{% endblocktrans %}</span>{% endif %}
+                                    {% if person.private_columns %}<span>{% blocktrans count total=person.private_columns %}<strong>{{ total }}</strong> uploaded column{% plural %}<strong>{{ total }}</strong> uploaded columns{% endblocktrans %}</span>{% endif %}
+                                </p>
+                                <p class="settings-person-hint">{% blocktrans with name=person.label %}Visible only to {{ name }}. Names and values stay hidden, from administrators too.{% endblocktrans %}</p>
+                                {% else %}
+                                <p class="settings-person-text">{% trans "Nothing private." %}</p>
+                                {% endif %}
+                            </div>
                         </div>
                     </details>
                 </li>
