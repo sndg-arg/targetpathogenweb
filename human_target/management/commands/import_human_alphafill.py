@@ -19,7 +19,7 @@ from human_target.services.human_targets import human_proteins_queryset
 
 
 class Command(BaseCommand):
-    help = "Resume transfer and sequential import of already-computed human AlphaFill models."
+    help = "Resume transfer and import of already-computed human AlphaFill models."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -28,8 +28,11 @@ class Command(BaseCommand):
         parser.add_argument("--datadir", default=str(settings.BASE_DIR / "data"))
         parser.add_argument("--accession", action="append", default=[])
         parser.add_argument("--dry-run", action="store_true")
+        parser.add_argument("--workers", type=int, default=1)
 
     def handle(self, *args, **options):
+        if options["workers"] < 1:
+            raise CommandError("--workers must be at least 1.")
         proteins = human_proteins_queryset()
         if options["accession"]:
             proteins = proteins.filter(uniprot_accession__in=options["accession"])
@@ -111,6 +114,7 @@ class Command(BaseCommand):
             alphafill_dir=str(local_root),
             accession=options["accession"],
             datadir=options["datadir"],
+            alphafill_workers=options["workers"],
         )
         call_command("refresh_human_target_summary")
         self.stdout.write(self.style.SUCCESS("AlphaFill import and summary refresh completed."))

@@ -41,18 +41,23 @@ Usage:
     python manage.py load_human_structures_bulk --alphafold-dir /path/to/extracted \
         [--accession P10721 --accession O00116 ...] [--accession-file PATH] \
         [--datadir /app/targetpathogenweb/data] [--overwrite] [--workers 4] \
-        [--skip-alphafold] [--skip-experimental] [--alphafill-dir PATH]
+        [--skip-alphafold] [--skip-experimental] [--alphafill-dir PATH] [--alphafill-workers N]
 """
 
+import os
 import re
+import subprocess
+import sys
 import tempfile
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import requests
+from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
+from django.db import connections
 from django.db.models import Exists, OuterRef
 
 from human_target.services.human_targets import human_proteins_queryset
@@ -123,6 +128,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
+            "--alphafill-workers",
+            type=int,
+            default=1,
+            help="Concurrent AlphaFill imports (default: 1).",
+        )
+        parser.add_argument(
             "--alphafill-dir",
             metavar="PATH",
             help="Optional flat or rsync-sharded directory of AlphaFill filled_v<N> CIFs.",
@@ -161,6 +172,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        if options["alphafill_workers"] < 1:
+            raise CommandError("--alphafill-workers must be at least 1.")
         if not options["skip_alphafold"] and not options["alphafold_dir"]:
             raise CommandError("--alphafold-dir is required unless --skip-alphafold is set.")
         if options["alphafill_dir"] and not Path(options["alphafill_dir"]).is_dir():
@@ -181,9 +194,19 @@ class Command(BaseCommand):
         # in production (~3.7GB for ~31,000 rows) in the sibling pathways
         # command before the same fix was applied there. Only
         # cross_references_raw and the bioentry FK id are actually needed.
-        rows = list(
-            proteins_qs.values_list("uniprot_accession", "cross_references_raw", "bioentry_id")
-        )
+        if options["skip_experimental"]:
+            # AlphaFold/AlphaFill only need the accession and FK; decoding the
+            # full proteome's cross-reference JSON wastes memory and startup time.
+            rows = [
+                (accession, None, bioentry_id)
+                for accession, bioentry_id in proteins_qs.values_list(
+                    "uniprot_accession", "bioentry_id"
+                )
+            ]
+        else:
+            rows = list(
+                proteins_qs.values_list("uniprot_accession", "cross_references_raw", "bioentry_id")
+            )
         if not rows:
             raise CommandError("No matching human proteins found.")
 
@@ -209,23 +232,86 @@ class Command(BaseCommand):
                 ).values_list("bioentry_id", "pdb__code")
             )
         loaded = missing = skipped = failed = 0
-        for i, (accession, _cross_refs, bioentry_id) in enumerate(rows, start=1):
+        pending = []
+        for accession, _cross_refs, bioentry_id in rows:
             code = f"AFILL_{accession}"
             if (bioentry_id, code) in completed:
                 skipped += 1
             elif accession not in index:
                 missing += 1
-            elif self._call_load_af_model(code, index[accession], accession, "AFILL", options):
-                loaded += 1
             else:
-                failed += 1
-            if i % PROGRESS_EVERY == 0 or i == len(rows):
-                self.stdout.write(f"  AlphaFill: {i}/{len(rows)} processed")
+                pending.append((code, index[accession], accession))
+        workers = options.get("alphafill_workers", 1)
+        self.stdout.write(
+            f"AlphaFill: {len(pending)} pending, {skipped} already loaded, "
+            f"{missing} missing; {workers} workers."
+        )
+        if workers > 1 and pending:
+            self._load_alphafill_parallel(pending, options, workers)
+            loaded = len(pending)
+        else:
+            for done, (code, path, accession) in enumerate(pending, 1):
+                ok = self._call_load_af_model(code, path, accession, "AFILL", options)
+                loaded += int(ok)
+                failed += int(not ok)
+                if done % PROGRESS_EVERY == 0 or done == len(pending):
+                    self.stdout.write(
+                        f"  AlphaFill: {done}/{len(pending)} pending processed; "
+                        f"loaded={loaded} failed={failed}"
+                    )
         self.stdout.write(
             f"AlphaFill: loaded={loaded} skipped={skipped} missing={missing} failed={failed}"
         )
         if failed:
             raise CommandError(f"AlphaFill: {failed} structures failed; rerun to retry.")
+
+    def _load_alphafill_parallel(self, pending, options, workers):
+        # Each long-lived subprocess handles a disjoint accession list. This
+        # bypasses the Python GIL without reusing Django/SSH connections.
+        workers = min(workers, len(pending))
+        env = os.environ.copy()
+        # Test runners replace the DB name in the connection settings. Children
+        # must inherit that effective DB, never reconnect to the production DB.
+        database = connections["default"].settings_dict
+        for key in ("NAME", "USER", "PASSWORD", "HOST", "PORT"):
+            env[f"DJANGO_DATABASE_{key}"] = str(database.get(key) or "")
+        with tempfile.TemporaryDirectory(prefix="human_alphafill_workers_") as tmp:
+            commands = []
+            for worker in range(workers):
+                accession_file = Path(tmp) / f"worker_{worker}.txt"
+                accession_file.write_text(
+                    "".join(f"{job[2]}\n" for job in pending[worker::workers]), encoding="utf-8"
+                )
+                command = [
+                    sys.executable,
+                    "-u",
+                    str(settings.BASE_DIR / "manage.py"),
+                    "load_human_structures_bulk",
+                    "--skip-alphafold",
+                    "--skip-experimental",
+                    "--alphafill-dir",
+                    str(options["alphafill_dir"]),
+                    "--accession-file",
+                    str(accession_file),
+                    "--datadir",
+                    str(options["datadir"]),
+                ]
+                if options["overwrite"]:
+                    command.append("--overwrite")
+                commands.append(command)
+
+            def run_worker(command):
+                return subprocess.run(
+                    command, env=env, stdin=subprocess.DEVNULL, check=False
+                ).returncode
+
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                codes = list(pool.map(run_worker, commands))
+            if any(codes):
+                raise CommandError(
+                    f"AlphaFill workers failed (exit codes {codes}); "
+                    "completed structures are preserved. Rerun to resume."
+                )
 
     def _call_load_af_model(self, code, path, accession, experiment, options):
         try:

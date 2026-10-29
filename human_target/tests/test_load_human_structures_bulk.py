@@ -1,6 +1,8 @@
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+from types import SimpleNamespace
+from uuid import uuid4
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -44,6 +46,47 @@ _atom_site.pdbx_PDB_model_num
 ATOM 1 C CA . ALA A 1 1 ? 0.0 0.0 0.0 1.0 20.0 1 A 1
 #
 """
+
+
+class AlphaFillParallelTests(SimpleTestCase):
+    def test_workers_get_disjoint_accessions_and_effective_test_database(self):
+        module = "human_target.management.commands.load_human_structures_bulk"
+        jobs = [(f"AFILL_T{i}", f"/raw/{i}.cif", f"T{i}") for i in range(5)]
+        captured = []
+
+        def run(command, **kwargs):
+            path = command[command.index("--accession-file") + 1]
+            captured.append((command, Path(path).read_text().splitlines(), kwargs["env"]))
+            return SimpleNamespace(returncode=0)
+
+        with (
+            patch(f"{module}.connections") as db,
+            patch(f"{module}.subprocess.run", side_effect=run),
+        ):
+            db.__getitem__.return_value.settings_dict = {"NAME": "test_alpha", "HOST": "db"}
+            Command()._load_alphafill_parallel(
+                jobs, {"alphafill_dir": "/raw", "datadir": "/data", "overwrite": False}, 2
+            )
+        self.assertEqual(len(captured), 2)
+        partitions = [set(rows) for _, rows, _ in captured]
+        self.assertFalse(partitions[0] & partitions[1])
+        self.assertEqual(partitions[0] | partitions[1], {f"T{i}" for i in range(5)})
+        for command, _, env in captured:
+            self.assertEqual(env["DJANGO_DATABASE_NAME"], "test_alpha")
+            self.assertNotIn("--alphafill-workers", command)
+            self.assertNotIn("--overwrite", command)
+
+    def test_failed_worker_does_not_report_success(self):
+        module = "human_target.management.commands.load_human_structures_bulk"
+        with patch(f"{module}.connections") as db, patch(f"{module}.subprocess.run") as run:
+            db.__getitem__.return_value.settings_dict = {"NAME": "test_alpha"}
+            run.return_value.returncode = 1
+            with self.assertRaisesMessage(CommandError, "completed structures are preserved"):
+                Command()._load_alphafill_parallel(
+                    [("AFILL_T1", "/raw/1.cif", "T1")],
+                    {"alphafill_dir": "/raw", "datadir": "/data", "overwrite": False},
+                    2,
+                )
 
 
 class AlphaFillBulkTests(SimpleTestCase):
@@ -212,6 +255,27 @@ class LoadHumanStructuresBulkTests(TransactionTestCase):
             bioentry=bioentry,
             uniprot_accession=accession,
             cross_references_raw=cross_refs,
+        )
+
+    def test_alphafill_two_processes_load_disjoint_models(self):
+        accessions = ["T" + uuid4().hex[:9].upper() for _ in range(2)]
+        for accession in accessions:
+            self._make_human_protein(accession)
+        with tempfile.TemporaryDirectory() as tmp:
+            for accession in accessions:
+                Path(tmp, f"AF-{accession}-F1-filled_v4.cif").write_text(_FAKE_CIF_WITH_METHOD)
+            call_command(
+                "load_human_structures_bulk",
+                datadir=self.datadir,
+                skip_alphafold=True,
+                skip_experimental=True,
+                alphafill_dir=tmp,
+                accession=accessions,
+                alphafill_workers=2,
+            )
+        self.assertEqual(
+            Atom.objects.filter(residue__pdb__code__in=[f"AFILL_{a}" for a in accessions]).count(),
+            2,
         )
 
     def test_alphafold_repairs_empty_existing_row_without_changing_its_id(self):

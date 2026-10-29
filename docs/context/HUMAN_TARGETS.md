@@ -94,15 +94,19 @@ shared components) — zero data/functionality crossover.
     legacy atomless rows in place, preserving IDs/links and rolling back failed reparses.
     Uses `AFILL_<accession>` / experiment `AFILL`, the same as the pilot and existing Structure
     tab. This imports precomputed mmCIFs (permitted on Nodo0 by CLUSTER_DEPLOY.md); use a small
-    pilot first, then a dedicated resource-limited container for the sequential DB import.
+    pilot first, then a dedicated resource-limited container for the DB import.
     End-to-end transfer/import: `python manage.py import_human_alphafill [--accession ...]
-    [--dry-run] [--remote-dir PATH] [--datadir PATH]` uses the existing SSH configuration to
+    [--dry-run] [--workers 2] [--remote-dir PATH] [--datadir PATH]` uses the existing SSH configuration to
     inventory the login-node staging area with stdlib Python, copy only the newest model per
     stored human accession plus metadata/license over SFTP, then invoke the loader and
     `refresh_human_target_summary`. File transfer resumes by immutable versioned path/size;
     `.part` files are promoted only after size verification. No remote Django/Biopython is
     required. Full download completed: 19,605 proteins, 19,669 CIFs across v4/v6, 2.09 GiB;
     pilot O00116 repaired in place (ID 46323, 675 residues, 5,409 atoms). Full import pending.
+    `--workers` defaults to 1; 2 splits pending accessions into disjoint subprocess batches
+    (2 CPU recommended). Each child uses the parent's effective DB settings and its own
+    Python/DB connections. The underlying loader accepts `--alphafill-workers 2`. AlphaFill
+    and AlphaFold-only imports omit unused UniProt cross-reference JSON to reduce RAM.
   - One-time bulk download: `scripts/cluster/fetch_human_proteome_bulk.sh`, run by hand over SSH on
     the login node (**neocranex**, not nodo0, not a SLURM compute node — mirrors FastTarget's
     one-time cluster setup), staging into the 2TB IT assigned there
