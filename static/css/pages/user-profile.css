@@ -6,17 +6,10 @@
     font-family: var(--tp-font-body);
     color: var(--tp-color-text-primary);
     margin: 0;
-    max-width: 640px;
 }
 
 .profile-page > section ~ section {
     border-top: 1px solid var(--tp-color-border-soft);
-}
-
-.profile-page h1 {
-    font-family: var(--tp-font-head);
-    font-weight: 600;
-    letter-spacing: 0;
 }
 
 .profile-section {
@@ -53,17 +46,15 @@
     margin: 0;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    /* Pencil right after the value: the page is full width now. */
+    justify-content: flex-start;
     gap: var(--tp-space-3);
     font-size: var(--tp-font-size-md);
     color: var(--tp-color-text-primary);
 }
 
-/* Seamless mosaic grid (1px gaps reading as hairline dividers, same trick
-   as .target-profile-grid in protein-detail.css) instead of a flat vertical
-   list -- groups the capabilities into a card mosaic that fuses with the
-   section like the rest of the editorial layout, rather than a plain
-   bullet-style list sitting inside it. */
+/* Capabilities: a hairline mosaic (1px gaps over the border color), read-only,
+   so no hover. A plain check or cross carries the state, no tinted fills. */
 .profile-capability-grid {
     margin: var(--tp-space-4) 0 0;
     display: grid;
@@ -83,28 +74,22 @@
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-md);
-    transition: background var(--tp-ui-motion-base, 140ms) var(--tp-ui-ease-standard, ease);
-}
-
-.profile-capability-card:hover {
-    background: var(--tp-color-surface-soft);
 }
 
 .profile-capability-card-icon {
     display: flex;
-    align-items: center;
-    justify-content: center;
     flex: 0 0 auto;
-    width: 28px;
-    height: 28px;
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-success-bg);
     color: var(--tp-color-success-ink);
 }
 
 .profile-capability-card-icon svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .profile-capability-card-label {
@@ -124,8 +109,7 @@
 }
 
 .profile-capability-card--off .profile-capability-card-icon {
-    background: var(--tp-color-surface-muted);
-    color: var(--tp-color-text-muted);
+    color: var(--tp-color-text-soft);
 }
 
 .profile-capability-note {
@@ -149,6 +133,10 @@
 .profile-edit-body {
     display: grid;
     gap: var(--tp-space-4);
+}
+
+.profile-field-error {
+    margin: var(--tp-space-1) 0 0;
 }
 
 body.profile-modal-open {

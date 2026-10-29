@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261018-deadcss">
-    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261018-lh">
+    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261029-design">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -20,13 +20,10 @@
 {% block body %}
     <div class="profile-page">
 
-        <section class="tp-page-hero profile-hero">
-            <div class="tp-view-head">
-                <div class="tp-view-head-copy">
-                    <h1 class="tp-view-title">{% trans "My profile" %}</h1>
-                    <p class="tp-view-lead profile-hero-description">{% trans "Your account details." %}</p>
-                </div>
-            </div>
+        <section class="tp-page-hero">
+            <p class="tp-view-eyebrow">{% trans "Account" %}</p>
+            <h1 class="tp-view-title">{% trans "My profile" %}</h1>
+            <p class="tp-view-lead">{% trans "Your name and email, and what your account can do on Target Pathogen." %}{% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %} {% url 'tpwebapp:settings' as settings_url %}{% blocktrans %}Choose who sees your formulas and uploaded data in <a href="{{ settings_url }}">Privacy &amp; sharing</a>.{% endblocktrans %}{% endif %}</p>
         </section>
 
         <section class="profile-section">
@@ -70,7 +67,7 @@
         <section class="profile-section">
             <div class="section-head">
                 <div>
-                    <p class="tp-ui-field-label">{% trans "Access" %}</p>
+                    <p class="tp-view-eyebrow">{% trans "Access" %}</p>
                     <h2 class="tp-section-title">{% trans "What you can do" %}</h2>
                 </div>
                 <span class="tp-chip">{{ role_display }}</span>
@@ -145,7 +142,7 @@
                         <input type="text" name="first_name" id="id_first_name"
                                value="{{ form.first_name.value|default:'' }}" required>
                         {% if form.first_name.errors %}
-                            <ul class="errorlist">{% for error in form.first_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                            {% for error in form.first_name.errors %}<p class="tp-state-note tp-state-note--error profile-field-error">{{ error }}</p>{% endfor %}
                         {% endif %}
                     </div>
 
@@ -154,7 +151,7 @@
                         <input type="text" name="last_name" id="id_last_name"
                                value="{{ form.last_name.value|default:'' }}" required>
                         {% if form.last_name.errors %}
-                            <ul class="errorlist">{% for error in form.last_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                            {% for error in form.last_name.errors %}<p class="tp-state-note tp-state-note--error profile-field-error">{{ error }}</p>{% endfor %}
                         {% endif %}
                     </div>
 
@@ -163,7 +160,7 @@
                         <input type="email" name="email" id="id_email"
                                value="{{ form.email.value|default:'' }}" required>
                         {% if form.email.errors %}
-                            <ul class="errorlist">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                            {% for error in form.email.errors %}<p class="tp-state-note tp-state-note--error profile-field-error">{{ error }}</p>{% endfor %}
                         {% endif %}
                     </div>
                 </div>
