@@ -108,15 +108,6 @@
     color: var(--tp-color-link);
 }
 
-.settings-back {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--tp-space-1);
-    margin-bottom: var(--tp-space-2);
-    color: var(--tp-color-link);
-    font-size: var(--tp-font-size-sm);
-}
-
 .settings-search {
     position: relative;
     width: 280px;
@@ -163,22 +154,15 @@
 }
 
 .settings-table--data th:nth-child(2),
-.settings-table--shared th:nth-child(3),
-.settings-table--owner th:nth-child(3) {
+.settings-table--shared th:nth-child(3) {
     width: 28%;
 }
 
-.settings-table--shared th:nth-child(2),
-.settings-table--owner th:nth-child(2) {
+.settings-table--shared th:nth-child(2) {
     width: 96px;
 }
 
-.settings-table--shared th:nth-child(4) {
-    width: 18%;
-}
-
-.settings-table--shared th:last-child,
-.settings-table--owner th:last-child {
+.settings-table--shared th:last-child {
     width: 168px;
 }
 
@@ -199,12 +183,86 @@
     font-weight: 500;
 }
 
-a.settings-name {
-    color: var(--tp-color-link);
-}
-
 .settings-muted {
     color: var(--tp-color-text-secondary);
+}
+
+/* ── Researchers (admin): one disclosure per person. The summary line is
+   the overview; opening it shows only what they shared. ── */
+
+.settings-people {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-people > li {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.settings-person summary {
+    display: flex;
+    align-items: baseline;
+    gap: var(--tp-space-3);
+    padding: var(--tp-space-3) var(--tp-space-3);
+    list-style: none;
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.settings-person summary::-webkit-details-marker {
+    display: none;
+}
+
+.settings-person summary:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.settings-person summary:focus-visible {
+    outline: none;
+    box-shadow: var(--tp-focus-outline);
+}
+
+.settings-person-name {
+    flex: 1;
+    min-width: 0;
+    color: var(--tp-color-text-primary);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.settings-person-meta {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.settings-person-chevron {
+    align-self: center;
+    margin-left: var(--tp-space-1);
+    transition: transform 180ms var(--tp-ui-ease-standard);
+}
+
+.settings-person[open] > summary .settings-person-chevron,
+.settings-person.is-open-visual > summary .settings-person-chevron {
+    transform: rotate(-135deg);
+}
+
+.settings-person-body {
+    padding: 0 var(--tp-space-3) var(--tp-space-4);
+}
+
+.settings-person-body .settings-table {
+    margin-bottom: var(--tp-space-2);
+}
+
+.settings-private-note {
+    margin: var(--tp-space-2) 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
 }
 
 .settings-col-action form,
@@ -395,10 +453,24 @@ a.settings-name {
         max-width: 100%;
         overflow-x: auto;
     }
+
+    .settings-person summary {
+        flex-wrap: wrap;
+    }
+
+    .settings-person-meta {
+        white-space: normal;
+    }
+
+    .settings-person-body .tp-table-shell {
+        overflow-x: auto;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .settings-nav-link,
+    .settings-person summary,
+    .settings-person-chevron,
     .settings-expression code,
     .settings-results,
     .settings-save-state,

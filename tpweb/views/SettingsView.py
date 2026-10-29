@@ -31,52 +31,46 @@ from tpweb.services.visibility_settings import (
 from tpweb.views.mixins import PermissionLockedMixin
 
 
-def _group_by_owner(formula_rows, param_rows):
-    """Admin overview: one collapsible block per user instead of one long
-    table of every user's items."""
+def _researcher_summaries(formula_rows, param_rows):
+    """Admin overview, one entry per researcher: how many formulas and
+    columns they have, and only the items they chose to share. "Only me"
+    items are counted, never named -- not even an admin sees them."""
     groups = {}
-    for kind, rows in (("formulas", formula_rows), ("columns", param_rows)):
+    for kind, rows in (("formula", formula_rows), ("column", param_rows)):
         for row in rows:
             owner = row["obj"].user
             group = groups.setdefault(
                 owner.pk,
                 {
                     "label": (owner.name or "").strip() or owner.get_username(),
-                    "id": owner.pk,
-                    "formulas": [],
-                    "columns": [],
+                    "formulas": 0,
+                    "columns": 0,
+                    "private": 0,
+                    "shared": [],
                 },
             )
-            group[kind].append(row)
-    for group in groups.values():
-        group["shared_count"] = sum(
-            1 for row in group["formulas"] + group["columns"] if row["visibility"] != "private"
-        )
+            group[f"{kind}s"] += 1
+            if row["visibility"] == "private":
+                group["private"] += 1
+            else:
+                group["shared"].append({"row": row, "kind": kind})
     return sorted(groups.values(), key=lambda group: group["label"].casefold())
 
 
 def _search_text(item):
-    """Name, genome and owner of any Settings list item, for the search box."""
-    row = item.get("row", item)
-    obj = row.get("obj")
-    owner = getattr(obj, "user", None)
-    parts = [
-        row.get("label", ""),
-        row.get("genome_label", ""),
-        getattr(obj, "name", "") or "",
-        getattr(owner, "name", "") or "",
-    ]
+    """Name, genome or researcher of a Settings list item, for the search box."""
+    obj = item.get("obj")
+    parts = [item.get("label", ""), item.get("genome_label", ""), getattr(obj, "name", "") or ""]
     return " ".join(str(part) for part in parts).casefold()
 
 
 class SettingsView(PermissionLockedMixin, View):
     """Owner-controlled visibility for scoring formulas and custom params,
-    plus (superuser-only) a supervising overview of every user's items and
-    the existing restricted-genomes list. Any approved user who can manage
-    formulas/custom params can reach this page -- that's every role today
-    (see tpweb.services.user_permissions.PROFILE_PRESETS) -- to decide
-    their own items' visibility. A superuser sees everyone's items here
-    read-only -- only the owner can change who sees them."""
+    plus (superuser-only) a per-researcher summary and the restricted-genomes
+    list. Any approved user who can manage formulas/custom params can reach
+    this page -- that's every role today (see
+    tpweb.services.user_permissions.PROFILE_PRESETS). A superuser sees only
+    what researchers shared, read-only; "Only me" items stay with their owner."""
 
     template_name = "users/settings.html"
     page_title = "Settings"
@@ -102,89 +96,34 @@ class SettingsView(PermissionLockedMixin, View):
         my_formula_rows, my_param_rows = self._rows(
             formulas_owned_by(request.user), custom_params_owned_by(request.user)
         )
-        context = {
-            "my_formula_rows": my_formula_rows,
-            "my_param_rows": my_param_rows,
-            "formula_visibility_choices": FORMULA_VISIBILITY_CHOICES,
-            "is_superuser_view": request.user.is_superuser,
-        }
+        context = {"formula_visibility_choices": FORMULA_VISIBILITY_CHOICES}
         # The side nav prints a heading whenever "group" changes.
-        sections = [
-            {"key": key, "label": label, "group": _("Your work"), "count": len(rows)}
-            for key, label, rows in (
-                ("formulas", _("Scoring formulas"), my_formula_rows),
-                ("data", _("Uploaded data"), my_param_rows),
-            )
-        ]
         collections = {"formulas": my_formula_rows, "data": my_param_rows}
+        labels = [
+            ("formulas", _("Scoring formulas"), _("Your work")),
+            ("data", _("Uploaded data"), _("Your work")),
+        ]
         if request.user.is_superuser:
-            all_formula_rows, all_param_rows = self._rows(
-                all_shareable_formulas(), all_shareable_custom_params()
-            )
-            shared_formula_rows = [
-                row for row in all_formula_rows if row["visibility"] != "private"
-            ]
-            shared_param_rows = [row for row in all_param_rows if row["visibility"] != "private"]
-            context.update(
-                {
-                    "shared_formula_rows": shared_formula_rows,
-                    "shared_param_rows": shared_param_rows,
-                    "shared_total": len(shared_formula_rows) + len(shared_param_rows),
-                    "user_groups": _group_by_owner(all_formula_rows, all_param_rows),
-                    "restricted_genomes": [
-                        {"obj": rg, "label": display_genome_name(rg.genome_name)}
-                        for rg in RestrictedGenome.objects.select_related("restricted_by")
-                    ],
-                }
-            )
             collections.update(
-                shared=[
-                    {"row": row, "kind": kind}
-                    for kind, rows in (
-                        ("formula", shared_formula_rows),
-                        ("column", shared_param_rows),
-                    )
-                    for row in rows
+                users=_researcher_summaries(
+                    *self._rows(all_shareable_formulas(), all_shareable_custom_params())
+                ),
+                genomes=[
+                    {"obj": rg, "label": display_genome_name(rg.genome_name)}
+                    for rg in RestrictedGenome.objects.select_related("restricted_by")
                 ],
-                users=context["user_groups"],
-                genomes=context["restricted_genomes"],
             )
-            sections.extend(
-                {
-                    "key": key,
-                    "label": label,
-                    "group": _("Administration"),
-                    "count": len(collections[key]),
-                }
-                for key, label in (
-                    ("shared", _("Shared items")),
-                    ("users", _("Researchers")),
-                    ("genomes", _("Restricted genomes")),
-                )
-            )
+            labels += [
+                ("users", _("Researchers"), _("Administration")),
+                ("genomes", _("Restricted genomes"), _("Administration")),
+            ]
+        sections = [
+            {"key": key, "label": label, "group": group, "count": len(collections[key])}
+            for key, label, group in labels
+        ]
         active_section = request.GET.get("section", "formulas")
         if active_section not in collections:
             active_section = "formulas"
-        # The owner directory and the selected owner's items paginate separately.
-        selected_owner = None
-        if active_section == "users":
-            selected_owner = next(
-                (
-                    group
-                    for group in context["user_groups"]
-                    if str(group["id"]) == request.GET.get("owner")
-                ),
-                None,
-            )
-            if selected_owner:
-                collections["users"] = [
-                    {"row": row, "kind": kind}
-                    for kind, rows in (
-                        ("formula", selected_owner["formulas"]),
-                        ("column", selected_owner["columns"]),
-                    )
-                    for row in rows
-                ]
         items = collections[active_section]
         search_query = request.GET.get("q", "").strip()
         if search_query:
@@ -192,15 +131,12 @@ class SettingsView(PermissionLockedMixin, View):
             items = [item for item in items if needle in _search_text(item)]
         page = Paginator(items, 20).get_page(request.GET.get("page"))
         query = {"section": active_section}
-        if selected_owner:
-            query["owner"] = selected_owner["id"]
         if search_query:
             query["q"] = search_query
         context.update(
             search_query=search_query,
             settings_sections=sections,
             active_section=active_section,
-            selected_owner=selected_owner,
             page_obj=page,
             page_numbers=page.paginator.get_elided_page_range(
                 page.number, on_each_side=1, on_ends=1
@@ -216,9 +152,7 @@ class SettingsView(PermissionLockedMixin, View):
         if request.headers.get("x-requested-with") == "XMLHttpRequest":
             return JsonResponse({"ok": ok, "message": message}, status=200 if ok else 400)
         (messages.success if ok else messages.error)(request, message)
-        query = {
-            key: request.GET[key] for key in ("section", "page", "owner", "q") if key in request.GET
-        }
+        query = {key: request.GET[key] for key in ("section", "page", "q") if key in request.GET}
         url = reverse("tpwebapp:settings")
         return redirect(f"{url}?{urlencode(query)}" if query else url)
 

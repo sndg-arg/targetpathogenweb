@@ -35,7 +35,7 @@ class SettingsNavigationTests(SimpleTestCase):
         self.assertEqual(context["settings_return_query"], "section=data&page=2")
 
     def test_admin_sections_cannot_be_selected_by_regular_users(self):
-        for section in ("shared", "users", "genomes", "unknown"):
+        for section in ("users", "genomes", "unknown"):
             with self.subTest(section=section):
                 context = self.get_context({"section": section}, formulas=[1])
                 self.assertEqual(context["active_section"], "formulas")
@@ -48,38 +48,33 @@ class SettingsNavigationTests(SimpleTestCase):
                 context = self.get_context({"page": number}, formulas=list(range(41)))
                 self.assertEqual(context["page_obj"].number, expected)
 
-    def test_owner_items_are_paginated_and_keep_owner_in_links(self):
+    def test_researchers_show_counts_and_shared_items_but_never_private_ones(self):
         owner = SimpleNamespace(pk=7, name="Researcher")
-        formulas = [
-            {"obj": SimpleNamespace(user=owner), "visibility": "private"} for _ in range(23)
-        ]
+        secret = SimpleNamespace(name="Secret score", user=owner)
+        shared = SimpleNamespace(name="Shared score", user=owner)
         context = self.get_context(
-            {"section": "users", "owner": "7", "page": "2"},
-            admin=True,
-            formulas=formulas,
-        )
-        self.assertEqual(context["selected_owner"]["id"], 7)
-        self.assertEqual(len(context["page_obj"]), 3)
-        self.assertEqual(context["page_obj"].paginator.count, 23)
-        self.assertEqual(context["pagination_query"], "section=users&owner=7")
-        self.assertEqual(context["page_obj"][0]["kind"], "formula")
-
-    def test_shared_items_exclude_private_rows_and_include_both_types(self):
-        owner = SimpleNamespace(pk=7, name="Researcher")
-        obj = SimpleNamespace(user=owner)
-        context = self.get_context(
-            {"section": "shared"},
+            {"section": "users"},
             admin=True,
             formulas=[
-                {"obj": obj, "visibility": "private"},
-                {"obj": obj, "visibility": "public"},
+                {"obj": secret, "visibility": "private"},
+                {"obj": shared, "visibility": "public"},
             ],
-            columns=[{"obj": obj, "visibility": "project"}],
+            columns=[{"obj": secret, "visibility": "private"}],
         )
-        self.assertEqual(context["page_obj"].paginator.count, 2)
-        self.assertEqual([item["kind"] for item in context["page_obj"]], ["formula", "column"])
+        (person,) = context["page_obj"]
+        self.assertEqual((person["formulas"], person["columns"], person["private"]), (2, 1, 2))
+        self.assertEqual([item["row"]["obj"] for item in person["shared"]], [shared])
+        self.assertNotIn("Secret score", repr(context))
 
-    def test_search_filters_by_name_genome_and_owner_and_stays_in_links(self):
+    def test_researchers_search_by_name(self):
+        rows = [
+            {"obj": SimpleNamespace(user=SimpleNamespace(pk=pk, name=name)), "visibility": "public"}
+            for pk, name in ((1, "Ana"), (2, "Bruno"))
+        ]
+        context = self.get_context({"section": "users", "q": "bru"}, admin=True, formulas=rows)
+        self.assertEqual([person["label"] for person in context["page_obj"]], ["Bruno"])
+
+    def test_search_filters_by_name_or_genome_and_stays_in_links(self):
         owner = SimpleNamespace(pk=7, name="Researcher")
         columns = [
             {"obj": SimpleNamespace(name="Essentiality", user=owner), "genome_label": "KpATCC"},
@@ -109,3 +104,28 @@ class SettingsNavigationTests(SimpleTestCase):
         response = settings_view.SettingsView().post(request)
         self.assertEqual(response.status_code, 400)
         self.assertJSONEqual(response.content, {"ok": False, "message": "Unknown action."})
+
+
+class AdminHidesResearcherDataTests(SimpleTestCase):
+    def test_every_score_admin_excludes_researcher_owned_rows(self):
+        from django.contrib import admin
+
+        from tpweb.admin.private_data import HideResearcherDataMixin
+        from tpweb.models.CustomParamShare import CustomParamShare
+        from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
+        from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
+        from tpweb.models.ScoreParamValue import ScoreParamValue
+
+        for model in (
+            ScoreParam,
+            ScoreParamOptions,
+            ScoreParamValue,
+            CustomParamShare,
+            ScoreFormula,
+            ScoreFormulaParam,
+        ):
+            with self.subTest(model=model.__name__):
+                model_admin = admin.site._registry[model]
+                self.assertIsInstance(model_admin, HideResearcherDataMixin)
+                where = str(model_admin.get_queryset(RequestFactory().get("/")).query.where)
+                self.assertIn("NOT", where)

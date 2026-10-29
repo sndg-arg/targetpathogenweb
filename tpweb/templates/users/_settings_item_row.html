@@ -11,6 +11,5 @@
     </td>
     <td class="settings-muted">{% if kind == 'formula' %}{% trans "Formula" %}{% else %}{% trans "Column" %}{% endif %}</td>
     <td class="settings-muted">{{ row.genome_label|default:"—" }}</td>
-    {% if not selected_owner %}<td class="settings-muted">{{ row.obj.user.name|default:row.obj.user.get_username }}</td>{% endif %}
     <td>{{ row.visibility_label|branded:user }}</td>
 </tr>

@@ -2,8 +2,10 @@ from tpweb.models.ScoreFormula import ScoreFormulaParam, ScoreFormula
 
 from django.contrib import admin
 
+from tpweb.admin.private_data import HideResearcherDataMixin
 
-class ScoreFormulaAdmin(admin.ModelAdmin):
+
+class ScoreFormulaAdmin(HideResearcherDataMixin, admin.ModelAdmin):
     list_display = ["name", "user", "terms_str"]
     search_fields = ["name", "user"]
 
@@ -15,7 +17,8 @@ class ScoreFormulaAdmin(admin.ModelAdmin):
 admin.site.register(ScoreFormula, ScoreFormulaAdmin)
 
 
-class ScoreFormulaParamAdmin(admin.ModelAdmin):
+class ScoreFormulaParamAdmin(HideResearcherDataMixin, admin.ModelAdmin):
+    owner_path = "formula__"
     list_display = ["formula_name", "operation", "coefficient", "param_name", "value"]
     search_fields = ["params__score_param__name", "formula__name"]
 

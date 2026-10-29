@@ -1,8 +1,8 @@
 """Owner-controlled public/Gates-shared visibility for ScoreFormula, plus
 the owner listings of formulas and uploaded columns -- backs the Settings
 page (tpweb/views/SettingsView.py). The owner decides their own items'
-visibility at creation or later from this page; a superuser additionally
-sees every user's items here, read-only. Uploaded columns are
+visibility at creation or later from this page; a superuser sees only
+what was shared, never "Only me" items. Uploaded columns are
 shared per genome, see tpweb.services.custom_param_sharing.
 """
 
@@ -95,7 +95,7 @@ def custom_params_owned_by(user):
 
 def all_shareable_formulas():
     """Every real (non-anonymous-workspace) user's own formula, for the
-    superuser overview table."""
+    superuser summary (private ones are only counted there)."""
     return _without_builtin_copies(
         ScoreFormula.objects.filter(user__isnull=False)
         .exclude(user__username=PUBLIC_WORKSPACE_USERNAME)

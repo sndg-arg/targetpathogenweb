@@ -30,6 +30,7 @@
         if (!current || !next) return;
         current.replaceWith(next);
         adoptTooltips(next);
+        if (window.tpWireSmoothDetails) window.tpWireSmoothDetails(next);
     }
 
     function load(url, options) {

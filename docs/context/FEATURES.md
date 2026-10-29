@@ -113,6 +113,16 @@ Two separate layers, both in `tpweb/middleware/access_control.py`:
   deleting a row there also busts the middleware's cached blocked-IP set immediately instead of
   leaving that IP wrongly 403'd for up to the cache's TTL.
 
+### "Only me" is private from admins too
+- A researcher's formulas and uploaded columns set to "Only me" are visible to their owner alone.
+  No superuser bypass exists in the data paths (`custom_param_sharing`, `protein_formula`); keep it
+  that way.
+- Settings → Researchers (superuser) shows per-person counts and only the *shared* items;
+  private ones are counted, never named (`_researcher_summaries` in `SettingsView.py`).
+- The Django admin hides every researcher-owned ScoreParam/Value/Option/Share and
+  ScoreFormula/Param (`tpweb/admin/private_data.py`); it lists platform data only.
+- Not encryption: anyone with direct DB or server access can still read the rows.
+
 ## Ligand synthesis routes
 - Ligand page (`/binder/<id>`) "Synthesis routes": patent reactions whose product is the ligand
   (exact, canonical SMILES) or an analog (Morgan r2, Tanimoto ≥ 0.45, only when no exact hit).

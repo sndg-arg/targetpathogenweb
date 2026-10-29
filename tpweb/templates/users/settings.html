@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261029-inplace">
+    <link rel="stylesheet" href="{% static 'css/pages/settings.css' %}?v=20261029-private">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -22,7 +22,7 @@
     <section class="tp-page-hero">
         <p class="tp-view-eyebrow">{% trans "Privacy & sharing" %}</p>
         <h1 class="tp-view-title">{% trans "Settings" %}</h1>
-        <p class="tp-view-lead">{% trans "Everything you create is private until you share it. Pick who can see each formula and each uploaded column." %}</p>
+        <p class="tp-view-lead">{% trans "Everything you create is private until you share it. Only me means only you: not other researchers, not administrators." %}</p>
     </section>
 
     <div class="settings-layout">
@@ -40,7 +40,7 @@
             <div class="settings-legend">
                 <p class="settings-nav-group">{% trans "Visibility" %}</p>
                 <dl>
-                    <div><dt>{% trans "Only me" %}</dt><dd>{% trans "Nobody else sees it." %}</dd></div>
+                    <div><dt>{% trans "Only me" %}</dt><dd>{% trans "You alone. Administrators can't see it either." %}</dd></div>
                     <div>{% if gates_viewer %}<dt>{% trans "Gates members" %}</dt><dd>{% trans "Accounts approved for the Gates project." %}</dd>{% else %}<dt>{% trans "Project members" %}</dt><dd>{% trans "Accounts approved for the project." %}</dd>{% endif %}</div>
                     <div><dt>{% trans "Everyone" %}</dt><dd>{% trans "Every signed-in user who can see that genome." %}</dd></div>
                 </dl>
@@ -50,26 +50,21 @@
         <section class="settings-panel" aria-labelledby="settings-panel-title">
             <div class="section-head">
                 <div>
-                    {% if selected_owner %}<a class="settings-back" data-settings-link data-no-page-loader href="?section=users"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_left.html" %}</span><span>{% trans "All researchers" %}</span></a>{% endif %}
                     <h2 id="settings-panel-title">
                         {% if active_section == 'formulas' %}{% trans "Scoring formulas" %}
                         {% elif active_section == 'data' %}{% trans "Uploaded data" %}
-                        {% elif selected_owner %}{{ selected_owner.label }}
-                        {% elif active_section == 'shared' %}{% trans "Shared items" %}
                         {% elif active_section == 'users' %}{% trans "Researchers" %}
                         {% else %}{% trans "Restricted genomes" %}{% endif %}
                     </h2>
                     <p class="section-subtitle">
                         {% if active_section == 'formulas' %}{% trans "Choose who can use each formula. Changes are saved as soon as you pick." %}
                         {% elif active_section == 'data' %}{% trans "Each column is shared per genome. Shared columns show up for others under Columns, Filters and Make my own score." %}
-                        {% elif selected_owner or active_section == 'shared' %}{% trans "Read-only: only the owner can change who sees an item. Built-in formula copies are left out." %}
-                        {% elif active_section == 'users' %}{% trans "Everyone who has made a formula or uploaded data." %}
+                        {% elif active_section == 'users' %}{% trans "What each researcher has and what they shared. Only me items are counted, never shown." %}
                         {% else %}{% url 'tpwebapp:genomes_list' as genomes_url %}{% if gates_viewer %}{% blocktrans %}Only Gates members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% else %}{% blocktrans %}Only project members can see these. Restrict another genome from its row in the <a href="{{ genomes_url }}">Genomes list</a>.{% endblocktrans %}{% endif %}{% endif %}
                     </p>
                 </div>
                 <form class="section-tools settings-search" method="get" role="search">
                     <input type="hidden" name="section" value="{{ active_section }}">
-                    {% if selected_owner %}<input type="hidden" name="owner" value="{{ selected_owner.id }}">{% endif %}
                     <span class="tp-btn-icon settings-search-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
                     <input class="form-control tp-ui-control tp-ui-search-input" type="search" name="q" value="{{ search_query }}" placeholder="{% if active_section == 'users' %}{% trans 'Find a researcher' %}{% elif active_section == 'genomes' %}{% trans 'Find a genome' %}{% else %}{% trans 'Find by name or genome' %}{% endif %}" aria-label="{% trans 'Search this list' %}">
                 </form>
@@ -77,30 +72,46 @@
 
             <div class="settings-results" data-settings-results>
             {% if page_obj.object_list %}
+            {% if active_section == 'users' %}
+            <ul class="settings-people">
+                {% for person in page_obj %}
+                <li>
+                    <details class="settings-person js-smooth-details">
+                        <summary>
+                            <span class="settings-person-name">{{ person.label }}</span>
+                            <span class="settings-person-meta">
+                                {% blocktrans count total=person.formulas %}{{ total }} formula{% plural %}{{ total }} formulas{% endblocktrans %}
+                                · {% blocktrans count total=person.columns %}{{ total }} column{% plural %}{{ total }} columns{% endblocktrans %}
+                                · {% blocktrans count total=person.shared|length %}{{ total }} shared{% plural %}{{ total }} shared{% endblocktrans %}
+                            </span>
+                            <span class="tp-chevron tp-chevron--down settings-person-chevron" aria-hidden="true"></span>
+                        </summary>
+                        <div class="settings-person-body">
+                            {% if person.shared %}
+                            <div class="tp-table-shell">
+                                <table class="table tp-table tp-table--compact settings-table settings-table--shared">
+                                    <thead><tr><th scope="col">{% trans "Shared item" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Genome" %}</th><th scope="col">{% trans "Who can see it" %}</th></tr></thead>
+                                    <tbody>{% for item in person.shared %}{% include "users/_settings_item_row.html" with row=item.row kind=item.kind %}{% endfor %}</tbody>
+                                </table>
+                            </div>
+                            {% endif %}
+                            {% if person.private %}
+                            <p class="settings-private-note">{% blocktrans count total=person.private %}{{ total }} item is set to Only me and stays private to its owner.{% plural %}{{ total }} items are set to Only me and stay private to their owner.{% endblocktrans %}</p>
+                            {% endif %}
+                        </div>
+                    </details>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
             <div class="tp-table-shell settings-table-shell">
-                <table class="table tp-table tp-table--compact settings-table settings-table--{{ active_section }}{% if selected_owner %} settings-table--owner{% endif %}">
+                <table class="table tp-table tp-table--compact settings-table settings-table--{{ active_section }}">
                     {% if active_section == 'formulas' %}
                     <thead><tr><th scope="col">{% trans "Formula" %}</th><th scope="col" class="settings-col-visibility">{% trans "Who can see it" %}</th><th scope="col" class="settings-col-action"><span class="sr-only">{% trans "Delete" %}</span></th></tr></thead>
                     <tbody>{% for row in page_obj %}{% include "users/_settings_formula_row.html" %}{% endfor %}</tbody>
                     {% elif active_section == 'data' %}
                     <thead><tr><th scope="col">{% trans "Column" %}</th><th scope="col">{% trans "Genome" %}</th><th scope="col" class="settings-col-visibility">{% trans "Who can see it" %}</th><th scope="col" class="settings-col-action"><span class="sr-only">{% trans "Delete" %}</span></th></tr></thead>
                     <tbody>{% for row in page_obj %}{% include "users/_settings_column_row.html" %}{% endfor %}</tbody>
-                    {% elif active_section == 'shared' or selected_owner %}
-                    <thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Genome" %}</th>{% if not selected_owner %}<th scope="col">{% trans "Owner" %}</th>{% endif %}<th scope="col">{% trans "Who can see it" %}</th></tr></thead>
-                    <tbody>{% for item in page_obj %}{% include "users/_settings_item_row.html" with row=item.row kind=item.kind %}{% endfor %}</tbody>
-                    {% elif active_section == 'users' %}
-                    <thead><tr><th scope="col">{% trans "Researcher" %}</th><th scope="col" class="settings-col-number">{% trans "Formulas" %}</th><th scope="col" class="settings-col-number">{% trans "Columns" %}</th><th scope="col" class="settings-col-number">{% trans "Shared" %}</th><th scope="col" class="settings-col-action"><span class="sr-only">{% trans "Open" %}</span></th></tr></thead>
-                    <tbody>
-                        {% for group in page_obj %}
-                        <tr>
-                            <td><a class="settings-name" data-settings-link data-no-page-loader href="?section=users&amp;owner={{ group.id }}">{{ group.label }}</a></td>
-                            <td class="settings-col-number">{{ group.formulas|length }}</td>
-                            <td class="settings-col-number">{{ group.columns|length }}</td>
-                            <td class="settings-col-number">{{ group.shared_count }}</td>
-                            <td class="settings-col-action"><a class="btn tp-btn tp-btn--ghost tp-btn--sm" data-settings-link data-no-page-loader href="?section=users&amp;owner={{ group.id }}" title="{% trans 'View items' %}" aria-label="{% blocktrans with name=group.label %}View items by {{ name }}{% endblocktrans %}"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span></a></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
                     {% else %}
                     <thead><tr><th scope="col">{% trans "Genome" %}</th><th scope="col">{% trans "Restricted by" %}</th><th scope="col" class="settings-col-action"><span class="sr-only">{% trans "Unrestrict" %}</span></th></tr></thead>
                     <tbody>
@@ -122,6 +133,7 @@
                     {% endif %}
                 </table>
             </div>
+            {% endif %}
 
             <div class="settings-footer">
                 <p>{% blocktrans with first=page_obj.start_index last=page_obj.end_index total=page_obj.paginator.count %}{{ first }}–{{ last }} of {{ total }}{% endblocktrans %}</p>
@@ -143,7 +155,7 @@
             {% elif search_query %}
             <div class="tp-empty">
                 <p class="tp-empty-title">{% blocktrans with query=search_query %}Nothing matches “{{ query }}”{% endblocktrans %}</p>
-                <div class="tp-empty-actions"><a class="btn tp-btn tp-btn--secondary tp-btn--sm" data-settings-link data-no-page-loader href="?section={{ active_section }}{% if selected_owner %}&amp;owner={{ selected_owner.id }}{% endif %}">{% trans "Clear search" %}</a></div>
+                <div class="tp-empty-actions"><a class="btn tp-btn tp-btn--secondary tp-btn--sm" data-settings-link data-no-page-loader href="?section={{ active_section }}">{% trans "Clear search" %}</a></div>
             </div>
             {% else %}
             <div class="tp-empty">
@@ -153,8 +165,6 @@
                 {% elif active_section == 'data' %}
                 <p class="tp-empty-title">{% trans "No uploaded data yet" %}</p>
                 <p class="tp-empty-text">{% trans "Use Add my own data from any genome's protein list." %}</p>
-                {% elif active_section == 'shared' or selected_owner %}
-                <p class="tp-empty-title">{% trans "Nothing is shared right now" %}</p>
                 {% elif active_section == 'users' %}
                 <p class="tp-empty-title">{% trans "No one has made a formula or uploaded data yet" %}</p>
                 {% else %}
@@ -167,5 +177,5 @@
     </div>
 
 </div>
-    <script src="{% static 'js/pages/settings.js' %}?v=20261029-inplace"></script>
+    <script src="{% static 'js/pages/settings.js' %}?v=20261029-private"></script>
 {% endblock %}
