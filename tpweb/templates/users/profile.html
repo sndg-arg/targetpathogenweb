@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261018-deadcss">
-    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261029-blocks">
+    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261029-rows">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -23,7 +23,7 @@
         <section class="tp-page-hero">
             <p class="tp-view-eyebrow">{% trans "Account" %}</p>
             <h1 class="tp-view-title">{% trans "My profile" %}</h1>
-            <p class="tp-view-lead">{{ user.email|default:user.get_username }} · {{ role_display }}</p>
+            <p class="tp-view-lead">{% blocktrans with role=role_display %}{{ role }} account{% endblocktrans %}</p>
         </section>
 
         <section class="profile-block">
@@ -32,24 +32,21 @@
             </div>
             <dl class="profile-fields">
                 <div class="profile-field">
-                    <dt>{% trans "First name" %}</dt>
-                    <dd class="profile-field-value{% if not form.first_name.value %} is-empty{% endif %}">{{ form.first_name.value|default:"—" }}</dd>
+                    <dt>{% trans "Name" %}</dt>
+                    {% if form.first_name.value or form.last_name.value %}
+                    <dd class="profile-field-value">{{ form.first_name.value|default:"" }} {{ form.last_name.value|default:"" }}</dd>
+                    {% else %}
+                    <dd class="profile-field-value is-empty">{% trans "Not set" %}</dd>
+                    {% endif %}
                     <dd class="profile-field-action">
-                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm js-profile-edit-field" data-field="first_name" data-field-label="{% trans 'First name' %}" aria-label="{% trans 'Edit first name' %}" title="{% trans 'Edit' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span></button>
-                    </dd>
-                </div>
-                <div class="profile-field">
-                    <dt>{% trans "Last name" %}</dt>
-                    <dd class="profile-field-value{% if not form.last_name.value %} is-empty{% endif %}">{{ form.last_name.value|default:"—" }}</dd>
-                    <dd class="profile-field-action">
-                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm js-profile-edit-field" data-field="last_name" data-field-label="{% trans 'Last name' %}" aria-label="{% trans 'Edit last name' %}" title="{% trans 'Edit' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span></button>
+                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm js-profile-edit-field" data-field="first_name last_name" data-field-label="{% trans 'Name' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">{% if form.first_name.value or form.last_name.value %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %}</button>
                     </dd>
                 </div>
                 <div class="profile-field">
                     <dt>{% trans "Email" %}</dt>
-                    <dd class="profile-field-value{% if not form.email.value %} is-empty{% endif %}">{{ form.email.value|default:"—" }}</dd>
+                    <dd class="profile-field-value{% if not form.email.value %} is-empty{% endif %}">{{ form.email.value|default:_("Not set") }}</dd>
                     <dd class="profile-field-action">
-                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm js-profile-edit-field" data-field="email" data-field-label="{% trans 'Email' %}" aria-label="{% trans 'Edit email' %}" title="{% trans 'Edit' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span></button>
+                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm js-profile-edit-field" data-field="email" data-field-label="{% trans 'Email' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">{% trans "Edit" %}</button>
                     </dd>
                 </div>
             </dl>
@@ -154,5 +151,5 @@
         </div>
     </div>
 
-    <script src="{% static 'js/pages/user-profile.js' %}?v=20260904-per-field"></script>
+    <script src="{% static 'js/pages/user-profile.js' %}?v=20261029-name"></script>
 {% endblock %}

@@ -21,15 +21,18 @@
     margin-top: var(--tp-space-1);
 }
 
-/* ── Personal details: label | value | edit, one hairline row each ── */
+/* ── Personal details: label | value | Edit. The value column is capped so
+   Edit stays next to what it changes instead of at the far edge. ── */
 
 .profile-fields {
     margin: 0;
+    max-width: max-content;
 }
 
 .profile-field {
     display: grid;
-    grid-template-columns: 160px minmax(0, 1fr) auto;
+    grid-template-columns: 120px minmax(0, 360px) auto;
+    justify-content: start;
     align-items: center;
     gap: var(--tp-space-4);
     min-height: calc(var(--tp-ui-control-height) + var(--tp-space-2));

@@ -1,11 +1,11 @@
-/* "My profile" page -- each field has its own Edit (pencil) button, all
- * sharing one modal: opening it shows only that field's input (the other
- * two stay in the DOM, hidden, still carrying their current value so the
+/* "My profile" page -- each row has its own Edit button, all sharing one
+ * modal: opening it shows only that row's inputs (Name = first + last; the
+ * others stay in the DOM, hidden, still carrying their current value so the
  * single underlying form submission stays valid). Save stays disabled
- * until the visible field's value actually changed AND passes a minimum
- * client-side check (non-empty name, email-shaped email); the server
- * still re-validates everything (email uniqueness in particular) on
- * submit regardless.
+ * until a visible value actually changed AND every visible one passes a
+ * minimum client-side check (non-empty name, email-shaped email); the
+ * server still re-validates everything (email uniqueness in particular)
+ * on submit regardless.
  */
 (function () {
     "use strict";
@@ -22,18 +22,18 @@
     var fieldGroups = Array.prototype.slice.call(form.querySelectorAll("[data-field-group]"));
     var editTriggers = Array.prototype.slice.call(document.querySelectorAll(".js-profile-edit-field"));
 
-    var activeField = null;
-    var originalValue = "";
+    var activeFields = [];
+    var originalValues = {};
     var lastTrigger = null;
 
-    function groupFor(fieldName) {
-        return fieldGroups.filter(function (group) {
-            return group.getAttribute("data-field-group") === fieldName;
-        })[0] || null;
+    function fieldsOf(trigger) {
+        return (trigger.getAttribute("data-field") || "").split(/\s+/).filter(Boolean);
     }
 
     function inputFor(fieldName) {
-        var group = groupFor(fieldName);
+        var group = fieldGroups.filter(function (g) {
+            return g.getAttribute("data-field-group") === fieldName;
+        })[0];
         return group ? group.querySelector("input") : null;
     }
 
@@ -55,31 +55,38 @@
     var hasServerError = false;
 
     function updateSaveState() {
-        var input = inputFor(activeField);
-        if (!input) return;
-        var value = input.value.trim();
-        var changed = hasServerError || value !== originalValue.trim();
-        var valid = isValidValue(activeField, value);
+        var changed = hasServerError;
+        var valid = activeFields.length > 0;
+        activeFields.forEach(function (fieldName) {
+            var input = inputFor(fieldName);
+            var value = input ? input.value.trim() : "";
+            if (value !== (originalValues[fieldName] || "").trim()) changed = true;
+            if (!isValidValue(fieldName, value)) valid = false;
+        });
         saveBtn.disabled = !(changed && valid);
     }
 
-    function openFieldModal(fieldName, label, trigger, hadServerError) {
-        activeField = fieldName;
+    function openFieldModal(fields, label, trigger, hadServerError) {
+        activeFields = fields;
         hasServerError = !!hadServerError;
         fieldGroups.forEach(function (group) {
-            group.hidden = group.getAttribute("data-field-group") !== fieldName;
+            group.hidden = fields.indexOf(group.getAttribute("data-field-group")) === -1;
         });
-        if (titleEl) titleEl.textContent = label || fieldName;
+        if (titleEl) titleEl.textContent = label || fields.join(", ");
 
-        var input = inputFor(fieldName);
-        originalValue = input ? input.value : "";
+        originalValues = {};
+        fields.forEach(function (fieldName) {
+            var input = inputFor(fieldName);
+            originalValues[fieldName] = input ? input.value : "";
+        });
         updateSaveState();
 
         modal.classList.add("is-open");
         modal.setAttribute("aria-hidden", "false");
         document.body.classList.add("profile-modal-open");
         lastTrigger = trigger || null;
-        if (input) input.focus();
+        var first = inputFor(fields[0]);
+        if (first) first.focus();
     }
 
     function closeModal() {
@@ -88,12 +95,12 @@
         document.body.classList.remove("profile-modal-open");
         if (lastTrigger) lastTrigger.focus();
         lastTrigger = null;
-        activeField = null;
+        activeFields = [];
     }
 
     editTriggers.forEach(function (trigger) {
         trigger.addEventListener("click", function () {
-            openFieldModal(trigger.getAttribute("data-field"), trigger.getAttribute("data-field-label"), trigger);
+            openFieldModal(fieldsOf(trigger), trigger.getAttribute("data-field-label"), trigger);
         });
     });
 
@@ -113,19 +120,14 @@
 
     // A failed POST (e.g. "email already in use") re-renders this same
     // page with the erroring field's errors set -- the modal needs to
-    // already be open, scoped to that field, so the error is actually
+    // already be open, scoped to that row, so the error is actually
     // visible instead of hidden behind the closed modal.
     if (window.TPW_PROFILE_ERROR_FIELD) {
         var errorTrigger = editTriggers.filter(function (trigger) {
-            return trigger.getAttribute("data-field") === window.TPW_PROFILE_ERROR_FIELD;
+            return fieldsOf(trigger).indexOf(window.TPW_PROFILE_ERROR_FIELD) !== -1;
         })[0];
         if (errorTrigger) {
-            openFieldModal(
-                window.TPW_PROFILE_ERROR_FIELD,
-                errorTrigger.getAttribute("data-field-label"),
-                errorTrigger,
-                true
-            );
+            openFieldModal(fieldsOf(errorTrigger), errorTrigger.getAttribute("data-field-label"), errorTrigger, true);
         }
     }
 })();
