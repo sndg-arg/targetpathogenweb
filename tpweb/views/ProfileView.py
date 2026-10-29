@@ -44,16 +44,24 @@ class ProfileView(LoginRequiredMixin, View):
             chat_quota_label = "Unlimited"
         else:
             chat_quota_label = f"{quota} messages/day"
+        capabilities = {
+            key: user.has_perm(f"tpweb.{key}")
+            for key in (
+                "can_upload_genome",
+                "can_run_blast",
+                "can_manage_formulas",
+                "can_manage_custom_params",
+                "can_use_agent_chat",
+                "can_view_restricted_genomes",
+            )
+        }
         return {
             "role_display": "Owner"
             if user.is_superuser
             else PROFILE_ROLE_LABELS.get(user.role, user.get_role_display()),
-            "can_upload_genome": user.has_perm("tpweb.can_upload_genome"),
-            "can_run_blast": user.has_perm("tpweb.can_run_blast"),
-            "can_manage_formulas": user.has_perm("tpweb.can_manage_formulas"),
-            "can_manage_custom_params": user.has_perm("tpweb.can_manage_custom_params"),
-            "can_use_agent_chat": user.has_perm("tpweb.can_use_agent_chat"),
-            "can_view_restricted_genomes": user.has_perm("tpweb.can_view_restricted_genomes"),
+            **capabilities,
+            # Nothing left to ask for: the page drops "Request access".
+            "has_full_access": all(capabilities.values()),
             "chat_quota_label": chat_quota_label,
         }
 

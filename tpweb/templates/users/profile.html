@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261018-deadcss">
-    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261029-design">
+    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261029-blocks">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -23,96 +23,82 @@
         <section class="tp-page-hero">
             <p class="tp-view-eyebrow">{% trans "Account" %}</p>
             <h1 class="tp-view-title">{% trans "My profile" %}</h1>
-            <p class="tp-view-lead">{% trans "Your name and email, and what your account can do on Target Pathogen." %}{% if perms.tpweb.can_manage_formulas or perms.tpweb.can_manage_custom_params %} {% url 'tpwebapp:settings' as settings_url %}{% blocktrans %}Choose who sees your formulas and uploaded data in <a href="{{ settings_url }}">Privacy &amp; sharing</a>.{% endblocktrans %}{% endif %}</p>
+            <p class="tp-view-lead">{% blocktrans with who=user.email|default:user.get_username role=role_display %}Signed in as {{ who }} · {{ role }}{% endblocktrans %}</p>
         </section>
 
-        <section class="profile-section">
+        <section class="profile-block">
+            <div class="profile-block-head">
+                <h2 class="tp-section-title">{% trans "Personal details" %}</h2>
+                <p class="section-subtitle">{% trans "How you appear on what you share, and where we write to you." %}</p>
+            </div>
             <dl class="profile-fields">
                 <div class="profile-field">
                     <dt>{% trans "First name" %}</dt>
-                    <dd>
-                        <span class="profile-field-value">{{ form.first_name.value|default:"—" }}</span>
-                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm profile-field-edit-btn js-profile-edit-field"
-                                data-field="first_name" data-field-label="{% trans 'First name' %}"
-                                aria-label="{% trans 'Edit first name' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">
-                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span>
-                        </button>
+                    <dd class="profile-field-value{% if not form.first_name.value %} is-empty{% endif %}">{{ form.first_name.value|default:"—" }}</dd>
+                    <dd class="profile-field-action">
+                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm js-profile-edit-field" data-field="first_name" data-field-label="{% trans 'First name' %}" aria-label="{% trans 'Edit first name' %}" title="{% trans 'Edit' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span></button>
                     </dd>
                 </div>
                 <div class="profile-field">
                     <dt>{% trans "Last name" %}</dt>
-                    <dd>
-                        <span class="profile-field-value">{{ form.last_name.value|default:"—" }}</span>
-                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm profile-field-edit-btn js-profile-edit-field"
-                                data-field="last_name" data-field-label="{% trans 'Last name' %}"
-                                aria-label="{% trans 'Edit last name' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">
-                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span>
-                        </button>
+                    <dd class="profile-field-value{% if not form.last_name.value %} is-empty{% endif %}">{{ form.last_name.value|default:"—" }}</dd>
+                    <dd class="profile-field-action">
+                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm js-profile-edit-field" data-field="last_name" data-field-label="{% trans 'Last name' %}" aria-label="{% trans 'Edit last name' %}" title="{% trans 'Edit' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span></button>
                     </dd>
                 </div>
                 <div class="profile-field">
                     <dt>{% trans "Email" %}</dt>
-                    <dd>
-                        <span class="profile-field-value">{{ form.email.value|default:"—" }}</span>
-                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm profile-field-edit-btn js-profile-edit-field"
-                                data-field="email" data-field-label="{% trans 'Email' %}"
-                                aria-label="{% trans 'Edit email' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">
-                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span>
-                        </button>
+                    <dd class="profile-field-value{% if not form.email.value %} is-empty{% endif %}">{{ form.email.value|default:"—" }}</dd>
+                    <dd class="profile-field-action">
+                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm js-profile-edit-field" data-field="email" data-field-label="{% trans 'Email' %}" aria-label="{% trans 'Edit email' %}" title="{% trans 'Edit' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span></button>
                     </dd>
                 </div>
             </dl>
         </section>
 
-        <section class="profile-section">
-            <div class="section-head">
-                <div>
-                    <p class="tp-view-eyebrow">{% trans "Access" %}</p>
-                    <h2 class="tp-section-title">{% trans "What you can do" %}</h2>
-                </div>
-                <span class="tp-chip">{{ role_display }}</span>
+        <section class="profile-block">
+            <div class="profile-block-head">
+                <h2 class="tp-section-title">{% trans "Access" %}</h2>
+                <p class="section-subtitle">{% blocktrans with role=role_display %}What your {{ role }} account can do.{% endblocktrans %}</p>
             </div>
-            <div class="profile-capability-grid">
-                <div class="profile-capability-card{% if not can_upload_genome %} profile-capability-card--off{% endif %}">
-                    <span class="profile-capability-card-icon" aria-hidden="true">{% if can_upload_genome %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
-                    <span class="profile-capability-card-label">{% trans "Upload your own genomes" %}</span>
-                </div>
-                <div class="profile-capability-card{% if not can_run_blast %} profile-capability-card--off{% endif %}">
-                    <span class="profile-capability-card-icon" aria-hidden="true">{% if can_run_blast %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
-                    <span class="profile-capability-card-label">{% trans "Run BLAST searches" %}</span>
-                </div>
-                <div class="profile-capability-card{% if not can_manage_formulas %} profile-capability-card--off{% endif %}">
-                    <span class="profile-capability-card-icon" aria-hidden="true">{% if can_manage_formulas %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
-                    <span class="profile-capability-card-label">{% trans "Create and edit scoring formulas" %}</span>
-                </div>
-                <div class="profile-capability-card{% if not can_manage_custom_params %} profile-capability-card--off{% endif %}">
-                    <span class="profile-capability-card-icon" aria-hidden="true">{% if can_manage_custom_params %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
-                    <span class="profile-capability-card-label">{% trans "Create and edit custom evidence parameters" %}</span>
-                </div>
-                <div class="profile-capability-card{% if not can_use_agent_chat %} profile-capability-card--off{% endif %}">
-                    <span class="profile-capability-card-icon" aria-hidden="true">{% if can_use_agent_chat %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
-                    <span class="profile-capability-card-label">
-                        {% trans "Use the AI assistant" %}
-                        {% if chat_quota_label %}<span class="profile-capability-card-meta">{{ chat_quota_label }}</span>{% endif %}
-                    </span>
-                </div>
-                <div class="profile-capability-card{% if not can_view_restricted_genomes %} profile-capability-card--off{% endif %}">
-                    <span class="profile-capability-card-icon" aria-hidden="true">{% if can_view_restricted_genomes %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
-                    <span class="profile-capability-card-label">{% if gates_viewer %}{% trans "See Gates genomes" %}{% else %}{% trans "See collaborative-project genomes" %}{% endif %}</span>
-                </div>
+            <div>
+                <ul class="profile-capabilities">
+                    {% trans "Upload your own genomes" as cap_label %}{% include "users/_profile_capability.html" with on=can_upload_genome label=cap_label meta="" %}
+                    {% trans "Run BLAST searches" as cap_label %}{% include "users/_profile_capability.html" with on=can_run_blast label=cap_label meta="" %}
+                    {% trans "Create and edit scoring formulas" as cap_label %}{% include "users/_profile_capability.html" with on=can_manage_formulas label=cap_label meta="" %}
+                    {% trans "Upload your own protein data" as cap_label %}{% include "users/_profile_capability.html" with on=can_manage_custom_params label=cap_label meta="" %}
+                    {% trans "Use the AI assistant" as cap_label %}{% include "users/_profile_capability.html" with on=can_use_agent_chat label=cap_label meta=chat_quota_label %}
+                    {% if gates_viewer %}{% trans "See Gates genomes" as cap_label %}{% else %}{% trans "See collaborative-project genomes" as cap_label %}{% endif %}{% include "users/_profile_capability.html" with on=can_view_restricted_genomes label=cap_label meta="" %}
+                </ul>
+                {% if not has_full_access %}
+                {% if user.wants_collaborator_access %}
+                <p class="tp-state-note profile-access-note">{% trans "Collaborator access requested. An administrator will review it; you'll keep using this same account." %}</p>
+                {% else %}
+                <form method="post" action="{% url 'tpwebapp:request_access' %}" class="profile-request-access">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <span>{% trans "Need more access, like collaborative-project genomes or uploads?" %}</span>
+                    <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Request access" %}</button>
+                </form>
+                {% endif %}
+                {% endif %}
             </div>
-            {% if user.wants_collaborator_access %}
-            <p class="profile-capability-note">{% trans "Collaborator access requested. An administrator will review it; you'll keep using this same account." %}</p>
-            {% else %}
-            <form method="post" action="{% url 'tpwebapp:request_access' %}" class="profile-capability-note profile-request-access">
-                {% csrf_token %}
-                <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                <span>{% trans "Need more access (collaborative-project genomes, uploads)?" %}</span>
-                <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Request access" %}</button>
-            </form>
-            {% endif %}
-            {% if contact_email %}<p class="tp-contact-fallback">{% trans "Something not working? Write to" %} <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>{% endif %}
         </section>
+
+        {% if can_manage_formulas or can_manage_custom_params %}
+        <section class="profile-block">
+            <div class="profile-block-head">
+                <h2 class="tp-section-title">{% trans "Privacy & sharing" %}</h2>
+                <p class="section-subtitle">{% trans "Your formulas and uploaded data start as Only me." %}</p>
+            </div>
+            <div class="profile-privacy">
+                <p>{% trans "Decide who can see each formula and uploaded column: only you, project members, or everyone signed in." %}</p>
+                <a class="btn tp-btn tp-btn--secondary tp-btn--sm" href="{% url 'tpwebapp:settings' %}">{% trans "Manage sharing" %}</a>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if contact_email %}<p class="tp-contact-fallback profile-contact">{% trans "Something not working? Write to" %} <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>{% endif %}
 
     </div>
 

@@ -1,88 +1,95 @@
-/* ── My profile — fused layout (no boxed page-level card, per the site's
-   editorial standard: page sections sit directly on the page background,
-   only small overlay elements like the edit modal keep their own box). ── */
+/* ── My profile — a settings sheet: each block pairs a short heading and
+   note on the left with its content on the right, on one continuous
+   background with hairlines between blocks. Only the edit dialog is boxed. ── */
 
 .profile-page {
-    font-family: var(--tp-font-body);
     color: var(--tp-color-text-primary);
     margin: 0;
+    padding-bottom: var(--tp-space-6);
 }
 
-.profile-page > section ~ section {
+.profile-block {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: var(--tp-space-4) var(--tp-space-8);
+    margin: 0 var(--tp-space-5);
+    padding: var(--tp-space-6) 0;
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
-.profile-section {
-    padding: var(--tp-space-5) var(--tp-space-5);
+.profile-block-head .section-subtitle {
+    margin-top: var(--tp-space-1);
 }
+
+/* ── Personal details: label | value | edit, one hairline row each ── */
 
 .profile-fields {
     margin: 0;
-    display: grid;
-    gap: var(--tp-space-4);
 }
 
 .profile-field {
     display: grid;
-    gap: 3px;
-    padding-bottom: var(--tp-space-3);
+    grid-template-columns: 160px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--tp-space-4);
+    min-height: calc(var(--tp-ui-control-height) + var(--tp-space-2));
     border-bottom: 1px solid var(--tp-color-border-soft);
 }
 
+.profile-field:first-child {
+    margin-top: calc(-1 * var(--tp-space-2));
+}
+
 .profile-field:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
+    border-bottom: 0;
 }
 
 .profile-field dt {
-    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
     font-weight: 500;
-    letter-spacing: var(--tp-tracking-label);
-    text-transform: uppercase;
-    color: var(--tp-color-text-muted);
 }
 
 .profile-field dd {
     margin: 0;
-    display: flex;
-    align-items: center;
-    /* Pencil right after the value: the page is full width now. */
-    justify-content: flex-start;
-    gap: var(--tp-space-3);
-    font-size: var(--tp-font-size-md);
-    color: var(--tp-color-text-primary);
 }
 
-/* Capabilities: a hairline mosaic (1px gaps over the border color), read-only,
-   so no hover. A plain check or cross carries the state, no tinted fills. */
-.profile-capability-grid {
-    margin: var(--tp-space-4) 0 0;
+.profile-field-value {
+    font-size: var(--tp-font-size-sm);
+    overflow-wrap: anywhere;
+}
+
+.profile-field-value.is-empty {
+    color: var(--tp-color-text-soft);
+}
+
+/* ── Access: a two-column checklist, no boxes ── */
+
+.profile-capabilities {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1px;
-    background: var(--tp-color-border-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-md);
-    overflow: hidden;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--tp-space-3) var(--tp-space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-.profile-capability-card {
+.profile-capability {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: var(--tp-space-3);
-    padding: var(--tp-space-4) var(--tp-space-4);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-size-md);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
 }
 
-.profile-capability-card-icon {
-    display: flex;
+.profile-capability-icon {
     flex: 0 0 auto;
+    align-self: center;
+    display: flex;
     color: var(--tp-color-success-ink);
 }
 
-.profile-capability-card-icon svg {
+.profile-capability-icon svg {
     width: 16px;
     height: 16px;
     stroke: currentColor;
@@ -92,30 +99,16 @@
     stroke-linejoin: round;
 }
 
-.profile-capability-card-label {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    line-height: 1.35;
-}
-
-.profile-capability-card-meta {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
-}
-
-.profile-capability-card--off {
+.profile-capability-meta {
     color: var(--tp-color-text-muted);
 }
 
-.profile-capability-card--off .profile-capability-card-icon {
+.profile-capability.is-off {
+    color: var(--tp-color-text-muted);
+}
+
+.profile-capability.is-off .profile-capability-icon {
     color: var(--tp-color-text-soft);
-}
-
-.profile-capability-note {
-    margin: var(--tp-space-4) 0 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
 }
 
 .profile-request-access {
@@ -123,10 +116,34 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--tp-space-2) var(--tp-space-4);
+    margin: var(--tp-space-5) 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
 }
 
-.profile-field-value {
-    overflow-wrap: anywhere;
+.profile-access-note {
+    margin: var(--tp-space-5) 0 0;
+}
+
+/* ── Privacy & sharing ── */
+
+.profile-privacy {
+    display: grid;
+    justify-items: start;
+    gap: var(--tp-space-3);
+}
+
+.profile-privacy p {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.profile-contact {
+    margin: 0 var(--tp-space-5);
+    padding-top: var(--tp-space-5);
+    border-top: 1px solid var(--tp-color-border-soft);
 }
 
 /* The edit dialog uses the shared .tp-modal (ui-system.css). */
@@ -141,4 +158,31 @@
 
 body.profile-modal-open {
     overflow: hidden;
+}
+
+@media (max-width: 900px) {
+    .profile-block {
+        grid-template-columns: minmax(0, 1fr);
+        margin: 0 var(--tp-space-4);
+    }
+
+    .profile-contact {
+        margin: 0 var(--tp-space-4);
+    }
+}
+
+@media (max-width: 600px) {
+    .profile-field {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0 var(--tp-space-3);
+        padding: var(--tp-space-2) 0;
+    }
+
+    .profile-field dt {
+        grid-column: 1 / -1;
+    }
+
+    .profile-capabilities {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
