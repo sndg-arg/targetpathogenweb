@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-split">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-viewer">
 {% endblock %}
 
 {% block body %}
@@ -28,10 +28,86 @@
                     </a>
                 {% endif %}
             </div>
+            {# What is on screen: the structure (switchable) and what it is compared with #}
             <div class="sv-topbar-identity">
+                {% if all_structures|length > 1 %}
+                <div class="sv-struct-picker" id="sv-struct-picker">
+                    <button type="button" class="sv-struct-picker-btn" id="sv-struct-picker-btn"
+                            aria-haspopup="listbox" aria-expanded="false"
+                            title="{% trans 'Switch structure' %}">
+                        <span class="sv-struct-picker-label" id="sv-struct-picker-label">{% for s in all_structures %}{% if s.is_active %}{{ s.short_method }}{% if s.display_code %} · {{ s.display_code }}{% endif %}{% endif %}{% endfor %}</span>
+                        <svg class="sv-struct-picker-chevron" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
+                    </button>
+                    <ul class="sv-struct-picker-menu" id="sv-struct-picker-menu" role="listbox" hidden>
+                        {% for s in all_structures %}
+                        <li class="sv-struct-picker-item{% if s.is_active %} is-active{% endif %}"
+                            role="option" aria-selected="{% if s.is_active %}true{% else %}false{% endif %}"
+                            data-id="{{ s.id }}"
+                            data-code="{{ s.code|upper }}"
+                            data-display-code="{{ s.display_code|default:s.code|upper }}"
+                            data-method="{{ s.method }}"
+                            data-resolution="{{ s.resolution|default:'' }}"
+                            data-vmd-url="{% url 'tpwebapp:structure_export' s.id %}">
+                            <span class="sv-struct-picker-item-label">{{ s.short_method }}{% if s.display_code %} · {{ s.display_code }}{% endif %}</span>
+                            {% if s.resolution %}<span class="sv-struct-picker-item-res">{{ s.resolution }} Å</span>{% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                {# Compare — other structures of this protein, superposed on the one in view or side by side #}
+                <div class="sv-struct-picker sv-overlay-picker" id="sv-overlay-picker">
+                    <button type="button" class="sv-struct-picker-btn" id="sv-overlay-btn"
+                            aria-haspopup="true" aria-expanded="false"
+                            title="{% trans 'Compare with other structures of this protein (sequence alignment, then a C-alpha fit)' %}">
+                        <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="8" r="4.2"/><circle cx="10" cy="8" r="4.2"/></svg>
+                        <span class="sv-struct-picker-label">{% trans "Compare" %}<span class="sv-overlay-count" id="sv-overlay-count" hidden></span></span>
+                        <svg class="sv-struct-picker-chevron" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
+                    </button>
+                    <ul class="sv-struct-picker-menu" id="sv-overlay-menu" role="menu" hidden>
+                        {% for s in all_structures %}
+                        <li class="sv-struct-picker-item sv-overlay-item" role="menuitemcheckbox" aria-checked="false"
+                            data-overlay-id="{{ s.id }}"{% if s.is_active %} hidden{% endif %}>
+                            <span class="sv-overlay-swatch" aria-hidden="true"></span>
+                            <span class="sv-struct-picker-item-label">{{ s.short_method }}{% if s.display_code %} · {{ s.display_code }}{% endif %}</span>
+                            <span class="sv-struct-picker-item-res sv-overlay-status"></span>
+                        </li>
+                        {% endfor %}
+                        <li class="sv-overlay-layout" id="sv-overlay-layout" role="none" hidden>
+                            <div class="sv-mode-group" role="group" aria-label="{% trans 'Layout' %}">
+                                <button type="button" class="sv-mode-btn is-active js-compare-layout" data-layout="overlay" aria-pressed="true">{% trans "Overlaid" %}</button>
+                                <button type="button" class="sv-mode-btn js-compare-layout" data-layout="split" aria-pressed="false">{% trans "Side by side" %}</button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                {% else %}
                 <span class="sv-meta-pill" id="sv-topbar-method" {% if not structure.method %}hidden{% endif %}>{{ structure.method }}</span>
+                {% endif %}
                 <span class="sv-meta-pill sv-meta-pill--dim" id="sv-topbar-resolution" {% if not structure.resolution %}hidden{% endif %}>{% if structure.resolution %}{{ structure.resolution }} Å{% endif %}</span>
                 <span class="sv-meta-pill sv-meta-pill--focus" id="sv-topbar-ligand-focus" hidden></span>
+            </div>
+
+            {# Page actions: info (phones), VMD script, viewer settings #}
+            <div class="sv-topbar-actions">
+                <button type="button" class="sv-tb-btn sv-sidebar-toggle-btn" id="sv-sidebar-toggle-btn"
+                        aria-controls="sv-sidebar" aria-expanded="false"
+                        title="{% trans 'Show structure details' %}" aria-label="{% trans 'Show structure details' %}">
+                    <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="8" cy="8" r="6.5"/><path d="M8 7.2v4M8 5.2v.01"/>
+                    </svg>
+                </button>
+                <a href="{% url 'tpwebapp:structure_export' structure.id %}" id="sv-vmd-link" data-no-page-loader
+                   class="sv-tb-btn sv-download-link" aria-label="{% trans 'Download for VMD' %}" title="{% trans 'Download a script for VMD, free desktop software, to view this structure with its pockets' %}">
+                    <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+                        <path d="M8 2v8M5 7l3 3 3-3M2 13h12"/>
+                    </svg>
+                </a>
+                <button type="button" class="sv-tb-btn" id="sv-settings-btn"
+                        aria-haspopup="dialog" aria-controls="viewer-settings-modal"
+                        aria-label="{% trans 'Viewer settings' %}" title="{% trans 'Layer summary and color settings' %}">
+                    <span class="sv-tb-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
+                </button>
             </div>
         </header>
 
@@ -87,17 +163,16 @@
             <span class="sv-sstruc-swatch"><span class="sv-plddt-dot sv-plddt-dot--very-low" aria-hidden="true"></span>{% trans "Very low (<50)" %}</span>
         </div>
 
-        {# Floating toolbar #}
+        {# Floating toolbar: only how the structure looks. What is shown (structure, compare) and page actions live in the top bar. #}
         <nav class="sv-toolbar" id="sv-toolbar" aria-label="{% trans '3D viewer controls' %}">
 
             {# Spin toggle #}
             <button type="button" class="sv-tb-btn sv-spin-btn" id="sv-spin-btn"
-                    aria-pressed="false" title="{% trans 'Auto-rotation is off. Click to rotate the structure.' %}">
+                    aria-pressed="false" aria-label="{% trans 'Spin' %}" title="{% trans 'Auto-rotation is off. Click to rotate the structure.' %}">
                 <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
                     <path d="M13.5 8A5.5 5.5 0 1 1 8 2.5"/>
                     <path d="M11.5 2l2 1.5-1.5 2"/>
                 </svg>
-                <span class="sv-tb-label">{% trans "Spin" %}</span>
             </button>
 
             <div class="sv-tb-sep" aria-hidden="true"></div>
@@ -110,13 +185,20 @@
 
             <div class="sv-tb-sep" aria-hidden="true"></div>
 
-            {# Color scheme #}
-            <div class="sv-mode-group" role="group" aria-label="{% trans 'Color scheme' %}">
-                <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="flat" aria-pressed="false" title="{% trans 'Uniform color for the whole structure.' %}">{% trans "Uniform" %}</button>
-                <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="chainname" aria-pressed="false" title="{% trans 'Color each chain differently.' %}">{% trans "By chain" %}</button>
-                <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="sstruc" aria-pressed="false" title="{% trans 'Color by secondary structure (helix/sheet/coil).' %}">{% trans "By structure" %}</button>
-                {# Hidden by JS for experimental (crystal) structures -- pLDDT is meaningless without a prediction. #}
-                <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="plddt" aria-pressed="false" title="{% trans 'Color by per-residue model confidence (pLDDT). Predicted structures only.' %}">{% trans "By pLDDT" %}</button>
+            {# Color scheme: one menu instead of four buttons #}
+            <div class="sv-struct-picker sv-color-picker" id="sv-color-picker">
+                <button type="button" class="sv-struct-picker-btn" id="sv-color-btn"
+                        aria-haspopup="true" aria-expanded="false" title="{% trans 'Color scheme' %}">
+                    <span class="sv-struct-picker-label"><span class="sv-color-picker-key">{% trans "Color" %}</span> <span id="sv-color-label">{% trans "Uniform" %}</span></span>
+                    <svg class="sv-struct-picker-chevron" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
+                </button>
+                <div class="sv-struct-picker-menu sv-color-menu" id="sv-color-menu" role="menu" hidden>
+                    <button type="button" class="sv-struct-picker-item sv-color-option js-structure-color" role="menuitemradio" data-color-mode="flat" aria-pressed="false" title="{% trans 'Uniform color for the whole structure.' %}">{% trans "Uniform" %}</button>
+                    <button type="button" class="sv-struct-picker-item sv-color-option js-structure-color" role="menuitemradio" data-color-mode="chainname" aria-pressed="false" title="{% trans 'Color each chain differently.' %}">{% trans "By chain" %}</button>
+                    <button type="button" class="sv-struct-picker-item sv-color-option js-structure-color" role="menuitemradio" data-color-mode="sstruc" aria-pressed="false" title="{% trans 'Color by secondary structure (helix/sheet/coil).' %}">{% trans "By structure" %}</button>
+                    {# Hidden by JS for experimental (crystal) structures -- pLDDT is meaningless without a prediction. #}
+                    <button type="button" class="sv-struct-picker-item sv-color-option js-structure-color" role="menuitemradio" data-color-mode="plddt" aria-pressed="false" title="{% trans 'Color by per-residue model confidence (pLDDT). Predicted structures only.' %}">{% trans "By pLDDT" %}</button>
+                </div>
             </div>
 
             <div class="sv-tb-sep" aria-hidden="true"></div>
@@ -127,107 +209,19 @@
             structures; harmless no-op on AlphaFold/ColabFold models, which have none.
             {% endcomment %}
             <button type="button" class="sv-tb-btn js-hetero-toggle" id="sv-hetero-btn"
-                    aria-pressed="false" title="{% trans 'Show heteroatoms co-crystallized with this structure (ligands, cofactors, ions) — excludes water.' %}">
+                    aria-pressed="false" aria-label="{% trans 'Heteroatoms' %}" title="{% trans 'Show heteroatoms co-crystallized with this structure (ligands, cofactors, ions) — excludes water.' %}">
                 <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <circle cx="5" cy="6" r="1.6"/><circle cx="11" cy="5" r="1.6"/><circle cx="8" cy="11" r="1.6"/>
                     <path d="M6.2 6.9L9.8 10.1M6.4 5.3L9.6 5.3"/>
                 </svg>
-                <span class="sv-tb-label">{% trans "Heteroatoms" %}</span>
             </button>
 
-            <div class="sv-tb-sep" aria-hidden="true"></div>
-
-            {# Reset view; zoom is the wheel or pinch on the canvas (no +/- buttons, so the toolbar fits) #}
+            {# Reset view; zoom is the wheel or pinch on the canvas #}
             <button type="button" class="sv-tb-btn" id="structure-reset-zoom-btn" onclick="ngl_reset_zoom()"
                     title="{% trans 'Reset view' %}" aria-label="{% trans 'Reset view' %}" disabled>
                 <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
                     <path d="M13 8A5 5 0 1 1 8 3"/><path d="M12.5 2v3h-3"/>
                 </svg>
-            </button>
-
-            {# Structure picker — shown when there are multiple structures for this protein #}
-            {% if all_structures|length > 1 %}
-            <div class="sv-tb-sep" aria-hidden="true"></div>
-            <div class="sv-struct-picker" id="sv-struct-picker">
-                <button type="button" class="sv-struct-picker-btn" id="sv-struct-picker-btn"
-                        aria-haspopup="listbox" aria-expanded="false"
-                        title="{% trans 'Switch structure' %}">
-                    <span class="sv-struct-picker-label" id="sv-struct-picker-label">{% for s in all_structures %}{% if s.is_active %}{{ s.short_method }}{% if s.display_code %} · {{ s.display_code }}{% endif %}{% endif %}{% endfor %}</span>
-                    <svg class="sv-struct-picker-chevron" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
-                </button>
-                <ul class="sv-struct-picker-menu" id="sv-struct-picker-menu" role="listbox" hidden>
-                    {% for s in all_structures %}
-                    <li class="sv-struct-picker-item{% if s.is_active %} is-active{% endif %}"
-                        role="option" aria-selected="{% if s.is_active %}true{% else %}false{% endif %}"
-                        data-id="{{ s.id }}"
-                        data-code="{{ s.code|upper }}"
-                        data-display-code="{{ s.display_code|default:s.code|upper }}"
-                        data-method="{{ s.method }}"
-                        data-resolution="{{ s.resolution|default:'' }}"
-                        data-vmd-url="{% url 'tpwebapp:structure_export' s.id %}">
-                        <span class="sv-struct-picker-item-label">{{ s.short_method }}{% if s.display_code %} · {{ s.display_code }}{% endif %}</span>
-                        {% if s.resolution %}<span class="sv-struct-picker-item-res">{{ s.resolution }} Å</span>{% endif %}
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            {# Overlay — other structures of this protein, superposed onto the one in view #}
-            <div class="sv-tb-sep" aria-hidden="true"></div>
-            <div class="sv-struct-picker sv-overlay-picker" id="sv-overlay-picker">
-                <button type="button" class="sv-struct-picker-btn" id="sv-overlay-btn"
-                        aria-haspopup="true" aria-expanded="false"
-                        title="{% trans 'Superpose other structures of this protein on the one in view (sequence alignment, then a C-alpha fit)' %}">
-                    <span class="sv-struct-picker-label">{% trans "Overlay" %}<span class="sv-overlay-count" id="sv-overlay-count" hidden></span></span>
-                    <svg class="sv-struct-picker-chevron" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
-                </button>
-                <ul class="sv-struct-picker-menu" id="sv-overlay-menu" role="menu" hidden>
-                    {% for s in all_structures %}
-                    <li class="sv-struct-picker-item sv-overlay-item" role="menuitemcheckbox" aria-checked="false"
-                        data-overlay-id="{{ s.id }}"{% if s.is_active %} hidden{% endif %}>
-                        <span class="sv-overlay-swatch" aria-hidden="true"></span>
-                        <span class="sv-struct-picker-item-label">{{ s.short_method }}{% if s.display_code %} · {{ s.display_code }}{% endif %}</span>
-                        <span class="sv-struct-picker-item-res sv-overlay-status"></span>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <button type="button" class="sv-tb-btn" id="sv-compare-btn" aria-pressed="false" hidden
-                    title="{% trans 'Show the overlaid structures next to the one in view, rotating together' %}">
-                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="3" width="13" height="10" rx="1.5"/><path d="M8 3v10"/></svg>
-                <span class="sv-tb-label">{% trans "Side by side" %}</span>
-            </button>
-            {% endif %}
-
-            <div class="sv-tb-sep" aria-hidden="true"></div>
-
-            {# VMD download — href updated by JS when switching structures #}
-            <a href="{% url 'tpwebapp:structure_export' structure.id %}" id="sv-vmd-link" data-no-page-loader
-               class="sv-tb-btn sv-download-link" title="{% trans 'Download a script for VMD, free desktop software, to view this structure with its pockets' %}">
-                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
-                    <path d="M8 2v8M5 7l3 3 3-3M2 13h12"/>
-                </svg>
-                <span class="sv-tb-label">VMD</span>
-            </a>
-
-            {# Sidebar toggle — mobile only, opens the structure-details panel as an overlay #}
-            <div class="sv-tb-sep" aria-hidden="true"></div>
-            <button type="button" class="sv-tb-btn sv-sidebar-toggle-btn" id="sv-sidebar-toggle-btn"
-                    aria-controls="sv-sidebar" aria-expanded="false"
-                    title="{% trans 'Show structure details' %}" aria-label="{% trans 'Show structure details' %}">
-                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="8" cy="8" r="6.5"/><path d="M8 7.2v4M8 5.2v.01"/>
-                </svg>
-                <span class="sv-tb-label">{% trans "Info" %}</span>
-            </button>
-
-            {# Settings — see what's currently on screen and customize colors #}
-            <div class="sv-tb-sep" aria-hidden="true"></div>
-            <button type="button" class="sv-tb-btn" id="sv-settings-btn"
-                    aria-haspopup="dialog" aria-controls="viewer-settings-modal"
-                    title="{% trans 'Layer summary and color settings' %}">
-                <span class="sv-tb-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
-                <span class="sv-tb-label">{% trans "Settings" %}</span>
             </button>
 
         </nav>
@@ -669,6 +663,10 @@ function jsloaded() {
             var isActive = btn.getAttribute("data-color-mode") === colorMode;
             btn.classList.toggle("is-active", isActive);
             btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+            if (isActive) {
+                var colorLabel = document.getElementById("sv-color-label");
+                if (colorLabel) colorLabel.textContent = btn.textContent.trim();
+            }
         });
         // Each legend only means anything while its own palette is actually
         // on screen.
@@ -1598,6 +1596,48 @@ function jsloaded() {
         setLoadingNoteVisible(false);
     }
 
+    /* Menus of the top bar open downward, those of the bottom toolbar upward;
+       either way they line up with their button's left edge. */
+    function placeMenu(menu, btn) {
+        var rect = btn.getBoundingClientRect();
+        var below = rect.top < window.innerHeight / 2;
+        menu.style.top = below ? (rect.bottom + 6) + "px" : "";
+        menu.style.bottom = below ? "" : (window.innerHeight - rect.top + 6) + "px";
+        menu.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - menu.offsetWidth - 8)) + "px";
+        menu.style.right = "";
+    }
+
+    /* Color menu (bottom toolbar): the options are the .js-structure-color
+       buttons, wired like before; picking one also closes the menu. */
+    (function () {
+        var btn  = document.getElementById("sv-color-btn");
+        var menu = document.getElementById("sv-color-menu");
+        if (!btn || !menu) return;
+        document.body.appendChild(menu);
+        function close() {
+            menu.hidden = true;
+            btn.setAttribute("aria-expanded", "false");
+        }
+        btn.addEventListener("click", function () {
+            var open = !menu.hidden;
+            menu.hidden = open;
+            btn.setAttribute("aria-expanded", open ? "false" : "true");
+            if (!open) placeMenu(menu, btn);
+        });
+        menu.addEventListener("click", function (ev) {
+            if (ev.target.closest(".js-structure-color:not(:disabled)")) close();
+        });
+        document.addEventListener("click", function (ev) {
+            if (!btn.contains(ev.target) && !menu.contains(ev.target)) close();
+        });
+        document.addEventListener("keydown", function (ev) {
+            if (ev.key === "Escape" && !menu.hidden) {
+                close();
+                btn.focus();
+            }
+        });
+    })();
+
     /* Struct picker toggle */
     (function () {
         var btn  = document.getElementById("sv-struct-picker-btn");
@@ -1606,13 +1646,8 @@ function jsloaded() {
         document.body.appendChild(menu);
         btn.addEventListener("click", function () {
             var open = !menu.hidden;
-            if (!open) {
-                var rect = btn.getBoundingClientRect();
-                menu.style.top    = "";
-                menu.style.bottom = (window.innerHeight - rect.top + 6) + "px";
-                menu.style.right  = (window.innerWidth - rect.right) + "px";
-            }
             menu.hidden = open;
+            if (!open) placeMenu(menu, btn);
             btn.setAttribute("aria-expanded", open ? "false" : "true");
         });
         menu.addEventListener("click", function (ev) {
@@ -1688,7 +1723,7 @@ function jsloaded() {
         Object.keys(overlayComponents).forEach(function (id) {
             overlayComponents[id].setVisibility(!splitView);
         });
-        if (compareBtn) compareBtn.hidden = !hasOverlays();
+        if (compareLayout) compareLayout.hidden = !hasOverlays();
         if (splitView) renderCompare();
         syncMainCartoon();
         var countEl = document.getElementById("sv-overlay-count");
@@ -1767,7 +1802,8 @@ function jsloaded() {
        or zooming either panel moves both. ---- */
     var splitView = false;
     var compareStage = null;
-    var compareBtn = document.getElementById("sv-compare-btn");
+    var compareLayout = document.getElementById("sv-overlay-layout");
+    var layoutButtons = Array.from(document.querySelectorAll(".js-compare-layout"));
     var compareViewport = document.getElementById("viewport-compare");
     var compareCaptions = document.getElementById("sv-compare-captions");
     var compareRenderToken = 0;
@@ -1862,7 +1898,11 @@ function jsloaded() {
         if (splitCanvasEl) splitCanvasEl.classList.toggle("is-split", splitView);
         if (compareViewport) compareViewport.hidden = !splitView;
         if (compareCaptions) compareCaptions.hidden = !splitView;
-        if (compareBtn) compareBtn.setAttribute("aria-pressed", splitView ? "true" : "false");
+        layoutButtons.forEach(function (b) {
+            var on = (b.getAttribute("data-layout") === "split") === splitView;
+            b.classList.toggle("is-active", on);
+            b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
         Object.keys(overlayComponents).forEach(function (id) {
             overlayComponents[id].setVisibility(!splitView);
         });
@@ -1883,22 +1923,18 @@ function jsloaded() {
     }
 
     var splitCanvasEl = document.getElementById("sv-canvas");
-    if (compareBtn) {
-        compareBtn.addEventListener("click", function () {
-            setSplitView(!splitView);
+    layoutButtons.forEach(function (b) {
+        b.addEventListener("click", function () {
+            setSplitView(b.getAttribute("data-layout") === "split");
         });
-    }
+    });
 
     if (overlayBtn && overlayMenu) {
         document.body.appendChild(overlayMenu);
         overlayBtn.addEventListener("click", function () {
             var open = !overlayMenu.hidden;
-            if (!open) {
-                var rect = overlayBtn.getBoundingClientRect();
-                overlayMenu.style.bottom = (window.innerHeight - rect.top + 6) + "px";
-                overlayMenu.style.right = (window.innerWidth - rect.right) + "px";
-            }
             overlayMenu.hidden = open;
+            if (!open) placeMenu(overlayMenu, overlayBtn);
             overlayBtn.setAttribute("aria-expanded", open ? "false" : "true");
         });
         overlayMenu.addEventListener("click", function (ev) {
