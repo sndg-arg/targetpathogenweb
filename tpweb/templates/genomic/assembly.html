@@ -29,7 +29,7 @@
                 <div class="genome-hero-content tp-view-head-copy">
                     <p class="tp-view-eyebrow genome-hero-eyebrow">{% trans "Bacterial genome" %}</p>
                     {% with g=assembly.internal_name|genome_info %}
-                    <h1 class="tp-view-title" title="{{ assembly.description }}">{% if g.organism %}<i>{{ g.organism }}</i>{% if g.strain %} ({{ g.strain }}){% endif %}{% else %}{{ assembly.name }}{% endif %}</h1>
+                    <h1 class="tp-view-title" title="{{ assembly.description }}">{% if g.organism %}<span class="tp-binomial">{{ g.organism }}</span>{% if g.strain %} ({{ g.strain }}){% endif %}{% else %}{{ assembly.name }}{% endif %}</h1>
                     {% if g.accession %}<p class="genome-accession">{% trans "NCBI accession" %} <code>{{ g.accession }}</code></p>{% endif %}
                     {% endwith %}
                     {% if workspace_metrics.has_curated_data %}

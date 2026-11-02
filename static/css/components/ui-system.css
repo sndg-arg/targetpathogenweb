@@ -388,6 +388,11 @@
     margin-top: var(--tp-space-2);
 }
 
+/* Species (see /design): Genus species in italics, the strain upright. */
+.tp-binomial {
+    font-style: italic;
+}
+
 /* Code block: a command, a log or a long identifier (SMILES, InChI). */
 .tp-code-block {
     display: block;
