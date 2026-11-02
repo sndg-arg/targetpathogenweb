@@ -177,7 +177,15 @@
 }
 
 /* Identity cell: Species (strain) on top, a quiet meta line under it
-   (accession · Curated · Restricted), no chips. */
+   (accession · Curated · Restricted), no chips. As wide as its longest
+   name; the figure columns share the rest evenly. */
+.genome-list-card .table thead th:first-child,
+.genome-list-card .table tbody td.genomes-name {
+    width: 1%;
+    white-space: nowrap;
+    padding-right: var(--tp-space-6);
+}
+
 .genomes-name-main {
     display: flex;
     align-items: center;
@@ -298,6 +306,8 @@ code.genomes-meta-item {
 }
 
 .genome-status-note {
+    /* Wraps to the name's width instead of widening the column. */
+    white-space: normal;
     margin: var(--tp-space-2) 0 0;
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
