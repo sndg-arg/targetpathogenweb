@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-focus3">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-focus4">
 {% endblock %}
 
 {% block body %}
@@ -1688,12 +1688,12 @@ function jsloaded() {
     var OVERLAY_OPACITY = 1;
     var overlaysShownLast = false;
     // Clicking a legend name while overlaid highlights that structure: it is
-    // drawn full width and solid in its own colour, the rest shrink to thin
-    // faint threads. Where the models agree the threads hide inside the
-    // highlighted cartoon, so only real deviations show (no translucent
-    // patches poking through). "main" is the structure in view.
-    var FOCUS_DIM_OPACITY = 0.4;
-    var FOCUS_DIM_SCALE = 0.3;
+    // drawn full width and solid in its own colour, the rest slimmer and
+    // half transparent. Where the models agree the slimmer ones sit inside
+    // the highlighted cartoon, so what shows is where they deviate (no
+    // translucent patches poking through). "main" is the structure in view.
+    var FOCUS_DIM_OPACITY = 0.6;
+    var FOCUS_DIM_SCALE = 1.0;
     var focusedStructure = null;
     var overlayStyles = {};
     function hasOverlays() {
@@ -1731,6 +1731,7 @@ function jsloaded() {
                 params.scale = STRUCTURE_VIEWER_CONFIG.mainCartoonScale;
             } else {
                 params.opacity = FOCUS_DIM_OPACITY;
+                params.aspectRatio = STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio;
                 params.scale = FOCUS_DIM_SCALE;
             }
         }
