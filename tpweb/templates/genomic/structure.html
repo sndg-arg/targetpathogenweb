@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-focus4">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-focus5">
 {% endblock %}
 
 {% block body %}
@@ -1709,9 +1709,10 @@ function jsloaded() {
     function mainDimmed() {
         return ghostMain() && focusedStructure !== null && focusedStructure !== "main";
     }
-    // The grey ghost only while nothing, or an overlay, is highlighted.
+    // The grey ghost only while nothing is highlighted: once something is,
+    // the structure in view keeps its own colours, solid or dimmed.
     function mainIsGhost() {
-        return ghostMain() && !mainFocused();
+        return ghostMain() && focusedStructure === null;
     }
     function mainCartoonOpacity() {
         if (!ghostMain() || mainFocused()) return 1;
@@ -1757,8 +1758,8 @@ function jsloaded() {
         applyFocus();
     }
     // Overlaid: the structure in view is the grey ghost, so a colour scheme
-    // would change nothing on screen. Say so instead. Highlighting it brings
-    // its colours back, and the menu with them.
+    // would change nothing on screen. Say so instead. Highlighting any
+    // structure brings its colours back, and the menu with them.
     function syncColorLock() {
         var colorBtn = document.getElementById("sv-color-btn");
         if (!colorBtn) return;
@@ -1957,7 +1958,7 @@ function jsloaded() {
         if (main) {
             main.textContent = "";
             // Overlaid: the structure in view is the grey ghost.
-            var mainSwatch = splitView ? "" : tpColor(focusedStructure === "main" ? "--tp-color-structure-cartoon" : "--tp-color-text-soft");
+            var mainSwatch = splitView ? "" : tpColor(focusedStructure !== null ? "--tp-color-structure-cartoon" : "--tp-color-text-soft");
             main.appendChild(legendEntry("main", mainSwatch, itemLabel(activeItem)));
         }
         if (other) {
