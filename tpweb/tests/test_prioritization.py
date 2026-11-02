@@ -132,6 +132,14 @@ class SmallScoreDisplayTests(SimpleTestCase):
         self.assertEqual(score_metric_display("0.196", "grn_knockout_score"), "0.196")
         self.assertEqual(score_metric_display("0", "grn_knockout_score"), "0.000")
 
+    def test_protein_page_scores_never_round_to_zero(self):
+        from tpweb.services.protein_summary import _format_knockout_score, _format_score_value
+
+        self.assertEqual(_format_score_value("0.0003059"), "3.06e-04")
+        self.assertEqual(_format_score_value("0.25"), "0.25")
+        self.assertEqual(_format_knockout_score("0.0042"), "0.004")
+        self.assertEqual(_format_knockout_score("0.0003059"), "3.06e-04")
+
     def test_uploaded_grn_columns_get_the_shared_help(self):
         from types import SimpleNamespace
 

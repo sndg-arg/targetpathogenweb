@@ -309,9 +309,14 @@ def _format_score_value(value):
     if not value:
         return ""
     try:
-        return f"{float(value.replace(',', '.')):.3f}".rstrip("0").rstrip(".")
+        number = float(value.replace(",", "."))
     except (TypeError, ValueError):
         return value
+    # Below 0.001 three decimals would read 0: switch to 1.23e-04, like the
+    # protein table (custom_tags.score_metric_display).
+    if 0 < abs(number) < 0.001:
+        return f"{number:.2e}"
+    return f"{number:.3f}".rstrip("0").rstrip(".")
 
 
 def _format_network_centrality(value):
@@ -582,7 +587,7 @@ def _format_knockout_score(value):
     number = _float_or_none(value)
     if number is None:
         return value
-    return f"{number:.2e}" if 0 < abs(number) < 0.01 else f"{number:.3f}"
+    return f"{number:.2e}" if 0 < abs(number) < 0.001 else f"{number:.3f}"
 
 
 def build_gates_regulatory(raw_scores):
