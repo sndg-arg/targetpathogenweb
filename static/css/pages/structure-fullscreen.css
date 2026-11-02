@@ -1577,27 +1577,8 @@ body.viewer-settings-open { overflow: hidden; }
     outline-offset: -2px;
 }
 
-/* Compare menu: the layout switch under the list, once something is checked. */
-.sv-overlay-layout {
-    margin: var(--tp-space-1) 0 0;
-    padding: var(--tp-space-2) var(--tp-space-2) var(--tp-space-1);
-    border-top: 1px solid var(--sv-overlay-border);
-    list-style: none;
-    /* Pinned to the bottom of the menu: a long list scrolls under it. */
-    position: sticky;
-    bottom: calc(-1 * var(--tp-space-1));
-    background: var(--sv-overlay-bg);
-}
-
-.sv-overlay-layout[hidden] {
+/* Comparison layout: its own switch in the top bar, next to Compare,
+   shown once something is being compared. */
+.sv-compare-layout[hidden] {
     display: none;
-}
-
-.sv-overlay-layout .sv-mode-group {
-    display: flex;
-}
-
-.sv-overlay-layout .sv-mode-btn {
-    flex: 1;
-    justify-content: center;
 }

@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-sticky">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-layout">
 {% endblock %}
 
 {% block body %}
@@ -73,13 +73,13 @@
                             <span class="sv-struct-picker-item-res sv-overlay-status"></span>
                         </li>
                         {% endfor %}
-                        <li class="sv-overlay-layout" id="sv-overlay-layout" role="none" hidden>
-                            <div class="sv-mode-group" role="group" aria-label="{% trans 'Layout' %}">
-                                <button type="button" class="sv-mode-btn is-active js-compare-layout" data-layout="overlay" aria-pressed="true">{% trans "Overlaid" %}</button>
-                                <button type="button" class="sv-mode-btn js-compare-layout" data-layout="split" aria-pressed="false">{% trans "Side by side" %}</button>
-                            </div>
-                        </li>
                     </ul>
+                </div>
+
+                {# How to compare: shown once something is checked in Compare #}
+                <div class="sv-mode-group sv-compare-layout" id="sv-overlay-layout" role="group" aria-label="{% trans 'Comparison layout' %}" hidden>
+                    <button type="button" class="sv-mode-btn is-active js-compare-layout" data-layout="overlay" aria-pressed="true" title="{% trans 'One on top of the other' %}">{% trans "Overlaid" %}</button>
+                    <button type="button" class="sv-mode-btn js-compare-layout" data-layout="split" aria-pressed="false" title="{% trans 'Next to each other, rotating together' %}">{% trans "Side by side" %}</button>
                 </div>
                 {% else %}
                 <span class="sv-meta-pill" id="sv-topbar-method" {% if not structure.method %}hidden{% endif %}>{{ structure.method }}</span>
