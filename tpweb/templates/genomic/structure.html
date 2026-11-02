@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-focus">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-focus2">
 {% endblock %}
 
 {% block body %}
@@ -1689,7 +1689,7 @@ function jsloaded() {
     var overlaysShownLast = false;
     // Clicking a legend name while overlaid highlights that structure: it
     // goes solid and the rest fade right back. "main" is the structure in view.
-    var FOCUS_DIM_OPACITY = 0.12;
+    var FOCUS_DIM_OPACITY = 0.3;
     var focusedStructure = null;
     var overlayStyles = {};
     function hasOverlays() {
