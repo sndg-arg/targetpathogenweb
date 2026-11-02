@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-viewer">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-sticky">
 {% endblock %}
 
 {% block body %}
@@ -1605,6 +1605,9 @@ function jsloaded() {
         menu.style.bottom = below ? "" : (window.innerHeight - rect.top + 6) + "px";
         menu.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - menu.offsetWidth - 8)) + "px";
         menu.style.right = "";
+        // Never taller than the room left on screen; the list scrolls instead.
+        var room = below ? window.innerHeight - rect.bottom - 16 : rect.top - 16;
+        menu.style.maxHeight = Math.max(160, Math.min(320, room)) + "px";
     }
 
     /* Color menu (bottom toolbar): the options are the .js-structure-color

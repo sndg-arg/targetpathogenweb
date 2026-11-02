@@ -1583,6 +1583,10 @@ body.viewer-settings-open { overflow: hidden; }
     padding: var(--tp-space-2) var(--tp-space-2) var(--tp-space-1);
     border-top: 1px solid var(--sv-overlay-border);
     list-style: none;
+    /* Pinned to the bottom of the menu: a long list scrolls under it. */
+    position: sticky;
+    bottom: calc(-1 * var(--tp-space-1));
+    background: var(--sv-overlay-bg);
 }
 
 .sv-overlay-layout[hidden] {
