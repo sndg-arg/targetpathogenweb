@@ -1,3 +1,5 @@
+import re
+
 from django.db.models import Q
 
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
@@ -59,10 +61,41 @@ GRN_COLUMN_HELP = {
 }
 
 
-def column_help(score_param):
-    """The column's own description, else the shared help for its name."""
+def _help_key(name):
+    """Spelling-insensitive key: GRN Category / grn-category / GRN_Category."""
+    return re.sub(r"[\s\-]+", "_", str(name or "").strip().lower())
+
+
+def shared_column_help(user=None):
+    """{normalized column name: description} from the columns that have one
+    and that this user may see (system, public, shared to a genome, or their
+    own). Lets a description written on one upload explain the same column in
+    every strain, without leaking an "Only me" column's text."""
+    visible = Q(user__isnull=True) | Q(user__username=PUBLIC_WORKSPACE_USERNAME)
+    visible |= Q(genome_shares__isnull=False)
+    if user is not None and getattr(user, "is_authenticated", False):
+        visible |= Q(user=user)
+    rows = (
+        ScoreParam.objects.filter(visible)
+        .exclude(description="")
+        .order_by("pk")
+        .values_list("name", "description")
+        .distinct()
+    )
+    help_by_name = {}
+    for name, description in rows:
+        text = (description or "").strip()
+        if text:
+            help_by_name.setdefault(_help_key(name), text)
+    return help_by_name
+
+
+def column_help(score_param, shared_help=None):
+    """The column's own description, else one written for a column of the same
+    name elsewhere (shared_column_help), else the built-in GRN help."""
     description = (score_param.description or "").strip()
-    return description or GRN_COLUMN_HELP.get(str(score_param.name).strip().lower(), "")
+    key = _help_key(score_param.name)
+    return description or (shared_help or {}).get(key) or GRN_COLUMN_HELP.get(key, "")
 
 
 SYSTEM_SCORE_PARAM_DEFINITIONS = {

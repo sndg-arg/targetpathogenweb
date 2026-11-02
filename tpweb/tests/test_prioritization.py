@@ -141,3 +141,8 @@ class SmallScoreDisplayTests(SimpleTestCase):
         self.assertEqual(column_help(blank), GATES_REGULATORY_HELP["grn_role"])
         own = SimpleNamespace(name="GRN_category", description="Her text")
         self.assertEqual(column_help(own), "Her text")
+        # A description written on another upload of the same column wins
+        # over the built-in text, whatever the spelling of the name.
+        spaced = SimpleNamespace(name="GRN Category", description="")
+        self.assertEqual(column_help(spaced, {"grn_category": "Her text"}), "Her text")
+        self.assertEqual(column_help(spaced), GATES_REGULATORY_HELP["grn_role"])

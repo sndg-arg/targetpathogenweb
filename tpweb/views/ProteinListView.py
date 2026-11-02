@@ -103,6 +103,7 @@ from tpweb.services.custom_param_sharing import (
 from tpweb.services.score_params import (
     column_help,
     genome_score_param_names,
+    shared_column_help,
     visible_score_params_queryset,
 )
 from tpweb.services.structure_sources import (
@@ -698,6 +699,7 @@ class ProteinListView(View):
         structure_choices=None,
         function_data=None,
         shown_column_names=None,
+        shared_help=None,
     ):
         selected_option_ids = {
             str(parameter.get("id"))
@@ -759,7 +761,7 @@ class ProteinListView(View):
                         "id": score_param.pk,
                         "name": score_param.name,
                         "label": param_label,
-                        "description": score_param.description or "",
+                        "description": column_help(score_param, shared_help),
                         "type": "numeric",
                         "placeholder": ph,
                         "placeholder_max": ph_max,
@@ -845,7 +847,7 @@ class ProteinListView(View):
                     "id": score_param.pk,
                     "name": score_param.name,
                     "label": param_label,
-                    "description": score_param.description or "",
+                    "description": column_help(score_param, shared_help),
                     "type": "categorical",
                     "options": options,
                     "display_mode": display_mode,
@@ -1567,8 +1569,14 @@ class ProteinListView(View):
             if name in visible_score_param_by_name
         ]
         score_dict, tcolumns = build_score_dict_and_columns(ordered_params)
+        shared_help = (
+            shared_column_help(request.user)
+            if any(not (p.description or "").strip() for p in ordered_params)
+            else {}
+        )
         selected_col_descriptions = {
-            score_param.name: column_help(score_param) for score_param in ordered_params
+            score_param.name: column_help(score_param, shared_help)
+            for score_param in ordered_params
         }
         if "Score" in tcolumns:
             selected_col_descriptions["Score"] = (
@@ -2267,6 +2275,7 @@ class ProteinListView(View):
             structure_choices=structure_source_choices,
             function_data=function_data,
             shown_column_names=set(selected_column_names),
+            shared_help=shared_column_help(request.user),
         )
 
         # Pagination info
