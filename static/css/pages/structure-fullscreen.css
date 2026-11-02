@@ -114,6 +114,24 @@ body:has(.sv-root) { overflow: hidden; }
     gap: var(--tp-space-1);
 }
 
+.sv-compare-caption {
+    align-items: center;
+}
+
+.sv-compare-caption > .sv-overlay-swatch {
+    margin-right: var(--tp-space-1);
+}
+
+/* Overlaid: one legend line, the ghost first, then each overlay colour. */
+.sv-compare-captions.is-overlaid {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.sv-compare-captions.is-overlaid .sv-compare-caption + .sv-compare-caption {
+    padding-left: 0;
+}
+
 @media (max-width: 700px) {
     .sv-canvas.is-split #viewport {
         right: 0;

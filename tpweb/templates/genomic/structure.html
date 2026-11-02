@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-layout">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-legend">
 {% endblock %}
 
 {% block body %}
@@ -106,7 +106,7 @@
                 <button type="button" class="sv-tb-btn" id="sv-settings-btn"
                         aria-haspopup="dialog" aria-controls="viewer-settings-modal"
                         aria-label="{% trans 'Viewer settings' %}" title="{% trans 'Layer summary and color settings' %}">
-                    <span class="sv-tb-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
+                    <span class="sv-tb-icon" aria-hidden="true">{% include "components/icons/gear.html" %}</span>
                 </button>
             </div>
         </header>
@@ -1727,6 +1727,11 @@ function jsloaded() {
             overlayComponents[id].setVisibility(!splitView);
         });
         if (compareLayout) compareLayout.hidden = !hasOverlays();
+        if (compareCaptions) {
+            compareCaptions.hidden = !hasOverlays();
+            compareCaptions.classList.toggle("is-overlaid", !splitView);
+            if (hasOverlays()) updateCompareCaptions();
+        }
         if (splitView) renderCompare();
         syncMainCartoon();
         var countEl = document.getElementById("sv-overlay-count");
@@ -1851,7 +1856,17 @@ function jsloaded() {
         var main = document.getElementById("sv-compare-caption-main");
         var other = document.getElementById("sv-compare-caption-overlay");
         var activeItem = document.querySelector('.sv-struct-picker-item[data-id="' + activeStructureId + '"]');
-        if (main) main.textContent = itemLabel(activeItem);
+        if (main) {
+            main.textContent = "";
+            if (!splitView) {
+                // Overlaid: the structure in view is the grey ghost.
+                var ghost = document.createElement("span");
+                ghost.className = "sv-overlay-swatch";
+                ghost.style.background = tpColor("--tp-color-text-soft");
+                main.appendChild(ghost);
+            }
+            main.appendChild(document.createTextNode(itemLabel(activeItem)));
+        }
         if (other) {
             other.textContent = "";
             Object.keys(overlayComponents).forEach(function (id) {
@@ -1900,7 +1915,11 @@ function jsloaded() {
         splitView = next;
         if (splitCanvasEl) splitCanvasEl.classList.toggle("is-split", splitView);
         if (compareViewport) compareViewport.hidden = !splitView;
-        if (compareCaptions) compareCaptions.hidden = !splitView;
+        if (compareCaptions) {
+            compareCaptions.hidden = !hasOverlays();
+            compareCaptions.classList.toggle("is-overlaid", !splitView);
+            updateCompareCaptions();
+        }
         layoutButtons.forEach(function (b) {
             var on = (b.getAttribute("data-layout") === "split") === splitView;
             b.classList.toggle("is-active", on);
@@ -1918,6 +1937,8 @@ function jsloaded() {
         syncMainCartoon();
         window.requestAnimationFrame(function () {
             stage.handleResize();
+            // Re-frame for the new panel width; the other camera follows.
+            if (activeComponent) activeComponent.autoView(0);
             if (splitView && compareStage) {
                 compareStage.handleResize();
                 renderCompare();
