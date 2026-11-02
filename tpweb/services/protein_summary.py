@@ -590,15 +590,31 @@ def _format_knockout_score(value):
     return f"{number:.2e}" if 0 < abs(number) < 0.001 else f"{number:.3f}"
 
 
-def build_gates_regulatory(raw_scores):
+def genome_has_grn_analysis(biodatabase_id):
+    """Whether the curated GRN analysis was loaded for this proteome, so a
+    protein without values reads "not in the top 400" instead of nothing."""
+    cache_key = f"Target:genome_has_grn:{biodatabase_id}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+    has_grn = ScoreParamValue.objects.filter(
+        bioentry__biodatabase_id=biodatabase_id, score_param__name="grn_role"
+    ).exists()
+    cache.set(cache_key, has_grn, OVERVIEW_CACHE_TTL_SECONDS)
+    return has_grn
+
+
+def build_gates_regulatory(raw_scores, genome_has_grn=False):
     """The Gates-project curated gene regulatory network (GRN) reading
     (load_gates_regulatory_score). Only the top-400 GRN genes of an analyzed
-    genome have values; any other protein gets None."""
+    genome have values: in such a genome any other protein gets
+    {"not_in_top": True}; in a genome without the analysis, None."""
     role = _raw_score(raw_scores, "grn_role")
     knockout = _raw_score(raw_scores, "grn_knockout_score")
     if not role and not knockout:
-        return None
+        return {"not_in_top": True, "help": GATES_REGULATORY_HELP} if genome_has_grn else None
     return {
+        "not_in_top": False,
         "role": role,
         "knockout": _format_knockout_score(knockout) if knockout else "",
         "transcription_factor": _raw_score(raw_scores, "grn_transcription_factor") == "Y",
@@ -1001,7 +1017,32 @@ def build_prioritization(
 
     # Regulatory (curated)
     grn = gates_regulatory
-    if grn:
+    if grn and grn["not_in_top"]:
+        groups.append(
+            {
+                "key": "regulatory",
+                "title": "Regulatory",
+                "question": "How central is the gene in the regulatory network?",
+                "verdict": "No data",
+                "summary": "Regulatory",
+                "summary_value": "No data",
+                "tone": "idle",
+                "items": [
+                    {
+                        "label": "GRN analysis",
+                        "kind": "text",
+                        "value": "Not in the top 400",
+                        "note": (
+                            "The curated regulatory network analysis covers only the 400 "
+                            "highest-ranked genes of this genome; this gene is not among them."
+                        ),
+                        "tooltip": grn["help"]["grn_knockout_score"],
+                    }
+                ],
+                "badge": "Curated",
+            }
+        )
+    elif grn:
         help_text = grn["help"]
         items = []
         if grn["role"]:
@@ -1785,7 +1826,9 @@ def build_protein_executive_context(
     target_profile = build_target_profile(raw_scores, microbiome_context=microbiome_context)
     metabolic_context = build_metabolic_context(protein, raw_scores)
     gates_metabolic_priority = build_gates_metabolic_priority(raw_scores)
-    gates_regulatory = build_gates_regulatory(raw_scores)
+    gates_regulatory = build_gates_regulatory(
+        raw_scores, genome_has_grn=genome_has_grn_analysis(protein.biodatabase_id)
+    )
 
     if binders is None:
         binders = create_binders_dict(protein, search_query=search_query, structures=structures)

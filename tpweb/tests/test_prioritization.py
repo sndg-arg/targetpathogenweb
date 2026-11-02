@@ -92,6 +92,15 @@ class PrioritizationTests(SimpleTestCase):
         self.assertFalse(peripheral["is_central"])
         self.assertIsNone(build_gates_regulatory({"grn_transcription_factor": "N"}))
 
+    def test_genes_outside_the_top_400_say_so_in_an_analyzed_genome(self):
+        grn = build_gates_regulatory({}, genome_has_grn=True)
+        result = build_prioritization({}, [], None, None, None, None, grn)
+        (group,) = result["groups"]
+        self.assertEqual(
+            (group["key"], group["verdict"], group["tone"]), ("regulatory", "No data", "idle")
+        )
+        self.assertEqual(group["items"][0]["value"], "Not in the top 400")
+
 
 class RegulatoryImportTests(SimpleTestCase):
     def test_uploaded_values_map_to_curated_ones(self):
