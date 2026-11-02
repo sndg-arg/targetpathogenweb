@@ -176,67 +176,119 @@
     background: var(--tp-color-brand-100) !important;
 }
 
-/* Name on its own line, Curated / Restricted side by side under it. */
-.genomes-name-stack {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--tp-space-2);
-}
-
+/* Identity cell: Species (strain) on top, a quiet meta line under it
+   (accession · Curated · Restricted), no chips. */
 .genomes-name-main {
-    flex-basis: 100%;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: var(--tp-space-2);
-}
-
-.genome-curated-badge {
-    align-self: flex-start;
 }
 
 .genomes-name a {
-    /* Species (strain) on one line; the badges wrap below it. */
     white-space: nowrap;
     font-weight: 600;
     color: var(--tp-color-brand-900);
     text-decoration: none;
 }
 
-.genomes-scope-cell {
-    white-space: nowrap;
-    width: 112px;
-    text-align: center;
+.genomes-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    margin: 2px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.4;
 }
 
-.genomes-scope-cell .tp-chip {
-    vertical-align: middle;
+.genomes-meta:empty {
+    display: none;
 }
 
-.genomes-scope-head {
-    width: 112px;
-    text-align: center;
+.genomes-meta-item + .genomes-meta-item::before {
+    content: "·";
+    margin: 0 var(--tp-space-2);
+    color: var(--tp-color-border-strong);
+    font-family: var(--tp-font-body);
 }
 
+code.genomes-meta-item {
+    padding: 0;
+    background: none;
+    color: var(--tp-color-text-secondary);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+}
+
+/* The one accent in the row. */
+.genomes-meta-curated {
+    color: var(--tp-color-link);
+    font-weight: 600;
+}
+
+/* Figures: right-aligned, same-width digits so columns line up. */
 .genome-metric-head,
 .genome-metric-cell {
-    width: 106px;
-    text-align: center;
+    text-align: right;
     white-space: nowrap;
 }
 
-.genome-actions-head,
-.genome-actions-cell {
-    text-align: center;
+.genome-metric-cell {
+    color: var(--tp-color-text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.genome-metric-head[title] {
+    cursor: help;
+}
+
+/* Straight to the protein table; quiet until the row is hovered. */
+.genome-go-head,
+.genome-go-cell {
+    width: 1%;
+    text-align: right;
     white-space: nowrap;
 }
 
-.genome-actions-inline {
+.genomes-go {
     display: inline-flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-2);
-    justify-content: center;
+    align-items: center;
+    gap: var(--tp-space-1);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.genomes-go-icon {
+    display: inline-flex;
+    width: 14px;
+    height: 14px;
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.genomes-go-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.genome-row:hover .genomes-go,
+.genomes-go:focus-visible {
+    color: var(--tp-color-link);
+    text-decoration: none;
+}
+
+.genome-row:hover .genomes-go-icon,
+.genomes-go:focus-visible .genomes-go-icon {
+    transform: translateX(2px);
+}
+
+.genomes-go:focus-visible {
+    outline: none;
+    border-radius: var(--tp-radius-sm);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .genome-status-note {
@@ -343,21 +395,4 @@
     to {
         opacity: 1;
     }
-}
-
-/* NCBI accession, apart from the organism (strain) name. */
-.genomes-accession {
-    white-space: nowrap;
-}
-
-.genomes-accession code {
-    font-family: var(--tp-font-mono);
-    font-size: var(--tp-font-size-sm);
-    color: var(--tp-color-text-secondary);
-    background: none;
-    padding: 0;
-}
-
-.genomes-accession-missing {
-    color: var(--tp-color-text-soft);
 }

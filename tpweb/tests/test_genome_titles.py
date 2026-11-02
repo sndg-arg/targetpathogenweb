@@ -53,3 +53,13 @@ class GenomeInfoTests(TestCase):
 
     def test_unknown_genome_falls_back_to_its_name(self):
         self.assertEqual(genome_info("missing")["title"], "missing")
+
+
+class MegabasesFilterTests(SimpleTestCase):
+    def test_genome_size_reads_in_megabases(self):
+        from tpweb.templatetags.genome_tags import megabases
+
+        self.assertEqual(megabases("5739888"), "5.7 Mb")
+        self.assertEqual(megabases(2167602), "2.2 Mb")
+        self.assertEqual(megabases("85000"), "85 kb")
+        self.assertEqual(megabases(None), "—")
