@@ -1,5 +1,6 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load genome_tags %}
 {% load static %}
 {% load custom_tags %}
 
@@ -28,7 +29,7 @@
             <h1 class="tp-view-title">{% trans "BLAST results" %}</h1>
             <p class="tp-view-lead blast-subtitle">
                 {% if genome_label %}
-                    {% blocktrans with genome=genome_label %}Nucleotide matches for your query in {{ genome }} (e-value ≤ 1e-6).{% endblocktrans %}
+                    {% blocktrans with genome=genome_label|genome_title %}Nucleotide matches for your query in {{ genome }} (e-value ≤ 1e-6).{% endblocktrans %}
                 {% else %}
                     {% trans "Nucleotide matches for your query (e-value ≤ 1e-6)." %}
                 {% endif %}

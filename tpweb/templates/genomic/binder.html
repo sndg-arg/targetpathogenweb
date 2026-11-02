@@ -1,5 +1,6 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load genome_tags %}
 {% load static %}
 
 {% block head %}
@@ -21,7 +22,7 @@
         {% else %}
         {% url 'tpwebapp:genomes_list' as genomes_url %}
         {% url 'tpwebapp:assembly' genome as assembly_url %}
-        {% with crumb_genome="Genome: "|add:assembly_label %}
+        {% with crumb_genome=assembly_label|genome_title %}
         {% with crumb_protein="Protein: "|add:protein.accession %}
         {% with crumb_binder="Ligand: "|add:binder.name %}
         {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein crumb_5_url=protein_url crumb_6_label=crumb_binder %}

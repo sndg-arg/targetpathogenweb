@@ -1,5 +1,6 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load genome_tags %}
 {% load static %}
 {% load custom_tags %}
 
@@ -15,7 +16,7 @@
         {% if blast_locked_to_genome %}
             {% trans "Genomes" as crumb_genomes %}
             {% url 'tpwebapp:genomes_list' as genomes_url %}
-            {% with crumb_genome="Genome: "|add:selected_genome_label %}
+            {% with crumb_genome=selected_genome_label|genome_title %}
             {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=selected_genome_workspace_url crumb_4_label=crumb_blast %}
             {% endwith %}
         {% else %}
@@ -48,7 +49,7 @@
 
             {% if blast_locked_to_genome %}
                 <p class="blast-genome-note">
-                    <strong>{{ selected_genome_label }}</strong>{% if selected_genome_description and selected_genome_description != selected_genome_label %} · {{ selected_genome_description }}{% endif %}
+                    {% with g=selected_genome_label|genome_info %}<strong>{{ g.title }}</strong>{% if g.accession %} · {{ g.accession }}{% endif %}{% endwith %}
                 </p>
             {% endif %}
         </section>
@@ -69,7 +70,7 @@
                             <label class="tp-ui-field-label" for="dropdown">{% trans "Genome" %}</label>
                             <select name="dropdown" id="dropdown" class="form-control tp-ui-control">
                                 {% for option in db_options %}
-                                    <option value="{{ option.value }}" {% if option.value|stringformat:"s" == selected_db_value|stringformat:"s" %}selected{% endif %}>{{ option.label }}</option>
+                                    <option value="{{ option.value }}" {% if option.value|stringformat:"s" == selected_db_value|stringformat:"s" %}selected{% endif %}>{{ option.label|genome_title }}</option>
                                 {% endfor %}
                             </select>
                         </div>

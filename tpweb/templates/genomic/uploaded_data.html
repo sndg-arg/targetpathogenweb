@@ -1,5 +1,6 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load genome_tags %}
 {% load custom_tags %}
 {% load static %}
 
@@ -15,7 +16,7 @@
         {% url 'tpwebapp:index' as index_url %}
         {% url 'tpwebapp:genomes_list' as genomes_url %}
         {% url 'tpwebapp:assembly' genome as assembly_url %}
-        {% with crumb_genome="Genome: "|add:assembly_label %}
+        {% with crumb_genome=assembly_label|genome_title %}
         {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_data %}
         {% endwith %}
     </div>

@@ -1,5 +1,6 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load genome_tags %}
 {% load static %}
 
 {% block head %}
@@ -78,7 +79,7 @@
                 <div class="settings-restrict-field">
                     <select name="genome_name" class="form-control tp-ui-control" aria-label="{% trans 'Genome to restrict' %}"{% if not restrictable_genomes %} disabled{% endif %}>
                         <option value="">{% if restrictable_genomes %}{% trans "Choose a genome to restrict" %}{% else %}{% trans "Every shared genome is already restricted" %}{% endif %}</option>
-                        {% for genome in restrictable_genomes %}<option value="{{ genome.name }}">{{ genome.label }}</option>{% endfor %}
+                        {% for genome in restrictable_genomes %}<option value="{{ genome.name }}">{{ genome.label|genome_title }}</option>{% endfor %}
                     </select>
                 </div>
                 <button type="submit" class="btn tp-btn tp-btn--primary"{% if not restrictable_genomes %} disabled{% endif %}>{% trans "Restrict" %}</button>
@@ -140,7 +141,7 @@
                     <tbody>
                         {% for entry in page_obj %}
                         <tr>
-                            <td class="settings-name">{{ entry.label }}</td>
+                            <td class="settings-name">{{ entry.label|genome_title }}</td>
                             <td class="settings-muted">{{ entry.obj.restricted_by.name|default:entry.obj.restricted_by.get_username|default:"—" }}</td>
                             <td class="settings-col-action">
                                 <form method="post" data-no-page-loader action="{% url 'tpwebapp:settings' %}?{{ settings_return_query }}">

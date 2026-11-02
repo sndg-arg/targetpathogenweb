@@ -340,3 +340,20 @@
         opacity: 1;
     }
 }
+
+/* NCBI accession, apart from the organism (strain) name. */
+.genomes-accession {
+    white-space: nowrap;
+}
+
+.genomes-accession code {
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-secondary);
+    background: none;
+    padding: 0;
+}
+
+.genomes-accession-missing {
+    color: var(--tp-color-text-soft);
+}

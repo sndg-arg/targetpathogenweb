@@ -1,5 +1,6 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load genome_tags %}
 {% load static %}
 
 {% block head %}
@@ -14,7 +15,7 @@
         {% trans "Genomes" as crumb_genomes %}
         {% url 'tpwebapp:index' as index_url %}
         {% url 'tpwebapp:genomes_list' as genomes_url %}
-        {% with crumb_genome="Genome: "|add:assembly.name %}
+        {% with crumb_genome=assembly.name|genome_title %}
         {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label="Metabolism" crumb_4_url=metabolism_url crumb_5_label=pathway.name %}
         {% endwith %}
     </div>
@@ -28,7 +29,7 @@
             <div class="genome-hero-content tp-view-head-copy">
                 <p class="tp-view-eyebrow genome-hero-eyebrow">{{ pathway.source }}:{{ pathway.external_id }}</p>
                 <h1 class="tp-view-title">{{ pathway.name }}</h1>
-                <p class="tp-view-lead genome-description">{{ assembly.name }}{% if assembly.description %} - {{ assembly.description }}{% endif %}</p>
+                <p class="tp-view-lead genome-description">{% with g=assembly.name|genome_info %}{{ g.title }}{% if g.accession %} · {{ g.accession }}{% endif %}{% endwith %}</p>
                 <div class="genome-hero-actions">
                     <a href="{{ metabolism_url }}" class="btn tp-btn tp-btn--secondary">{% trans "All pathways" %}</a>
                     <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--secondary">{% trans "Explore proteins" %}</a>

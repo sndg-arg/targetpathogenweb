@@ -1,11 +1,12 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load genome_tags %}
 {% load custom_tags %}
 {% load static %}
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/genome-page.css' %}?v=20261021-split">
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261021-split">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261102-titles">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -14,7 +15,7 @@
         {% trans "Genomes" as crumb_genomes %}
         {% url 'tpwebapp:index' as index_url %}
         {% url 'tpwebapp:genomes_list' as genomes_url %}
-        {% with crumb_genome="Genome: "|add:assembly.name %}
+        {% with crumb_genome=assembly.name|genome_title %}
         {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome %}
         {% endwith %}
     </div>
@@ -27,14 +28,16 @@
             <div class="genome-hero-top tp-view-head">
                 <div class="genome-hero-content tp-view-head-copy">
                     <p class="tp-view-eyebrow genome-hero-eyebrow">{% trans "Bacterial genome" %}</p>
-                    <h1 class="tp-view-title">{{ assembly.name }}</h1>
+                    {% with g=assembly.internal_name|genome_info %}
+                    <h1 class="tp-view-title" title="{{ assembly.description }}">{% if g.organism %}<i>{{ g.organism }}</i>{% if g.strain %} ({{ g.strain }}){% endif %}{% else %}{{ assembly.name }}{% endif %}</h1>
+                    {% if g.accession %}<p class="genome-accession">{% trans "NCBI accession" %} <code>{{ g.accession }}</code></p>{% endif %}
+                    {% endwith %}
                     {% if workspace_metrics.has_curated_data %}
                         <div class="genome-curated-callout">
                             <span class="tp-chip tp-chip--state finished">{% trans "Curated analysis" %}</span>
                             <span class="genome-curated-callout-note">{% trans "Druggability scores from a reviewed external import." %}</span>
                         </div>
                     {% endif %}
-                    {% if assembly.description %}<p class="tp-view-lead genome-description">{{ assembly.description }}</p>{% endif %}
                     <div class="hero-chip-list tp-chip-group">
                         {% for fact in overview.primary_hero_facts %}
                             {% if fact.label != "Annotated features" %}

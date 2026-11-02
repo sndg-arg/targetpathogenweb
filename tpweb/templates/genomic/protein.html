@@ -1,5 +1,6 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load genome_tags %}
 {% load static %}
 {% load custom_tags %}
 
@@ -18,7 +19,7 @@
         {% url 'tpwebapp:genomes_list' as genomes_url %}
         {% url 'tpwebapp:assembly' protein.genome as assembly_url %}
         {% url 'tpwebapp:protein_list' protein.genome as proteins_url %}
-        {% with crumb_genome="Genome: "|add:protein.assembly_label %}
+        {% with crumb_genome=protein.assembly_label|genome_title %}
         {% with crumb_protein="Protein: "|add:protein.accession %}
         {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein %}
         {% endwith %}
@@ -34,7 +35,7 @@
             <div class="protein-hero-top tp-view-head">
                 <div class="protein-hero-content tp-view-head-copy">
                     <p class="tp-view-eyebrow protein-hero-eyebrow">
-                        <a class="protein-hero-eyebrow-genome" href="{{ assembly_url }}" title="{% trans "Open this genome's overview" %}">{{ protein.assembly_label }}</a>
+                        <a class="protein-hero-eyebrow-genome" href="{{ assembly_url }}" title="{% trans "Open this genome's overview" %}">{{ protein.assembly_label|genome_title }}</a>
                         <span class="protein-hero-eyebrow-sep" aria-hidden="true">&middot;</span>
                         {% trans "Protein target profile" %}
                     </p>

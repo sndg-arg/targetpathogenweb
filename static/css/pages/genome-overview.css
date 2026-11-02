@@ -761,3 +761,17 @@
     gap: var(--tp-space-3);
     flex-wrap: wrap;
 }
+
+/* NCBI accession under the organism (strain) title. */
+.genome-accession {
+    margin: var(--tp-space-1) 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.genome-accession code {
+    font-family: var(--tp-font-mono);
+    color: var(--tp-color-text-primary);
+    background: none;
+    padding: 0;
+}
