@@ -40,7 +40,7 @@
                     {% endif %}
                     <div class="hero-chip-list tp-chip-group">
                         {% for fact in overview.primary_hero_facts %}
-                            {% if fact.label != "Annotated features" %}
+                            {% if fact.label != "Annotated features" and fact.label != "Organism" %}
                                 <span class="hero-chip tp-chip">
                                     <strong>{{ fact.label }}:</strong>
                                     <span>{{ fact.value }}</span>

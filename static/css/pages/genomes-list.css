@@ -176,14 +176,16 @@
     background: var(--tp-color-brand-100) !important;
 }
 
+/* Name on its own line, Curated / Restricted side by side under it. */
 .genomes-name-stack {
     display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-wrap: wrap;
+    align-items: center;
     gap: var(--tp-space-2);
 }
 
 .genomes-name-main {
+    flex-basis: 100%;
     display: inline-flex;
     align-items: center;
     flex-wrap: wrap;
@@ -195,6 +197,8 @@
 }
 
 .genomes-name a {
+    /* Species (strain) on one line; the badges wrap below it. */
+    white-space: nowrap;
     font-weight: 600;
     color: var(--tp-color-brand-900);
     text-decoration: none;

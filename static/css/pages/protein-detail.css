@@ -1,5 +1,6 @@
 .protein-hero-eyebrow-genome {
-    font-family: var(--tp-font-mono);
+    /* A species name, not an identifier: body face (see .tp-binomial). */
+    font-family: var(--tp-font-body);
     font-size: var(--tp-font-size-md);
     font-weight: 600;
     letter-spacing: normal;
