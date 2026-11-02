@@ -1600,3 +1600,16 @@ body.viewer-settings-open { overflow: hidden; }
 .sv-compare-layout[hidden] {
     display: none;
 }
+
+/* Side by side uses the whole canvas: the assistant button steps aside
+   until the comparison goes back to one panel. */
+body.sv-split-active .tp-agent-fab,
+body.sv-split-active .tp-agent-fab-ring {
+    display: none;
+}
+
+/* Color menu while overlaid: shown as unavailable, its tooltip says why. */
+.sv-struct-picker-btn[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.55;
+}

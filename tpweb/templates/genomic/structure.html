@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-legend">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-colorlock">
 {% endblock %}
 
 {% block body %}
@@ -1622,6 +1622,7 @@ function jsloaded() {
             btn.setAttribute("aria-expanded", "false");
         }
         btn.addEventListener("click", function () {
+            if (btn.getAttribute("aria-disabled") === "true") return;
             var open = !menu.hidden;
             menu.hidden = open;
             btn.setAttribute("aria-expanded", open ? "false" : "true");
@@ -1698,6 +1699,13 @@ function jsloaded() {
     }
     function syncMainCartoon() {
         var shown = ghostMain();
+        // Overlaid: the structure in view is the grey ghost, so a colour
+        // scheme would change nothing on screen. Say so instead.
+        var colorBtn = document.getElementById("sv-color-btn");
+        if (colorBtn) {
+            colorBtn.setAttribute("aria-disabled", shown ? "true" : "false");
+            colorBtn.title = shown ? "{% trans 'Colors apply to one structure at a time: switch to Side by side or remove the comparison' %}" : "";
+        }
         if (shown === overlaysShownLast) return;
         overlaysShownLast = shown;
         if (typeof window.ngl_set_color_mode !== "function") return;
@@ -1914,6 +1922,8 @@ function jsloaded() {
         if (next === splitView) return;
         splitView = next;
         if (splitCanvasEl) splitCanvasEl.classList.toggle("is-split", splitView);
+        // The assistant button would float over the right-hand panel.
+        document.body.classList.toggle("sv-split-active", splitView);
         if (compareViewport) compareViewport.hidden = !splitView;
         if (compareCaptions) {
             compareCaptions.hidden = !hasOverlays();
