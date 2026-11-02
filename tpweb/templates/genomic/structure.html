@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261026-quiet">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-split">
 {% endblock %}
 
 {% block body %}
@@ -37,6 +37,12 @@
 
         {# NGL viewport — fills the canvas div #}
         <div id="viewport"></div>
+        {# Side by side: the overlays in a second viewport, same camera #}
+        <div id="viewport-compare" class="sv-compare-viewport" hidden></div>
+        <div class="sv-compare-captions" id="sv-compare-captions" hidden>
+            <span class="sv-compare-caption" id="sv-compare-caption-main"></span>
+            <span class="sv-compare-caption" id="sv-compare-caption-overlay"></span>
+        </div>
 
         {# Loading indicator #}
         <p class="sv-loading-note" id="structure-loading-note">
@@ -186,6 +192,11 @@
                     {% endfor %}
                 </ul>
             </div>
+            <button type="button" class="sv-tb-btn" id="sv-compare-btn" aria-pressed="false" hidden
+                    title="{% trans 'Show the overlaid structures next to the one in view, rotating together' %}">
+                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="3" width="13" height="10" rx="1.5"/><path d="M8 3v10"/></svg>
+                <span class="sv-tb-label">{% trans "Side by side" %}</span>
+            </button>
             {% endif %}
 
             <div class="sv-tb-sep" aria-hidden="true"></div>
@@ -1233,6 +1244,7 @@ function jsloaded() {
         setLoadingNoteVisible(true, "{% trans 'Loading 3D structure…' %}");
         setStructurePickerBusy(true);
         stage.removeAllComponents();
+        resetOverlays(structureId);
         // Check the URL ourselves before handing it to NGL: a 404/network
         // failure inside NGL's own NetworkStreamer can throw as an uncaught
         // error that never reaches loadFile()'s promise chain, leaving the
@@ -1345,7 +1357,7 @@ function jsloaded() {
         function colorForMode(mode) {
             // With overlays on, the structure in view is a soft grey ghost so
             // each coloured overlay reads on top of it (see syncMainCartoon).
-            if (hasOverlays()) return tpColor("--tp-color-text-soft");
+            if (ghostMain()) return tpColor("--tp-color-text-soft");
             if (mode === "flat") return tpColor("--tp-color-structure-cartoon") || "#2288a3";
             if (mode === "sstruc") return registerSstrucScheme();
             if (mode === "plddt") return registerPlddtScheme();
@@ -1639,11 +1651,15 @@ function jsloaded() {
     function hasOverlays() {
         return !!overlayComponents && Object.keys(overlayComponents).length > 0;
     }
+    // Superposed mode only: side by side keeps the main model as it is.
+    function ghostMain() {
+        return hasOverlays() && !splitView;
+    }
     function mainCartoonOpacity() {
-        return hasOverlays() ? 0.5 : 1;
+        return ghostMain() ? 0.5 : 1;
     }
     function syncMainCartoon() {
-        var shown = hasOverlays();
+        var shown = ghostMain();
         if (shown === overlaysShownLast) return;
         overlaysShownLast = shown;
         if (typeof window.ngl_set_color_mode !== "function") return;
@@ -1668,6 +1684,12 @@ function jsloaded() {
     }
 
     function updateOverlayCount() {
+        if (splitView && !hasOverlays()) setSplitView(false);
+        Object.keys(overlayComponents).forEach(function (id) {
+            overlayComponents[id].setVisibility(!splitView);
+        });
+        if (compareBtn) compareBtn.hidden = !hasOverlays();
+        if (splitView) renderCompare();
         syncMainCartoon();
         var countEl = document.getElementById("sv-overlay-count");
         if (!countEl) return;
@@ -1737,6 +1759,134 @@ function jsloaded() {
                 if (window.console && console.error) console.error("Unable to overlay structure", overlayId, err);
                 setOverlayItemState(item, false, "{% trans 'Failed' %}");
             });
+    }
+
+    /* ---- Side by side: the overlays in a second NGL stage to the right of
+       the structure in view. They load with the same superposition (same
+       coordinate frame), and the two cameras follow each other, so rotating
+       or zooming either panel moves both. ---- */
+    var splitView = false;
+    var compareStage = null;
+    var compareBtn = document.getElementById("sv-compare-btn");
+    var compareViewport = document.getElementById("viewport-compare");
+    var compareCaptions = document.getElementById("sv-compare-captions");
+    var compareRenderToken = 0;
+    var syncingCamera = false;
+
+    function overlayItem(id) {
+        return overlayMenu ? overlayMenu.querySelector('.sv-overlay-item[data-overlay-id="' + id + '"]') : null;
+    }
+
+    function itemLabel(item) {
+        var label = item && item.querySelector(".sv-struct-picker-item-label");
+        return label ? label.textContent.trim() : "";
+    }
+
+    function followCamera(source, target) {
+        source.viewerControls.signals.changed.add(function () {
+            if (syncingCamera || !splitView) return;
+            syncingCamera = true;
+            target.viewerControls.orient(source.viewerControls.getOrientation());
+            syncingCamera = false;
+        });
+    }
+
+    function ensureCompareStage() {
+        if (compareStage) return compareStage;
+        compareStage = new NGL("viewport-compare", {
+            backgroundColor: tpColor("--sv-viewer-canvas-bg", "#0d1519"),
+            tooltip: false
+        });
+        followCamera(stage, compareStage);
+        followCamera(compareStage, stage);
+        document.addEventListener("tp:themechange", function () {
+            compareStage.setParameters({ backgroundColor: tpColor("--sv-viewer-canvas-bg", "#0d1519") });
+        });
+        window.addEventListener("resize", function () {
+            if (splitView) compareStage.handleResize();
+        });
+        return compareStage;
+    }
+
+    function updateCompareCaptions() {
+        var main = document.getElementById("sv-compare-caption-main");
+        var other = document.getElementById("sv-compare-caption-overlay");
+        var activeItem = document.querySelector('.sv-struct-picker-item[data-id="' + activeStructureId + '"]');
+        if (main) main.textContent = itemLabel(activeItem);
+        if (other) {
+            other.textContent = "";
+            Object.keys(overlayComponents).forEach(function (id) {
+                var item = overlayItem(id);
+                var part = document.createElement("span");
+                part.className = "sv-compare-caption-item";
+                var swatch = document.createElement("span");
+                swatch.className = "sv-overlay-swatch";
+                swatch.style.background = item ? item.getAttribute("data-overlay-color") || "" : "";
+                part.appendChild(swatch);
+                part.appendChild(document.createTextNode(itemLabel(item)));
+                other.appendChild(part);
+            });
+        }
+    }
+
+    function renderCompare() {
+        if (!splitView || !compareStage) return;
+        var token = ++compareRenderToken;
+        var target = activeComponent;
+        compareStage.removeAllComponents();
+        updateCompareCaptions();
+        Object.keys(overlayComponents).forEach(function (id) {
+            var item = overlayItem(id);
+            var color = item ? item.getAttribute("data-overlay-color") : "";
+            compareStage.loadFile(structureUrls[id], { ext: structureFormats[id] || "pdb", defaultRepresentation: false })
+                .then(function (component) {
+                    if (token !== compareRenderToken || !splitView || target !== activeComponent) {
+                        compareStage.removeComponent(component);
+                        return;
+                    }
+                    var sele = overlayFitSele(id);
+                    component.superpose(target, true, sele, overlayFitSele(activeStructureId));
+                    component.addRepresentation("cartoon", { sele: sele, color: color });
+                    compareStage.viewerControls.orient(stage.viewerControls.getOrientation());
+                })
+                .catch(function (err) {
+                    if (window.console && console.error) console.error("Unable to show structure side by side", id, err);
+                });
+        });
+    }
+
+    function setSplitView(on) {
+        var next = !!on && hasOverlays();
+        if (next === splitView) return;
+        splitView = next;
+        if (splitCanvasEl) splitCanvasEl.classList.toggle("is-split", splitView);
+        if (compareViewport) compareViewport.hidden = !splitView;
+        if (compareCaptions) compareCaptions.hidden = !splitView;
+        if (compareBtn) compareBtn.setAttribute("aria-pressed", splitView ? "true" : "false");
+        Object.keys(overlayComponents).forEach(function (id) {
+            overlayComponents[id].setVisibility(!splitView);
+        });
+        if (splitView) {
+            ensureCompareStage();
+        } else if (compareStage) {
+            compareRenderToken += 1;
+            compareStage.removeAllComponents();
+        }
+        syncMainCartoon();
+        window.requestAnimationFrame(function () {
+            stage.handleResize();
+            if (splitView && compareStage) {
+                compareStage.handleResize();
+                renderCompare();
+            }
+        });
+    }
+
+    var splitCanvasEl = document.getElementById("sv-canvas");
+    if (compareBtn) {
+        compareBtn.addEventListener("click", function () {
+            setSplitView(!splitView);
+        });
     }
 
     if (overlayBtn && overlayMenu) {

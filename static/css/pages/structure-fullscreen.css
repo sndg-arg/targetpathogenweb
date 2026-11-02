@@ -66,10 +66,71 @@ body:has(.sv-root) { overflow: hidden; }
     opacity: 1;
 }
 
-#viewport canvas {
+#viewport canvas,
+#viewport-compare canvas {
     width: 100% !important;
     height: 100% !important;
     display: block;
+}
+
+/* Side by side (structure.html setSplitView): the structure in view on the
+   left, its overlays on the right, one camera for both. */
+.sv-canvas.is-split #viewport {
+    right: 50%;
+    width: auto;
+}
+
+.sv-compare-viewport {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 50%;
+    border-left: 1px solid var(--tp-color-border);
+}
+
+.sv-compare-captions {
+    position: absolute;
+    inset: 64px 0 auto 0;
+    z-index: 6;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    pointer-events: none;
+}
+
+.sv-compare-caption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-1) var(--tp-space-3);
+    padding: 0 var(--tp-space-4);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+}
+
+.sv-compare-caption-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-1);
+}
+
+@media (max-width: 700px) {
+    .sv-canvas.is-split #viewport {
+        right: 0;
+        bottom: 50%;
+        height: auto;
+    }
+
+    .sv-compare-viewport {
+        top: 50%;
+        left: 0;
+        border-left: 0;
+        border-top: 1px solid var(--tp-color-border);
+    }
+
+    .sv-compare-captions {
+        display: none;
+    }
 }
 
 /* ── 4. Topbar (floating over canvas) ── */
@@ -325,7 +386,8 @@ body:has(.sv-root) { overflow: hidden; }
 .sv-tb-btn:disabled { opacity: 0.30; cursor: default; pointer-events: none; }
 
 .sv-tb-btn.sv-tb-active,
-.sv-spin-btn[aria-pressed="true"] {
+.sv-spin-btn[aria-pressed="true"],
+#sv-compare-btn[aria-pressed="true"] {
     background: var(--tp-color-primary);
     color: var(--tp-color-on-accent);
     opacity: 1;
