@@ -1343,6 +1343,9 @@ function jsloaded() {
         if (plddtColorButton) plddtColorButton.hidden = !isPredicted;
 
         function colorForMode(mode) {
+            // With overlays on, the structure in view is a soft grey ghost so
+            // each coloured overlay reads on top of it (see syncMainCartoon).
+            if (hasOverlays()) return tpColor("--tp-color-text-soft");
             if (mode === "flat") return tpColor("--tp-color-structure-cartoon") || "#2288a3";
             if (mode === "sstruc") return registerSstrucScheme();
             if (mode === "plddt") return registerPlddtScheme();
@@ -1627,18 +1630,26 @@ function jsloaded() {
        and moves the overlay's coordinates; the camera stays put. Fitted on
        one chain per structure, so a homooligomer doesn't skew the alignment. ---- */
     var overlayComponents = {};
-    // With overlays on, the structure in view fades and each overlay is
-    // translucent in its own colour: near-identical models stay tellable
-    // apart instead of one hiding the other.
-    var OVERLAY_OPACITY = 0.7;
-    function mainCartoonOpacity() {
-        return overlayComponents && Object.keys(overlayComponents).length ? 0.45 : 1;
+    // With overlays on, the structure in view turns into a faint grey ghost and
+    // each overlay is drawn solid in its own colour: near-identical models
+    // (AlphaFold vs ColabFold) stay tellable apart instead of one hiding the
+    // other. Removing the last overlay brings back the chosen colour mode.
+    var OVERLAY_OPACITY = 1;
+    var overlaysShownLast = false;
+    function hasOverlays() {
+        return !!overlayComponents && Object.keys(overlayComponents).length > 0;
     }
-    function syncMainCartoonOpacity() {
-        var repr = representations.__main_cartoon;
-        if (!repr) return;
+    function mainCartoonOpacity() {
+        return hasOverlays() ? 0.5 : 1;
+    }
+    function syncMainCartoon() {
+        var shown = hasOverlays();
+        if (shown === overlaysShownLast) return;
+        overlaysShownLast = shown;
+        if (typeof window.ngl_set_color_mode !== "function") return;
         try {
-            repr.setParameters({ opacity: mainCartoonOpacity() });
+            // Rebuilds the cartoon with colorForMode() and mainCartoonOpacity().
+            window.ngl_set_color_mode(currentColorMode);
         } catch (err) {
             /* representation already disposed by a structure switch */
         }
@@ -1657,7 +1668,7 @@ function jsloaded() {
     }
 
     function updateOverlayCount() {
-        syncMainCartoonOpacity();
+        syncMainCartoon();
         var countEl = document.getElementById("sv-overlay-count");
         if (!countEl) return;
         var n = Object.keys(overlayComponents).length;
