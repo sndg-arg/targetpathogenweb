@@ -118,8 +118,32 @@ body:has(.sv-root) { overflow: hidden; }
     align-items: center;
 }
 
-.sv-compare-caption > .sv-overlay-swatch {
-    margin-right: var(--tp-space-1);
+/* Overlaid: each legend name highlights its structure. */
+.sv-compare-focus {
+    pointer-events: auto;
+    padding: 2px var(--tp-space-2);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    transition: opacity 160ms var(--tp-ui-ease-standard), border-color 160ms var(--tp-ui-ease-standard);
+}
+
+.sv-compare-focus:hover,
+.sv-compare-focus:focus-visible {
+    color: var(--tp-color-text-primary);
+}
+
+.sv-compare-focus[aria-pressed="true"] {
+    border-color: var(--tp-color-border);
+    color: var(--tp-color-text-primary);
+    font-weight: 600;
+}
+
+.sv-compare-focus.is-dimmed {
+    opacity: 0.5;
 }
 
 /* Overlaid: one legend line, the ghost first, then each overlay colour. */

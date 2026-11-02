@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-colorlock">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-focus">
 {% endblock %}
 
 {% block body %}
@@ -1687,6 +1687,11 @@ function jsloaded() {
     // other. Removing the last overlay brings back the chosen colour mode.
     var OVERLAY_OPACITY = 1;
     var overlaysShownLast = false;
+    // Clicking a legend name while overlaid highlights that structure: it
+    // goes solid and the rest fade right back. "main" is the structure in view.
+    var FOCUS_DIM_OPACITY = 0.12;
+    var focusedStructure = null;
+    var overlayStyles = {};
     function hasOverlays() {
         return !!overlayComponents && Object.keys(overlayComponents).length > 0;
     }
@@ -1695,7 +1700,47 @@ function jsloaded() {
         return hasOverlays() && !splitView;
     }
     function mainCartoonOpacity() {
-        return ghostMain() ? 0.5 : 1;
+        if (!ghostMain()) return 1;
+        if (focusedStructure === null) return 0.5;
+        return focusedStructure === "main" ? 1 : FOCUS_DIM_OPACITY;
+    }
+    function overlayOpacity(id) {
+        if (focusedStructure === null || splitView) return OVERLAY_OPACITY;
+        return focusedStructure === id ? 1 : FOCUS_DIM_OPACITY;
+    }
+    function drawOverlay(id) {
+        var overlay = overlayComponents[id];
+        var style = overlayStyles[id];
+        if (!overlay || !style) return;
+        // Rebuilt rather than setParameters: same path as the main cartoon,
+        // which reliably switches between solid and transparent materials.
+        overlay.removeAllRepresentations();
+        overlay.addRepresentation("cartoon", { sele: style.sele, color: style.color, opacity: overlayOpacity(id) });
+    }
+    function applyFocus() {
+        Object.keys(overlayComponents).forEach(drawOverlay);
+        if (ghostMain() && typeof window.ngl_set_color_mode === "function") {
+            try {
+                window.ngl_set_color_mode(currentColorMode);
+            } catch (err) {
+                /* representation already disposed by a structure switch */
+            }
+        }
+        if (!compareCaptions) return;
+        compareCaptions.querySelectorAll("[data-focus]").forEach(function (button) {
+            var on = button.getAttribute("data-focus") === String(focusedStructure);
+            button.setAttribute("aria-pressed", on ? "true" : "false");
+            button.classList.toggle("is-dimmed", focusedStructure !== null && !on);
+        });
+    }
+    function setFocus(next) {
+        focusedStructure = next === focusedStructure ? null : next;
+        applyFocus();
+    }
+    function clearFocus() {
+        if (focusedStructure === null) return;
+        focusedStructure = null;
+        applyFocus();
     }
     function syncMainCartoon() {
         var shown = ghostMain();
@@ -1759,6 +1804,8 @@ function jsloaded() {
 
     function resetOverlays(activeId) {
         overlayComponents = {};
+        overlayStyles = {};
+        focusedStructure = null;
         updateOverlayCount();
         if (!overlayMenu) return;
         overlayMenu.querySelectorAll(".sv-overlay-item").forEach(function (item) {
@@ -1773,8 +1820,11 @@ function jsloaded() {
         if (overlayComponents[overlayId]) {
             stage.removeComponent(overlayComponents[overlayId]);
             delete overlayComponents[overlayId];
+            delete overlayStyles[overlayId];
             setOverlayItemState(item, false, "");
+            if (focusedStructure === overlayId || !hasOverlays()) focusedStructure = null;
             updateOverlayCount();
+            applyFocus();
             return;
         }
         if (!activeComponent || item.getAttribute("aria-busy") === "true") return;
@@ -1800,8 +1850,9 @@ function jsloaded() {
                 }
                 var sele = overlayFitSele(overlayId);
                 overlay.superpose(target, true, sele, overlayFitSele(activeStructureId));
-                overlay.addRepresentation("cartoon", { sele: sele, color: color, opacity: OVERLAY_OPACITY });
                 overlayComponents[overlayId] = overlay;
+                overlayStyles[overlayId] = { sele: sele, color: color };
+                drawOverlay(overlayId);
                 setOverlayItemState(item, true, "");
                 updateOverlayCount();
             })
@@ -1864,31 +1915,46 @@ function jsloaded() {
         var main = document.getElementById("sv-compare-caption-main");
         var other = document.getElementById("sv-compare-caption-overlay");
         var activeItem = document.querySelector('.sv-struct-picker-item[data-id="' + activeStructureId + '"]');
+        // Overlaid: each name is a button that highlights its structure.
+        function legendEntry(focusKey, color, label) {
+            var part = document.createElement(splitView ? "span" : "button");
+            part.className = "sv-compare-caption-item";
+            if (!splitView) {
+                part.type = "button";
+                part.classList.add("sv-compare-focus");
+                part.setAttribute("data-focus", focusKey);
+                var on = focusedStructure === focusKey;
+                part.setAttribute("aria-pressed", on ? "true" : "false");
+                part.classList.toggle("is-dimmed", focusedStructure !== null && !on);
+            }
+            if (color) {
+                var swatch = document.createElement("span");
+                swatch.className = "sv-overlay-swatch";
+                swatch.style.background = color;
+                part.appendChild(swatch);
+            }
+            part.appendChild(document.createTextNode(label));
+            return part;
+        }
         if (main) {
             main.textContent = "";
-            if (!splitView) {
-                // Overlaid: the structure in view is the grey ghost.
-                var ghost = document.createElement("span");
-                ghost.className = "sv-overlay-swatch";
-                ghost.style.background = tpColor("--tp-color-text-soft");
-                main.appendChild(ghost);
-            }
-            main.appendChild(document.createTextNode(itemLabel(activeItem)));
+            // Overlaid: the structure in view is the grey ghost.
+            main.appendChild(legendEntry("main", splitView ? "" : tpColor("--tp-color-text-soft"), itemLabel(activeItem)));
         }
         if (other) {
             other.textContent = "";
             Object.keys(overlayComponents).forEach(function (id) {
                 var item = overlayItem(id);
-                var part = document.createElement("span");
-                part.className = "sv-compare-caption-item";
-                var swatch = document.createElement("span");
-                swatch.className = "sv-overlay-swatch";
-                swatch.style.background = item ? item.getAttribute("data-overlay-color") || "" : "";
-                part.appendChild(swatch);
-                part.appendChild(document.createTextNode(itemLabel(item)));
-                other.appendChild(part);
+                other.appendChild(legendEntry(id, item ? item.getAttribute("data-overlay-color") || "" : "", itemLabel(item)));
             });
         }
+    }
+
+    if (compareCaptions) {
+        compareCaptions.addEventListener("click", function (event) {
+            var button = event.target.closest("[data-focus]");
+            if (button && !splitView) setFocus(button.getAttribute("data-focus"));
+        });
     }
 
     function renderCompare() {
@@ -1921,6 +1987,9 @@ function jsloaded() {
         var next = !!on && hasOverlays();
         if (next === splitView) return;
         splitView = next;
+        // A highlight only means something with the structures on top of each other.
+        var hadFocus = focusedStructure !== null;
+        focusedStructure = null;
         if (splitCanvasEl) splitCanvasEl.classList.toggle("is-split", splitView);
         // The assistant button would float over the right-hand panel.
         document.body.classList.toggle("sv-split-active", splitView);
@@ -1945,6 +2014,7 @@ function jsloaded() {
             compareStage.removeAllComponents();
         }
         syncMainCartoon();
+        if (hadFocus) applyFocus();
         window.requestAnimationFrame(function () {
             stage.handleResize();
             // Re-frame for the new panel width; the other camera follows.
