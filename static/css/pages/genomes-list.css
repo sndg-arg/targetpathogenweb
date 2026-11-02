@@ -255,7 +255,7 @@ code.genomes-meta-item {
     display: inline-flex;
     align-items: center;
     gap: var(--tp-space-1);
-    color: var(--tp-color-text-muted);
+    color: var(--tp-color-text-soft);
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     text-decoration: none;
@@ -270,8 +270,14 @@ code.genomes-meta-item {
 }
 
 .genomes-go-icon svg {
+    display: block;
     width: 100%;
     height: 100%;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .genome-row:hover .genomes-go,
