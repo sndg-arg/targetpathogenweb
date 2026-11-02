@@ -247,6 +247,10 @@ code.genomes-meta-item {
     font-variant-numeric: tabular-nums;
 }
 
+.genome-metric-missing {
+    color: var(--tp-color-text-soft);
+}
+
 .genome-metric-head[title] {
     cursor: help;
 }

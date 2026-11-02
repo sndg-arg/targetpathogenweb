@@ -528,7 +528,7 @@ def _rankings_cache_key(assembly_name, limit):
 
 
 def _metrics_cache_key(assembly_name):
-    return f"Target:assembly_workspace_metrics:{assembly_name}"
+    return f"Target:assembly_workspace_metrics:v2:{assembly_name}"
 
 
 def refresh_genome_overview_caches(assembly_name, ranking_limit=5):
@@ -721,6 +721,19 @@ def _build_assembly_workspace_metrics(assembly_name):
     proteins_with_binders = (
         binders_qs.values("locustag_id").distinct().count() if binder_total else 0
     )
+    proteins_with_direct_binders = (
+        binders_qs.filter(is_direct=True).values("locustag_id").distinct().count()
+        if binder_direct
+        else 0
+    )
+    # DEG homolog (hit_in_deg = Y): the essentiality signal the protein table uses.
+    essential_proteins = (
+        spv_qs.filter(score_param__name="hit_in_deg", value__iregex=r"^\s*(y|yes|true|1)\s*$")
+        .values("bioentry_id")
+        .distinct()
+        .count()
+    )
+    has_essentiality_data = spv_qs.filter(score_param__name="hit_in_deg").exists()
 
     # reaction_count + pathway_count in one aggregate over the same base
     # queryset instead of two separate .count() calls. pathways is a M2M --
@@ -832,4 +845,9 @@ def _build_assembly_workspace_metrics(assembly_name):
         "metabolic_chokepoint_gene_count": metabolic_chokepoint_gene_count,
         "metabolic_chokepoint_reaction_count": metabolic_chokepoint_reaction_count,
         "metabolic_druggable_target_count": metabolic_druggable_target_count,
+        # Genome list (GenomesView): what a biologist weighs when picking a genome.
+        "druggable_proteins": len(druggable_gene_ids),
+        "proteins_with_direct_binders": proteins_with_direct_binders,
+        "essential_proteins": essential_proteins,
+        "has_essentiality_data": has_essentiality_data,
     }

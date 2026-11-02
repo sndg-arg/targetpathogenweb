@@ -5,7 +5,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261102-narrow">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261102-targets">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -122,11 +122,11 @@
                             <thead>
                             <tr>
                                 <th>{% trans "Genome" %}</th>
-                                <th class="genome-metric-head" title="{% trans 'Total length of the assembled sequence, in million base pairs' %}">{% trans "Genome size" %}</th>
                                 <th class="genome-metric-head" title="{% trans 'Proteins loaded for this genome' %}">{% trans "Proteins" %}</th>
-                                <th class="genome-metric-head" title="{% trans 'Experimental (PDB) structures downloaded for its proteins' %}">{% trans "Exp. structures" %}</th>
-                                <th class="genome-metric-head" title="{% trans 'PDB entries cited by UniProt for its proteins' %}">{% trans "PDB refs" %}</th>
-                                <th class="genome-metric-head" title="{% trans 'Proteins with an EC number' %}">{% trans "With EC" %}</th>
+                                <th class="genome-metric-head" title="{% trans 'Proteins with a 3D structure: experimental (PDB), AlphaFold DB or ColabFold' %}">{% trans "With 3D structure" %}</th>
+                                <th class="genome-metric-head" title="{% trans 'Proteins with a high-scoring pocket: P2Rank probability ≥ 0.5, or FPocket druggability ≥ 0.4 when P2Rank has no score' %}">{% trans "Druggable pocket" %}</th>
+                                <th class="genome-metric-head" title="{% trans 'Proteins with a known ligand: a PDB complex or ChEMBL bioactivity for the protein itself' %}">{% trans "Known ligand" %}</th>
+                                {% if show_essential %}<th class="genome-metric-head" title="{% trans 'Proteins with a homolog in the Database of Essential Genes (DEG)' %}">{% trans "Essential" %}</th>{% endif %}
                                 <th class="genome-go-head"><span class="sr-only">{% trans "Proteins" %}</span></th>
                             </tr>
                             </thead>
@@ -157,11 +157,13 @@
                                             <p class="genome-status-note{% if genome.failed_for_current_genome %} genome-status-note--failed{% else %} genome-status-note--incomplete{% endif %}">{{ genome.current_genome_status_note }}</p>
                                         {% endif %}
                                     </td>
-                                    <td class="genome-metric-cell" title="{% if genome.EntryLength %}{{ genome.EntryLength|thousands }} {% trans 'base pairs' %}{% endif %}">{{ genome.EntryLength|megabases }}</td>
+                                    {% with t=genome.targets %}
                                     <td class="genome-metric-cell">{{ genome.COUNT_CDS|default_if_none:"—"|thousands }}</td>
-                                    <td class="genome-metric-cell">{{ genome.COUNT_EXPERIMENTAL|default_if_none:"—"|thousands }}</td>
-                                    <td class="genome-metric-cell">{{ genome.COUNT_PDB_XREFS|default_if_none:"—"|thousands }}</td>
-                                    <td class="genome-metric-cell">{{ genome.COUNT_EC|default_if_none:"—"|thousands }}</td>
+                                    <td class="genome-metric-cell" title="{% if t.total_proteins %}{{ t.structure_coverage_pct }}% {% trans 'of its proteins' %}{% endif %}">{{ t.proteins_with_structure|default_if_none:"—"|thousands }}</td>
+                                    <td class="genome-metric-cell">{{ t.druggable_proteins|default_if_none:"—"|thousands }}</td>
+                                    <td class="genome-metric-cell">{{ t.proteins_with_direct_binders|default_if_none:"—"|thousands }}</td>
+                                    {% if show_essential %}<td class="genome-metric-cell">{% if t.has_essentiality_data %}{{ t.essential_proteins|thousands }}{% else %}<span class="genome-metric-missing" title="{% trans 'No essentiality data for this genome' %}">—</span>{% endif %}</td>{% endif %}
+                                    {% endwith %}
                                     <td class="genome-go-cell">
                                         <a href="{% url 'tpwebapp:protein_list' genome.slug %}" class="genomes-go" title="{% trans 'Explore proteins' %}">
                                             {% trans "Proteins" %}<span class="genomes-go-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>

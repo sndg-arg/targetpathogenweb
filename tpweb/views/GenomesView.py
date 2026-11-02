@@ -12,6 +12,7 @@ from tpweb.services.csv_exports import (
     csv_response,
     xlsx_sections_response,
 )
+from tpweb.services.assembly_workspace import build_assembly_workspace_metrics
 from tpweb.services.genome_workspace import hidden_restricted_genome_count
 from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genomes,
@@ -81,11 +82,21 @@ class GenomesView(View):
                 return xlsx_sections_response("genomes-view", sections)
             return csv_response("genomes", headers, rows)
 
+        # Target-oriented figures for the table (same numbers as each genome's
+        # overview, cached per genome there).
+        for genome in genomes_dto:
+            try:
+                genome["targets"] = build_assembly_workspace_metrics(genome["internal_name"])
+            except Exception:  # one broken genome must not take the list down
+                genome["targets"] = {}
+        show_essential = any(g["targets"].get("has_essentiality_data") for g in genomes_dto)
+
         return render(
             request,
             self.template_name,
             {
                 "genomes": genomes_dto,
+                "show_essential": show_essential,
                 "tcolumns": GenomesView.tcolumns,
                 "search_query": search_query,
                 "has_search": has_search,
