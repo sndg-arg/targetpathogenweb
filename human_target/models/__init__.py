@@ -3,6 +3,8 @@ from .HumanPathway import HumanPathway
 from .HumanProteinPathway import HumanProteinPathway
 from .HumanComplex import HumanComplex
 from .HumanProteinComplex import HumanProteinComplex
+from .HumanReaction import HumanReaction
+from .HumanProteinReaction import HumanProteinReaction
 
 __all__ = [
     "HumanProtein",
@@ -10,4 +12,6 @@ __all__ = [
     "HumanProteinPathway",
     "HumanComplex",
     "HumanProteinComplex",
+    "HumanReaction",
+    "HumanProteinReaction",
 ]

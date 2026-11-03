@@ -14,6 +14,7 @@ from human_target.services.human_dossier import (
     variant_lollipops,
 )
 from human_target.services.human_expression_summary import build_human_expression_context
+from human_target.services.human_reaction_summary import build_human_reaction_context
 from human_target.services.human_protein_summary import (
     build_human_function_context,
     build_human_overview_context,
@@ -104,6 +105,7 @@ class HumanProteinView(PermissionLockedMixin, View):
             "dossier": dossier,
             "expression": expression,
             "pathways": pathways,
+            "reactions": build_human_reaction_context(human_protein),
             "glance": glance,
             "assessment": assessment,
             "sequence": sequence,

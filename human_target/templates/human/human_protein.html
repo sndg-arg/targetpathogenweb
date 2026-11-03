@@ -13,7 +13,7 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261026-cell3">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261103-complexes">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261103-reactions">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -88,6 +88,7 @@
             <a href="#section-sequence" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
             {% if expression.has_expression %}<a href="#section-expression" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Expression" %}</a>{% endif %}
             {% if pathways.has_pathways %}<a href="#section-pathways" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Pathways" %}</a>{% endif %}
+            {% if reactions.has_reactions %}<a href="#section-reactions" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Reactions" %}</a>{% endif %}
             {% if function.catalytic_activity or function.go_cards %}<a href="#section-annotations" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Gene Ontology" %}</a>{% endif %}
             <a href="#section-references" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "References" %}</a>
         </nav>
@@ -663,6 +664,56 @@
                     </div>
                 </div>
                 {{ pathways.pathways|json_script:"human-pathway-data" }}
+            </section>
+            {% endif %}
+
+            {% if reactions.has_reactions %}
+            <section class="protein-card" id="section-reactions">
+                <div class="section-head">
+                    <div>
+                        <h2>{% trans "Metabolic reactions" %}</h2>
+                        <p class="section-subtitle">{% trans "Reactions this protein's gene takes part in, from the Recon3D human metabolic model." %}</p>
+                    </div>
+                    <div class="section-tools">
+                        <span class="tp-chip">{{ reactions.total }}</span>
+                    </div>
+                </div>
+                <dl class="hrx-subsystems">
+                    {% for subsystem, count in reactions.subsystems|slice:":6" %}
+                    <div class="target-profile-item">
+                        <dt class="target-profile-label">{{ subsystem }}</dt>
+                        <dd class="target-profile-value">{% blocktrans count count=count %}{{ count }} reaction{% plural %}{{ count }} reactions{% endblocktrans %}</dd>
+                    </div>
+                    {% endfor %}
+                </dl>
+                <div class="tp-table-shell">
+                    <table class="tp-table tp-table--compact hrx-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">{% trans "Reaction" %}</th>
+                                <th scope="col">{% trans "Equation" %}</th>
+                                <th scope="col">{% trans "Subsystem" %}</th>
+                                <th scope="col">{% trans "Compartment" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rx in reactions.reactions %}{% include "human/_reaction_row.html" %}{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if reactions.more_reactions %}
+                <details class="list-more js-smooth-details">
+                    <summary>{% blocktrans with count=reactions.more_reactions|length %}Show {{ count }} more{% endblocktrans %}</summary>
+                    <div class="tp-table-shell">
+                        <table class="tp-table tp-table--compact hrx-table">
+                            <tbody>
+                                {% for rx in reactions.more_reactions %}{% include "human/_reaction_row.html" %}{% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+                {% endif %}
+                <p class="hcx-source">{% trans "Source: Recon3D via BiGG Models, matched by NCBI GeneID." %}</p>
             </section>
             {% endif %}
 

@@ -1,0 +1,6 @@
+<tr>
+    <td><span class="hrx-name">{{ rx.name|default:rx.bigg_id }}</span><a class="hrx-id" href="https://bigg.ucsd.edu/models/Recon3D/reactions/{{ rx.bigg_id }}" target="_blank" rel="noopener">{{ rx.bigg_id }} <span aria-hidden="true">↗</span></a></td>
+    <td class="hrx-equation">{{ rx.equation }}</td>
+    <td>{{ rx.subsystem|default:"—" }}</td>
+    <td>{{ rx.compartments|default:"—"|capfirst }}</td>
+</tr>

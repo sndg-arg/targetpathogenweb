@@ -408,6 +408,72 @@
     margin: var(--tp-space-3) 0 0;
 }
 
+/* ── Recon3D reactions: fixed columns so the "show more" table lines up ─ */
+.hrx-subsystems {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-3) var(--tp-space-6);
+    margin: 0 0 var(--tp-space-4);
+}
+
+.hrx-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.hrx-table td:nth-child(1),
+.hrx-table th:nth-child(1) {
+    width: 24%;
+}
+
+.hrx-table td:nth-child(2),
+.hrx-table th:nth-child(2) {
+    width: 46%;
+}
+
+.hrx-table td:nth-child(3),
+.hrx-table th:nth-child(3) {
+    width: 18%;
+}
+
+.hrx-table td {
+    overflow-wrap: anywhere;
+    vertical-align: top;
+}
+
+.hrx-name {
+    display: block;
+    color: var(--tp-color-text-primary);
+}
+
+.hrx-id {
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-2xs);
+}
+
+.hrx-equation {
+    font-size: var(--tp-font-size-xs);
+}
+
+@media (max-width: 720px) {
+    .hrx-table td:nth-child(3),
+    .hrx-table th:nth-child(3),
+    .hrx-table td:nth-child(4),
+    .hrx-table th:nth-child(4) {
+        display: none;
+    }
+
+    .hrx-table td:nth-child(1),
+    .hrx-table th:nth-child(1) {
+        width: 40%;
+    }
+
+    .hrx-table td:nth-child(2),
+    .hrx-table th:nth-child(2) {
+        width: 60%;
+    }
+}
+
 /* ── Disease rows: variant count and jump to the map ──────────────────── */
 .hd-variants {
     color: var(--tp-color-text-muted);

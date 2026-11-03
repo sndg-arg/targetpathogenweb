@@ -68,6 +68,10 @@ shared components) — zero data/functionality crossover.
     CORUM's API serves an incomplete TLS chain, so the txt is downloaded in a browser and copied
     to the login node. Re-running replaces all `HumanComplex`/`HumanProteinComplex` rows; shown
     as the protein page's "Protein complexes" section. CC BY-NC 4.0.
+  - **Recon3D reactions — implemented**: `python manage.py load_human_reactions_bulk [--file
+    Recon3D.json] [--dry-run]`. Downloads BiGG's Recon3D JSON (~8 MB) and links reactions to
+    proteins by GeneID (genes are `<entrez>_AT<n>`). Re-running replaces all rows; shown as the
+    "Metabolic reactions" section.
   - **KEGG pathways — implemented**: `python manage.py load_human_pathways_bulk
     [--accession ... | --accession-file PATH] [--dry-run] [--sleep 0.34]`. One call to
     `https://rest.kegg.jp/link/pathway/hsa` (every human gene→pathway link, `hsa:<entrez_id>\t
