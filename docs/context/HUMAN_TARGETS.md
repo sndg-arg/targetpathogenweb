@@ -63,6 +63,11 @@ shared components) — zero data/functionality crossover.
     observed: normal `entryAudit.entryVersion` upstream drift) — zero parser changes needed.
   - **AlphaFold DB**: `https://ftp.ebi.ac.uk/pub/databases/alphafold/latest/UP000005640_9606_HUMAN_v6.tar`
     (4.8GB, 23,586 structures — some isoforms/fragments beyond the canonical accession set).
+  - **CORUM complexes — implemented**: `python manage.py load_human_complexes_bulk
+    --remote-file /storage/home/agutson/corum/corum_humanComplexes.txt [--dry-run]` (or `--file`).
+    CORUM's API serves an incomplete TLS chain, so the txt is downloaded in a browser and copied
+    to the login node. Re-running replaces all `HumanComplex`/`HumanProteinComplex` rows; shown
+    as the protein page's "Protein complexes" section. CC BY-NC 4.0.
   - **KEGG pathways — implemented**: `python manage.py load_human_pathways_bulk
     [--accession ... | --accession-file PATH] [--dry-run] [--sleep 0.34]`. One call to
     `https://rest.kegg.jp/link/pathway/hsa` (every human gene→pathway link, `hsa:<entrez_id>\t

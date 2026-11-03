@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
 
+from human_target.services.human_complex_summary import build_human_complex_context
 from human_target.services.human_disease_summary import build_human_disease_context
 from human_target.services.human_dossier import (
     build_assessment,
@@ -99,6 +100,7 @@ class HumanProteinView(PermissionLockedMixin, View):
             "overview": build_human_overview_context(human_protein),
             "function": build_human_function_context(human_protein),
             "diseases": diseases,
+            "complexes": build_human_complex_context(human_protein),
             "dossier": dossier,
             "expression": expression,
             "pathways": pathways,

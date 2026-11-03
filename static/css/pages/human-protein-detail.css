@@ -363,6 +363,51 @@
     color: var(--tp-color-link);
 }
 
+/* ── Complexes (CORUM): hairline rows, subunits as chips ─────────────── */
+.hcx-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hcx-item {
+    display: grid;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-3) 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.hcx-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--tp-space-1) var(--tp-space-3);
+}
+
+.hcx-name {
+    color: var(--tp-color-text-primary);
+    font-weight: 500;
+}
+
+.hcx-meta,
+.hcx-source {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+}
+
+.hcx-self {
+    font-weight: 600;
+}
+
+.hcx-note {
+    margin: 0;
+    font-size: var(--tp-font-size-sm);
+}
+
+.hcx-source {
+    margin: var(--tp-space-3) 0 0;
+}
+
 /* ── Disease rows: variant count and jump to the map ──────────────────── */
 .hd-variants {
     color: var(--tp-color-text-muted);

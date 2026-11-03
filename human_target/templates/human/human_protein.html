@@ -13,7 +13,7 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261026-cell3">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261103-review">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261103-complexes">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -80,6 +80,7 @@
         <nav class="quick-nav" data-quick-nav aria-label="{% trans "Protein sections" %}">
             {% if assessment %}<a href="#section-assessment" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Assessment" %}</a>{% endif %}
             <a href="#section-biology" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Biology" %}</a>
+            {% if complexes.has_complexes %}<a href="#section-complexes" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Complexes" %}</a>{% endif %}
             {% if diseases.has_diseases %}<a href="#section-diseases" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Diseases" %}</a>{% endif %}
             {% if dossier.pharmacology.drugs %}<a href="#section-pharmacology" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Pharmacology" %}</a>{% endif %}
             {% if has_binders %}<a href="#section-binders" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Ligands" %}</a>{% endif %}
@@ -187,6 +188,32 @@
                 </div>
                 {% endif %}
             </section>
+
+            {% if complexes.has_complexes %}
+            <section class="protein-card" id="section-complexes">
+                <div class="section-head">
+                    <div>
+                        <h2>{% trans "Protein complexes" %}</h2>
+                        <p class="section-subtitle">{% trans "Experimentally characterized complexes with this protein as a subunit, from CORUM." %}</p>
+                    </div>
+                    <div class="section-tools">
+                        <span class="tp-chip">{{ complexes.complexes|length }}</span>
+                    </div>
+                </div>
+                <ul class="hcx-list">
+                    {% for cx in complexes.complexes|slice:":8" %}{% include "human/_complex_item.html" %}{% endfor %}
+                </ul>
+                {% if complexes.complexes|length > 8 %}
+                <details class="list-more js-smooth-details">
+                    <summary>{% blocktrans with count=complexes.complexes|length|add:"-8" %}Show {{ count }} more{% endblocktrans %}</summary>
+                    <ul class="hcx-list">
+                        {% for cx in complexes.complexes|slice:"8:" %}{% include "human/_complex_item.html" %}{% endfor %}
+                    </ul>
+                </details>
+                {% endif %}
+                <p class="hcx-source">{% trans "Source: CORUM (CC BY-NC 4.0)." %}</p>
+            </section>
+            {% endif %}
 
             {% if diseases.has_diseases %}
             <section class="protein-card" id="section-diseases">
