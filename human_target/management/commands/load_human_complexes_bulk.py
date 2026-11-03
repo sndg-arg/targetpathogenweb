@@ -50,7 +50,8 @@ def parse_corum(text):
     """CORUM's tab-separated export -> one dict per human complex. Pure."""
     csv.field_size_limit(2**31 - 1)
     complexes = []
-    reader = csv.DictReader(io.StringIO(text), delimiter="\t", quoting=csv.QUOTE_NONE)
+    # Comments are double-quoted and may span lines.
+    reader = csv.DictReader(io.StringIO(text), delimiter="\t")
     for row in reader:
         corum_id = _clean(row.get("complex_id"))
         if not corum_id.isdigit() or _clean(row.get("organism")) not in ("Human", "Homo sapiens"):

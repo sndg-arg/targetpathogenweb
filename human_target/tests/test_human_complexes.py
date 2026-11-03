@@ -20,7 +20,7 @@ HEADER = (
     "purification_methods\tfunctions_go_id\tfunctions_go_name"
 )
 ROWS = [
-    "1\tBCL6-HDAC4 complex\tNone\tHuman\tU2OS\t11929873\tRepression.\tNone\t"
+    '1\tBCL6-HDAC4 complex\tNone\tHuman\tU2OS\t11929873\t"Repression\nacross lines."\tNone\t'
     "P41182;P56524-2;Q00000\tBCL6;HDAC4;FAKE\tB-cell lymphoma 6 protein;Histone deacetylase 4;Fake\t"
     "MI:0007:anti tag coimmunoprecipitation;MI:0007:anti tag coimmunoprecipitation\t"
     "GO:0006355;None\tregulation of transcription;None",
@@ -43,6 +43,7 @@ class ParseCorumTests(SimpleTestCase):
             cx["go_terms"], [{"id": "GO:0006355", "name": "regulation of transcription"}]
         )
         self.assertEqual(cx["synonyms"], "")
+        self.assertEqual(cx["comment"], "Repression\nacross lines.")
 
     def test_isoforms_link_to_the_canonical_protein(self):
         self.assertEqual(canonical_accession("p56524-2"), "P56524")
