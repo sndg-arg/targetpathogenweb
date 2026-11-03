@@ -808,6 +808,12 @@
     white-space: nowrap;
 }
 
+/* Open, the rows list the top tissue themselves; the preview would repeat it. */
+.hx-group[open] > .hx-group-title .hx-group-top,
+.hx-group[open] > .hx-group-title > .hx-row-score {
+    visibility: hidden;
+}
+
 .hx-group[open] > .hx-group-title .hd-chevron {
     transform: translateY(1px) rotate(225deg);
 }

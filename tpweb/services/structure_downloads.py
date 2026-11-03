@@ -15,7 +15,7 @@ from tpweb.services.structure_files import (
     detect_structure_format_from_text,
     display_code,
     read_structure_text,
-    structure_file_path,
+    linked_structure_file_path,
 )
 from tpweb.services.structure_sources import (
     STRUCTURE_SOURCE_ALPHAFOLD,
@@ -236,7 +236,7 @@ def structure_bundle_files(link):
     link; raises FileNotFoundError/OSError when the file is missing. FPocket
     alpha spheres are spliced into PDB-format text."""
     pdb = link.pdb
-    path = structure_file_path(link_genome_name(link), link.bioentry.accession, pdb.code)
+    path = linked_structure_file_path(link_genome_name(link), link.bioentry.accession, pdb)
     text = read_structure_text(path)
     structure_format = detect_structure_format_from_text(text)
     pockets = structure_pockets(pdb, link.chain)

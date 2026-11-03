@@ -11,7 +11,7 @@ from tpweb.services.shared_sequence_evidence import shared_structure_link
 from tpweb.services.structure_files import (
     detect_structure_format,
     read_structure_text,
-    structure_file_path,
+    linked_structure_file_path,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class StructureRawView(View):
             if not user_can_access_genome_name(request.user, biodb):
                 raise Http404("Structure not found")
             try:
-                raw_structure_path = structure_file_path(biodb, be.accession, pdb.code)
+                raw_structure_path = linked_structure_file_path(biodb, be.accession, pdb)
                 structure_format = detect_structure_format(raw_structure_path)
                 data = read_structure_text(raw_structure_path)
             except (FileNotFoundError, OSError) as exc:

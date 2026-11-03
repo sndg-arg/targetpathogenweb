@@ -94,3 +94,31 @@ class BuildHumanExpressionContextTests(SimpleTestCase):
         systems = {g["system"]: [r["tissue"] for r in g["rows"]] for g in context["system_groups"]}
         self.assertEqual(systems["Endocrine"], ["right adrenal gland"])
         self.assertEqual(systems["Urinary"], ["renal medulla"])
+
+
+class SystemForTissueTests(SimpleTestCase):
+    def test_lookalike_tissue_names_land_in_the_right_system(self):
+        from human_target.services.human_expression_summary import _system_for_tissue
+
+        self.assertEqual(_system_for_tissue("gall bladder"), "Digestive")
+        self.assertEqual(_system_for_tissue("urinary bladder"), "Urinary")
+        self.assertEqual(_system_for_tissue("granulocyte"), "Lymphoid & immune")
+        self.assertEqual(_system_for_tissue("cortex of kidney"), "Urinary")
+        self.assertEqual(_system_for_tissue("adrenal gland"), "Endocrine")
+
+    def test_brain_regions_and_blood_are_not_other(self):
+        from human_target.services.human_expression_summary import _system_for_tissue
+
+        for tissue in (
+            "Ammon's horn",
+            "Brodmann (1909) area 9",
+            "Corpus callosum",
+            "Cortical plate",
+        ):
+            self.assertEqual(_system_for_tissue(tissue), "Nervous", tissue)
+        self.assertEqual(_system_for_tissue("Blood"), "Lymphoid & immune")
+        self.assertEqual(_system_for_tissue("blood vessel"), "Cardiovascular")
+        self.assertEqual(_system_for_tissue("Vermiform appendix"), "Digestive")
+        self.assertEqual(_system_for_tissue("Myometrium"), "Reproductive")
+        self.assertEqual(_system_for_tissue("Gastrocnemius"), "Musculoskeletal")
+        self.assertEqual(_system_for_tissue("Upper lobe of left lung"), "Respiratory")

@@ -54,6 +54,37 @@ def structure_file_path(genome_name, protein_accession, structure_code):
     raise FileNotFoundError(last_path or structure_code)
 
 
+def linked_structure_file_path(genome_name, protein_accession, pdb):
+    """structure_file_path, falling back to the other proteins of the same
+    genome linked to this PDB row. One experimental entry (e.g. a TCR-MHC
+    complex) is stored once, under the first chain's protein; the other
+    chains are linked to the same row without a copy of their own."""
+    try:
+        return structure_file_path(genome_name, protein_accession, pdb.code)
+    except FileNotFoundError as missing:
+        from bioseq.io.BioIO import BioIO
+        from tpweb.models.BioentryStructure import BioentryStructure
+
+        others = (
+            BioentryStructure.objects.filter(
+                pdb=pdb,
+                bioentry__biodatabase__name__in=(
+                    genome_name,
+                    genome_name + BioIO.GENOME_PROT_POSTFIX,
+                ),
+            )
+            .exclude(bioentry__accession=protein_accession)
+            .values_list("bioentry__accession", flat=True)
+            .distinct()
+        )
+        for accession in others:
+            try:
+                return structure_file_path(genome_name, accession, pdb.code)
+            except FileNotFoundError:
+                continue
+        raise missing
+
+
 def mid_shard(name):
     """Same 3-char middle-of-the-name sharding used throughout the pipeline
     and management commands to spread genome directories across the data

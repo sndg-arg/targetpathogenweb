@@ -13,7 +13,7 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261026-cell3">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261026-synthesis">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261103-review">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -573,7 +573,7 @@
                             {% for row in expression.ranked_page %}
                             <tr>
                                 <td>{{ expression.ranked_page.start_index|add:forloop.counter0 }}</td>
-                                <td>{{ row.tissue|default:"—" }}{% if row.cell_type %} <span class="human-expression-rank-table__celltype">· {{ row.cell_type }}</span>{% endif %}</td>
+                                <td>{{ row.tissue|default:"—"|capfirst }}{% if row.cell_type %} <span class="human-expression-rank-table__celltype">· {{ row.cell_type }}</span>{% endif %}</td>
                                 <td>{{ row.score|floatformat:1 }}</td>
                                 <td>{% if row.quality %}<span class="tp-chip">{{ row.quality }}</span>{% endif %}</td>
                             </tr>

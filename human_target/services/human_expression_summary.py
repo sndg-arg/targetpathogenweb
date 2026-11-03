@@ -27,6 +27,13 @@ _SYSTEM_KEYWORDS = [
             "macrophage",
             "monocyte",
             "neutrophil",
+            "granulocyte",
+            "eosinophil",
+            "basophil",
+            "dendritic",
+            "natural killer",
+            "mast cell",
+            "myeloid",
         ),
     ),
     (
@@ -42,8 +49,11 @@ _SYSTEM_KEYWORDS = [
             "duoden",
             "salivary",
             "gallbladder",
+            "gall bladder",
             "gastric",
             "bowel",
+            "appendix",
+            "saliva",
         ),
     ),
     (
@@ -61,6 +71,7 @@ _SYSTEM_KEYWORDS = [
             "penis",
             "placenta",
             "endometri",
+            "myometri",
             "fallopian",
             "seminal",
             "mammary",
@@ -81,6 +92,25 @@ _SYSTEM_KEYWORDS = [
             "hypothalamus",
             "glia",
             "cerebr",
+            "cortical plate",
+            "ventricular zone",
+            "ganglionic eminence",
+            "brodmann",
+            "substantia nigra",
+            "frontal lobe",
+            "temporal lobe",
+            "parietal lobe",
+            "occipital lobe",
+            "amygdala",
+            "ammon's horn",
+            "dentate gyrus",
+            "corpus callosum",
+            "caudate",
+            "putamen",
+            "nucleus accumbens",
+            "striatum",
+            "pons",
+            "medulla oblongata",
         ),
     ),
     ("Endocrine", ("thyroid", "adrenal", "pituitary", "islet", "parathyroid", "hypophysis")),
@@ -101,10 +131,26 @@ _SYSTEM_KEYWORDS = [
         ),
     ),
     ("Respiratory", ("lung", "bronch", "trachea", "alveol", "nasal", "pharynx", "larynx")),
-    ("Urinary", ("kidney", "bladder", "ureter", "urethra", "renal", "metanephros", "nephron")),
+    (
+        "Urinary",
+        ("kidney", "urinary bladder", "ureter", "urethra", "renal", "metanephros", "nephron"),
+    ),
     (
         "Musculoskeletal",
-        ("muscle", "bone", "cartilage", "tendon", "ligament", "skeletal", "joint"),
+        (
+            "muscle",
+            "bone",
+            "cartilage",
+            "tendon",
+            "ligament",
+            "skeletal",
+            "joint",
+            "gastrocnemius",
+            "quadriceps",
+            "biceps",
+            "deltoid",
+            "tibialis",
+        ),
     ),
     (
         "Integument & adipose",
@@ -119,8 +165,14 @@ _SYSTEM_ORDER = [system for system, _ in _SYSTEM_KEYWORDS] + ["Other"]
 _PRIORITY_SYSTEMS = ("Endocrine", "Urinary")
 
 
+# Whole names a keyword cannot catch without misfiling others ("blood vessel").
+_EXACT_SYSTEMS = {"blood": "Lymphoid & immune"}
+
+
 def _system_for_tissue(tissue):
     needle = (tissue or "").lower()
+    if needle in _EXACT_SYSTEMS:
+        return _EXACT_SYSTEMS[needle]
     ordered = sorted(_SYSTEM_KEYWORDS, key=lambda item: item[0] not in _PRIORITY_SYSTEMS)
     for system, keywords in ordered:
         if any(keyword in needle for keyword in keywords):

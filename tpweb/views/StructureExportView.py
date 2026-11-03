@@ -25,7 +25,7 @@ from tpweb.services.structure_downloads import (
 from tpweb.services.structure_files import (
     display_code,
     read_structure_text,
-    structure_file_path,
+    linked_structure_file_path,
 )
 
 
@@ -61,7 +61,7 @@ class StructureExportView(View):
             return _attachment(script.encode("utf-8"), "text/plain; charset=utf-8", filename)
 
         try:
-            raw_structure_path = structure_file_path(biodb, be.accession, pdb.code)
+            raw_structure_path = linked_structure_file_path(biodb, be.accession, pdb)
             data = read_structure_text(raw_structure_path)
         except (FileNotFoundError, OSError):
             return HttpResponseNotFound("Structure source file not found.")
