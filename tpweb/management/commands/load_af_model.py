@@ -175,7 +175,9 @@ class Command(BaseCommand):
                                     x=float(a.coord[0]),
                                     y=float(a.coord[1]),
                                     z=float(a.coord[2]),
-                                    altLoc=altLoc,
+                                    # Atom.altLoc is one character; AlphaFill writes
+                                    # longer alt ids for some transplanted ligands.
+                                    altLoc=str(altLoc)[:1] or " ",
                                     occupancy=float(a.occupancy),
                                     bfactor=float(a.bfactor),
                                     element=a.element,
