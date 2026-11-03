@@ -48,20 +48,24 @@ def _mean_plddt_for_pdb(pdb_id):
     return result["bfactor__avg"]
 
 
-def _ligand_summary_for_pdb(pdb_id):
+def _ligand_summaries(pdb_ids):
+    """Ligands per structure in one query: some proteins have hundreds of PDBs."""
     rows = (
-        Residue.objects.filter(pdb_id=pdb_id)
+        Residue.objects.filter(pdb_id__in=pdb_ids)
         .exclude(type__in=_NON_LIGAND_RESIDUE_TYPES)
-        .values("resname", "chain")
+        .values("pdb_id", "resname", "chain")
         .distinct()
     )
-    chains_by_resname = {}
+    chains = {}
     for row in rows:
-        chains_by_resname.setdefault(row["resname"], set()).add(row["chain"])
-    return [
-        {"comp": resname, "chains": sorted(chains)}
-        for resname, chains in sorted(chains_by_resname.items())
-    ]
+        chains.setdefault(row["pdb_id"], {}).setdefault(row["resname"], set()).add(row["chain"])
+    return {
+        pdb_id: [
+            {"comp": resname, "chains": sorted(found)}
+            for resname, found in sorted(by_resname.items())
+        ]
+        for pdb_id, by_resname in chains.items()
+    }
 
 
 def plddt_band(plddt):
@@ -89,6 +93,7 @@ def build_human_structure_context(bioentry, sequence=""):
     alphafill = []
     xray = []
     nmr = []
+    ligands_by_pdb = _ligand_summaries([link.pdb_id for link in links])
 
     for link in links:
         pdb = link.pdb
@@ -101,7 +106,7 @@ def build_human_structure_context(bioentry, sequence=""):
             # Pdb.resolution defaults to 20 Å, a placeholder rather than a measurement.
             "resolution": link.resolution or (pdb.resolution if pdb.resolution != 20 else None),
             "url": _structure_url(pdb.id, bioentry.bioentry_id),
-            "ligands": _ligand_summary_for_pdb(pdb.id),
+            "ligands": ligands_by_pdb.get(pdb.id, []),
         }
         if experiment in (EXPERIMENT_ALPHAFOLD, EXPERIMENT_COLABFOLD, EXPERIMENT_ALPHAFILL):
             # Predicted models carry a placeholder resolution, not a measured one.

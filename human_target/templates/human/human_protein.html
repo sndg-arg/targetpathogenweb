@@ -33,7 +33,7 @@
         <section class="tp-page-hero protein-hero" id="section-overview">
             <div class="protein-hero-top tp-view-head">
                 <div class="protein-hero-content tp-view-head-copy">
-                    <p class="tp-view-eyebrow protein-hero-eyebrow">{% trans "Human curated protein" %}</p>
+                    <p class="tp-view-eyebrow protein-hero-eyebrow">{% trans "Human protein" %}</p>
                     {# Name first, accession under it -- same order as the bacterial protein page. #}
                     <h1 class="tp-view-title">{{ human_protein.protein_name|default:human_protein.uniprot_accession }}</h1>
                     <p class="protein-description">{{ human_protein.uniprot_accession }}</p>
@@ -50,6 +50,10 @@
                         {% if overview.is_reviewed %}
                         <span class="hero-chip tp-chip tp-chip--success" title="{% trans 'Manually reviewed, Swiss-Prot record' %}">
                             {% trans "Reviewed" %}
+                        </span>
+                        {% else %}
+                        <span class="hero-chip tp-chip tp-chip--muted" title="{% trans 'Unreviewed TrEMBL record, annotated automatically' %}">
+                            {% trans "Unreviewed" %}
                         </span>
                         {% endif %}
                         <a class="hero-chip tp-chip tp-chip--link" href="https://www.uniprot.org/uniprotkb/{{ human_protein.uniprot_accession }}" target="_blank" rel="noopener" title="{% trans 'View on UniProt' %}">
@@ -78,12 +82,12 @@
             <a href="#section-biology" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Biology" %}</a>
             {% if diseases.has_diseases %}<a href="#section-diseases" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Diseases" %}</a>{% endif %}
             {% if dossier.pharmacology.drugs %}<a href="#section-pharmacology" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Pharmacology" %}</a>{% endif %}
-            {% if binders.total %}<a href="#section-binders" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Ligands" %}</a>{% endif %}
+            {% if has_binders %}<a href="#section-binders" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Ligands" %}</a>{% endif %}
             {% if structure.has_structure %}<a href="#section-structure" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "3D structure" %}</a>{% endif %}
             <a href="#section-sequence" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
             {% if expression.has_expression %}<a href="#section-expression" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Expression" %}</a>{% endif %}
             {% if pathways.has_pathways %}<a href="#section-pathways" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Pathways" %}</a>{% endif %}
-            <a href="#section-annotations" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotation" %}</a>
+            {% if function.catalytic_activity or function.go_cards %}<a href="#section-annotations" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Gene Ontology" %}</a>{% endif %}
             <a href="#section-references" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "References" %}</a>
         </nav>
 
@@ -259,7 +263,7 @@
             </section>
             {% endif %}{% endwith %}
 
-            {% if binders.total %}
+            {% if has_binders %}
             <section class="protein-card" id="section-binders">
                 <div class="section-head">
                     <div>
@@ -291,6 +295,9 @@
                     </button>
                 </form>
 
+                {% if not binders.total %}
+                <p class="tp-state-note tp-state-note--empty">{% blocktrans with query=binders.search_query %}No ligand matches “{{ query }}”.{% endblocktrans %} <a href="?#section-binders">{% trans "Show all ligands" %}</a></p>
+                {% else %}
                 <div class="tp-tabs binders-tabs" role="tablist" data-binders-tabs>
                     <button type="button" class="tp-tab binders-tab {% if binders.default_tab == 'pdb_direct' %}is-active{% endif %}" role="tab" aria-selected="{% if binders.default_tab == 'pdb_direct' %}true{% else %}false{% endif %}" data-binders-tab="pdb_direct">
                         <span>{% trans "PDB co-crystal" %}</span>{% if binders.pdb_direct_count %}<span class="tp-count">{{ binders.pdb_direct_count }}</span>{% endif %}
@@ -372,6 +379,7 @@
                     </div>
                 </div>
                 {% endif %}
+                {% endif %}
             </section>
             {% endif %}
 
@@ -387,7 +395,7 @@
                     <div class="hs-index">
                         <div class="tp-tabs human-structure-tabs" role="tablist" data-structure-tabs>
                             {% for tab in structure.sub_tabs %}
-                            <button type="button" class="tp-tab human-structure-tab {% if tab.key == structure.default_tab %}is-active{% endif %}" role="tab" data-structure-tab="{{ tab.key }}">
+                            <button type="button" class="tp-tab human-structure-tab {% if tab.key == structure.default_tab %}is-active{% endif %}" role="tab" aria-selected="{% if tab.key == structure.default_tab %}true{% else %}false{% endif %}" data-structure-tab="{{ tab.key }}">
                                 <span>{{ tab.label }}</span>
                                 <span class="tp-count">{{ tab.count }}</span>
                             </button>
@@ -575,9 +583,9 @@
                     </div>
                     {% if expression.ranked_page.paginator.num_pages > 1 %}
                     <nav class="human-expression-pagination" aria-label="{% trans 'Expression rank pagination' %}">
-                        {% if expression.ranked_page.has_previous %}<a href="?expr_page={{ expression.ranked_page.previous_page_number }}#section-expression" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Previous" %}</a>{% endif %}
+                        {% if expression.ranked_page.has_previous %}<a href="?expr_page={{ expression.ranked_page.previous_page_number }}{% if binders.search_query %}&amp;binder_search={{ binders.search_query|urlencode }}{% endif %}#section-expression" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Previous" %}</a>{% endif %}
                         <span>{% blocktrans with current=expression.ranked_page.number total=expression.ranked_page.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktrans %}</span>
-                        {% if expression.ranked_page.has_next %}<a href="?expr_page={{ expression.ranked_page.next_page_number }}#section-expression" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Next" %}</a>{% endif %}
+                        {% if expression.ranked_page.has_next %}<a href="?expr_page={{ expression.ranked_page.next_page_number }}{% if binders.search_query %}&amp;binder_search={{ binders.search_query|urlencode }}{% endif %}#section-expression" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Next" %}</a>{% endif %}
                     </nav>
                     {% endif %}
                 </div>
@@ -631,6 +639,7 @@
             </section>
             {% endif %}
 
+            {% if function.catalytic_activity or function.go_cards %}
             <section class="protein-card" id="section-annotations">
                 <div class="section-head">
                     <div>
@@ -638,7 +647,6 @@
                         <p class="section-subtitle">{% trans "Gene Ontology terms and catalytic activity from UniProt." %}</p>
                     </div>
                 </div>
-                {% if function.catalytic_activity or function.go_cards %}
                 <div data-tab-group>
                     <div class="tp-tabs" role="tablist">
                         {% for card in function.go_cards %}
@@ -686,10 +694,8 @@
                     </div>
                     {% endif %}
                 </div>
-                {% else %}
-                <p class="tp-state-note tp-state-note--empty">{% trans "No function, EC or GO annotations are currently loaded for this protein." %}</p>
-                {% endif %}
             </section>
+            {% endif %}
 
             <section class="protein-card" id="section-references">
                 <div class="section-head">
@@ -795,6 +801,6 @@
     <script src="{% static 'js/global/quick-nav.js' %}?v=20261022"></script>
     <script src="{% static 'js/pages/protein-architecture.js' %}?v=20261022"></script>
     <script src="{% static 'js/pages/protein-dossier.js' %}?v=20261023"></script>
-    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261026-viewer"></script>
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261103-review"></script>
     <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261023-focal"></script>
 {% endblock %}

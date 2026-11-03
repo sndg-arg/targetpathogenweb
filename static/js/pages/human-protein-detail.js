@@ -171,6 +171,7 @@
                 var key = tab.getAttribute("data-structure-tab");
                 document.querySelectorAll("[data-structure-tab]").forEach(function (t) {
                     t.classList.toggle("is-active", t === tab);
+                    t.setAttribute("aria-selected", t === tab ? "true" : "false");
                 });
                 document.querySelectorAll("[data-structure-panel]").forEach(function (panel) {
                     panel.classList.toggle("is-hidden", panel.getAttribute("data-structure-panel") !== key);
@@ -216,6 +217,8 @@
                 showPanel(tab.getAttribute("data-expression-tab"));
             });
         });
+        // The rank table paginates by reload; reopen it on the page asked for.
+        if (/[?&]expr_page=/.test(window.location.search)) showPanel("rank");
 
         var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 

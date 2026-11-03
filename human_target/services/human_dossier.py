@@ -280,6 +280,24 @@ _COMPARTMENTS = [
 ]
 
 
+_SURFACE_NEEDLES = ("cell membrane", "plasma membrane", "cell surface", "secreted", "extracellular")
+
+
+def surface_access(locations):
+    """'surface' when UniProt places the protein outside or on the cell surface;
+    'membrane' when it only says "Membrane" (common in TrEMBL) without which one."""
+    texts = [location.lower() for location in locations or []]
+    if any(needle in text for text in texts for needle in _SURFACE_NEEDLES):
+        return "surface"
+    organelle = [needles for key, needles in _COMPARTMENTS if key != "membrane"]
+    if any(
+        "membrane" in text and not any(n in text for needles in organelle for n in needles)
+        for text in texts
+    ):
+        return "membrane"
+    return ""
+
+
 def compartments_for(locations):
     """Diagram compartments lit up by the protein's subcellular locations."""
     found = []
@@ -323,12 +341,17 @@ def build_glance(dossier, diseases, structure, binders, expression, pathways):
         )
     tabs = structure.get("sub_tabs") or []
     if tabs:
+        # Experimental structures are the headline; AlphaFold and AlphaFill are
+        # two files of one prediction, so counting them together inflated it.
         experimental = sum(tab["count"] for tab in tabs if tab["key"] in ("xray", "nmr"))
+        models = ", ".join(
+            tab.get("label", tab["key"]) for tab in tabs if tab["key"] not in ("xray", "nmr")
+        )
         tiles.append(
             {
-                "label": "3D structures",
-                "value": sum(tab["count"] for tab in tabs),
-                "note": f"{experimental} experimental" if experimental else "predicted models",
+                "label": "Experimental structures" if experimental else "Predicted models",
+                "value": experimental or sum(tab["count"] for tab in tabs),
+                "note": f"plus {models}" if experimental and models else (models or "PDB"),
                 "href": "#section-structure",
             }
         )
@@ -367,6 +390,14 @@ def build_glance(dossier, diseases, structure, binders, expression, pathways):
 
 
 _SURFACE = {"membrane", "secreted"}
+
+
+def _alphafill_ligands(tabs):
+    """Distinct ligand types AlphaFill transplanted into the model."""
+    tab = next((tab for tab in tabs if tab["key"] == "alphafill"), None)
+    if not tab:
+        return 0
+    return len({lig["comp"] for entry in tab["entries"] for lig in entry.get("ligands") or []})
 
 
 def build_assessment(dossier, diseases, structure, binders, expression):
@@ -418,6 +449,13 @@ def build_assessment(dossier, diseases, structure, binders, expression):
         if model_tab
         else None
     )
+    transplanted = _alphafill_ligands(tabs)
+    pocket_note = (
+        f" AlphaFill transplants {transplanted} ligand{'s' if transplanted != 1 else ''}"
+        " from homologous structures, a hint of where a pocket is."
+        if transplanted
+        else ""
+    )
     if experimental:
         finding = f"{experimental} experimental structure{'s' if experimental != 1 else ''}"
         if coverage:
@@ -439,7 +477,8 @@ def build_assessment(dossier, diseases, structure, binders, expression):
                 "status": "Predicted only",
                 "finding": f"{model_tab['label'] if model_tab else 'AlphaFill'} model"
                 + (f", mean pLDDT {plddt:.0f}" if plddt else "")
-                + "; no experimental structure.",
+                + "; no experimental structure."
+                + pocket_note,
                 "href": "#section-structure",
             }
         )
@@ -507,15 +546,27 @@ def build_assessment(dossier, diseases, structure, binders, expression):
 
     compartments = dossier.get("compartments") or []
     if compartments:
-        surface = bool(_SURFACE.intersection(compartments))
+        access = dossier.get("surface_access", "surface" if _SURFACE & set(compartments) else "")
+        if access == "surface":
+            row = (
+                "strong",
+                "Extracellular access",
+                "Cell surface or secreted: reachable by antibodies as well as small molecules.",
+            )
+        elif access == "membrane":
+            row = (
+                "moderate",
+                "Membrane, side unknown",
+                "UniProt does not say which membrane: check the topology before assuming antibody access.",
+            )
+        else:
+            row = ("moderate", "Intracellular", "Inside the cell: needs cell-permeable modalities.")
         rows.append(
             {
                 "label": "Accessibility",
-                "tone": "strong" if surface else "moderate",
-                "status": "Extracellular access" if surface else "Intracellular",
-                "finding": "Cell surface or secreted: reachable by antibodies as well as small molecules."
-                if surface
-                else "Inside the cell: needs cell-permeable modalities.",
+                "tone": row[0],
+                "status": row[1],
+                "finding": row[2],
                 "href": "#section-biology",
             }
         )
@@ -534,4 +585,5 @@ def build_human_dossier(human_protein):
         "publications": build_publications(raw),
         "keyword_groups": build_keyword_groups(raw),
         "compartments": compartments_for(human_protein.subcellular_locations),
+        "surface_access": surface_access(human_protein.subcellular_locations),
     }

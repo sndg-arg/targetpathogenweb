@@ -24,7 +24,6 @@ from human_target.services.human_structure_summary import build_human_structure_
 from human_target.services.human_targets import get_human_bioentry
 from tpweb.services.binder_summary import create_binders_dict
 from tpweb.services.ligand_reactions import protein_synthesis_routes
-from tpweb.services.protein_annotations import iter_protein_annotations
 from tpweb.views.mixins import PermissionLockedMixin
 
 EXPRESSION_PAGE_SIZE = 40
@@ -48,6 +47,14 @@ class HumanProteinView(PermissionLockedMixin, View):
         binders_search_query = request.GET.get("binder_search", "").strip()
         binders = create_binders_dict(
             bioentry, search_query=binders_search_query, structures=structures
+        )
+        # The glance, assessment and section visibility read the unfiltered
+        # evidence: a search with no match must not hide the section (and its
+        # clear button) or report "no ligand evidence".
+        all_binders = (
+            create_binders_dict(bioentry, structures=structures)
+            if binders_search_query
+            else binders
         )
 
         expression = build_human_expression_context(human_protein)
@@ -77,8 +84,8 @@ class HumanProteinView(PermissionLockedMixin, View):
 
         pathways = build_human_pathway_context(human_protein)
         structure = build_human_structure_context(bioentry, human_protein.sequence)
-        glance = build_glance(dossier, diseases, structure, binders, expression, pathways)
-        assessment = build_assessment(dossier, diseases, structure, binders, expression)
+        glance = build_glance(dossier, diseases, structure, all_binders, expression, pathways)
+        assessment = build_assessment(dossier, diseases, structure, all_binders, expression)
 
         context = {
             "bioentry": bioentry,
@@ -107,9 +114,8 @@ class HumanProteinView(PermissionLockedMixin, View):
             "xrefs": build_human_xref_context(human_protein),
             "structure": structure,
             "binders": binders,
-            "synthesis_routes": protein_synthesis_routes(bioentry) if binders["total"] else [],
-            "ec_badges": list(iter_protein_annotations(bioentry, "ec"))[:6],
-            "go_badges": list(iter_protein_annotations(bioentry, "go"))[:6],
+            "has_binders": bool(all_binders["total"]),
+            "synthesis_routes": protein_synthesis_routes(bioentry) if all_binders["total"] else [],
             "human_protein_list_url": reverse("human_target:human_protein_list"),
         }
         return render(request, self.template_name, context)

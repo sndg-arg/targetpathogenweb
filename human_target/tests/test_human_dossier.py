@@ -152,12 +152,32 @@ class GlanceTests(SimpleTestCase):
             [
                 ("DrugBank compounds", 1),
                 ("Diseases", 1),
-                ("3D structures", 5),
+                ("Experimental structures", 4),
                 ("Tissue specificity", "0.20"),
             ],
         )
         self.assertEqual(tiles[1]["note"], "3 disease variants")
-        self.assertEqual(tiles[2]["note"], "4 experimental")
+        self.assertEqual(tiles[2]["note"], "plus alphafold")
+
+    def test_predicted_only_counts_models_not_structures(self):
+        from human_target.services.human_dossier import build_glance
+
+        tiles = build_glance(
+            {"pharmacology": {"drugs": []}, "disease_variant_counts": {}},
+            {"diseases": []},
+            {
+                "sub_tabs": [
+                    {"key": "alphafold", "label": "AlphaFold", "count": 1},
+                    {"key": "alphafill", "label": "AlphaFill", "count": 1},
+                ]
+            },
+            {"total": 0},
+            {"has_expression": False},
+            {"pathways": []},
+        )
+        self.assertEqual(
+            (tiles[0]["label"], tiles[0]["note"]), ("Predicted models", "AlphaFold, AlphaFill")
+        )
 
 
 class AssessmentTests(SimpleTestCase):
@@ -190,6 +210,38 @@ class AssessmentTests(SimpleTestCase):
         self.assertEqual(by_label["Ligandability"]["status"], "No ligand evidence")
         self.assertEqual(by_label["Tissue selectivity"]["status"], "Broadly expressed")
         self.assertEqual(by_label["Accessibility"]["status"], "Extracellular access")
+
+    def test_bare_membrane_does_not_claim_antibody_access(self):
+        from human_target.services.human_dossier import build_assessment
+
+        dossier = {
+            "pharmacology": {"drugs": []},
+            "disease_variant_counts": {},
+            "pdb_coverage": None,
+            "compartments": ["membrane"],
+            "surface_access": "membrane",
+        }
+        alphafill = {
+            "key": "alphafill",
+            "label": "AlphaFill",
+            "count": 1,
+            "entries": [{"ligands": [{"comp": "HEM"}, {"comp": "NAG"}]}],
+        }
+        rows = build_assessment(dossier, {}, {"sub_tabs": [alphafill]}, {"total": 0}, {})
+        by_label = {row["label"]: row for row in rows}
+        self.assertEqual(by_label["Accessibility"]["status"], "Membrane, side unknown")
+        self.assertIn("transplants 2 ligands", by_label["Structure"]["finding"])
+
+
+class SurfaceAccessTests(SimpleTestCase):
+    def test_reads_which_membrane(self):
+        from human_target.services.human_dossier import surface_access
+
+        self.assertEqual(surface_access(["Cell membrane"]), "surface")
+        self.assertEqual(surface_access(["Secreted"]), "surface")
+        self.assertEqual(surface_access(["Membrane"]), "membrane")
+        self.assertEqual(surface_access(["Mitochondrion inner membrane"]), "")
+        self.assertEqual(surface_access(["Cytoplasm"]), "")
 
 
 class VariantLollipopTests(SimpleTestCase):
