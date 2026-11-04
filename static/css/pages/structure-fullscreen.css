@@ -127,6 +127,15 @@ body:has(.sv-root) { overflow: hidden; }
     align-items: center;
 }
 
+/* How alike an overlay is to the structure in view (RMSD, identity). */
+.sv-compare-stat {
+    margin-left: var(--tp-space-1);
+    color: var(--tp-color-text-muted);
+    font-weight: 400;
+    pointer-events: auto;
+    cursor: help;
+}
+
 /* Overlaid: each legend name highlights its structure. */
 .sv-compare-focus {
     pointer-events: auto;
