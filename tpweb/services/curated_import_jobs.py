@@ -32,6 +32,19 @@ def create_curated_import_job(owner, cleaned_data, command, summary, *, status=N
     )
 
 
+def running_curated_import(user):
+    """The curated import running now, for the home status card (staff only)."""
+    if not getattr(user, "is_authenticated", False) or not user.has_perm(
+        "tpweb.can_curated_import"
+    ):
+        return None
+    return (
+        CuratedImportJob.objects.filter(status=CuratedImportJob.STATUS_RUNNING)
+        .order_by("-started_at", "-id")
+        .first()
+    )
+
+
 def _log_path_for_job(job):
     folder = Path(compute_folder_path(job.datadir, job.genome_name)) / "curated_import"
     folder.mkdir(parents=True, exist_ok=True)

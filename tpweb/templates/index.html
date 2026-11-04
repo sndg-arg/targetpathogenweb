@@ -101,6 +101,11 @@
                         <p class="tp-state-note tp-state-note--empty">{% trans "No pipeline activity is visible for this account yet." %}</p>
                     {% endif %}
                 </div>
+                {% if curated_import_running %}
+                    <p class="tp-state-note tp-state-note--loading">
+                        {% trans "Curated import running" %}: <code>{{ curated_import_running.genome_name }}</code>{% if curated_import_running.started_at %} · {% trans "started" %} {{ curated_import_running.started_at|date:"Y-m-d H:i" }}{% endif %}
+                    </p>
+                {% endif %}
             </div>
         </section>
 

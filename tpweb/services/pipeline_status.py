@@ -381,11 +381,20 @@ def _status_from_pipeline_run(run):
         status_data["running"] = False
         status_data["state_label"] = "Last pipeline run finished"
         status_data["state_class"] = "finished"
+        status_data["progress_percent"] = 100
+        status_data["stages_active"] = ()
+        last_stage = max(stages_completed) if stages_completed else PIPELINE_STAGE_TOTAL
+        if last_stage < PIPELINE_STAGE_TOTAL:
+            # A run with --skip-stages (e.g. only loading a genome before a
+            # curated import) ends early: report where it really stopped.
+            status_data["stage_current"] = last_stage
+            status_data["stage_label"] = (
+                f"{STAGE_LABELS.get(last_stage, '')} (later stages skipped)".strip()
+            )
+            return PipelineStatus(**status_data)
         status_data["stage_current"] = PIPELINE_STAGE_TOTAL
         status_data["stage_label"] = STAGE_LABELS.get(PIPELINE_STAGE_TOTAL)
-        status_data["progress_percent"] = 100
         status_data["stages_completed"] = tuple(range(1, PIPELINE_STAGE_TOTAL + 1))
-        status_data["stages_active"] = ()
         return PipelineStatus(**status_data)
 
     if run.status == run.STATUS_FAILED:

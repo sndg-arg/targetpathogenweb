@@ -1729,6 +1729,39 @@ class PipelineStatusTests(SimpleTestCase):
         self.assertEqual(status.workspace_owner_id, 42)
         self.assertEqual(status.stage_current, 9)
 
+    def test_finished_run_with_skipped_stages_reports_its_last_stage(self):
+        events = [
+            SimpleNamespace(stage_number=n, status="completed", task_id=n, app_name="")
+            for n in (1, 2, 3)
+        ]
+        fake_run = type(
+            "FakeRun",
+            (),
+            {
+                "id": 8,
+                "internal_accession": "AbTEST",
+                "genome_upload": None,
+                "updated_at": None,
+                "finished_at": None,
+                "started_at": None,
+                "status": PipelineRun.STATUS_FINISHED,
+                "STATUS_FINISHED": PipelineRun.STATUS_FINISHED,
+                "STATUS_FAILED": PipelineRun.STATUS_FAILED,
+                "STATUS_CANCELLED": PipelineRun.STATUS_CANCELLED,
+                "STATUS_SUBMITTED": PipelineRun.STATUS_SUBMITTED,
+                "current_stage": 3,
+                "current_task_id": None,
+                "current_app": "",
+                "stage_events": type("FakeEvents", (), {"order_by": lambda self, *a: events})(),
+            },
+        )()
+
+        status = _status_from_pipeline_run(fake_run)
+
+        self.assertEqual(status.stage_current, 3)
+        self.assertIn("later stages skipped", status.stage_label)
+        self.assertEqual(status.progress_percent, 100)
+
     # RestrictedGenome is queried by user_can_access_genome_name (called via
     # sanitize_pipeline_status_for_user) once genome_accession is truthy --
     # added after this test was written, so it needs mocking the same way
