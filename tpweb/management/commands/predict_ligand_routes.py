@@ -70,7 +70,7 @@ class Command(BaseCommand):
         )
 
         os.environ.setdefault(f"{ENV_PREFIX}_SLURM_CPUS", "12")
-        os.environ.setdefault(f"{ENV_PREFIX}_SLURM_MEM", "64G")
+        os.environ.setdefault(f"{ENV_PREFIX}_SLURM_MEM", "48G")
         cfg = configparser.ConfigParser()
         cfg.read(Path(pipeline_dir) / "settings.ini")
         config = _build_config(cfg, ENV_PREFIX)

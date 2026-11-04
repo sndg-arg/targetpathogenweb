@@ -149,6 +149,6 @@ Two separate layers, both in `tpweb/middleware/access_control.py`:
   scraped and PatentsView needs a registered key.
 - Refresh: `python manage.py predict_ligand_routes` (as root, in its own container), same shape
   as `predict_ligand_reactions` — `scripts/cluster/expand_ligand_routes.py` in one SLURM job
-  (12 CPUs / 64G via `TPW_ROUTES_SLURM_*`, `--max-depth` 3), `plans.jsonl.gz` back, loaded by
+  (12 CPUs / 48G via `TPW_ROUTES_SLURM_*`, `--max-depth` 3), `plans.jsonl.gz` back, loaded by
   `load_ligand_routes` (full replace). `match_ligand_reactions.py` is copied along: the
   expander imports its SMILES handling.
