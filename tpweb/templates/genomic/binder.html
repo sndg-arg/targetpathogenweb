@@ -5,7 +5,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261104-tips">
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261104-plan">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261104-plan2">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -346,15 +346,7 @@
                             <p class="section-subtitle">{% trans "The shortest route found back to building blocks, one literature reaction per step." %}</p>
                         </div>
                     </div>
-                    <div class="tp-metrics">
-                        <span class="metric-pill">{% blocktrans count n=route_plan.steps %}{{ n }} step{% plural %}{{ n }} steps{% endblocktrans %}</span>
-                        <span class="metric-pill">{% blocktrans with n=route_plan.depth %}{{ n }} deep{% endblocktrans %}</span>
-                        {% if route_plan.solved %}
-                            <span class="metric-pill metric-pill--success">{% trans "All branches resolved" %}</span>
-                        {% else %}
-                            <span class="metric-pill">{% blocktrans count n=route_plan.open_leaves %}{{ n }} precursor left open{% plural %}{{ n }} precursors left open{% endblocktrans %}</span>
-                        {% endif %}
-                    </div>
+                    <p class="rp-summary">{% blocktrans count n=route_plan.steps %}{{ n }} step{% plural %}{{ n }} steps{% endblocktrans %}, {% blocktrans with d=route_plan.depth %}{{ d }} deep{% endblocktrans %} · {% if route_plan.solved %}{% trans "every branch ends in a building block" %}{% else %}{% blocktrans count n=route_plan.open_leaves %}{{ n }} precursor could not be traced further{% plural %}{{ n }} precursors could not be traced further{% endblocktrans %}{% endif %}</p>
                     <ul class="rp-tree">
                         {% include "genomic/_route_node.html" with node=route_plan.tree %}
                     </ul>

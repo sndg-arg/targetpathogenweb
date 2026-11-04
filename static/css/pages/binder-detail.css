@@ -485,3 +485,9 @@
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
 }
+
+.rp-summary {
+    margin: var(--tp-space-3) 0 0;
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-secondary);
+}
