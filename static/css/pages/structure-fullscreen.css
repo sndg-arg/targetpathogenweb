@@ -89,6 +89,15 @@ body:has(.sv-root) { overflow: hidden; }
     border-left: 1px solid var(--tp-color-border);
 }
 
+/* Spinner over the right-hand panel while its structures load. */
+.sv-compare-loading {
+    left: 50%;
+}
+
+.sv-compare-loading[hidden] {
+    display: none;
+}
+
 .sv-compare-captions {
     position: absolute;
     inset: 64px 0 auto 0;
@@ -168,6 +177,11 @@ body:has(.sv-root) { overflow: hidden; }
         left: 0;
         border-left: 0;
         border-top: 1px solid var(--tp-color-border);
+    }
+
+    .sv-compare-loading {
+        top: 50%;
+        left: 0;
     }
 
     .sv-compare-captions {

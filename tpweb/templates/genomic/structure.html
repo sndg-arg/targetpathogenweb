@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261102-focus5">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20261104-cmpload">
 {% endblock %}
 
 {% block body %}
@@ -115,6 +115,10 @@
         <div id="viewport"></div>
         {# Side by side: the overlays in a second viewport, same camera #}
         <div id="viewport-compare" class="sv-compare-viewport" hidden></div>
+        <p class="sv-loading-note sv-compare-loading" id="sv-compare-loading" hidden>
+            <span class="sv-loading-spinner" aria-hidden="true"></span>
+            <span class="sv-loading-text">{% trans "Loading structure…" %}</span>
+        </p>
         <div class="sv-compare-captions" id="sv-compare-captions" hidden>
             <span class="sv-compare-caption" id="sv-compare-caption-main"></span>
             <span class="sv-compare-caption" id="sv-compare-caption-overlay"></span>
@@ -2050,6 +2054,7 @@ function jsloaded() {
     var compareViewport = document.getElementById("viewport-compare");
     var compareCaptions = document.getElementById("sv-compare-captions");
     var compareRenderToken = 0;
+    var compareLoading = document.getElementById("sv-compare-loading");
     var syncingCamera = false;
 
     function overlayItem(id) {
@@ -2140,6 +2145,13 @@ function jsloaded() {
         var target = activeComponent;
         compareStage.removeAllComponents();
         updateCompareCaptions();
+        // Spinner over the right-hand panel until every overlay has loaded.
+        var pending = Object.keys(overlayComponents).length;
+        if (compareLoading) compareLoading.hidden = pending === 0;
+        function settle() {
+            pending -= 1;
+            if (pending <= 0 && token === compareRenderToken && compareLoading) compareLoading.hidden = true;
+        }
         Object.keys(overlayComponents).forEach(function (id) {
             var item = overlayItem(id);
             var color = item ? item.getAttribute("data-overlay-color") : "";
@@ -2156,7 +2168,8 @@ function jsloaded() {
                 })
                 .catch(function (err) {
                     if (window.console && console.error) console.error("Unable to show structure side by side", id, err);
-                });
+                })
+                .then(settle);
         });
     }
 
@@ -2190,6 +2203,7 @@ function jsloaded() {
             compareRenderToken += 1;
             compareStage.removeAllComponents();
         }
+        if (!splitView && compareLoading) compareLoading.hidden = true;
         syncMainCartoon();
         if (hadFocus) applyFocus();
         window.requestAnimationFrame(function () {
