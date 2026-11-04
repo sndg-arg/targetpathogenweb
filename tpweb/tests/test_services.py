@@ -2399,3 +2399,41 @@ class ExportColumnBlocksTests(SimpleTestCase):
         self.assertEqual(rows, [[0, 1, 2, 5, 7, 4, 3, 6, 8]])
         self.assertEqual(blocks[2:5], ["Structure & pockets"] * 3)
         self.assertEqual(blocks[-1], "Custom data")
+
+
+class CuratedImportTrackingTests(TestCase):
+    def _job(self, datadir="/app/targetpathogenweb/data", **kwargs):
+        from tpweb.models import CuratedImportJob
+
+        owner = get_user_model().objects.create_user("curator", password="x")
+        return CuratedImportJob.objects.create(
+            owner=owner,
+            genome_name="AbTEST",
+            results_tsv="/data/results_table.tsv",
+            datadir=datadir,
+            **kwargs,
+        )
+
+    def test_running_import_marks_genome_as_importing(self):
+        from tpweb.models import CuratedImportJob
+        from tpweb.services.genomes import _importing_genome_names
+
+        self._job(status=CuratedImportJob.STATUS_RUNNING)
+
+        self.assertEqual(_importing_genome_names(["AbTEST", "Other"]), {"AbTEST"})
+
+    def test_run_job_starts_a_background_import_after_commit(self):
+        from tpweb.models import CuratedImportJob
+        from tpweb.services.curated_import_jobs import run_curated_import_job
+
+        with TemporaryDirectory() as datadir:
+            job = self._job(datadir=datadir)
+            with patch("tpweb.services.curated_import_jobs.subprocess.Popen") as popen:
+                with self.captureOnCommitCallbacks(execute=True):
+                    job = run_curated_import_job(job)
+
+            self.assertEqual(job.status, CuratedImportJob.STATUS_RUNNING)
+            command = popen.call_args.args[0]
+            self.assertIn("run_curated_file_import", command)
+            self.assertEqual(command[command.index("--job-id") + 1], str(job.pk))
+            self.assertIn("--execute", command)

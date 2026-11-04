@@ -4,6 +4,7 @@ from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Ontology import Ontology
 from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
+from tpweb.models.CuratedImportJob import CuratedImportJob
 from tpweb.models.RestrictedGenome import RestrictedGenome
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.genome_workspace import (
@@ -152,6 +153,17 @@ def _curated_genome_names(genome_names):
     return {name.removesuffix(Biodatabase.PROT_POSTFIX) for name in curated_proteome_names}
 
 
+def _importing_genome_names(genome_names):
+    """Genomes with a curated import running right now (web or shell)."""
+    if not genome_names:
+        return set()
+    return set(
+        CuratedImportJob.objects.filter(
+            genome_name__in=genome_names, status=CuratedImportJob.STATUS_RUNNING
+        ).values_list("genome_name", flat=True)
+    )
+
+
 def _restricted_genome_names(genome_names):
     if not genome_names:
         return set()
@@ -200,6 +212,7 @@ def build_genome_dto(
     ec_counts_by_genome=None,
     curated_genome_names=None,
     restricted_genome_names=None,
+    importing_genome_names=None,
 ):
     protein_counts_by_genome = protein_counts_by_genome or {}
     experimental_counts_by_genome = experimental_counts_by_genome or {}
@@ -207,6 +220,7 @@ def build_genome_dto(
     ec_counts_by_genome = ec_counts_by_genome or {}
     curated_genome_names = curated_genome_names or set()
     restricted_genome_names = restricted_genome_names or set()
+    importing_genome_names = importing_genome_names or set()
 
     workspace_scope = describe_genome_scope(user, genome.name)
     genome_dto = {
@@ -218,6 +232,7 @@ def build_genome_dto(
         "workspace_scope_label": workspace_scope["label"],
         "has_curated_data": genome.name in curated_genome_names,
         "is_restricted": genome.name in restricted_genome_names,
+        "curated_import_running": genome.name in importing_genome_names,
     }
     qualifiers = genome.qualifiers_dict()
     protein_count = safe_int(
@@ -274,6 +289,7 @@ def build_genomes_dto(genomes, user=None, columns=GENOME_TABLE_COLUMNS):
     ec_counts_by_genome = _ec_counts_by_genome(genome_names)
     curated_names = _curated_genome_names(genome_names)
     restricted_names = _restricted_genome_names(genome_names)
+    importing_names = _importing_genome_names(genome_names)
 
     return [
         build_genome_dto(
@@ -286,6 +302,7 @@ def build_genomes_dto(genomes, user=None, columns=GENOME_TABLE_COLUMNS):
             ec_counts_by_genome=ec_counts_by_genome,
             curated_genome_names=curated_names,
             restricted_genome_names=restricted_names,
+            importing_genome_names=importing_names,
         )
         for genome in genomes
     ]

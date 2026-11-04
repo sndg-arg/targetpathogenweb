@@ -1,11 +1,16 @@
-from io import StringIO
+import logging
+import subprocess
+import sys
 from pathlib import Path
 
 from django.conf import settings
-from django.core.management import call_command
+from django.db import transaction
 from django.utils import timezone
 
 from tpweb.models import CuratedImportJob
+from tpweb.services.curated_pipeline import compute_folder_path
+
+logger = logging.getLogger(__name__)
 
 
 def create_curated_import_job(owner, cleaned_data, command, summary, *, status=None):
@@ -27,24 +32,79 @@ def create_curated_import_job(owner, cleaned_data, command, summary, *, status=N
     )
 
 
-def _report_path_for_job(job):
-    report_dir = Path(settings.MEDIA_ROOT) / "curated_import_reports"
-    report_dir.mkdir(parents=True, exist_ok=True)
-    return report_dir / f"curated-import-{job.pk}.txt"
+def _log_path_for_job(job):
+    folder = Path(compute_folder_path(job.datadir, job.genome_name)) / "curated_import"
+    folder.mkdir(parents=True, exist_ok=True)
+    return folder / f"curated-import-{job.pk}.log"
+
+
+def _job_command(job):
+    command = [
+        sys.executable,
+        str(Path(settings.BASE_DIR) / "manage.py"),
+        "run_curated_file_import",
+        "--genome",
+        job.genome_name,
+        "--results-tsv",
+        job.results_tsv,
+        "--datadir",
+        job.datadir,
+        "--execute",
+        "--job-id",
+        str(job.pk),
+    ]
+    for flag, value in (
+        ("--structures-dir", job.structures_dir),
+        ("--archive", job.archive),
+        ("--archive-root", job.archive_root),
+        ("--ligq-output-dir", job.ligq_output_dir),
+    ):
+        if value:
+            command += [flag, value]
+    if job.archive:
+        command += ["--extract", "--overwrite-extract"]
+    if job.overwrite_scores:
+        command.append("--overwrite-scores")
+    if not job.load_ligq_output:
+        command.append("--skip-ligq")
+    return command
+
+
+def _launch(job_pk):
+    job = CuratedImportJob.objects.get(pk=job_pk)
+    try:
+        log_path = _log_path_for_job(job)
+        with open(log_path, "ab") as log:
+            subprocess.Popen(
+                _job_command(job),
+                cwd=str(settings.BASE_DIR),
+                stdin=subprocess.DEVNULL,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+            )
+    except Exception as exc:
+        logger.exception("Could not start curated import job %s", job.pk)
+        job.status = CuratedImportJob.STATUS_FAILED
+        job.phase = "failed"
+        job.error_message = f"Could not start the import: {exc}"
+        job.finished_at = timezone.now()
+        job.save(update_fields=["status", "phase", "error_message", "finished_at", "updated_at"])
+        return
+    job.stdout = f"Log: {log_path}"
+    job.save(update_fields=["stdout", "updated_at"])
 
 
 def run_curated_import_job(job):
-    stdout = StringIO()
-    stderr = StringIO()
-    report_path = _report_path_for_job(job)
-
+    """Start the import in its own process and return at once: a full genome
+    takes hours, far longer than a web request may run. The command marks
+    the job running/finished/failed itself (--job-id)."""
     job.status = CuratedImportJob.STATUS_RUNNING
-    job.phase = "running"
+    job.phase = "starting"
     job.started_at = timezone.now()
     job.finished_at = None
     job.stdout = ""
     job.stderr = ""
-    job.report_path = str(report_path)
     job.report_text = ""
     job.error_message = ""
     job.save(
@@ -55,55 +115,11 @@ def run_curated_import_job(job):
             "finished_at",
             "stdout",
             "stderr",
-            "report_path",
             "report_text",
             "error_message",
             "updated_at",
         ]
     )
-
-    try:
-        call_command(
-            "run_curated_file_import",
-            genome=job.genome_name,
-            results_tsv=job.results_tsv,
-            structures_dir=job.structures_dir or None,
-            archive=job.archive or None,
-            archive_root=job.archive_root or None,
-            ligq_output_dir=job.ligq_output_dir or None,
-            datadir=job.datadir,
-            execute=True,
-            extract=bool(job.archive),
-            overwrite_extract=bool(job.archive),
-            overwrite_scores=job.overwrite_scores,
-            skip_ligq=not job.load_ligq_output,
-            report=str(report_path),
-            stdout=stdout,
-            stderr=stderr,
-        )
-    except Exception as exc:
-        job.status = CuratedImportJob.STATUS_FAILED
-        job.phase = "failed"
-        job.error_message = str(exc)
-    else:
-        job.status = CuratedImportJob.STATUS_FINISHED
-        job.phase = "finished"
-
-    job.stdout = stdout.getvalue()
-    job.stderr = stderr.getvalue()
-    if report_path.exists():
-        job.report_text = report_path.read_text(encoding="utf-8", errors="replace")
-    job.finished_at = timezone.now()
-    job.save(
-        update_fields=[
-            "status",
-            "phase",
-            "error_message",
-            "stdout",
-            "stderr",
-            "report_text",
-            "finished_at",
-            "updated_at",
-        ]
-    )
+    # The request transaction must commit first, or the new process can't see the job.
+    transaction.on_commit(lambda: _launch(job.pk))
     return job
