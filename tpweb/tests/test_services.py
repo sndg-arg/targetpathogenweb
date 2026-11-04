@@ -1731,7 +1731,7 @@ class PipelineStatusTests(SimpleTestCase):
 
     def test_finished_run_with_skipped_stages_reports_its_last_stage(self):
         events = [
-            SimpleNamespace(stage_number=n, status="completed", task_id=n, app_name="")
+            SimpleNamespace(stage_number=n, status="completed", task_id=None, app_name="")
             for n in (1, 2, 3)
         ]
         fake_run = type(

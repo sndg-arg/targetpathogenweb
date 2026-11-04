@@ -248,7 +248,12 @@ def _active_stage_from_pipeline_run(run):
     latest_stage_event = None
     latest_failed_event = None
     latest_info_event = None
+    # Every completed stage, task-tracked or not: direct runs (stages run
+    # inline, no task id) never reach latest_by_task below.
+    last_completed_stage = None
     for event in stage_events:
+        if event.stage_number is not None and event.status == "completed":
+            last_completed_stage = max(last_completed_stage or 0, event.stage_number)
         if event.stage_number is not None:
             latest_stage_event = event
         if event.status == "failed" and event.stage_number is not None:
@@ -295,6 +300,7 @@ def _active_stage_from_pipeline_run(run):
             "latest_stage_event": latest_stage_event,
             "stages_completed": tuple(sorted(completed_stages)),
             "stages_active": tuple(sorted(active_stages)),
+            "last_completed_stage": last_completed_stage,
         }
 
     if latest_failed_event is not None:
@@ -307,6 +313,7 @@ def _active_stage_from_pipeline_run(run):
             "latest_stage_event": latest_stage_event,
             "stages_completed": tuple(sorted(completed_stages)),
             "stages_active": tuple(sorted(active_stages)),
+            "last_completed_stage": last_completed_stage,
         }
 
     return {
@@ -319,6 +326,7 @@ def _active_stage_from_pipeline_run(run):
         "latest_stage_event": latest_stage_event,
         "stages_completed": tuple(sorted(completed_stages)),
         "stages_active": tuple(sorted(active_stages)),
+        "last_completed_stage": last_completed_stage,
     }
 
 
@@ -383,7 +391,7 @@ def _status_from_pipeline_run(run):
         status_data["state_class"] = "finished"
         status_data["progress_percent"] = 100
         status_data["stages_active"] = ()
-        last_stage = max(stages_completed) if stages_completed else PIPELINE_STAGE_TOTAL
+        last_stage = active_info.get("last_completed_stage") or PIPELINE_STAGE_TOTAL
         if last_stage < PIPELINE_STAGE_TOTAL:
             # A run with --skip-stages (e.g. only loading a genome before a
             # curated import) ends early: report where it really stopped.
