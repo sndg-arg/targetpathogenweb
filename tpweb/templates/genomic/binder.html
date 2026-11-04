@@ -5,7 +5,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261104-ligq">
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261026-synthesis2">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20261104-plan">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -120,6 +120,9 @@
             <a href="#section-strings" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "SMILES & InChI" %}</a>
             {% if show_routes %}
                 <a href="#section-synthesis" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Synthesis" %}{% if routes %} <span class="tp-count">{{ routes|length }}</span>{% endif %}</a>
+            {% endif %}
+            {% if route_plan %}
+                <a href="#section-plan" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Full plan" %} <span class="tp-count">{{ route_plan.steps }}</span></a>
             {% endif %}
             {% if external_links %}
                 <a href="#section-external" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "External" %}</a>
@@ -332,6 +335,30 @@
                     {% else %}
                         <p class="tp-state-note tp-state-note--empty">{% trans "No reaction in USPTO-50K or PaRoutes makes this compound or a close analog." %}</p>
                     {% endif %}
+                </section>
+            {% endif %}
+
+            {% if route_plan %}
+                <section class="binder-card binder-card--plan" id="section-plan">
+                    <div class="section-head">
+                        <div>
+                            <h2>{% trans "Full synthesis plan" %}</h2>
+                            <p class="section-subtitle">{% trans "The shortest route found back to building blocks, one literature reaction per step." %}</p>
+                        </div>
+                    </div>
+                    <div class="tp-metrics">
+                        <span class="metric-pill">{% blocktrans count n=route_plan.steps %}{{ n }} step{% plural %}{{ n }} steps{% endblocktrans %}</span>
+                        <span class="metric-pill">{% blocktrans with n=route_plan.depth %}{{ n }} deep{% endblocktrans %}</span>
+                        {% if route_plan.solved %}
+                            <span class="metric-pill metric-pill--success">{% trans "All branches resolved" %}</span>
+                        {% else %}
+                            <span class="metric-pill">{% blocktrans count n=route_plan.open_leaves %}{{ n }} precursor left open{% plural %}{{ n }} precursors left open{% endblocktrans %}</span>
+                        {% endif %}
+                    </div>
+                    <ul class="rp-tree">
+                        {% include "genomic/_route_node.html" with node=route_plan.tree %}
+                    </ul>
+                    <p class="rp-caveat">{% trans "A building block is a compound the patent literature routinely starts from. Commercial availability and price are not checked." %}</p>
                 </section>
             {% endif %}
 

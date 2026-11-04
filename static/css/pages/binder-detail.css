@@ -421,3 +421,67 @@
     font-size: var(--tp-font-size-xs);
     word-break: break-all;
 }
+
+/* Multi-step plan: a tree of reactions. Each node indents its precursors under
+   a hairline rail, so depth reads without boxes inside boxes. */
+.rp-tree,
+.rp-children {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rp-tree {
+    margin-top: var(--tp-space-4);
+}
+
+.rp-children {
+    margin-top: var(--tp-space-4);
+    padding-left: var(--tp-space-4);
+    border-left: 1px solid var(--tp-color-border-soft);
+    display: flex;
+    flex-direction: column;
+    gap: var(--tp-space-4);
+}
+
+.rp-node + .rp-node {
+    margin-top: var(--tp-space-4);
+}
+
+.rp-step {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2);
+    margin-bottom: var(--tp-space-2);
+}
+
+.rp-step-name {
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-primary);
+}
+
+.rp-step-patent {
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-secondary);
+}
+
+.rp-leaf {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2);
+}
+
+.rp-leaf-smiles {
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-secondary);
+    word-break: break-all;
+}
+
+.rp-caveat {
+    margin: var(--tp-space-5) 0 0;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}

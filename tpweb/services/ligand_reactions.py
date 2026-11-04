@@ -137,6 +137,7 @@ def protein_synthesis_routes(bioentry):
         binder = by_key[key]
         rows.append(
             {
+                "smiles_key": key,
                 "binder_id": binder.id,
                 "name": binder.ccd_id or f"Binder {binder.id}",
                 "source_label": "PDB" if binder.source == Binders.SOURCE_PDB else "ChEMBL",
@@ -147,7 +148,19 @@ def protein_synthesis_routes(bioentry):
             }
         )
     rows.sort(key=lambda r: (-r["exact"], -(r["best_pct"] or 0), not r["is_direct"], r["name"]))
+    _attach_plans(rows)
     return rows
+
+
+def _attach_plans(rows):
+    """Add the multi-step plan's size to each row, when there is one."""
+    from tpweb.services.ligand_routes import plan_summaries
+
+    summaries = plan_summaries(row["smiles_key"] for row in rows)
+    for row in rows:
+        plan = summaries.get(row.pop("smiles_key"))
+        row["plan_steps"] = plan["steps"] if plan else None
+        row["plan_solved"] = bool(plan and plan["solved"])
 
 
 def reactions_loaded():

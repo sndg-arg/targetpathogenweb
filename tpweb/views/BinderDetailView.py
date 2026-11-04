@@ -20,6 +20,7 @@ from tpweb.services.binder_summary import (
     _potency_from_pchembl,
 )
 from tpweb.services.ligand_reactions import ligand_routes, reactions_loaded
+from tpweb.services.ligand_routes import route_plan
 
 
 SOURCE_LABEL = {
@@ -292,6 +293,7 @@ class BinderDetailView(View):
             "siblings": siblings,
             "show_routes": show_routes,
             "routes": ligand_routes(binder.smiles) if show_routes else [],
+            "route_plan": route_plan(binder.smiles) if show_routes else None,
             "protein": {
                 "id": protein.bioentry_id,
                 "accession": protein.accession,

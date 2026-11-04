@@ -135,3 +135,20 @@ Two separate layers, both in `tpweb/middleware/access_control.py`:
   distinct SMILES, runs `scripts/cluster/match_ligand_reactions.py` in one SLURM job (LigQ_2 conda
   env, 12 CPUs / 48G via `TPW_REACTIONS_SLURM_*`), copies `routes.tsv.gz` back and loads it with
   `load_ligand_reactions` (full replace). `--load-only` reloads the last file.
+
+### Multi-step plans
+- Ligand page "Full synthesis plan": the best depth-bounded tree back to building blocks, one
+  stored plan per ligand in `LigandRoutePlan` (`tree` JSONField, same sha256 key as above).
+  `tpweb/services/ligand_routes.py` renders it; `genomic/_route_node.html` includes itself for
+  each precursor that still has to be made. The human protein page's Synthesis tab shows the
+  plan size per ligand.
+- A branch ends at a *building block*: used as a reactant in ≥ `--min-uses` (25) distinct
+  reactions of the corpus, or ≤ `--simple-atoms` (12) heavy atoms. There is no supplier
+  catalogue — ChemSpace/MolPort need paid keys — so the page says availability and price are
+  not checked. Patent legal status is not shown either: Google Patents would have to be
+  scraped and PatentsView needs a registered key.
+- Refresh: `python manage.py predict_ligand_routes` (as root, in its own container), same shape
+  as `predict_ligand_reactions` — `scripts/cluster/expand_ligand_routes.py` in one SLURM job
+  (12 CPUs / 64G via `TPW_ROUTES_SLURM_*`, `--max-depth` 3), `plans.jsonl.gz` back, loaded by
+  `load_ligand_routes` (full replace). `match_ligand_reactions.py` is copied along: the
+  expander imports its SMILES handling.

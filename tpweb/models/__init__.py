@@ -17,6 +17,7 @@ from .RequestLog import RequestLog
 from .RestrictedGenome import RestrictedGenome
 from .IdenticalSequence import IdenticalSequenceGroup, IdenticalSequenceMember
 from .LigandReaction import LigandReaction
+from .LigandRoutePlan import LigandRoutePlan
 from .Metabolism import (
     MetabolicPathway,
     MetabolicReaction,
@@ -43,6 +44,7 @@ __all__ = [
     "IdenticalSequenceGroup",
     "IdenticalSequenceMember",
     "LigandReaction",
+    "LigandRoutePlan",
     "MetabolicImportRun",
     "MetabolicPathway",
     "MetabolicReaction",

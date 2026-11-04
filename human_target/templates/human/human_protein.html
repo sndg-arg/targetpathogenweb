@@ -390,6 +390,7 @@
                                     <th scope="col">{% trans "Evidence" %}</th>
                                     <th scope="col">{% trans "Best match" %}</th>
                                     <th scope="col">{% trans "Routes" %}</th>
+                                    <th scope="col">{% trans "Full plan" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -400,6 +401,7 @@
                                     <td>{{ row.source_label }} · {% if row.is_direct %}{% trans "this protein" %}{% else %}{% trans "homolog" %}{% endif %}</td>
                                     <td>{% if row.exact %}<span class="tp-chip">{% trans "Exact product" %}</span>{% else %}<span class="tp-chip tp-chip--muted">{% blocktrans with pct=row.best_pct %}Analog · {{ pct }}% similar{% endblocktrans %}</span>{% endif %}</td>
                                     <td>{{ row.routes }}</td>
+                                    <td>{% if row.plan_steps %}{% blocktrans count n=row.plan_steps %}{{ n }} step{% plural %}{{ n }} steps{% endblocktrans %}{% if row.plan_solved %} <span class="tp-chip">{% trans "resolved" %}</span>{% endif %}{% else %}—{% endif %}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
