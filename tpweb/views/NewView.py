@@ -1,7 +1,5 @@
 import uuid
-from pathlib import Path
 
-from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.shortcuts import render
@@ -10,6 +8,7 @@ from django.views import View
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
+from tpweb.services.blast_files import blast_results_dir
 from tpweb.services.genome_workspace import display_genome_name, resolve_genome_from_slug
 
 # blastn runs with -outfmt 6: the 12 standard tabular columns.
@@ -48,7 +47,10 @@ class NewView(LoginRequiredMixin, View):
         except (TypeError, ValueError) as exc:
             raise Http404("BLAST result not found") from exc
 
-        result_path = Path(settings.MEDIA_ROOT) / "blast_results" / f"{parsed_id}.csv"
+        try:
+            result_path = blast_results_dir() / f"{parsed_id}.csv"
+        except OSError as exc:
+            raise Http404("BLAST result not found") from exc
         if not result_path.is_file():
             raise Http404("BLAST result not found")
 

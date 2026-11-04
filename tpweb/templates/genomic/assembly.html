@@ -6,7 +6,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/genome-page.css' %}?v=20261021-split">
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261102-titles">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261104-links">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -110,14 +110,14 @@
                 </div>
             </div>
             <div class="tp-metrics genome-metrics" aria-label="{% trans 'Genome summary' %}">
-                <div class="metric-pill">
+                <a class="metric-pill metric-pill--link" href="{{ workspace_links.filters.all }}">
                     <span class="metric-label" title="{% trans 'Total proteins loaded for this genome.' %}">{% trans "Proteins" %}</span>
                     <span class="metric-value">{{ workspace_metrics.total_proteins }}</span>
-                </div>
-                <div class="metric-pill">
+                </a>
+                <a class="metric-pill metric-pill--link" href="{{ workspace_links.filters.structure_any }}">
                     <span class="metric-label" title="{% trans 'Proteins with at least one 3D structure loaded — experimental (PDB), AlphaFold DB, or ColabFold.' %}">{% trans "With 3D structure" %}</span>
                     <span class="metric-value">{{ workspace_metrics.proteins_with_structure }}</span>
-                </div>
+                </a>
                 <div class="metric-pill">
                     <span class="metric-label" title="{% trans 'Proteins with at least one functional annotation — an EC number or a GO term.' %}">{% trans "Annotated" %}</span>
                     <span class="metric-value">{{ workspace_metrics.functional_annotated }}</span>
@@ -129,10 +129,10 @@
                 </div>
                 {% endif %}
                 {% if workspace_metrics.binder_direct %}
-                <div class="metric-pill">
+                <a class="metric-pill metric-pill--link" href="{{ workspace_links.filters.ligand_direct }}">
                     <span class="metric-label" title="{% trans 'Direct ligand evidence from experimental PDB complexes or ChEMBL bioactivity records mapped to proteins in this genome.' %}">{% trans "Direct ligand hits" %}</span>
                     <span class="metric-value">{{ workspace_metrics.binder_direct }}</span>
-                </div>
+                </a>
                 {% elif workspace_metrics.binder_total %}
                 <div class="metric-pill">
                     <span class="metric-label" title="{% trans 'Ligand records linked to proteins in this genome, including homolog-transferred and proposed compounds.' %}">{% trans "Ligand records" %}</span>
@@ -172,20 +172,15 @@
                             {% blocktrans count proteins=workspace_metrics.proteins_with_structure %}{{ proteins }} protein{% plural %}{{ proteins }} proteins{% endblocktrans %}
                         </span>
                         <ul class="evidence-breakdown">
-                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Proteins with at least one 3D structure loaded. The three rows below split this same total by source — experimental, AlphaFold DB, or ColabFold — so they add up to this number exactly, each protein counted once under its best available source.' %}">{% trans "Total with a structure" %}</span><span class="evidence-bd-value">{{ workspace_metrics.proteins_with_structure }}</span></li>
-                            {% if workspace_metrics.experimental_structures %}
-                                <li><span class="evidence-bd-label" title="{% trans 'Experimentally determined structures (X-ray, cryo-EM, NMR), already downloaded and visible in the 3D viewer. Highest-priority source: never double-counted below.' %}">{% trans "Experimental, downloaded" %}</span><span class="evidence-bd-value">{{ workspace_metrics.experimental_structures }}</span></li>
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Proteins with at least one 3D structure loaded, from any source. A protein can have structures from several sources, so the rows below overlap.' %}">{% trans "Total with a structure" %}</span><a class="evidence-bd-value evidence-bd-link" href="{{ workspace_links.filters.structure_any }}" title="{% trans 'Show these proteins' %}">{{ workspace_metrics.proteins_with_structure }}</a></li>
+                            {% if workspace_metrics.experimental_entries %}
+                                <li><span class="evidence-bd-label" title="{% trans 'Experimentally determined structures (X-ray, cryo-EM, NMR) loaded in the 3D viewer, counted once per PDB entry. One protein can have several entries.' %}">{% trans "PDB entries" %}</span><a class="evidence-bd-value evidence-bd-link" href="{{ workspace_links.filters.structure_experimental }}" title="{% trans 'Show the proteins with a PDB entry' %}">{{ workspace_metrics.experimental_entries }} <span class="evidence-bd-sub">{% blocktrans count proteins=workspace_metrics.experimental_structures %}· {{ proteins }} protein{% plural %}· {{ proteins }} proteins{% endblocktrans %}</span></a></li>
                             {% endif %}
-                            {% if workspace_metrics.alphafold_structures %}
-                                <li><span class="evidence-bd-label" title="{% trans 'Proteins with an AlphaFold Database model loaded, counted here only if they have no experimental structure — these are precomputed models from AlphaFold DB, not structures experimentally solved by this project.' %}">{% trans "AlphaFold DB, downloaded" %}</span><span class="evidence-bd-value">{{ workspace_metrics.alphafold_structures }}</span></li>
+                            {% if workspace_metrics.alphafold_proteins %}
+                                <li><span class="evidence-bd-label" title="{% trans 'Precomputed AlphaFold Database models, one per protein.' %}">{% trans "AlphaFold DB models" %}</span><a class="evidence-bd-value evidence-bd-link" href="{{ workspace_links.filters.structure_alphafold }}" title="{% trans 'Show these proteins' %}">{{ workspace_metrics.alphafold_proteins }}</a></li>
                             {% endif %}
-                            {% if workspace_metrics.colabfold_structures %}
-                                <li><span class="evidence-bd-label" title="{% trans 'Proteins with a ColabFold model, counted here only if they have no experimental structure and no AlphaFold DB model — ColabFold runs as the last-resort source for whatever nothing else already covers. These are computational predictions and should be interpreted by coverage and confidence.' %}">{% trans "ColabFold, predicted" %}</span><span class="evidence-bd-value">{{ workspace_metrics.colabfold_structures }}</span></li>
-                            {% endif %}
-                            {% if workspace_metrics.pdb_xref_entries %}
-                                <li class="evidence-breakdown-group-label" title="{% trans 'These two counts come from PDB entries UniProt lists for this genome — they are a citation, not a download. A protein listed here may or may not be the same one already downloaded above.' %}">{% trans "Cited in PDB via UniProt (not downloaded)" %}</li>
-                                <li><span class="evidence-bd-label" title="{% trans 'Proteins that UniProt reports as having at least one PDB entry — but those structures may not be downloaded yet.' %}">{% trans "Proteins with a PDB entry" %}</span><span class="evidence-bd-value">{{ workspace_metrics.pdb_xref_proteins }}</span></li>
-                                <li><span class="evidence-bd-label" title="{% trans 'Individual PDB accession codes from UniProt for this genome. One protein can have several entries (different ligands, conditions, or resolutions).' %}">{% trans "Total PDB entries" %}</span><span class="evidence-bd-value">{{ workspace_metrics.pdb_xref_entries }}</span></li>
+                            {% if workspace_metrics.colabfold_proteins %}
+                                <li><span class="evidence-bd-label" title="{% trans 'Models predicted by this project with ColabFold, one per protein. Predictions: read them by coverage and confidence (pLDDT).' %}">{% trans "ColabFold models" %}</span><a class="evidence-bd-value evidence-bd-link" href="{{ workspace_links.filters.structure_colabfold }}" title="{% trans 'Show these proteins' %}">{{ workspace_metrics.colabfold_proteins }}</a></li>
                             {% endif %}
                         </ul>
                     </div>
@@ -196,7 +191,7 @@
                             {% blocktrans count proteins=workspace_metrics.functional_annotated %}{{ proteins }} annotated protein{% plural %}{{ proteins }} annotated proteins{% endblocktrans %}
                         </span>
                         <ul class="evidence-breakdown">
-                            <li><span class="evidence-bd-label">EC</span><span class="evidence-bd-value">{{ workspace_metrics.ec_annotated }}</span></li>
+                            <li><span class="evidence-bd-label">EC</span><a class="evidence-bd-value evidence-bd-link" href="{{ workspace_links.filters.ec_any }}" title="{% trans 'Show these proteins' %}">{{ workspace_metrics.ec_annotated }}</a></li>
                             <li><span class="evidence-bd-label">GO</span><span class="evidence-bd-value">{{ workspace_metrics.go_annotated }}</span></li>
                             {% if workspace_metrics.localization_annotated %}
                             <li>
@@ -232,11 +227,11 @@
                             {% endif %}
                         </span>
                         <ul class="evidence-breakdown">
-                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Ligand observed in an experimental Protein Data Bank structure of this protein.' %}">{% trans "PDB co-crystal" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_direct }}</span></li>
-                            <li><span class="evidence-bd-label" title="{% trans 'Ligand observed in an experimental structure of a similar protein; useful but weaker than direct evidence.' %}">{% trans "PDB via homologs" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_homolog }}</span></li>
-                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Measured bioactivity from ChEMBL mapped to this same protein.' %}">{% trans "ChEMBL bioactive" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_direct }}</span></li>
-                            <li><span class="evidence-bd-label" title="{% trans 'Measured ChEMBL bioactivity transferred from a homologous protein.' %}">{% trans "ChEMBL via homologs" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_homolog }}</span></li>
-                            <li><span class="evidence-bd-label" title="{% trans 'Proposed purchasable compounds from ZINC selected by chemical similarity; not measured activity.' %}">{% trans "ZINC proposed" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_zinc }}</span></li>
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Ligand observed in an experimental Protein Data Bank structure of this protein.' %}">{% trans "PDB co-crystal" %}</span><a class="evidence-bd-value evidence-bd-link" href="{{ workspace_links.filters.ligand_pdb_direct }}" title="{% trans 'Show the proteins with these records' %}">{{ workspace_metrics.binder_pdb_direct }}</a></li>
+                            <li><span class="evidence-bd-label" title="{% trans 'Ligand observed in an experimental structure of a similar protein; useful but weaker than direct evidence.' %}">{% trans "PDB via homologs" %}</span><a class="evidence-bd-value evidence-bd-link" href="{{ workspace_links.filters.ligand_pdb_homolog }}" title="{% trans 'Show the proteins with these records' %}">{{ workspace_metrics.binder_pdb_homolog }}</a></li>
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Measured bioactivity from ChEMBL mapped to this same protein.' %}">{% trans "ChEMBL bioactive" %}</span><a class="evidence-bd-value evidence-bd-link" href="{{ workspace_links.filters.ligand_chembl_direct }}" title="{% trans 'Show the proteins with these records' %}">{{ workspace_metrics.binder_chembl_direct }}</a></li>
+                            <li><span class="evidence-bd-label" title="{% trans 'Measured ChEMBL bioactivity transferred from a homologous protein.' %}">{% trans "ChEMBL via homologs" %}</span><a class="evidence-bd-value evidence-bd-link" href="{{ workspace_links.filters.ligand_chembl_homolog }}" title="{% trans 'Show the proteins with these records' %}">{{ workspace_metrics.binder_chembl_homolog }}</a></li>
+                            <li><span class="evidence-bd-label" title="{% trans 'Proposed purchasable compounds from ZINC selected by chemical similarity; not measured activity.' %}">{% trans "ZINC proposed" %}</span><a class="evidence-bd-value evidence-bd-link" href="{{ workspace_links.filters.ligand_zinc }}" title="{% trans 'Show the proteins with these records' %}">{{ workspace_metrics.binder_zinc }}</a></li>
                         </ul>
                     </div>
 

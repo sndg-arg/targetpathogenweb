@@ -23,6 +23,7 @@ from tpweb.services.protein_list import (
     readable_column_name,
     suggest_filter_values,
     DEFAULT_PAGE_SIZE,
+    DEFAULT_PROTEIN_COLUMNS,
     EC_ANY_VALUE,
     EC_CLASSES,
     EC_FILTER_LABEL,
@@ -38,6 +39,7 @@ from tpweb.services.protein_list import (
     normalize_selected_parameters,
     parse_page_size,
     resolve_filter_values,
+    VISIBLE_COLUMNS_SESSION_KEY,
 )
 from tpweb.services.score_param_types import is_categorical_score_param
 from tpweb.services.protein_formula import (
@@ -503,7 +505,7 @@ def _stable(value):
 
 class ProteinListView(View):
     template_name = "search/proteins.html"
-    VISIBLE_COLUMNS_SESSION_KEY = "protein_visible_columns"
+    VISIBLE_COLUMNS_SESSION_KEY = VISIBLE_COLUMNS_SESSION_KEY
     FIXED_COLUMN_LABELS = (
         "Protein",
         "Description",
@@ -526,7 +528,7 @@ class ProteinListView(View):
         session)."""
         decoded = decode_selected_parameters_param(raw_filters_param)
         if decoded is None:
-            messages.warning(request, "No pudimos interpretar el link de filtros compartido.")
+            messages.warning(request, "This filter link couldn't be read.")
         else:
             normalized = normalize_selected_parameters(decoded)
             visible_ids = set(
@@ -537,7 +539,8 @@ class ProteinListView(View):
             if dropped_count:
                 messages.warning(
                     request,
-                    f"{dropped_count} filtro(s) del link no se pudieron aplicar (columna no disponible para tu usuario).",
+                    f"{dropped_count} filter(s) from the link were skipped: the column isn't "
+                    "available to your account.",
                 )
         redirect_params = request.GET.copy()
         redirect_params.pop("filters", None)
@@ -1082,6 +1085,7 @@ class ProteinListView(View):
     @staticmethod
     def _build_structure_source_choices(request, page_size, current_value):
         base_choices = [
+            {"value": "any", "label": "Any 3D structure"},
             {"value": "experimental", "label": "Has experimental PDB"},
             {"value": "alphafold", "label": "AlphaFold DB model"},
             {"value": "colabfold", "label": "ColabFold model"},
@@ -1539,15 +1543,7 @@ class ProteinListView(View):
             # columns, in that order, is what actually explains the resulting row order
             # instead of the FPocket column alone looking unsorted.
             default_column_names = [
-                name
-                for name in [
-                    "p2rank_probability",
-                    "Druggability",
-                    "human_offtarget",
-                    "human_identity",
-                    "human_evalue",
-                ]
-                if name in visible_score_param_by_name
+                name for name in DEFAULT_PROTEIN_COLUMNS if name in visible_score_param_by_name
             ]
             if genome_has_gates_priority and "priority" in visible_score_param_by_name:
                 default_column_names.append("priority")
@@ -1706,6 +1702,10 @@ class ProteinListView(View):
         total_protein_count = proteins.count()
         if structure_source == "none":
             proteins = proteins.filter(structures__isnull=True)
+        elif structure_source == "any":
+            proteins = proteins.annotate(
+                has_any_structure=Exists(BioentryStructure.objects.filter(bioentry=OuterRef("pk"))),
+            ).filter(has_any_structure=True)
         elif structure_source == "experimental":
             experimental_structures = BioentryStructure.objects.filter(
                 bioentry=OuterRef("pk"),

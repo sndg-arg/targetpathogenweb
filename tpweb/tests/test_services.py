@@ -293,6 +293,26 @@ class AssemblyWorkspaceStructureMetricsTests(TestCase):
             + metrics["colabfold_structures"],
             metrics["proteins_with_structure"],
         )
+        # The genome page's per-source rows overlap instead: every protein
+        # with a model of that source.
+        self.assertEqual(metrics["experimental_entries"], 1)
+        self.assertEqual(metrics["alphafold_proteins"], 2)
+        self.assertEqual(metrics["colabfold_proteins"], 3)
+
+    def test_same_pdb_entry_loaded_twice_counts_once(self):
+        assembly_name = "public__TESTGENOME2"
+        proteome = Biodatabase.objects.create(name=assembly_name + Biodatabase.PROT_POSTFIX)
+        protein = Bioentry.objects.create(
+            biodatabase=proteome, name="p1", accession="P1", identifier="P1"
+        )
+        self._make_structure(protein, code="3RP7", experiment="EX")
+        self._make_structure(protein, code="3RP7_chain_A", experiment="EX")
+        self._make_structure(protein, code="3RP6", experiment="EX")
+
+        metrics = build_assembly_workspace_metrics(assembly_name)
+
+        self.assertEqual(metrics["experimental_entries"], 2)
+        self.assertEqual(metrics["experimental_structures"], 1)
 
     def test_genome_metadata_labels_are_human_readable(self):
         self.assertEqual(genome_metadata_label("EntryLength"), "Sequence length [bp]")
@@ -527,6 +547,34 @@ class ProteinListFilterQueryTests(TestCase):
         self.assertEqual(list(no_ligands.values_list("accession", flat=True)), ["LOCUS_B"])
         self.assertNotEqual(with_ligand.pk, with_ligand.accession)
         self.assertNotEqual(without_ligand.pk, without_ligand.accession)
+
+    def test_ligand_kind_filter_keeps_only_proteins_with_that_kind(self):
+        from tpweb.services.protein_list import build_special_filter_payload
+
+        proteome = Biodatabase.objects.create(name="TEST_kinds_protein")
+        crystal = Bioentry.objects.create(
+            biodatabase=proteome, name="a", accession="KIND_A", identifier="KIND_A"
+        )
+        homolog = Bioentry.objects.create(
+            biodatabase=proteome, name="b", accession="KIND_B", identifier="KIND_B"
+        )
+        Binders.objects.create(
+            ccd_id="ATP", locustag=crystal, smiles="C", source=Binders.SOURCE_PDB, is_direct=True
+        )
+        Binders.objects.create(
+            ccd_id="ADP", locustag=homolog, smiles="C", source=Binders.SOURCE_PDB, is_direct=False
+        )
+        proteins = Bioentry.objects.filter(biodatabase=proteome)
+
+        def accessions(kind):
+            payload = build_special_filter_payload("ligands", kind)
+            filtered = apply_selected_parameter_filters(proteins, [payload])
+            return sorted(filtered.values_list("accession", flat=True))
+
+        self.assertEqual(accessions("pdb_direct"), ["KIND_A"])
+        self.assertEqual(accessions("pdb_homolog"), ["KIND_B"])
+        self.assertEqual(accessions("direct"), ["KIND_A"])
+        self.assertEqual(accessions("zinc"), [])
 
     def test_ec_filter_labels_are_readable(self):
         from tpweb.services.protein_list import ec_filter_value_label

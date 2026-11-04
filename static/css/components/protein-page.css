@@ -1937,6 +1937,16 @@ body.binder-mol-modal-open {
     margin-top: 0;
 }
 
+.binder-intel-metrics-note {
+    margin: calc(-1 * var(--tp-space-2)) 0 0;
+    color: var(--tp-color-text-soft);
+    font-size: var(--tp-font-size-xs);
+}
+
+.binder-intel-metrics .metric-pill[title] {
+    cursor: help;
+}
+
 /* Membrane topology (see /design): helices take the one accent; membrane,
    chain and labels stay neutral. */
 .tm-figure {

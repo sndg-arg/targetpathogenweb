@@ -216,7 +216,19 @@
                 </svg>
             </button>
 
-            {# Reset view; zoom is the wheel or pinch on the canvas #}
+            {# Zoom buttons, besides the wheel or pinch on the canvas #}
+            <button type="button" class="sv-tb-btn" onclick="ngl_zoom_step(1)"
+                    title="{% trans 'Zoom in' %}" aria-label="{% trans 'Zoom in' %}">
+                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+                    <path d="M8 3v10M3 8h10"/>
+                </svg>
+            </button>
+            <button type="button" class="sv-tb-btn" onclick="ngl_zoom_step(-1)"
+                    title="{% trans 'Zoom out' %}" aria-label="{% trans 'Zoom out' %}">
+                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+                    <path d="M3 8h10"/>
+                </svg>
+            </button>
             <button type="button" class="sv-tb-btn" id="structure-reset-zoom-btn" onclick="ngl_reset_zoom()"
                     title="{% trans 'Reset view' %}" aria-label="{% trans 'Reset view' %}" disabled>
                 <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
@@ -1676,10 +1688,144 @@ function jsloaded() {
     })();
 
     /* ---- Overlay: other structures of this protein superposed on the one
-       in view. NGL's component.superpose(target, true, sele, targetSele)
-       aligns the two sequences, then fits the aligned C-alpha atoms (Kabsch)
-       and moves the overlay's coordinates; the camera stays put. Fitted on
-       one chain per structure, so a homooligomer doesn't skew the alignment. ---- */
+       in view. superposeOnto() pairs residues by a sequence alignment, then
+       fits the paired C-alpha atoms and moves the overlay's coordinates; the
+       camera stays put. Fitted on one chain per structure, so a homooligomer
+       doesn't skew the alignment. NGL's own superpose(..., align=true) is
+       only the fallback: it mis-pairs residues when the files differ by tags,
+       gaps or ligands and can leave a model tens of Å away (KP13_05229). ---- */
+    var ONE_LETTER = {
+        ALA: "A", ARG: "R", ASN: "N", ASP: "D", CYS: "C", GLN: "Q", GLU: "E", GLY: "G",
+        HIS: "H", ILE: "I", LEU: "L", LYS: "K", MET: "M", PHE: "F", PRO: "P", SER: "S",
+        THR: "T", TRP: "W", TYR: "Y", VAL: "V", MSE: "M", SEC: "U", PYL: "O"
+    };
+    function caResidues(component, sele) {
+        var chains = (sele.match(/:[A-Za-z0-9]+/g) || []).map(function (c) { return c.slice(1); });
+        var structure = component.structure;
+        var out = [];
+        structure.eachResidue(function (rp) {
+            if (!rp.isProtein()) return;
+            if (chains.length && chains.indexOf(rp.chainname) === -1) return;
+            var ap = structure.getAtomProxy(rp.traceAtomIndex);
+            if (!ap || ap.atomname !== "CA") return;
+            out.push({ aa: ONE_LETTER[(rp.resname || "").toUpperCase()] || "X", x: ap.x, y: ap.y, z: ap.z });
+        });
+        return out;
+    }
+    // Global alignment (match +2, mismatch -1, gap -2): index pairs of aligned residues.
+    function alignResidues(a, b) {
+        var n = a.length, m = b.length, w = m + 1;
+        if (!n || !m || n * m > 9e6) return [];
+        var score = new Int32Array((n + 1) * w);
+        var move = new Uint8Array((n + 1) * w); // 0 diag, 1 up (gap in b), 2 left (gap in a)
+        for (var i = 1; i <= n; i++) { score[i * w] = -2 * i; move[i * w] = 1; }
+        for (var j = 1; j <= m; j++) { score[j] = -2 * j; move[j] = 2; }
+        for (i = 1; i <= n; i++) {
+            for (j = 1; j <= m; j++) {
+                var diag = score[(i - 1) * w + j - 1] + (a[i - 1].aa === b[j - 1].aa && a[i - 1].aa !== "X" ? 2 : -1);
+                var up = score[(i - 1) * w + j] - 2;
+                var left = score[i * w + j - 1] - 2;
+                var k = i * w + j;
+                if (diag >= up && diag >= left) { score[k] = diag; move[k] = 0; }
+                else if (up >= left) { score[k] = up; move[k] = 1; }
+                else { score[k] = left; move[k] = 2; }
+            }
+        }
+        var pairs = [];
+        i = n; j = m;
+        while (i > 0 && j > 0) {
+            var mv = move[i * w + j];
+            if (mv === 0) {
+                if (a[i - 1].aa === b[j - 1].aa) pairs.push([i - 1, j - 1]);
+                i--; j--;
+            } else if (mv === 1) { i--; } else { j--; }
+        }
+        return pairs;
+    }
+    // Largest-eigenvalue eigenvector of a symmetric 4x4 matrix (Jacobi).
+    function maxEigenvector4(matrix) {
+        var a = matrix.map(function (row) { return row.slice(); });
+        var v = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
+        for (var sweep = 0; sweep < 60; sweep++) {
+            var off = 0;
+            for (var p = 0; p < 3; p++) for (var q = p + 1; q < 4; q++) off += a[p][q] * a[p][q];
+            if (off < 1e-20) break;
+            for (p = 0; p < 3; p++) {
+                for (q = p + 1; q < 4; q++) {
+                    if (Math.abs(a[p][q]) < 1e-30) continue;
+                    var theta = (a[q][q] - a[p][p]) / (2 * a[p][q]);
+                    var t = (theta >= 0 ? 1 : -1) / (Math.abs(theta) + Math.sqrt(theta * theta + 1));
+                    var c = 1 / Math.sqrt(t * t + 1), s = t * c;
+                    for (var k = 0; k < 4; k++) {
+                        var akp = a[k][p], akq = a[k][q];
+                        a[k][p] = c * akp - s * akq;
+                        a[k][q] = s * akp + c * akq;
+                    }
+                    for (k = 0; k < 4; k++) {
+                        var apk = a[p][k], aqk = a[q][k];
+                        a[p][k] = c * apk - s * aqk;
+                        a[q][k] = s * apk + c * aqk;
+                    }
+                    for (k = 0; k < 4; k++) {
+                        var vkp = v[k][p], vkq = v[k][q];
+                        v[k][p] = c * vkp - s * vkq;
+                        v[k][q] = s * vkp + c * vkq;
+                    }
+                }
+            }
+        }
+        var best = 0;
+        for (var d = 1; d < 4; d++) if (a[d][d] > a[best][best]) best = d;
+        return [v[0][best], v[1][best], v[2][best], v[3][best]];
+    }
+    /* Moves `mobile` onto `target`: residues paired by sequence alignment,
+       then a least-squares fit of the paired C-alpha atoms (Horn's
+       quaternion method). Returns false when too few residues pair up. */
+    function fitOnto(mobile, target, mobileSele, targetSele) {
+        var ma = caResidues(mobile, mobileSele), ta = caResidues(target, targetSele);
+        var pairs = alignResidues(ma, ta);
+        if (pairs.length < 3) return false;
+        var cm = [0, 0, 0], ct = [0, 0, 0];
+        pairs.forEach(function (pr) {
+            var m = ma[pr[0]], t = ta[pr[1]];
+            cm[0] += m.x; cm[1] += m.y; cm[2] += m.z;
+            ct[0] += t.x; ct[1] += t.y; ct[2] += t.z;
+        });
+        for (var d = 0; d < 3; d++) { cm[d] /= pairs.length; ct[d] /= pairs.length; }
+        var S = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+        pairs.forEach(function (pr) {
+            var m = ma[pr[0]], t = ta[pr[1]];
+            var mv = [m.x - cm[0], m.y - cm[1], m.z - cm[2]];
+            var tv = [t.x - ct[0], t.y - ct[1], t.z - ct[2]];
+            for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) S[r][c] += mv[r] * tv[c];
+        });
+        var q = maxEigenvector4([
+            [S[0][0] + S[1][1] + S[2][2], S[1][2] - S[2][1], S[2][0] - S[0][2], S[0][1] - S[1][0]],
+            [S[1][2] - S[2][1], S[0][0] - S[1][1] - S[2][2], S[0][1] + S[1][0], S[2][0] + S[0][2]],
+            [S[2][0] - S[0][2], S[0][1] + S[1][0], -S[0][0] + S[1][1] - S[2][2], S[1][2] + S[2][1]],
+            [S[0][1] - S[1][0], S[2][0] + S[0][2], S[1][2] + S[2][1], -S[0][0] - S[1][1] + S[2][2]]
+        ]);
+        var w = q[0], x = q[1], y = q[2], z = q[3];
+        var R = [
+            [w * w + x * x - y * y - z * z, 2 * (x * y - w * z), 2 * (x * z + w * y)],
+            [2 * (x * y + w * z), w * w - x * x + y * y - z * z, 2 * (y * z - w * x)],
+            [2 * (x * z - w * y), 2 * (y * z + w * x), w * w - x * x - y * y + z * z]
+        ];
+        mobile.structure.eachAtom(function (ap) {
+            var px = ap.x - cm[0], py = ap.y - cm[1], pz = ap.z - cm[2];
+            ap.x = R[0][0] * px + R[0][1] * py + R[0][2] * pz + ct[0];
+            ap.y = R[1][0] * px + R[1][1] * py + R[1][2] * pz + ct[1];
+            ap.z = R[2][0] * px + R[2][1] * py + R[2][2] * pz + ct[2];
+        });
+        mobile.structure.refreshPosition();
+        mobile.updateRepresentations({ position: true });
+        return true;
+    }
+    function superposeOnto(mobile, target, mobileSele, targetSele) {
+        if (!fitOnto(mobile, target, mobileSele, targetSele)) {
+            mobile.superpose(target, true, mobileSele, targetSele);
+        }
+    }
     var overlayComponents = {};
     // With overlays on, the structure in view turns into a faint grey ghost and
     // each overlay is drawn solid in its own colour: near-identical models
@@ -1868,7 +2014,7 @@ function jsloaded() {
                     return;
                 }
                 var sele = overlayFitSele(overlayId);
-                overlay.superpose(target, true, sele, overlayFitSele(activeStructureId));
+                superposeOnto(overlay, target, sele, overlayFitSele(activeStructureId));
                 overlayComponents[overlayId] = overlay;
                 overlayStyles[overlayId] = { sele: sele, color: color };
                 drawOverlay(overlayId);
@@ -1993,7 +2139,7 @@ function jsloaded() {
                         return;
                     }
                     var sele = overlayFitSele(id);
-                    component.superpose(target, true, sele, overlayFitSele(activeStructureId));
+                    superposeOnto(component, target, sele, overlayFitSele(activeStructureId));
                     component.addRepresentation("cartoon", { sele: sele, color: color });
                     compareStage.viewerControls.orient(stage.viewerControls.getOrientation());
                 })

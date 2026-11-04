@@ -502,6 +502,61 @@ a.hero-chip.tp-chip--link .tp-chip-acc {
     pointer-events: none;
 }
 
+/* Zoom buttons over the viewer: above the click-to-interact overlay, so
+   they work without activating the canvas first. */
+.structure-zoom-controls {
+    position: absolute;
+    right: var(--tp-space-3);
+    bottom: var(--tp-space-3);
+    z-index: 11;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-shadow-sm);
+    overflow: hidden;
+}
+
+.structure-zoom-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--tp-color-text-secondary);
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.structure-zoom-btn + .structure-zoom-btn {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.structure-zoom-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.structure-zoom-btn:hover:not(:disabled) {
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-primary);
+}
+
+.structure-zoom-btn:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--tp-focus-color);
+}
+
+.structure-zoom-btn:disabled {
+    color: var(--tp-color-text-soft);
+    cursor: default;
+}
+
 .structure-viewport-hint {
     margin: 0;
     font-size: var(--tp-font-size-xs);
@@ -658,6 +713,8 @@ a.hero-chip.tp-chip--link .tp-chip-acc {
     padding: var(--tp-space-1);
     min-width: 220px;
     max-width: min(360px, 90vw);
+    max-height: min(360px, 60vh);
+    overflow-y: auto;
     border-radius: var(--tp-radius-sm);
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border-soft);

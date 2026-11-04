@@ -22,6 +22,19 @@ from tpweb.services.structure_summary import pdb_structure
 _SHORT_METHOD = {"EX": "Crystal", "AF": "AlphaFold DB", "CF": "ColabFold"}
 
 
+def _drop_duplicate_structures(structures):
+    """The same entry can be loaded twice ("3RP7" and "3RP7_chain_A", same
+    chain): list it once in the picker and Compare menu, keeping the one in
+    view."""
+    kept = {}
+    for s in structures:
+        key = (s["experiment"], s["display_code"], s["chain_selector"])
+        if key not in kept or s["is_active"]:
+            kept[key] = s
+    keep_ids = {s["id"] for s in kept.values()}
+    return [s for s in structures if s["id"] in keep_ids]
+
+
 class StructureView(View):
     template_name = "genomic/structure.html"
 
@@ -119,6 +132,7 @@ class StructureView(View):
                     },
                 )
 
+            all_structures = _drop_duplicate_structures(all_structures)
             disambiguate_display_codes(all_structures)
             dto["all_structures"] = all_structures
             active = next(

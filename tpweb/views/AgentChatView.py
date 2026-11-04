@@ -57,11 +57,13 @@ from tpweb.services.llm.base import Message, ToolCall, ToolResult
 from tpweb.services.llm.provider_factory import get_provider, llm_agent_enabled
 from tpweb.services.llm.prompts import (
     BIOLOGIST_MODE_NOTE,
+    LANGUAGE_REMINDER,
     NO_GENOME_SCOPE_NOTE,
     SYSTEM_PROMPT,
     page_context_prompt,
 )
 from tpweb.services.llm.tool_registry import build_scoped_tools
+from tpweb.services.llm.tools.table_view import table_sort_query
 from tpweb.views.mixins import JsonPermissionRequiredMixin
 
 logger = logging.getLogger("tpweb.agent")
@@ -206,6 +208,26 @@ def _looks_like_clear_filters(message):
     return has_filter and has_clear
 
 
+_SPANISH_HINT_RE = re.compile(
+    r"[ñáéíóú¿¡]|\b(borr\w*|limpi\w*|sac\w*|filtros?|todos|todas|los|las|por favor)\b",
+    re.IGNORECASE,
+)
+
+
+def _looks_spanish(message):
+    return bool(_SPANISH_HINT_RE.search(str(message or "")))
+
+
+def _last_tool_input(messages, tool_name):
+    """Input of the last call to tool_name in this turn, or None."""
+    found = None
+    for message in messages:
+        for call in message.tool_calls:
+            if call.name == tool_name:
+                found = call.input if isinstance(call.input, dict) else {}
+    return found
+
+
 def _tool_was_called(messages, tool_name):
     for message in messages:
         for call in message.tool_calls:
@@ -330,11 +352,18 @@ class AgentChatView(JsonPermissionRequiredMixin, View):
         if assembly_name and _looks_like_clear_filters(message):
             set_workspace_session_value(request.session, session_user, "selected_parameters", [])
             on_list_page = self._is_protein_list_path(page_path)
-            reply = "Listo, borre todos los filtros de la lista de proteinas para esta sesion. " + (
-                "Recargo la lista para que lo veas aplicado."
-                if on_list_page
-                else "Se van a aplicar la proxima vez que abras la lista de proteinas."
-            )
+            if _looks_spanish(message):
+                reply = "Listo, borré todos los filtros de la lista de proteínas. " + (
+                    "Recargo la lista para que lo veas."
+                    if on_list_page
+                    else "Vas a ver la lista sin filtros la próxima vez que la abras."
+                )
+            else:
+                reply = "Done, I cleared every filter on the protein list. " + (
+                    "Reloading the list so you can see it."
+                    if on_list_page
+                    else "You'll see the unfiltered list next time you open it."
+                )
             history = _compact_history(
                 [
                     *history,
@@ -372,6 +401,7 @@ class AgentChatView(JsonPermissionRequiredMixin, View):
             system += self._page_state_prompt(page_state)
         else:
             system += NO_GENOME_SCOPE_NOTE
+        system += LANGUAGE_REMINDER
         tools = build_scoped_tools(
             request, assembly_name, default_accession, workspace_user, session_user
         )
@@ -435,12 +465,19 @@ class AgentChatView(JsonPermissionRequiredMixin, View):
             "title": row.title,
             "conversation_reset": conversation_reset,
         }
+        table_view_input = _last_tool_input(agent.last_messages, "set_table_view")
         if (
             _tool_was_called(agent.last_messages, "clear_filters")
             or _tool_was_called(agent.last_messages, "apply_filters")
+            or table_view_input is not None
         ) and self._is_protein_list_path(page_path):
             response["reload"] = True
-            response["redirect_url"] = self._reload_url_without_query(page_url or page_path)
+            redirect_url = self._reload_url_without_query(page_url or page_path)
+            sort_by = str((table_view_input or {}).get("sort_by") or "").strip()
+            if redirect_url and sort_by:
+                descending = (table_view_input or {}).get("descending", True) is not False
+                redirect_url = f"{redirect_url}?{table_sort_query(sort_by, descending)}"
+            response["redirect_url"] = redirect_url
         return JsonResponse(response)
 
     @staticmethod

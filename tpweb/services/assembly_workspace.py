@@ -13,6 +13,7 @@ from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_COLABFOLD,
     PDB_MODEL_EXPERIMENTS,
 )
+from tpweb.services.structure_files import display_code
 
 
 # The only score_param names _score_proteins actually reads (see its body below).
@@ -528,7 +529,7 @@ def _rankings_cache_key(assembly_name, limit):
 
 
 def _metrics_cache_key(assembly_name):
-    return f"Target:assembly_workspace_metrics:v2:{assembly_name}"
+    return f"Target:assembly_workspace_metrics:v3:{assembly_name}"
 
 
 def refresh_genome_overview_caches(assembly_name, ranking_limit=5):
@@ -655,6 +656,23 @@ def _build_assembly_workspace_metrics(assembly_name):
         .exclude(bioentry_id__in=alphafold_bioentry_ids)
         .distinct()
         .count()
+    )
+    # The genome page lists every structure per source, not the exclusive split
+    # above: a protein with a crystal and a ColabFold model counts under both.
+    # PDB entries are counted by code, so "3RP7" and "3RP7_chain_A" (the same
+    # entry loaded twice) count once.
+    experimental_entries = len(
+        {
+            display_code(code)
+            for code in BioentryStructure.objects.filter(bioentry__biodatabase__name=proteome_name)
+            .exclude(pdb__experiment__in=PDB_MODEL_EXPERIMENTS)
+            .values_list("pdb__code", flat=True)
+            .distinct()
+        }
+    )
+    alphafold_proteins = alphafold_bioentry_ids.count()
+    colabfold_proteins = (
+        proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD).distinct().count()
     )
     ec_annotated = proteins.filter(dbxrefs__dbxref__dbname__in=EC_DBNAMES).distinct().count()
     go_annotated = proteins.filter(dbxrefs__dbxref__dbname=Ontology.GO).distinct().count()
@@ -813,6 +831,9 @@ def _build_assembly_workspace_metrics(assembly_name):
         "pdb_xref_proteins": pdb_xref_proteins,
         "alphafold_structures": alphafold_structures,
         "colabfold_structures": colabfold_structures,
+        "experimental_entries": experimental_entries,
+        "alphafold_proteins": alphafold_proteins,
+        "colabfold_proteins": colabfold_proteins,
         "functional_annotated": functional_annotated,
         "functional_coverage_pct": _pct(functional_annotated, total_proteins),
         "ec_annotated": ec_annotated,

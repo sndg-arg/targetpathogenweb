@@ -473,6 +473,30 @@ class ProteinBlastViewTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_unwritable_results_folder_shows_error_instead_of_500(self):
+        from django.contrib.auth.models import Permission
+
+        Biodatabase.objects.create(name="TEST")
+        user = get_user_model().objects.create_user(
+            username="blast-unwritable-user", password="test-pass"
+        )
+        user.user_permissions.add(
+            Permission.objects.get(content_type__app_label="tpweb", codename="can_run_blast")
+        )
+        self.client.force_login(user)
+
+        with patch(
+            "tpweb.views.ProteinBlastView.blast_results_dir",
+            side_effect=PermissionError("read-only volume"),
+        ):
+            response = self.client.post(
+                reverse("tpwebapp:protein_blast", kwargs={"genome": "TEST"}),
+                {"sequence": "MKTAYIAKQR"},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "BLAST is unavailable right now.")
+
 
 class StructureRawViewTests(LoggedInTestCase):
     def test_unknown_structure_id_is_not_found(self):

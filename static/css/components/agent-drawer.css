@@ -840,8 +840,17 @@
    enough to win -- no specificity workaround needed here. */
 .tp-agent-drawer-send {
     flex-shrink: 0;
-    width: 40px !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+.tp-agent-drawer-send svg {
+    width: 22px;
+    height: 22px;
 }

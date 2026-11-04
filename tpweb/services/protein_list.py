@@ -14,6 +14,19 @@ from tpweb.services.structure_sources import (
 
 CORE_GENOME_PARAM_NAMES = {"core_roary", "core_corecruncher"}
 
+# Session key for the protein table's chosen columns (None = the defaults).
+VISIBLE_COLUMNS_SESSION_KEY = "protein_visible_columns"
+
+# Columns the protein table shows when no formula is active and the visitor
+# hasn't picked any, in order (only those this genome/user can see).
+DEFAULT_PROTEIN_COLUMNS = (
+    "p2rank_probability",
+    "Druggability",
+    "human_offtarget",
+    "human_identity",
+    "human_evalue",
+)
+
 MIN_PAGE_SIZE = 10
 MAX_PAGE_SIZE = 100
 DEFAULT_PAGE_SIZE = 25
@@ -206,6 +219,34 @@ def encode_selected_parameters(selected_parameters):
     see ProteinListView.get()'s ?filters= handling)."""
     raw = json.dumps(selected_parameters, separators=(",", ":")).encode("utf-8")
     return base64.urlsafe_b64encode(raw).decode("ascii")
+
+
+STRUCTURE_SOURCE_FILTER_LABELS = {
+    "any": "Any 3D structure",
+    "experimental": "Has experimental PDB",
+    "alphafold": "AlphaFold DB model",
+    "colabfold": "ColabFold model",
+}
+
+
+def structure_source_filter_payload(value):
+    label = STRUCTURE_SOURCE_FILTER_LABELS[value]
+    return {
+        "id": f"special:structure:{value}",
+        "score_param_name": "structure_source",
+        "name": label,
+        "type": "special",
+        "special_key": "structure_source",
+        "special_value": value,
+        "display_name": label,
+    }
+
+
+def protein_list_filter_url(proteins_url, selected_parameters):
+    """Protein-list link that replaces the visitor's active filters with
+    exactly these (an empty list clears them) -- see ?filters= in
+    ProteinListView.get()."""
+    return f"{proteins_url}?filters={encode_selected_parameters(selected_parameters)}"
 
 
 def decode_selected_parameters_param(raw):
@@ -411,6 +452,29 @@ def _tag_grouped_option(option_dict, change):
 
 _YES_NO_SPECIAL_KEYS = ("ligand_filter", "tm_filter")
 
+# Ligand filter values beyond yes/no: one per evidence kind on the genome
+# page's ligand counters, so each count links to the proteins behind it.
+LIGAND_EVIDENCE_KINDS = {
+    "direct": ("Direct ligand evidence (PDB or ChEMBL)", {"is_direct": True}),
+    "pdb_direct": (
+        "PDB co-crystal ligand",
+        {"source": Binders.SOURCE_PDB, "is_direct": True},
+    ),
+    "pdb_homolog": (
+        "PDB ligand via similar proteins",
+        {"source": Binders.SOURCE_PDB, "is_direct": False},
+    ),
+    "chembl_direct": (
+        "ChEMBL bioactivity",
+        {"source": Binders.SOURCE_CHEMBL, "is_direct": True},
+    ),
+    "chembl_homolog": (
+        "ChEMBL bioactivity via similar proteins",
+        {"source": Binders.SOURCE_CHEMBL, "is_direct": False},
+    ),
+    "zinc": ("ZINC proposed compounds", {"source": Binders.SOURCE_PROPOSED}),
+}
+
 # InterPro topology predictors and the signature ids of a membrane-spanning
 # segment (same sources as protein_architecture's topology track).
 TM_PREDICTOR_DBS = ("Phobius", "TMHMM", "DeepTMHMM")
@@ -478,9 +542,12 @@ def build_special_filter_payload(kind, value):
         }
     if kind == "ligands":
         normalized = value.strip().lower()
-        if normalized not in ("yes", "no"):
+        if normalized in LIGAND_EVIDENCE_KINDS:
+            display = LIGAND_EVIDENCE_KINDS[normalized][0]
+        elif normalized in ("yes", "no"):
+            display = "Has ligand evidence" if normalized == "yes" else "No ligand evidence"
+        else:
             return None
-        display = "Has ligand evidence" if normalized == "yes" else "No ligand evidence"
         return {
             "id": f"special:ligands:{normalized}",
             "score_param_name": "ligand_evidence",
@@ -942,6 +1009,12 @@ def _apply_and_selected_parameter_filters(
         structure_query = Q()
         if "none" in structure_values and user is None:
             structure_query |= Q(structures__isnull=True)
+        if "any" in structure_values:
+            from tpweb.models.BioentryStructure import BioentryStructure
+
+            structure_query |= Q(
+                Exists(BioentryStructure.objects.filter(bioentry_id=OuterRef("pk")))
+            )
         if "experimental" in structure_values:
             if user is not None:
                 from tpweb.models.BioentryStructure import BioentryStructure
@@ -987,6 +1060,19 @@ def _apply_and_selected_parameter_filters(
                         Binders.objects.filter(locustag_id=OuterRef("accession"))
                     )
                 ).filter(has_ligand_evidence=wants_ligands)
+        for value in ligand_values:
+            if value not in LIGAND_EVIDENCE_KINDS:
+                continue
+            has_kind = Q(
+                Exists(
+                    Binders.objects.filter(
+                        locustag_id=OuterRef("accession"), **LIGAND_EVIDENCE_KINDS[value][1]
+                    )
+                )
+            )
+            if user is not None:
+                has_kind = shared_condition(has_kind)
+            filtered_queryset = filtered_queryset.filter(has_kind)
 
     tm_values = {value.lower() for value in special_groups.get("tm_filter", [])}
     if len(tm_values & {"yes", "no"}) == 1:
@@ -1067,17 +1153,33 @@ def apply_protein_search(queryset, search_query):
     )
 
 
+def _as_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def find_top_proteins(
-    assembly_name, selected_parameters, search_text=None, limit=10, with_total=False
+    assembly_name,
+    selected_parameters,
+    search_text=None,
+    limit=10,
+    with_total=False,
+    sort_by=None,
+    descending=True,
 ):
     """Filter+search a genome's proteins and return up to `limit` compact
-    dicts ({accession, description, druggability}), with no pagination/HTTP
-    concerns. Used by the search_proteins agent tool. Ordering is by
-    accession (deterministic), not a ranking -- ranking a specific protein's
-    overall target quality is assembly_workspace.score_single_protein's job,
-    not this function's."""
+    dicts ({accession, description, druggability, sort_value}), with no
+    pagination/HTTP concerns. Used by the search_proteins agent tool.
+    Ordered by accession unless `sort_by` names a numeric score param, then
+    by its value (proteins without one last) -- ranking a protein's overall
+    target quality is still assembly_workspace.score_single_protein's job."""
+    from django.db.models import F, Subquery
+
     from bioseq.models.Biodatabase import Biodatabase
     from bioseq.models.Bioentry import Bioentry
+    from tpweb.models.ScoreParamValue import ScoreParamValue
     from tpweb.services.protein_serializer import score_param_value_map
 
     proteins = Bioentry.objects.filter(biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX)
@@ -1085,7 +1187,22 @@ def find_top_proteins(
         proteins = apply_selected_parameter_filters(proteins, selected_parameters)
     proteins = apply_protein_search(proteins, search_text).distinct()
     total = proteins.count() if with_total else None
-    proteins = proteins.prefetch_related("score_params__score_param").order_by("accession")[
+    if sort_by:
+        proteins = proteins.annotate(
+            _sort_value=Subquery(
+                ScoreParamValue.objects.filter(
+                    bioentry_id=OuterRef("pk"), score_param__name=sort_by
+                ).values("numeric_value")[:1]
+            )
+        )
+        sort_value = F("_sort_value")
+        ordering = (
+            sort_value.desc(nulls_last=True) if descending else sort_value.asc(nulls_last=True)
+        )
+        proteins = proteins.order_by(ordering, "accession")
+    else:
+        proteins = proteins.order_by("accession")
+    proteins = proteins.prefetch_related("score_params__score_param")[
         : max(1, min(int(limit or 10), 25))
     ]
 
@@ -1096,7 +1213,10 @@ def find_top_proteins(
             {
                 "accession": protein.accession,
                 "description": protein.description or "",
-                "druggability": param_values.get("Druggability"),
+                # Not every genome stores Druggability as a number; a text
+                # value here used to crash the tool's ":.2f" formatting.
+                "druggability": _as_float(param_values.get("Druggability")),
+                "sort_value": getattr(protein, "_sort_value", None) if sort_by else None,
             }
         )
     if with_total:

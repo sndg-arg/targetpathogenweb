@@ -35,6 +35,13 @@ from tpweb.services.genome_workspace import (
 )
 from tpweb.services.genome_uploads import delete_genome_workspace, workspace_has_active_upload
 from tpweb.services.csv_exports import build_view_export_url, csv_response, xlsx_sections_response
+from tpweb.services.protein_list import (
+    EC_ANY_VALUE,
+    LIGAND_EVIDENCE_KINDS,
+    build_special_filter_payload,
+    protein_list_filter_url,
+    structure_source_filter_payload,
+)
 
 
 class AssemblyView(View):
@@ -89,8 +96,9 @@ class AssemblyView(View):
             workspace_metrics=workspace_metrics,
         )
         slug = genome_url_slug(biodb.name)
+        proteins_url = reverse("tpwebapp:protein_list", kwargs={"genome": slug})
         workspace_links = {
-            "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": slug}),
+            "proteins_url": proteins_url,
             "metabolism_url": reverse("tpwebapp:genome_metabolism", kwargs={"genome": slug}),
             "custom_scores_url": reverse("tpwebapp:customparam", kwargs={"genome": slug}),
             "uploaded_data_url": reverse("tpwebapp:uploaded_data", kwargs={"genome": slug}),
@@ -103,6 +111,23 @@ class AssemblyView(View):
             "blast_url": f"{reverse('tpwebapp:form')}?genome={biodb.name}",
             "protein_blast_url": reverse("tpwebapp:protein_blast", kwargs={"genome": slug}),
         }
+        # Each genome-page counter links to the proteins it counts: the link
+        # replaces the visitor's active filters with just that one.
+        filter_links = {
+            "all": protein_list_filter_url(proteins_url, []),
+            "ec_any": protein_list_filter_url(
+                proteins_url, [build_special_filter_payload("ec", EC_ANY_VALUE)]
+            ),
+        }
+        for source in ("any", "experimental", "alphafold", "colabfold"):
+            filter_links[f"structure_{source}"] = protein_list_filter_url(
+                proteins_url, [structure_source_filter_payload(source)]
+            )
+        for kind in LIGAND_EVIDENCE_KINDS:
+            filter_links[f"ligand_{kind}"] = protein_list_filter_url(
+                proteins_url, [build_special_filter_payload("ligands", kind)]
+            )
+        workspace_links["filters"] = filter_links
 
         media_root = Path(settings.MEDIA_ROOT)
         if not media_root.is_absolute():
@@ -205,10 +230,11 @@ class AssemblyView(View):
                         [
                             "Structures loaded",
                             (
-                                f"{workspace_metrics.get('proteins_with_structure')} total "
-                                f"(Experimental {workspace_metrics.get('experimental_structures')}, "
-                                f"AlphaFold DB models {workspace_metrics.get('alphafold_structures')}, "
-                                f"ColabFold {workspace_metrics.get('colabfold_structures')})"
+                                f"{workspace_metrics.get('proteins_with_structure')} proteins "
+                                f"(PDB {workspace_metrics.get('experimental_entries')} entries on "
+                                f"{workspace_metrics.get('experimental_structures')} proteins, "
+                                f"AlphaFold DB {workspace_metrics.get('alphafold_proteins')}, "
+                                f"ColabFold {workspace_metrics.get('colabfold_proteins')})"
                             ),
                         ],
                         [

@@ -1,7 +1,7 @@
+import logging
 import os
 import subprocess as sp
 import uuid
-from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -11,6 +11,7 @@ from django.views import View
 
 from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Biodatabase import Biodatabase
+from tpweb.services.blast_files import blast_results_dir
 from tpweb.services.genome_workspace import (
     display_genome_name,
     genome_url_slug,
@@ -18,6 +19,8 @@ from tpweb.services.genome_workspace import (
 )
 from tpweb.services.genomes import build_genomes_queryset
 from tpweb.views.ProteinBlastView import ProteinBlastView
+
+logger = logging.getLogger(__name__)
 
 
 class FormView(LoginRequiredMixin, View):
@@ -169,11 +172,23 @@ class FormView(LoginRequiredMixin, View):
             )
 
         result_id = uuid.uuid4()
-        result_dir = Path(settings.MEDIA_ROOT) / "blast_results"
-        result_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            result_dir = blast_results_dir()
+            db_location = SeqStore(settings.SEQS_DATA_DIR).genes_fna(selected_biodatabase.name)
+        except Exception:
+            logger.exception("BLAST setup failed for %s", selected_biodatabase.name)
+            return render(
+                request,
+                self.template_name,
+                self._build_context(
+                    request,
+                    selected_biodatabase,
+                    error_message="BLAST is unavailable right now. Please try again later.",
+                    text_input_value=text_input,
+                ),
+            )
         query_path = result_dir / f"{result_id}.fna"
         output_path = result_dir / f"{result_id}.csv"
-        db_location = SeqStore(settings.SEQS_DATA_DIR).genes_fna(selected_biodatabase.name)
         blast_bin = getattr(settings, "BLASTN_PATH", "blastn")
         timeout_seconds = int(os.environ.get("TPW_BLAST_TIMEOUT_SEC", "60"))
 

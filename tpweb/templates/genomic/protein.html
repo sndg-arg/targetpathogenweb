@@ -5,8 +5,8 @@
 {% load custom_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261026-cell3">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261102-species">
+    <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261104-ligq">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261104-zoom">
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
 {% endblock %}
 
@@ -401,12 +401,23 @@
                             <div class="structure-viewport-wrap">
                                 <div id="viewport"></div>
                                 <div id="viewport-overlay" class="viewport-overlay" title="{% trans 'Click to interact' %}"></div>
+                                <div class="structure-zoom-controls" role="group" aria-label="{% trans 'Zoom' %}">
+                                    <button type="button" class="structure-zoom-btn" onclick="ngl_zoom_step(1)" title="{% trans 'Zoom in' %}" aria-label="{% trans 'Zoom in' %}">
+                                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
+                                    </button>
+                                    <button type="button" class="structure-zoom-btn" onclick="ngl_zoom_step(-1)" title="{% trans 'Zoom out' %}" aria-label="{% trans 'Zoom out' %}">
+                                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10"/></svg>
+                                    </button>
+                                    <button type="button" class="structure-zoom-btn" id="structure-reset-zoom-btn" onclick="ngl_reset_zoom()" title="{% trans 'Reset view' %}" aria-label="{% trans 'Reset view' %}" disabled>
+                                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M13 8A5 5 0 1 1 8 3"/><path d="M12.5 2v3h-3"/></svg>
+                                    </button>
+                                </div>
                                 <p class="structure-loading-note" id="structure-loading-note">
                                     <span class="structure-loading-spinner" aria-hidden="true"></span>
                                     <span class="structure-loading-text">{% trans "Loading 3D structure..." %}</span>
                                 </p>
                             </div>
-                            <p class="structure-viewport-hint">{% trans "Drag to rotate; click the view, then scroll to zoom. Chains may be colored apart; pocket colors are predicted cavities, not chains." %} <a href="{% url 'tpwebapp:data_sources' %}#binding-sites">{% trans "Methodology" %}</a></p>
+                            <p class="structure-viewport-hint">{% trans "Drag to rotate; zoom with + / −, or click the view and scroll. Chains may be colored apart; pocket colors are predicted cavities, not chains." %} <a href="{% url 'tpwebapp:data_sources' %}#binding-sites">{% trans "Methodology" %}</a></p>
                         </div>
                         {% if structure.pockets or structure.p2_pockets or alt_structure.pockets or alt_structure.p2_pockets or pocket_structure.pockets or pocket_structure.p2_pockets %}
                         <aside class="structure-side" id="pocket-panel-details" aria-label="{% trans 'Predicted pockets' %}">
@@ -1362,6 +1373,45 @@
                             mainSelectors[slot] = mainSelector || chain || "polymer";
                             chainColorModes[slot] = chainColor === "true";
                         }
+                    });
+                }());
+
+                // The picker is rendered with the two default structures only;
+                // list every other loaded one too (same entries the table's
+                // "Switch" buttons load), so it matches the full viewer.
+                (function () {
+                    var menu = document.getElementById("structure-picker-menu");
+                    if (!menu) return;
+                    var seenIds = {};
+                    menu.querySelectorAll(".structure-picker-item[data-slot]").forEach(function (item) {
+                        var id = structureIds[item.getAttribute("data-slot")];
+                        if (id) seenIds[id] = true;
+                    });
+                    document.querySelectorAll("tr[data-pdb-slot][data-structure-url]").forEach(function (row) {
+                        var slot = row.getAttribute("data-pdb-slot");
+                        var id = row.getAttribute("data-structure-id");
+                        if (!slot || seenIds[id] || menu.querySelector('[data-slot="' + slot + '"]')) return;
+                        seenIds[id] = true;
+                        var source = row.querySelector(".experimental-source");
+                        var code = row.querySelector(".experimental-pdb-id");
+                        var resolution = row.querySelector(".experimental-resolution");
+                        var item = document.createElement("li");
+                        item.className = "structure-picker-item";
+                        item.setAttribute("role", "option");
+                        item.setAttribute("aria-selected", "false");
+                        item.setAttribute("data-slot", slot);
+                        var label = document.createElement("span");
+                        label.className = "structure-picker-item-label";
+                        label.textContent = ((source ? source.textContent.trim() : "") + " " + (code ? code.textContent.trim() : "")).trim();
+                        item.appendChild(label);
+                        var detailText = resolution ? resolution.textContent.trim() : "";
+                        if (detailText && detailText !== "—") {
+                            var detail = document.createElement("span");
+                            detail.className = "structure-picker-item-detail";
+                            detail.textContent = detailText;
+                            item.appendChild(detail);
+                        }
+                        menu.appendChild(item);
                     });
                 }());
 
