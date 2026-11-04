@@ -42,3 +42,30 @@ class BuildHumanPathwayContextTests(TestCase):
         self.assertTrue(context["has_pathways"])
         self.assertEqual(context["default_kegg_id"], "hsa04010")
         self.assertEqual(context["pathways"][0]["highlighted_node_id"], "1")
+
+    def _link(self, human_protein, kegg_id, title, nodes):
+        pathway = HumanPathway.objects.create(
+            kegg_id=kegg_id,
+            title=title,
+            entry_count=len(nodes) or 600,
+            relation_count=len(nodes),
+            graph_json={"nodes": nodes, "edges": []},
+        )
+        HumanProteinPathway.objects.create(
+            human_protein=human_protein, pathway=pathway, highlighted_node_id="1"
+        )
+
+    def test_opens_on_a_pathway_that_has_something_to_draw(self):
+        human_protein = self._make_human_protein("P00374")
+        # Alphabetically first, but one of KEGG's global maps: no relations.
+        self._link(human_protein, "hsa01240", "Biosynthesis of cofactors", [])
+        self._link(human_protein, "hsa00670", "One carbon pool by folate", [{"id": "1"}])
+
+        context = build_human_pathway_context(human_protein)
+
+        self.assertEqual(context["default_kegg_id"], "hsa00670")
+        self.assertEqual(
+            [(p["kegg_id"], p["has_graph"]) for p in context["pathways"]],
+            [("hsa00670", True), ("hsa01240", False)],
+        )
+        self.assertEqual(context["drawable"], 1)

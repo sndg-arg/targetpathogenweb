@@ -13,7 +13,7 @@
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261104-tips">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261103-reactions">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20261104-pathways">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -639,7 +639,7 @@
                         {% for pw in pathways.pathways %}
                         <button type="button" class="hp-index-item {% if pw.kegg_id == pathways.default_kegg_id %}is-active{% endif %}" role="tab" data-pathway-tab="{{ pw.kegg_id }}">
                             <span class="hp-index-title">{{ pw.title|default:pw.kegg_id }}</span>
-                            <span class="hp-index-meta"><span class="hp-index-id">{{ pw.kegg_id }}</span> · {% blocktrans count count=pw.entry_count|default:0 %}{{ count }} gene{% plural %}{{ count }} genes{% endblocktrans %}</span>
+                            <span class="hp-index-meta"><span class="hp-index-id">{{ pw.kegg_id }}</span> · {% blocktrans count count=pw.entry_count|default:0 %}{{ count }} gene{% plural %}{{ count }} genes{% endblocktrans %}{% if not pw.has_graph %} · {% trans "no diagram" %}{% endif %}</span>
                         </button>
                         {% endfor %}
                     </div>
@@ -656,6 +656,7 @@
                         <div class="human-pathway-graph-wrap">
                             <div id="human-pathway-graph"></div>
                         </div>
+                        <p class="tp-state-note tp-state-note--empty is-hidden" id="human-pathway-empty">{% trans "KEGG lists this protein in this map but defines no relations between its genes, so there is no network to draw. Open the map on KEGG to see it." %}</p>
                         <div class="human-pathway-legend">
                             <span class="human-pathway-legend-item"><span class="human-pathway-legend-dot human-pathway-legend-dot--focal"></span>{% trans "This protein" %}</span>
                             <span class="human-pathway-legend-item"><span class="human-pathway-legend-dot"></span>{% trans "Other gene/ortholog" %}</span>
@@ -882,5 +883,5 @@
     <script src="{% static 'js/pages/protein-architecture.js' %}?v=20261022"></script>
     <script src="{% static 'js/pages/protein-dossier.js' %}?v=20261023"></script>
     <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20261103-review"></script>
-    <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261023-focal"></script>
+    <script src="{% static 'js/pages/human-pathway-graph.js' %}?v=20261104-empty"></script>
 {% endblock %}

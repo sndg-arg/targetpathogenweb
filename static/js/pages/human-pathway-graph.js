@@ -153,11 +153,30 @@
             wheelSensitivity: 0.2,
         });
 
+        var emptyNote = document.getElementById("human-pathway-empty");
+        var graphWrap = container.parentNode;
+        var legend = document.querySelector(".human-pathway-legend");
+
+        // KEGG's global maps carry no relations, so there is nothing to lay
+        // out: say so instead of leaving an empty stage behind.
+        function showEmpty(isEmpty) {
+            if (graphWrap) graphWrap.classList.toggle("is-hidden", isEmpty);
+            if (legend) legend.classList.toggle("is-hidden", isEmpty);
+            if (emptyNote) emptyNote.classList.toggle("is-hidden", !isEmpty);
+        }
+
         // Cross-fade between pathways: hide, swap and lay out, then show.
         function renderPathway(pathway) {
+            var elements = buildElements(pathway);
+            showEmpty(!elements.length);
+            if (!elements.length) {
+                cy.elements().remove();
+                container.classList.remove("is-switching");
+                return;
+            }
             container.classList.add("is-switching");
             cy.elements().remove();
-            cy.add(buildElements(pathway));
+            cy.add(elements);
             var layoutOptions = window.TP_CYTOSCAPE_DAGRE_AVAILABLE
                 ? { name: "dagre", rankDir: "LR", nodeSep: 20, rankSep: 60 }
                 : { name: "cose" };
@@ -188,7 +207,9 @@
             });
         });
 
-        renderPathway(pathways[0]);
+        var activeTab = document.querySelector("[data-pathway-tab].is-active");
+        var activeId = activeTab && activeTab.getAttribute("data-pathway-tab");
+        renderPathway(byKeggId[activeId] || pathways[0]);
     }
 
     ready(initPathwayGraph);

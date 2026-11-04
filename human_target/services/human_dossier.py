@@ -32,6 +32,17 @@ def _prop(xref, key):
     return ""
 
 
+def _is_systematic_name(name):
+    """True for IUPAC-style names like "2,4-Diamino-5-(3,4,5-Trimethoxy-Benzyl)...".
+    DrugBank lists them alongside real drug names, and sorting the two together
+    buries Methotrexate under twenty unreadable formulas."""
+    if not name:
+        return True
+    if name[0].isdigit() or name[0] == "(":
+        return True
+    return sum(character in "[](){},;" for character in name) >= 2
+
+
 def build_pharmacology(raw):
     """Drugs listed for the target in DrugBank, UniProt's PHARMACEUTICAL note,
     and links to the pharmacology resources that know this target."""
@@ -42,7 +53,7 @@ def build_pharmacology(raw):
         if name.lower() not in seen:
             seen.add(name.lower())
             drugs.append({"id": xref["id"], "name": name})
-    drugs.sort(key=lambda drug: drug["name"].lower())
+    drugs.sort(key=lambda drug: (_is_systematic_name(drug["name"]), drug["name"].lower()))
     notes = [
         text.get("value", "")
         for comment in (raw or {}).get("comments", []) or []

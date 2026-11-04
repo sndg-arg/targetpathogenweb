@@ -1093,7 +1093,10 @@
     font-size: var(--tp-font-size-xs);
 }
 
-.human-pathway-meta-panel.is-hidden {
+.human-pathway-meta-panel.is-hidden,
+.human-pathway-graph-wrap.is-hidden,
+.human-pathway-legend.is-hidden,
+#human-pathway-empty.is-hidden {
     display: none;
 }
 

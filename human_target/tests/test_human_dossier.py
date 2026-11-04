@@ -84,6 +84,38 @@ class HumanDossierTests(SimpleTestCase):
         self.assertTrue(pharma["has_pharmacology"])
         self.assertFalse(build_pharmacology({})["has_pharmacology"])
 
+    def test_real_drug_names_come_before_iupac_formulas(self):
+        raw = {
+            "uniProtKBCrossReferences": [
+                {
+                    "database": "DrugBank",
+                    "id": "DB03125",
+                    "properties": [
+                        {
+                            "key": "GenericName",
+                            "value": "2,4-Diamino-5-(3,4,5-Trimethoxy-Benzyl)-Pyrimidin-1-Ium",
+                        }
+                    ],
+                },
+                {
+                    "database": "DrugBank",
+                    "id": "DB08642",
+                    "properties": [
+                        {"key": "GenericName", "value": "(2R,6S)-6-{[methyl]methyl}-diamine"}
+                    ],
+                },
+                {
+                    "database": "DrugBank",
+                    "id": "DB00563",
+                    "properties": [{"key": "GenericName", "value": "Methotrexate"}],
+                },
+            ]
+        }
+        self.assertEqual(
+            [drug["id"] for drug in build_pharmacology(raw)["drugs"]],
+            ["DB00563", "DB08642", "DB03125"],
+        )
+
     def test_variants_carry_residue_change_and_diseases(self):
         variants = build_variants(RAW, 976)
         self.assertEqual([v["label"] for v in variants], ["D816V", "WK557del"])
