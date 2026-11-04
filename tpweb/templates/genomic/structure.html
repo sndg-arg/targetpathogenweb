@@ -682,8 +682,15 @@ function jsloaded() {
         });
         // Each legend only means anything while its own palette is actually
         // on screen.
-        if (sstrucLegend) sstrucLegend.hidden = colorMode !== "sstruc";
-        if (plddtLegend) plddtLegend.hidden = colorMode !== "plddt";
+        // Overlaid with nothing highlighted, every structure shows one flat
+        // colour whatever mode is picked: the button and legends say so.
+        var ghosted = mainIsGhost();
+        if (ghosted) {
+            var lockedLabel = document.getElementById("sv-color-label");
+            if (lockedLabel) lockedLabel.textContent = "{% trans 'Uniform' %}";
+        }
+        if (sstrucLegend) sstrucLegend.hidden = ghosted || colorMode !== "sstruc";
+        if (plddtLegend) plddtLegend.hidden = ghosted || colorMode !== "plddt";
     }
 
     function decorateScoreTags() {
@@ -1912,6 +1919,10 @@ function jsloaded() {
         var locked = mainIsGhost();
         colorBtn.setAttribute("aria-disabled", locked ? "true" : "false");
         colorBtn.title = locked ? "{% trans 'Colors apply to one structure at a time: highlight it in the legend or switch to Side by side' %}" : "";
+        var inSurface = structureModeButtons.some(function (btn) {
+            return btn.getAttribute("data-mode") === "density" && btn.classList.contains("is-active");
+        });
+        setColorButtonState(inSurface ? "flat" : currentColorMode);
     }
     function syncMainCartoon() {
         var shown = ghostMain();
