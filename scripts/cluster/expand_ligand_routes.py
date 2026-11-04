@@ -30,7 +30,7 @@ import json
 import sys
 import time
 from collections import Counter
-from multiprocessing import Pool
+import multiprocessing
 
 from rdkit import Chem, RDLogger
 
@@ -38,6 +38,14 @@ import match_ligand_reactions as matcher
 
 RDLogger.DisableLog("rdApp.*")
 csv.field_size_limit(2**31 - 1)
+
+# Python 3.14 starts workers with forkserver on Linux, which hands each one a
+# fresh interpreter and no copy of the index built here. fork keeps sharing it
+# copy-on-write, which is the whole reason the index is a module global.
+try:
+    MP = multiprocessing.get_context("fork")
+except ValueError:  # Windows, where this script never runs
+    MP = multiprocessing.get_context()
 
 # Reactions kept per product in the index, and candidates tried per expansion.
 PER_PRODUCT = 4
@@ -189,6 +197,8 @@ _MAX_DEPTH = 3
 def plan(ligand):
     """One (smiles, canonical) ligand -> its plan dict, or None when nothing makes it."""
     smiles, canon = ligand
+    if _CORPUS is None:
+        raise RuntimeError("the index did not reach this worker: expected a fork start method")
     node = expand(canon, _CORPUS, _MAX_DEPTH, frozenset())
     if node["reaction"] is None:
         return None
@@ -210,7 +220,7 @@ def load_corpus(sources, min_uses, simple_atoms, workers, started):
     reactant_uses = Counter()
     for db, path, parser, delimiter, columns in sources:
         rows = 0
-        with open(path, newline="", encoding="utf-8") as handle, Pool(workers) as pool:
+        with open(path, newline="", encoding="utf-8") as handle, MP.Pool(workers) as pool:
             records = (
                 {key: row.get(key) for key in columns}
                 for row in csv.DictReader(handle, delimiter=delimiter)
@@ -251,7 +261,7 @@ def main():
 
     with open(args.ligands, encoding="utf-8") as handle:
         raw = [line.rstrip("\n") for line in handle if line.strip()]
-    with Pool(args.workers) as pool:
+    with MP.Pool(args.workers) as pool:
         canons = pool.map(matcher.canonical, raw, chunksize=500)
     ligands = [(s, c) for s, c in zip(raw, canons, strict=True) if c]
     print(f"{len(ligands)} of {len(raw)} ligand SMILES parsed", flush=True)
@@ -274,7 +284,7 @@ def main():
     # instead of each receiving a pickled copy.
     with (
         gzip.open(args.out, "wt", encoding="utf-8", newline="") as handle,
-        Pool(args.workers) as pool,
+        MP.Pool(args.workers) as pool,
     ):
         for result in pool.imap(plan, ligands, chunksize=16):
             if result is None:
