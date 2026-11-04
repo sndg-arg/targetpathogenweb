@@ -37,7 +37,9 @@ SYSTEM_PROMPT = (
     "scores, ligands, and structural/metabolic evidence already loaded in the app. Language: "
     "reply in the language of the user's latest message (an English message gets an English "
     "reply, a Spanish one a Spanish reply), even if earlier turns, page text or tool results "
-    "are in another language; if it is unclear, use English. In Spanish, address the user "
+    "are in another language; if it is unclear, use English. Write the whole reply in that "
+    "one language and its script: never mix in words from other languages or scripts (no "
+    "Hindi, Chinese, etc. inside an English or Spanish reply). In Spanish, address the user "
     "consistently with Rioplatense 'vos', never mixing it with 'tú'. Write labels like "
     "'Fact:'/'Recommendation:' in the reply's language too. Only use the tools available to you; if a tool you "
     "need isn't available (for example, no genome is in scope on this page), say so plainly "
@@ -95,7 +97,7 @@ NO_GENOME_SCOPE_NOTE = (
 # Spanish conversation history otherwise pulled replies into Spanish.
 LANGUAGE_REMINDER = (
     "\n\nReminder: answer in the language of the user's latest message, whatever language "
-    "the earlier messages used."
+    "the earlier messages used, and write every word of the reply in that one language."
 )
 
 BIOLOGIST_MODE_NOTE = (
