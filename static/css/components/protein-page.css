@@ -1939,11 +1939,13 @@ body.binder-mol-modal-open {
 
 .binder-intel-metrics-note {
     margin: calc(-1 * var(--tp-space-2)) 0 0;
-    color: var(--tp-color-text-soft);
+    color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
 }
 
-.binder-intel-metrics .metric-pill[title] {
+/* The site tooltip moves title into data-tp-native-title on load. */
+.binder-intel-metrics .metric-pill[title],
+.binder-intel-metrics .metric-pill[data-tp-native-title] {
     cursor: help;
 }
 
