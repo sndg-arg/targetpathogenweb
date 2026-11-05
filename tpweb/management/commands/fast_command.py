@@ -106,7 +106,7 @@ class Command(BaseCommand):
             config["offtarget"]["enabled"] = True
             config["offtarget"]["human"] = True
             config["offtarget"]["microbiome"] = True
-            config["offtarget"].setdefault("microbiome_identity_filter", 40)
+            config["offtarget"].setdefault("microbiome_identity_filter", 50)
             config["offtarget"].setdefault("microbiome_coverage_filter", 70)
             config["offtarget"].setdefault("foldseek_human", False)
 
@@ -425,10 +425,21 @@ class Command(BaseCommand):
                 raise CommandError(
                     f"Unexpected schema in {micro_counts_src}: missing value column."
                 )
-            micro["gut_microbiome_offtarget"] = micro[count_col].apply(
+            from tpweb.services.microbiome_counts import read_counts
+
+            try:
+                with open(micro_counts_src, encoding="utf-8-sig", newline="") as handle:
+                    original_counts = read_counts(handle)
+            except ValueError as exc:
+                raise CommandError(str(exc)) from exc
+            micro["gene"] = micro["gene"].astype(str).str.strip()
+            micro["gut_microbiome_offtarget_counts"] = micro["gene"].map(original_counts)
+            micro["gut_microbiome_offtarget"] = micro["gut_microbiome_offtarget_counts"].apply(
                 lambda v: "hit" if pd.notna(v) and float(v) > 0 else "no_hit"
             )
-            micro[["gene", "gut_microbiome_offtarget"]].to_csv(micro_out, index=False, sep="\t")
+            micro[["gene", "gut_microbiome_offtarget", "gut_microbiome_offtarget_counts"]].to_csv(
+                micro_out, index=False, sep="\t"
+            )
         elif micro_legacy_src:
             micro = pd.read_csv(micro_legacy_src, sep="\t")
             if "gene" not in micro.columns or "gut_microbiome_offtarget" not in micro.columns:

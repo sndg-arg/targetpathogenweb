@@ -1,0 +1,35 @@
+{% load i18n %}
+{% comment %}One reaction of a multi-step plan; includes itself for the precursors it still has to make.{% endcomment %}
+<li class="rp-node">
+    <div class="rp-step">
+        <span class="tp-chip tp-chip--code">{% blocktrans with n=node.step %}Step {{ n }}{% endblocktrans %}</span>
+        <span class="rp-step-name">{{ node.class_label|default:_("Unclassified reaction") }}{% if node.name %} · {{ node.name }}{% endif %}</span>
+        {% if node.patent %}
+            {% if node.patent.url %}
+                <a class="rp-step-patent" href="{{ node.patent.url }}" target="_blank" rel="noopener noreferrer">{{ node.patent.number }} →</a>
+            {% else %}
+                <span class="rp-step-patent">{{ node.patent.number }}</span>
+            {% endif %}
+        {% endif %}
+    </div>
+    {% if node.svg %}<div class="binder-reaction">{{ node.svg|safe }}</div>{% endif %}
+    {% if node.reagents %}
+        <p class="binder-reaction-meta"><span class="binder-reaction-reagents">{% trans "Reagents and solvents" %}: <code>{{ node.reagents }}</code></span></p>
+    {% endif %}
+    <ul class="rp-children">
+        {% for child in node.precursors %}
+            {% if child.step %}
+                {% include "genomic/_route_node.html" with node=child %}
+            {% else %}
+                <li class="rp-leaf">
+                    {% if child.available %}
+                        <span class="tp-chip">{% trans "Building block" %}</span>
+                    {% else %}
+                        <span class="tp-chip tp-chip--muted">{% trans "Not resolved" %}</span>
+                    {% endif %}
+                    <code class="rp-leaf-smiles">{{ child.smiles }}</code>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</li>

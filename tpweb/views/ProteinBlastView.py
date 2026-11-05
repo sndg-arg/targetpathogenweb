@@ -1,7 +1,7 @@
+import logging
 import os
 import subprocess as sp
 import uuid
-from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -13,7 +13,10 @@ from django.views import View
 from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
+from tpweb.services.blast_files import blast_results_dir
 from tpweb.services.genome_workspace import display_genome_name, resolve_genome_from_slug
+
+logger = logging.getLogger(__name__)
 
 
 class ProteinBlastView(LoginRequiredMixin, View):
@@ -31,6 +34,7 @@ class ProteinBlastView(LoginRequiredMixin, View):
         return {
             "genome_name": resolved,
             "genome_label": display_genome_name(resolved),
+            "assembly_url": reverse("tpwebapp:assembly", kwargs={"genome": genome_slug}),
             "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": genome_slug}),
         }
 
@@ -50,6 +54,13 @@ class ProteinBlastView(LoginRequiredMixin, View):
         resolved = self._resolve_or_404(request, genome)
         context = self._base_context(resolved, genome)
 
+        # Same permission the nucleotide BLAST page (FormView) checks; this
+        # page didn't, so any signed-in account could run blastp.
+        if not request.user.has_perm("tpweb.can_run_blast"):
+            context["sequence_value"] = (request.POST.get("sequence") or "").strip()
+            context["error_message"] = "You don't have permission to run BLAST searches."
+            return render(request, self.form_template_name, context)
+
         sequence = (request.POST.get("sequence") or "").strip()
         max_chars = int(os.environ.get("TPW_BLAST_MAX_QUERY_CHARS", "20000"))
         context["sequence_value"] = sequence
@@ -65,11 +76,15 @@ class ProteinBlastView(LoginRequiredMixin, View):
             return render(request, self.form_template_name, context)
 
         query_id = uuid.uuid4()
-        result_dir = Path(settings.MEDIA_ROOT) / "blast_results"
-        result_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            result_dir = blast_results_dir()
+            db_location = SeqStore(settings.SEQS_DATA_DIR).faa(resolved)
+        except Exception:
+            logger.exception("Protein BLAST setup failed for %s", resolved)
+            context["error_message"] = "BLAST is unavailable right now. Please try again later."
+            return render(request, self.form_template_name, context)
         query_path = result_dir / f"{query_id}.faa"
         output_path = result_dir / f"{query_id}.tsv"
-        db_location = SeqStore(settings.SEQS_DATA_DIR).faa(resolved)
         blast_bin = getattr(settings, "BLASTP_PATH", "blastp")
         timeout_seconds = int(os.environ.get("TPW_BLAST_TIMEOUT_SEC", "60"))
 

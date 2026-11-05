@@ -1,0 +1,184 @@
+/* ── User management (owner-only: approve pending signups, view roster) ── */
+
+.user-mgmt-page {
+    font-family: var(--tp-font-body);
+    color: var(--tp-color-text-primary);
+    margin: 0;
+}
+
+.user-mgmt-page > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.user-mgmt-section {
+    padding: var(--tp-space-6) var(--tp-space-5);
+}
+
+.user-mgmt-section .section-head {
+    margin-bottom: var(--tp-space-5);
+}
+
+/* Grid-based row list instead of a <table> -- an auto-layout table gave the
+   narrow date/role/actions columns unpredictable leftover width (browser
+   auto-layout sizes columns off cell content, not the explicit widths
+   below). A grid with a single 1fr column pins that overflow to the person
+   column -- but only once the list itself is capped well short of the
+   section's full width; left uncapped, 1fr instead stretches to fill the
+   *entire* wide page, which reads as the exact same large gap moved one
+   level up (name/email on the far left, everything else pushed far right).
+
+   No outer border/radius/background here -- per the site's editorial
+   layout standard, a data list sits fused directly on the page like
+   Genomes' own table (genomes-list.css), separated only by the header's
+   own border-bottom and each row's border-top. */
+.user-mgmt-list {
+    max-width: 900px;
+}
+
+.user-mgmt-list-row {
+    display: grid;
+    align-items: center;
+    column-gap: var(--tp-space-4);
+    padding: var(--tp-space-4) var(--tp-space-5);
+    background: var(--tp-color-surface);
+}
+
+/* The actions column is a fixed width, not auto -- each row is its own,
+   independent CSS grid (a <div> per row, not shared grid tracks), so an
+   auto-sized column sizes to THAT row's own button count. A row with 2
+   buttons (Revoke access) then leaves less room for its 1fr person column
+   than a row with 1 button (Edit only) or the header (no buttons at all),
+   so every row's later columns landed at a different x-position -- reads
+   exactly like a broken table. A fixed width removes that per-row variance. */
+.user-mgmt-list--pending .user-mgmt-list-row {
+    grid-template-columns: minmax(0, 1fr) 140px 190px;
+}
+
+.user-mgmt-list--approved .user-mgmt-list-row {
+    grid-template-columns: minmax(0, 1fr) 128px 128px 168px 210px;
+}
+
+.user-mgmt-list-row + .user-mgmt-list-row {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.user-mgmt-list-row--head {
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.user-mgmt-list-cell--meta,
+.user-mgmt-list-cell--role {
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.user-mgmt-list-cell--role {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+}
+
+.user-mgmt-list-cell--person {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.user-mgmt-person-name,
+.user-mgmt-person-email {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-mgmt-person-name {
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+.user-mgmt-person-email {
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-muted);
+}
+
+.user-mgmt-list-cell--actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--tp-space-2);
+}
+
+.user-mgmt-list-cell--actions form {
+    display: inline-flex;
+    margin: 0;
+}
+
+/* Dialogs use the shared .tp-modal (ui-system.css); only the body layout here. */
+.user-mgmt-edit-body {
+    display: grid;
+    gap: var(--tp-space-1);
+}
+
+.user-mgmt-edit-subtitle {
+    margin: 0 0 var(--tp-space-3);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.user-mgmt-profile-field {
+    margin-bottom: var(--tp-space-1);
+}
+
+.user-mgmt-profile-help {
+    margin: var(--tp-space-1) 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.35;
+}
+
+body.user-mgmt-modal-open {
+    overflow: hidden;
+}
+
+/* 900px, not 640px: the approved-list row's fixed columns (128+128+168+210
+   plus gaps) need ~900px of their own before the 1fr person column has any
+   breathing room -- between 641px and ~900px (a portrait tablet, a landscape
+   phone) that column was being squeezed to near zero, clipping names/emails
+   and forcing horizontal page overflow. Stacking the pending list this early
+   too is harmless (its fixed columns are much narrower), so one shared
+   breakpoint keeps both lists consistent. */
+@media (max-width: 900px) {
+    .user-mgmt-list-row--head {
+        display: none;
+    }
+
+    .user-mgmt-list--pending .user-mgmt-list-row,
+    .user-mgmt-list--approved .user-mgmt-list-row {
+        grid-template-columns: 1fr;
+        row-gap: var(--tp-space-2);
+        padding: var(--tp-space-4) var(--tp-space-4);
+    }
+
+    .user-mgmt-list-cell--meta[data-label]::before,
+    .user-mgmt-list-cell--role[data-label]::before {
+        content: attr(data-label) ": ";
+        color: var(--tp-color-text-muted);
+    }
+
+    .user-mgmt-list-cell--role {
+        display: flex;
+        gap: var(--tp-space-1);
+    }
+
+    .user-mgmt-list-cell--actions {
+        justify-content: flex-start;
+    }
+}

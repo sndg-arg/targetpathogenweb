@@ -7,11 +7,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import pandas as pd
+from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
+from tpweb.models import CuratedImportJob
 from tpweb.services.curated_pipeline import build_curated_pipeline_plan, compute_folder_path
 
 
@@ -128,8 +131,84 @@ class Command(BaseCommand):
             action="store_true",
             help="Do not run load_ligq_2_results during --execute even if LigQ output is detected.",
         )
+        parser.add_argument(
+            "--job-id",
+            type=int,
+            default=None,
+            help=(
+                "CuratedImportJob to report progress to. Without it, an --execute run from "
+                "the shell records its own job so the upload page and genome list show it."
+            ),
+        )
 
     def handle(self, *args, **options):
+        job = self._start_job(options)
+        if job is None:
+            self._run(options)
+            return
+        try:
+            self._run(options)
+        except BaseException as exc:
+            self._finish_job(job, options, CuratedImportJob.STATUS_FAILED, str(exc) or repr(exc))
+            raise
+        self._finish_job(job, options, CuratedImportJob.STATUS_FINISHED, "")
+
+    def _start_job(self, options):
+        """Mark the import as running so the UI can show it while it works."""
+        if not options["execute"]:
+            return None
+        if options["job_id"]:
+            job = CuratedImportJob.objects.filter(pk=options["job_id"]).first()
+            if job is None:
+                raise CommandError(f"Curated import job {options['job_id']} not found.")
+        else:
+            owner = (
+                get_user_model()
+                .objects.filter(is_superuser=True, is_active=True)
+                .order_by("pk")
+                .first()
+            )
+            if owner is None:
+                return None
+            job = CuratedImportJob.objects.create(
+                owner=owner,
+                genome_name=options["genome"].strip(),
+                results_tsv=options["results_tsv"],
+                structures_dir=options.get("structures_dir") or "",
+                archive=options.get("archive") or "",
+                archive_root=options.get("archive_root") or "",
+                ligq_output_dir=options.get("ligq_output_dir") or "",
+                datadir=options["datadir"],
+                overwrite_scores=bool(options["overwrite_scores"]),
+                load_ligq_output=not options["skip_ligq"],
+                command="manage.py run_curated_file_import (shell)",
+            )
+        if not options["report"]:
+            folder_path = compute_folder_path(options["datadir"], job.genome_name)
+            options["report"] = str(
+                Path(folder_path) / "curated_import" / f"curated-import-{job.pk}.txt"
+            )
+        job.status = CuratedImportJob.STATUS_RUNNING
+        job.phase = "running"
+        job.started_at = timezone.now()
+        job.finished_at = None
+        job.report_path = options["report"]
+        job.report_text = ""
+        job.error_message = ""
+        job.save()
+        return job
+
+    def _finish_job(self, job, options, status, error_message):
+        job.status = status
+        job.phase = status
+        job.error_message = error_message
+        report = Path(options["report"])
+        if report.is_file():
+            job.report_text = report.read_text(encoding="utf-8", errors="replace")
+        job.finished_at = timezone.now()
+        job.save()
+
+    def _run(self, options):
         genome = options["genome"].strip()
         datadir = options["datadir"]
         folder_path = compute_folder_path(datadir, genome)

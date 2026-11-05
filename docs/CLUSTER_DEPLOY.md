@@ -5,14 +5,18 @@ orchestration node: it hosts Docker services, Traefik routing, PostgreSQL, file
 staging, and lightweight Django management commands. It is not a bioinformatics
 compute node.
 
+The live site, https://target2.infra.cluster.qb.fcen.uba.ar/, is served from
+Nodo0 — there is no separate production server. Code reaches it only by being
+pushed to `misc-fixes` and pulled + rebuilt on Nodo0 (see "Deploy Code").
+
 ## Access
 
 ```bash
-ssh agutson@cluster.qb.fcen.uba.ar
-sudo su glyco
+ssh agutson@cluster.qb.fcen.uba.ar   # login node
+su glyco
 ssh nodo0
 sudo su dockeradmin
-cd /home/dockeradmin/targetpathogenweb
+cd ~/targetpathogenweb               # = /home/dockeradmin/targetpathogenweb
 ```
 
 Important paths:
@@ -52,11 +56,26 @@ Nodo0.
 
 ## Deploy Code
 
-Default web deploy:
+Full update (all services + database migrations) — the standard way to put
+whatever is on `misc-fixes` live:
+
+```bash
+cd ~/targetpathogenweb
+git pull origin misc-fixes
+make build ENV=cluster
+make up ENV=cluster
+make migrate ENV=cluster
+```
+
+`make migrate` is required whenever the pull brought new files under any
+`*/migrations/` directory; it's harmless (a no-op) otherwise. Pushing to GitHub
+alone never changes the live site.
+
+Faster web-only deploy (templates/CSS/JS/views, no new migrations):
 
 ```bash
 cd /home/dockeradmin/targetpathogenweb
-git pull --ff-only origin file-ingestion
+git pull --ff-only origin misc-fixes
 make build ENV=cluster svc=web
 make up ENV=cluster svc=web
 ```
@@ -65,10 +84,14 @@ Queue-only code changes:
 
 ```bash
 cd /home/dockeradmin/targetpathogenweb
-git pull --ff-only origin file-ingestion
+git pull --ff-only origin misc-fixes
 make build ENV=cluster svc=queue
 make up ENV=cluster svc=queue
 ```
+
+Check `git branch --show-current` on the Nodo0 checkout before pulling if unsure which
+branch is actually live — `file-ingestion` and `main` are both far behind `misc-fixes`
+as of this pass.
 
 Use cached service-scoped builds. Avoid `--no-cache` unless debugging a concrete
 image-cache problem.

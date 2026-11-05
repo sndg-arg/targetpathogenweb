@@ -1,0 +1,7 @@
+{% load i18n %}
+{# UniProt-style sequence: 60 residues per line in blocks of 10; `lines` from format_sequence. #}
+<div class="hseq" id="protein-sequence-blocks" data-sequence-blocks aria-label="{% trans 'Amino-acid sequence' %}">
+    {% for line in lines %}
+    <div class="hseq-line"><span class="hseq-pos">{{ line.start }}</span>{% for block in line.blocks %}<span class="hseq-block" data-start="{{ block.start }}">{{ block.text }}</span>{% endfor %}</div>
+    {% endfor %}
+</div>

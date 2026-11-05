@@ -1,33 +1,13 @@
-{% if variant == "outline" %}
-    {% with "btn tp-btn tp-btn--outline" as button_classes %}
-        {% include "components/buttons/_action_markup.html" %}
-    {% endwith %}
-{% elif variant == "secondary" %}
-    {% with "btn tp-btn tp-btn--secondary" as button_classes %}
-        {% include "components/buttons/_action_markup.html" %}
-    {% endwith %}
-{% elif variant == "neutral" %}
-    {% with "btn tp-btn tp-btn--neutral" as button_classes %}
-        {% include "components/buttons/_action_markup.html" %}
-    {% endwith %}
-{% elif variant == "dark" %}
-    {% with "btn tp-btn tp-btn--dark" as button_classes %}
-        {% include "components/buttons/_action_markup.html" %}
-    {% endwith %}
-{% elif variant == "danger" %}
+{% comment %}
+Three button variants only: primary (default), secondary, danger.
+Older variant names map onto these so existing includes keep working.
+{% endcomment %}
+{% if variant == "danger" %}
     {% with "btn tp-btn tp-btn--danger" as button_classes %}
         {% include "components/buttons/_action_markup.html" %}
     {% endwith %}
-{% elif variant == "success" %}
-    {% with "btn tp-btn tp-btn--success" as button_classes %}
-        {% include "components/buttons/_action_markup.html" %}
-    {% endwith %}
-{% elif variant == "info" %}
-    {% with "btn tp-btn tp-btn--info" as button_classes %}
-        {% include "components/buttons/_action_markup.html" %}
-    {% endwith %}
-{% elif variant == "light" %}
-    {% with "btn tp-btn tp-btn--light" as button_classes %}
+{% elif variant == "secondary" or variant == "outline" or variant == "neutral" or variant == "dark" or variant == "light" %}
+    {% with "btn tp-btn tp-btn--secondary" as button_classes %}
         {% include "components/buttons/_action_markup.html" %}
     {% endwith %}
 {% else %}

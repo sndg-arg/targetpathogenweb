@@ -4,7 +4,7 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding: 48px 16px 64px;
+    padding: 48px var(--tp-space-4) 64px;
     min-height: 60vh;
 }
 
@@ -12,41 +12,33 @@
     width: 100%;
     max-width: 420px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
+    border-radius: var(--tp-radius-md);
     background: var(--tp-color-surface);
-    padding: 36px 32px 32px;
+    padding: var(--tp-space-7) var(--tp-space-7) var(--tp-space-7);
     display: grid;
-    gap: 22px;
+    gap: var(--tp-space-5);
     position: relative;
     overflow: hidden;
 }
 
-.auth-card::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 55%, var(--tp-color-brand-500) 100%);
-}
-
 .auth-header {
     text-align: center;
-    padding-top: 4px;
+    padding-top: var(--tp-space-1);
 }
 
 .auth-header h1 {
     margin: 0;
     font-size: var(--tp-heading-md);
-    font-weight: var(--tp-font-weight-bold);
+    font-weight: 600;
     line-height: 1.1;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--tp-tracking-tight);
     color: var(--tp-color-brand-900);
 }
 
 .auth-header p {
-    margin: 8px 0 0;
+    margin: var(--tp-space-2) 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.5;
 }
 
@@ -54,52 +46,62 @@
 
 .auth-form {
     display: grid;
-    gap: 16px;
+    gap: var(--tp-space-4);
 }
 
 .auth-field {
     display: grid;
-    gap: 6px;
+    gap: var(--tp-space-2);
 }
 
+/* Same label and text field as every other form (.tp-ui-field-label and
+   .form-control in masterpage.html / ui-system.css, see /design). */
 .auth-field label {
-    font-size: 0.8rem;
+    margin: 0;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
+    line-height: 1.2;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tp-tracking-label);
 }
 
 .auth-field input {
     width: 100%;
-    height: 44px;
-    padding: 0 14px;
-    border: 1px solid var(--tp-color-border);
-    border-radius: 10px;
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-primary);
-    font-size: 0.95rem;
-    transition: border-color 150ms ease, box-shadow 150ms ease;
+    height: var(--tp-ui-control-height);
+    padding: 0 var(--tp-space-3);
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-radius-sm);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-md);
+    font-weight: 600;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.auth-field input:hover {
+    border-color: var(--tp-color-border-strong);
 }
 
 .auth-field input:focus {
     outline: none;
-    border-color: var(--tp-color-brand-600);
-    box-shadow: 0 0 0 3px var(--tp-focus-ring);
+    border-color: var(--tp-focus-color);
+    box-shadow: var(--tp-focus-outline);
 }
 
 .auth-field input::placeholder {
     color: var(--tp-color-text-muted);
+    opacity: 1;
 }
 
 .auth-field .helptext {
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
     margin: 2px 0 0;
 }
 
 .auth-field .errorlist {
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     margin: 2px 0 0;
     color: var(--tp-color-danger-ink);
     list-style: none;
@@ -107,15 +109,6 @@
 }
 
 /* ── Error banner ── */
-
-.auth-errors {
-    padding: 10px 14px;
-    border-radius: 10px;
-    background: var(--tp-color-danger-bg);
-    border: 1px solid var(--tp-color-danger-border);
-    color: var(--tp-color-danger-ink);
-    font-size: 0.88rem;
-}
 
 .auth-errors ul {
     margin: 0;
@@ -125,19 +118,13 @@
 
 /* ── Actions ── */
 
-.auth-submit button,
-.auth-actions .btn {
-    height: 46px;
-    font-size: 0.95rem;
-}
-
 .auth-submit button {
     width: 100%;
 }
 
 .auth-actions {
     display: flex;
-    gap: 10px;
+    gap: var(--tp-space-3);
     justify-content: center;
     flex-wrap: wrap;
 }
@@ -151,7 +138,7 @@
 .auth-footer {
     text-align: center;
     color: var(--tp-color-text-muted);
-    font-size: 0.84rem;
+    font-size: var(--tp-font-size-sm);
 }
 
 .auth-footer a {
@@ -169,7 +156,7 @@
 
 .auth-message {
     color: var(--tp-color-text-secondary);
-    font-size: 0.95rem;
+    font-size: var(--tp-font-size-md);
     line-height: 1.6;
     margin: 0;
     text-align: center;
@@ -182,30 +169,18 @@
 }
 
 .auth-card .form-group label {
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 5px;
-}
-
-.auth-card .form-group .form-control {
-    height: 44px;
-    border-radius: 10px;
-    background: var(--tp-color-surface-soft);
-    font-size: 0.95rem;
-}
-
-.auth-card .form-group .form-control:focus {
-    border-color: var(--tp-color-brand-600);
-    box-shadow: 0 0 0 3px var(--tp-focus-ring);
+    letter-spacing: var(--tp-tracking-label);
+    margin-bottom: var(--tp-space-1);
 }
 
 .auth-card .form-group textarea.form-control {
     height: auto;
     min-height: 80px;
-    padding: 10px 14px;
+    padding: var(--tp-space-3) var(--tp-space-4);
 }
 
 /* ── Animation ── */
@@ -223,12 +198,14 @@
 
 @media (max-width: 480px) {
     .auth-page {
-        padding: 24px 12px 40px;
+        padding: var(--tp-space-6) var(--tp-space-3) var(--tp-space-8);
         align-items: flex-start;
     }
 
     .auth-card {
-        padding: 28px 20px 24px;
-        border-radius: 14px;
+        padding: var(--tp-space-6) var(--tp-space-5) var(--tp-space-6);
+        border-radius: var(--tp-radius-md);
     }
 }
+
+/* Dark: typed text as bright as the standard field's. */

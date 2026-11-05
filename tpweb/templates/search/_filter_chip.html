@@ -1,0 +1,33 @@
+{% comment %}One filter chip (a categorical option or a structure-source link), shared by
+the plain, "Show N more" and typed-values layouts in search/proteins.html.{% endcomment %}
+{% if option.is_link %}
+    <form method="POST" action="" class="filter-chip-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="set_structure_filter">
+        <input type="hidden" name="structure_source" value="{{ option.name }}">
+        <input type="hidden" name="return_query" value="{{ query_string }}">
+        <button type="submit"
+                class="filter-chip {% if option.tone %}filter-chip--{{ option.tone }}{% endif %} {% if option.active %}filter-chip--active{% endif %}"
+                data-server-active="{{ option.active|yesno:'true,false' }}"
+                {% if option.description %}title="{{ option.description }}"{% endif %}
+                aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
+            <span class="filter-chip-label">{{ option.label }}</span>
+            {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
+        </button>
+    </form>
+{% else %}
+    <form method="POST" action="" class="filter-chip-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="{% if option.active %}remove_filter{% else %}add_filter{% endif %}">
+        <input type="hidden" name="filter_option_id" value="{{ option.id }}">
+        <input type="hidden" name="return_query" value="{{ query_string }}">
+        <button type="submit"
+                class="filter-chip {% if option.tone %}filter-chip--{{ option.tone }}{% endif %} {% if option.active %}filter-chip--active{% endif %}"
+                data-server-active="{{ option.active|yesno:'true,false' }}"
+                {% if option.description %}title="{{ option.description }}"{% endif %}
+                aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
+            <span class="filter-chip-label">{{ option.label }}</span>
+            {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
+        </button>
+    </form>
+{% endif %}

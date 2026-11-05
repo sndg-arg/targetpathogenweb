@@ -1,0 +1,100 @@
+{% load i18n %}
+{# The overview's two triage rankings, fetched by assembly.html once the page is shown (AssemblyTargetsView): scoring the whole genome is the slow part of a cold overview. Empty when neither ranking has items. #}
+{% if top_targets_by_score.items %}
+    <div class="genome-card genome-card--ranking">
+        <div class="section-head">
+            <div>
+                <!-- Invisible spacer matching the secondary ranking's "No ligand evidence
+                     yet" eyebrow -- without it, that card's header is one line taller and
+                     the two lists start at different heights. Same technique as the
+                     invisible "How is this calculated?" spacer below, mirrored the other
+                     direction. -->
+                <span class="tp-view-eyebrow" style="visibility: hidden;" aria-hidden="true">{% trans "No ligand evidence yet" %}</span>
+                <h2>{% trans "Quick triage ranking" %}</h2>
+                <p class="section-subtitle">
+                    {% blocktrans with maximum=triage_scoring.maximum %}A first-look ranking: proteins earn points for supporting evidence and lose points for red flags, out of {{ maximum }}. Open a protein to review its evidence before treating it as a candidate.{% endblocktrans %}
+                </p>
+                <details class="targets-methodology js-smooth-details">
+                    <summary>{% trans "How is this calculated?" %}</summary>
+                    <p>
+                        {% blocktrans with maximum=triage_scoring.maximum %}This ranking uses fixed rules on a {{ maximum }}-point scale. Your custom scoring formulas are separate. Missing evidence adds no points and is not treated as a negative result. Each rule contributes once per protein, regardless of the number of records.{% endblocktrans %}
+                    </p>
+                    <p><strong>{% trans "Points added:" %}</strong></p>
+                    <ul>
+                        <li>{% trans "When P2Rank is available: probability at or above 0.5 adds 2 points; at or above 0.2 but below 0.5 adds 1 point." %}</li>
+                        <li>{% trans "FPocket adds 1 extra point only when P2Rank is at or above 0.5, FPocket druggability is at or above 0.7, and the pocket has no size/shape outlier flag." %}</li>
+                        <li>{% trans "Only when P2Rank is unavailable: FPocket druggability at or above 0.7 adds 2 points (1 with a pocket size/shape outlier); at or above 0.4 but below 0.7 adds 1 point (0 with an outlier). Pocket evidence contributes at most 3 points in total." %}</li>
+                        <li>{% trans "Experimental PDB ligand co-crystallized with this exact protein: +2" %}</li>
+                        <li>{% trans "Measured ChEMBL bioactivity on this exact protein: +2" %}</li>
+                        <li>{% trans "Ligand evidence transferred from a similar protein, PDB or ChEMBL homolog: +0.75" %}</li>
+                        <li>{% trans "Proposed ZINC compounds by chemical similarity only, no measured activity: +0.25" %}</li>
+                        <li>{% trans "No significant human protein similarity in the off-target screen: +1.5" %}</li>
+                        <li>{% trans "No significant gut microbiome similarity in the off-target screen: +1" %}</li>
+                        <li>{% trans "Homolog found in the Database of Essential Genes (DEG): +1" %}</li>
+                        <li>{% trans "Core gene across strains, agreed by both Roary and CoreCruncher: +1" %}</li>
+                        <li>{% trans "Catalyzes a metabolic chokepoint reaction: +1.5 (or +0.25 for any other mapped metabolic reaction that is not a chokepoint)" %}</li>
+                        <li>{% trans "Experimental 3D structure loaded: +1 (or +0.5 for a predicted AlphaFold/ColabFold model only)" %}</li>
+                    </ul>
+                    <p><strong>{% trans "Points subtracted:" %}</strong></p>
+                    <ul>
+                        <li>{% trans "When P2Rank is available: probability below 0.2 subtracts 0.5 points. Only when P2Rank is unavailable: FPocket druggability above 0 but below 0.4 subtracts 0.5 points." %}</li>
+                        <li>{% trans "Significant human protein similarity detected: -2" %}</li>
+                        <li>{% trans "Significant gut microbiome similarity detected: -1" %}</li>
+                    </ul>
+                    <p>
+                        {% trans "Proteins scoring at or below zero with no positive signal are left out of both lists. Ties are broken first by P2Rank probability (or FPocket druggability when P2Rank is unavailable), then by direct ligand record count, then by total ligand record count." %}
+                    </p>
+                    <p>
+                        {% trans "This ranking only orders candidates for a first look. It does not change, and is not changed by, the scoring formulas you create, and it is not a substitute for reviewing each protein's evidence." %}
+                    </p>
+                </details>
+            </div>
+            <a href="?export=ranking_csv" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-btn-with-icon targets-export-btn" title="{% trans "Export every scored protein with its full score breakdown, not just the top candidates shown here." %}">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                {% trans "Export CSV" %}
+            </a>
+        </div>
+        <ol class="targets-list">
+            {% for t in top_targets_by_score.items %}
+                {% blocktrans with points=t.score maximum=t.score_max asvar score_tooltip %}Quick triage score: {{ points }} of {{ maximum }} points. The label describes the point total, not a probability of success or experimental validation.{% endblocktrans %}
+                {% include "components/targets/ranking_item.html" %}
+            {% endfor %}
+        </ol>
+        <p class="targets-footnote">
+            {% blocktrans with strong=triage_scoring.strong_min|floatformat:"-2" moderate=triage_scoring.moderate_min|floatformat:"-2" maximum=triage_scoring.maximum %}On the {{ maximum }}-point scale: Strong is at least {{ strong }} points; Moderate is at least {{ moderate }} but below {{ strong }} points; Limited is below {{ moderate }} points. This ranking is only a first-pass triage.{% endblocktrans %}
+            <a href="{{ workspace_links.formula_url }}">{% trans "Create your own score" %} &rarr;</a>
+        </p>
+    </div>
+{% endif %}
+
+{% if unexplored_targets.items %}
+    <div class="genome-card genome-card--ranking genome-card--ranking-secondary">
+        <div class="section-head">
+            <div>
+                <span class="tp-view-eyebrow">{% trans "No ligand evidence yet" %}</span>
+                <h2>{% trans "Worth a fresh look" %}</h2>
+                <p class="section-subtitle">
+                    {% trans "A subset of the main ranking with no loaded PDB, ChEMBL, or ZINC ligand records, including records transferred from homologs. Missing records do not mean these proteins have never been studied." %}
+                </p>
+                <!-- Invisible spacer matching the primary ranking's "How is this calculated?"
+                     details/summary line -- that card's header is one line taller, so without
+                     this the two lists start at different heights even though the outer
+                     cards are the same overall height. visibility:hidden removes it from the
+                     tab order and the accessibility tree, unlike display:none it still holds
+                     its layout space. -->
+                <details class="targets-methodology" style="visibility: hidden;" aria-hidden="true">
+                    <summary>{% trans "How is this calculated?" %}</summary>
+                </details>
+            </div>
+        </div>
+        <ol class="targets-list">
+            {% for t in unexplored_targets.items %}
+                {% blocktrans with points=t.score maximum=t.score_max asvar score_tooltip %}Quick triage score: {{ points }} of {{ maximum }} points, computed without any ligand-evidence signal.{% endblocktrans %}
+                {% include "components/targets/ranking_item.html" %}
+            {% endfor %}
+        </ol>
+        <p class="targets-footnote">
+            {% blocktrans with maximum=triage_scoring.maximum %}Uses the same {{ maximum }}-point scale and labels as the main ranking. Without ligand records, at most 10 points are available from pocket evidence, selectivity, essential-gene similarity, conservation, structure, and metabolic role. These proteins remain eligible for the main ranking; any loaded ligand record removes them from this subset.{% endblocktrans %}
+        </p>
+    </div>
+{% endif %}

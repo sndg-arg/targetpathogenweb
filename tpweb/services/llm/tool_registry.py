@@ -16,6 +16,7 @@ from .tools.apply_filters import (
 from .tools.demo import ENTRY as GET_CURRENT_TIME_ENTRY
 from .tools.explain_target import build_explain_target_entry
 from .tools.search_proteins import build_search_proteins_entry
+from .tools.table_view import build_set_table_view_entry
 from .tools.target_review import build_audit_target_evidence_entry, build_compare_targets_entry
 
 
@@ -35,7 +36,8 @@ def build_scoped_tools(request, assembly_name, default_accession, workspace_user
     tools["list_available_filters"] = build_list_available_filters_entry(workspace_user)
     tools["apply_filters"] = build_apply_filters_entry(request, session_user)
     tools["clear_filters"] = build_clear_filters_entry(request, session_user)
-    tools["search_proteins"] = build_search_proteins_entry(assembly_name)
+    tools["search_proteins"] = build_search_proteins_entry(assembly_name, workspace_user)
+    tools["set_table_view"] = build_set_table_view_entry(request, session_user, assembly_name)
     tools["explain_target"] = build_explain_target_entry(assembly_name, default_accession)
     tools["audit_target_evidence"] = build_audit_target_evidence_entry(
         assembly_name, default_accession

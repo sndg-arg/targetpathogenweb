@@ -1,0 +1,6 @@
+{% load i18n %}
+<li class="profile-capability{% if not on %} is-off{% endif %}">
+    <span class="profile-capability-icon" aria-hidden="true">{% if on %}{% include "components/icons/check.html" %}{% else %}{% include "components/icons/x.html" %}{% endif %}</span>
+    <span class="profile-capability-label">{{ label }}{% if meta %} <span class="profile-capability-meta">{{ meta }}</span>{% endif %}</span>
+    <span class="sr-only">{% if on %}{% trans "Included" %}{% else %}{% trans "Not included" %}{% endif %}</span>
+</li>

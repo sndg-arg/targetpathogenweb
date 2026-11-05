@@ -1,0 +1,79 @@
+/* ── Uploaded data: every user-uploaded column visible on one genome. Same
+   plain-row idiom as settings.css. ── */
+
+.uploaded-data-page {
+    color: var(--tp-color-text-primary);
+}
+
+.uploaded-data-page > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.uploaded-data-section {
+    padding: var(--tp-space-6) var(--tp-space-5);
+}
+
+.uploaded-data-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-3) var(--tp-space-6);
+    margin-top: var(--tp-space-5);
+}
+
+.uploaded-data-link {
+    color: var(--tp-color-link);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.uploaded-data-link:hover {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+}
+
+.uploaded-data-rows {
+    max-width: 960px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.uploaded-data-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--tp-space-4);
+    padding: var(--tp-space-4) 0;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.uploaded-data-row:last-child {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.uploaded-data-main {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.uploaded-data-name {
+    font-family: var(--tp-font-mono);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.uploaded-data-meta {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.uploaded-data-description {
+    margin: var(--tp-space-1) 0 0;
+    max-width: var(--tp-measure);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}

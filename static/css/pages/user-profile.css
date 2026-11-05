@@ -1,0 +1,192 @@
+/* ── My profile — a settings sheet: each block pairs a short heading and
+   note on the left with its content on the right, on one continuous
+   background with hairlines between blocks. Only the edit dialog is boxed. ── */
+
+.profile-page {
+    color: var(--tp-color-text-primary);
+    margin: 0;
+    padding-bottom: var(--tp-space-6);
+}
+
+.profile-block {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: var(--tp-space-4) var(--tp-space-8);
+    margin: 0 var(--tp-space-5);
+    padding: var(--tp-space-6) 0;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.profile-block-head .section-subtitle {
+    margin-top: var(--tp-space-1);
+}
+
+/* ── Personal details: label | value | Edit. The value column is capped so
+   Edit stays next to what it changes instead of at the far edge. ── */
+
+.profile-fields {
+    margin: 0;
+    max-width: max-content;
+}
+
+.profile-field {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 360px) auto;
+    justify-content: start;
+    align-items: center;
+    gap: var(--tp-space-4);
+    min-height: calc(var(--tp-ui-control-height) + var(--tp-space-2));
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.profile-field:first-child {
+    margin-top: calc(-1 * var(--tp-space-2));
+}
+
+.profile-field:last-child {
+    border-bottom: 0;
+}
+
+.profile-field dt {
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+}
+
+.profile-field dd {
+    margin: 0;
+}
+
+.profile-field-value {
+    font-size: var(--tp-font-size-sm);
+    overflow-wrap: anywhere;
+}
+
+.profile-field-value.is-empty {
+    color: var(--tp-color-text-soft);
+}
+
+/* ── Access: a two-column checklist, no boxes ── */
+
+.profile-capabilities {
+    display: grid;
+    /* Same overall width as the details rows above, so both blocks line up. */
+    grid-template-columns: repeat(2, minmax(0, 300px));
+    gap: var(--tp-space-3) var(--tp-space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.profile-capability {
+    display: flex;
+    align-items: baseline;
+    gap: var(--tp-space-3);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.profile-capability-icon {
+    flex: 0 0 auto;
+    align-self: center;
+    display: flex;
+    color: var(--tp-color-success-ink);
+}
+
+.profile-capability-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.profile-capability-meta {
+    color: var(--tp-color-text-muted);
+}
+
+.profile-capability.is-off {
+    color: var(--tp-color-text-muted);
+}
+
+.profile-capability.is-off .profile-capability-icon {
+    color: var(--tp-color-text-soft);
+}
+
+.profile-request-access {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2) var(--tp-space-4);
+    margin: var(--tp-space-5) 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.profile-access-note {
+    margin: var(--tp-space-5) 0 0;
+}
+
+/* ── Privacy & sharing ── */
+
+.profile-privacy {
+    display: grid;
+    justify-items: start;
+    gap: var(--tp-space-3);
+}
+
+.profile-privacy p {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.profile-contact {
+    margin: 0 var(--tp-space-5);
+    padding-top: var(--tp-space-5);
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+/* The edit dialog uses the shared .tp-modal (ui-system.css). */
+.profile-edit-body {
+    display: grid;
+    gap: var(--tp-space-4);
+}
+
+.profile-field-error {
+    margin: var(--tp-space-1) 0 0;
+}
+
+body.profile-modal-open {
+    overflow: hidden;
+}
+
+@media (max-width: 900px) {
+    .profile-block {
+        grid-template-columns: minmax(0, 1fr);
+        margin: 0 var(--tp-space-4);
+    }
+
+    .profile-contact {
+        margin: 0 var(--tp-space-4);
+    }
+}
+
+@media (max-width: 600px) {
+    .profile-field {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0 var(--tp-space-3);
+        padding: var(--tp-space-2) 0;
+    }
+
+    .profile-field dt {
+        grid-column: 1 / -1;
+    }
+
+    .profile-capabilities {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

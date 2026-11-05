@@ -1,0 +1,135 @@
+/* Shared by every page in this family (see split.js history). Page-only rules
+   stay in genome-overview.css. Loaded before the page file. */
+
+/* Genome overview — mirrors protein-detail / binder-detail design language. */
+.genome-page {
+    font-family: var(--tp-font-body);
+    color: var(--tp-color-text-primary);
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--tp-space-4);
+}
+
+/* No hairline -- spacing only, same treatment as about-us/data-sources.css
+   (this page's grid gap is 16px; the extra 24px margin here matches that
+   page's own .ds-panel ~ .ds-panel value for the same ~40px total feel).
+   Only matches direct <section> siblings -- .quick-nav is a <nav> and
+   .genome-grid is a <div>, so this only kicks in on pages (like
+   Metabolism) where a content section sits as a direct sibling of the
+   hero with nothing else in between. Assembly's quick-nav/genome-grid
+   stay on their own gap-based spacing, untouched by this rule. */
+.genome-page > section ~ section {
+    margin-top: var(--tp-space-6);
+}
+
+.genome-page h1,
+.genome-page h2,
+.genome-page h3 {
+    font-family: var(--tp-font-head);
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.genome-page h1 { font-weight: 600; }
+
+.genome-hero,
+.genome-page .quick-nav,
+.genome-card {
+    /* backwards, not both -- see the shared .tp-ui-enter rule in ui-system.css
+   for why: "both" permanently flags the element as animation-active even
+   long after it's visually settled, which is a known trigger for Chrome
+   mispositioning a native <select> popup nested inside it (e.g. the
+   Downloads section's format select). */
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) backwards;
+}
+
+.genome-page .quick-nav {
+    animation-delay: 40ms;
+}
+
+.genome-card {
+    animation-delay: 80ms;
+}
+
+.genome-card:nth-of-type(2) { animation-delay: 110ms; }
+
+.genome-card:nth-of-type(3) { animation-delay: 140ms; }
+
+.genome-card:nth-of-type(4) { animation-delay: 170ms; }
+
+.genome-hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--tp-space-5);
+    align-items: flex-start;
+    margin-top: var(--tp-space-2);
+}
+
+.genome-hero-content {
+    max-width: none;
+    width: 100%;
+    min-width: 0;
+}
+
+.genome-hero h1 {
+    word-break: break-all;
+}
+
+.genome-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-5);
+}
+
+.genome-hero-actions .tp-btn--primary {
+    min-width: 196px;
+    justify-content: center;
+}
+
+/* Arrow nudges forward on hover -- reinforces "this takes you somewhere". */
+.genome-hero-actions .tp-btn-icon {
+    transition: transform 140ms ease;
+}
+
+.genome-hero-actions .btn:hover .tp-btn-icon,
+.genome-hero-actions .btn:focus-visible .tp-btn-icon {
+    transform: translateX(3px);
+}
+
+.genome-card {
+    /* Horizontal padding matches .genome-hero's 18px so card content
+   lines up with the hero above it instead of sitting 2px narrower. */
+    padding: var(--tp-space-4) var(--tp-space-5);
+    /* Clearance for the sticky chrome when a nav link jumps here: top bar +
+   breadcrumb bar (--tp-sticky-chrome-h), then the 45px .quick-nav docked
+   below them, plus ~29px breathing room. Must stay just under
+   assembly.html's scroll-spy threshold (nav's bottom edge + 30) or the
+   clicked link never gets marked active. Keep this in sync with
+   .quick-nav's own box model if that ever changes. */
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 74px);
+}
+
+@media (max-width: 640px) {
+    .genome-hero-actions .btn,
+    .genome-delete-actions .btn {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .genome-hero-actions .tp-btn-icon {
+        transition: none;
+        transform: none !important;
+    }
+
+    .genome-hero,
+    .genome-page .quick-nav,
+    .genome-page .quick-nav .quick-nav-link,
+    .genome-page .quick-nav .quick-nav-link::after,
+    .genome-card {
+        animation: none !important;
+        transition: none !important;
+    }
+}

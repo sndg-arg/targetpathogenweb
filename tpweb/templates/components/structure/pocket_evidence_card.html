@@ -1,7 +1,7 @@
 {% load i18n %}
 {% if score or structure or pocket %}
 <div class="target-evidence-card target-evidence-card--{{ tool_key }}" title="{{ tool_tooltip }}">
-    <span class="target-evidence-label">{{ tool_label }}</span>
+    <span class="target-evidence-label">{{ tool_label }}{% if shared_from %} <span class="shared-value-source" title="{% trans 'Read from the identical protein in this strain' %}">{% blocktrans with src=shared_from %}from {{ src }}{% endblocktrans %}</span>{% endif %}</span>
     {% if score %}<strong class="target-evidence-value">{{ score }}</strong>{% endif %}
     <div class="target-evidence-meta">
         <div class="target-evidence-meta-row">

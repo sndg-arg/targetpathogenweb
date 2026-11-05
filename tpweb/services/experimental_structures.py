@@ -23,20 +23,21 @@ from tpweb.models.pdb import PDB
 
 logger = logging.getLogger(__name__)
 
-RCSB_DOWNLOAD_URL = "https://files.rcsb.org/download/{pdb_id}.pdb"
+RCSB_DOWNLOAD_URL = "https://files.rcsb.org/download/{pdb_id}.{format}"
 REQUEST_TIMEOUT = 30
 RETRY_WAIT = 2
 MAX_RETRIES = 3
 
 
 def _download_pdb(pdb_id, dest_path):
-    """Download a PDB file from RCSB. Returns True on success."""
-    url = RCSB_DOWNLOAD_URL.format(pdb_id=pdb_id.upper())
+    """Download PDB or native mmCIF according to the destination suffix."""
+    file_format = "cif" if str(dest_path).lower().endswith(".cif") else "pdb"
+    url = RCSB_DOWNLOAD_URL.format(pdb_id=pdb_id.upper(), format=file_format)
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             resp = requests.get(url, timeout=REQUEST_TIMEOUT, stream=True)
             if resp.status_code == 404:
-                logger.warning("PDB %s not found at RCSB (404)", pdb_id)
+                logger.warning("PDB %s format %s not found at RCSB (404)", pdb_id, file_format)
                 return False
             resp.raise_for_status()
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
@@ -63,6 +64,18 @@ def _download_pdb(pdb_id, dest_path):
             else:
                 logger.error("All download attempts failed for PDB %s: %s", pdb_id, exc)
     return False
+
+
+def _experimental_file(pdb_id, dest_dir):
+    """Prefer cached files, then PDB, then native mmCIF (large complexes)."""
+    paths = [os.path.join(dest_dir, f"{pdb_id}.{ext}") for ext in ("pdb", "cif")]
+    for path in paths:
+        if os.path.exists(path) and os.path.getsize(path) > 100:
+            return path, False
+    for path in paths:
+        if _download_pdb(pdb_id, path):
+            return path, True
+    return None, False
 
 
 def _coverage_span(xref):
@@ -187,15 +200,11 @@ def fetch_and_load_experimental_structures(
         locus_tag = xref.bioentry.accession
         pdb_id = xref.pdb_id
         dest_dir = os.path.join(exp_dir, locus_tag)
-        dest_path = os.path.join(dest_dir, f"{pdb_id}.pdb")
-
-        if os.path.exists(dest_path) and os.path.getsize(dest_path) > 100:
-            logger.debug("PDB %s already on disk for %s", pdb_id, locus_tag)
-        else:
-            logger.info("Downloading PDB %s for %s", pdb_id, locus_tag)
-            if not _download_pdb(pdb_id, dest_path):
-                skipped += 1
-                continue
+        dest_path, was_downloaded = _experimental_file(pdb_id, dest_dir)
+        if dest_path is None:
+            skipped += 1
+            continue
+        if was_downloaded:
             downloaded += 1
 
         pdb_obj = PDB.objects.filter(code=pdb_id, experiment="EX").first()

@@ -3,6 +3,7 @@ import os
 from collections import Counter
 
 from Bio import SeqIO
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
 from bioseq.models.Biodatabase import Biodatabase
@@ -102,4 +103,10 @@ class Command(BaseCommand):
         self.stdout.write(
             f"Synced {updated} genome metadata values for {assembly_name}: "
             + ", ".join(f"{key}={values[key]}" for key in METADATA_KEYS)
+        )
+        call_command(
+            "backfill_identical_sequence_links",
+            assembly_name,
+            match_sequences=True,
+            stdout=self.stdout,
         )

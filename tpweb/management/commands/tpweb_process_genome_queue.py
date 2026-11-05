@@ -1,4 +1,5 @@
 import fcntl
+import os
 import signal
 import time
 from pathlib import Path
@@ -6,6 +7,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 
 from tpweb.models import GenomeUpload
+from tpweb.services.cache_warming import warm_genome_caches
 from tpweb.services.genome_upload_status import reconcile_genome_uploads
 from tpweb.services.genome_uploads import dequeue_next_genome_upload, run_genome_upload_pipeline
 from tpweb.services.pipeline_status import get_pipeline_status
@@ -14,10 +16,15 @@ from tpweb.services.pipeline_status import get_pipeline_status
 class Command(BaseCommand):
     help = "Processes queued genome uploads serially."
     lock_path = Path("/tmp/tpweb_genome_upload_queue.lock")
+    # Below the overview caches' 15-minute TTL, so they never expire between
+    # refreshes. 0 disables warming.
+    cache_warm_interval = int(os.environ.get("TPW_CACHE_WARM_INTERVAL_SEC", "600"))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._shutdown_requested = False
+        self._pipeline_running = False
+        self._next_cache_warm = 0.0
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -57,18 +64,33 @@ class Command(BaseCommand):
                 processed = self._process_next_upload()
                 if run_once:
                     return
-                if not processed and not self._shutdown_requested:
+                if processed:
+                    # New data: refresh the caches as soon as the queue is idle.
+                    self._next_cache_warm = 0.0
+                elif not self._shutdown_requested:
+                    self._warm_caches_if_due()
                     time.sleep(poll_interval)
 
             self.stdout.write("Genome upload queue worker stopped gracefully.")
+
+    def _warm_caches_if_due(self):
+        if self.cache_warm_interval <= 0 or self._pipeline_running:
+            return
+        if time.monotonic() < self._next_cache_warm:
+            return
+        refreshed, seconds = warm_genome_caches(lambda: self._shutdown_requested)
+        self.stdout.write(f"Refreshed overview caches for {refreshed} genomes in {seconds:.1f}s.")
+        self._next_cache_warm = time.monotonic() + self.cache_warm_interval
 
     def _process_next_upload(self):
         pipeline_status = get_pipeline_status()
         reconcile_genome_uploads(pipeline_status)
 
-        if pipeline_status.get("running"):
-            return False
-        if GenomeUpload.objects.filter(status=GenomeUpload.STATUS_RUNNING).exists():
+        self._pipeline_running = (
+            bool(pipeline_status.get("running"))
+            or GenomeUpload.objects.filter(status=GenomeUpload.STATUS_RUNNING).exists()
+        )
+        if self._pipeline_running:
             return False
 
         upload = dequeue_next_genome_upload()

@@ -53,12 +53,21 @@ from pipeline_commands import (
     psort_cmd,
     get_binders_cmd,
     load_binders_cmd,
+    genbank_ec_cmd,
+    microbiome_counts_cmd,
+    experimental_by_sequence_cmd,
+    cached_annotations_cmd,
+    binder_directness_cmd,
 )
+from identical_reuse import reusable_loci
 from interproscan_remote import run_remote_interproscan
 from colabfold_remote import run_remote_colabfold
+from fasttarget_remote import run_remote_fasttarget
 from ligq_remote import run_remote_ligq
 from slurm_remote_command import run_remote_shell_job
 from structures_remote import run_remote_structures
+from psort_remote import run_remote_psort
+from psort_worker import validate_psort_file
 
 
 # ---------------------------------------------------------------------------
@@ -88,6 +97,29 @@ def _run_stage(stage_number, app_name, command_str):
     return result
 
 
+def _run_completion_step(stage_number, app_name, command_str):
+    """Fill-missing step after a stage's main load. A failure is recorded and
+    printed but does not stop the run: the stage's own data is already loaded."""
+    _record_pipeline_stage(stage_number, app_name, status="submitted")
+    env = os.environ.copy()
+    env_bin = os.path.dirname(sys.executable)
+    if env_bin and env_bin not in env.get("PATH", "").split(os.pathsep):
+        env["PATH"] = env_bin + os.pathsep + env.get("PATH", "")
+    result = subprocess.run(["bash", "-c", command_str], capture_output=True, text=True, env=env)
+    output = (result.stdout or "")[-1000:]
+    if result.returncode != 0:
+        message = (result.stderr or result.stdout or "")[-1000:]
+        print(f"Completion step {app_name} failed; continuing: {message}")
+        # "info", not "failed": the run itself is fine.
+        _record_pipeline_stage(
+            stage_number, app_name, status="info", message=f"Not completed: {message}"
+        )
+        return False
+    print(output)
+    _record_pipeline_stage(stage_number, app_name, status="completed")
+    return True
+
+
 def _run_python_stage(stage_number, app_name, fn, *args, **kwargs):
     """Execute a Python callable, recording stage events before/after."""
     _record_pipeline_stage(stage_number, app_name, status="submitted")
@@ -103,9 +135,9 @@ def _run_python_stage(stage_number, app_name, fn, *args, **kwargs):
 HEAVY_LOCAL_STAGES = {
     4: "FastTarget",
     10: "InterProScan",
-    15: "AlphaFold",
     16: "ColabFold",
     17: "FPocket/P2Rank",
+    20: "PSORTb",
     22: "binders",
     24: "LigQ",
 }
@@ -114,11 +146,13 @@ HEAVY_LOCAL_STAGES = {
 def _assert_heavy_stage_allowed(stage, app_name, allow_local_heavy):
     if allow_local_heavy or stage not in HEAVY_LOCAL_STAGES:
         return
-    raise RuntimeError(
+    message = (
         f"Refusing to run heavy stage {stage} ({HEAVY_LOCAL_STAGES[stage]}) locally "
         f"while handling {app_name}. Configure a SLURM/remote implementation for this "
         "stage, provide curated data and skip it, or pass --allow-local-heavy explicitly."
     )
+    _record_pipeline_stage(stage, app_name, status="failed", message=message)
+    raise RuntimeError(message)
 
 
 def _format_remote_command(template, *, genome, working_dir, folder_path):
@@ -232,9 +266,12 @@ def _run_structures_chain(stage, working_dir, folder_path, genome):
         print("No protein structures found to load.")
         return
 
+    reused = reusable_loci(genome, "pockets")
     proteins_with_pdb = []
     for locus_tag in sorted(os.listdir(alphafold_dir)):
         pdb_path = os.path.join(alphafold_dir, locus_tag, f"{locus_tag}_af.pdb")
+        if locus_tag in reused:
+            continue
         if os.path.exists(pdb_path) and os.path.getsize(pdb_path) > 0:
             proteins_with_pdb.append(locus_tag)
 
@@ -314,16 +351,17 @@ def run_genome(
         _run_stage(
             3, "sync_genome_metadata", sync_genome_metadata_cmd(working_dir, folder_path, genome)
         )
+        _run_completion_step(3, "genbank_ec", genbank_ec_cmd(working_dir, genome, folder_path))
     if not _skip(4):
         if os.environ.get("TPW_FASTTARGET_USE_REMOTE", "").strip() == "1":
-            _run_configured_remote_stage(
+            _run_python_stage(
                 4,
                 "fasttarget_remote",
-                "TPW_FASTTARGET",
-                cfg_dict,
+                run_remote_fasttarget,
+                cfg_dict=cfg_dict,
+                folder_path=folder_path,
                 genome=genome,
                 working_dir=working_dir,
-                folder_path=folder_path,
             )
         else:
             fasttarget_skip_exec = os.environ.get(
@@ -341,6 +379,7 @@ def run_genome(
         _run_stage(5, "load_score", load_score_cmd(working_dir, genome, "human_offtarget"))
     if not _skip(6):
         _run_stage(6, "load_score", load_score_cmd(working_dir, genome, "micro_offtarget"))
+        _run_completion_step(6, "microbiome_counts", microbiome_counts_cmd(working_dir, genome))
     if not _skip(7):
         _run_stage(7, "load_score", load_score_cmd(working_dir, genome, "essenciality"))
     if not _skip(8):
@@ -371,10 +410,13 @@ def run_genome(
             "fetch_experimental_structures",
             fetch_exp_structures_cmd(working_dir, genome, folder_path),
         )
+        _run_completion_step(
+            13, "experimental_by_sequence", experimental_by_sequence_cmd(working_dir, genome)
+        )
+        _run_completion_step(13, "cached_annotations", cached_annotations_cmd(working_dir, genome))
     if not _skip(14) or not _skip(15):
         protein_list = _run_python_stage(14, "get_unipslst", _read_unips, folder_path, genome)
         if not _skip(15):
-            _assert_heavy_stage_allowed(15, "alphafold_unips", allow_local_heavy)
             lines = [line.strip() for line in protein_list.strip().split("\n") if line.strip()]
             if lines:
                 _run_alphafold_parallel(15, lines, folder_path, genome)
@@ -415,10 +457,41 @@ def run_genome(
     if not _skip(19):
         _run_stage(19, "load_score", load_score_cmd(working_dir, genome, "druggability"))
     if not _skip(20):
-        _run_stage(20, "psort", psort_cmd(genome, gram))
+        if os.environ.get("TPW_PSORT_USE_REMOTE", "").strip() == "1":
+            _run_python_stage(
+                20,
+                "psort_remote",
+                run_remote_psort,
+                cfg_dict=cfg_dict,
+                folder_path=folder_path,
+                genome=genome,
+                gram=gram,
+            )
+        else:
+            _assert_heavy_stage_allowed(20, "psort", allow_local_heavy)
+            _run_stage(20, "psort", psort_cmd(genome, gram))
     if not _skip(21):
+        _run_python_stage(
+            21,
+            "validate_psort",
+            validate_psort_file,
+            os.path.join(folder_path, "psort.tsv"),
+            os.path.join(folder_path, genome + ".faa"),
+        )
         _run_stage(21, "load_score", load_score_cmd(working_dir, genome, "psort"))
-    if not _skip(22):
+    ligq_replaces_binders = (
+        os.environ.get("TPW_LIGQ_USE_REMOTE", "").strip() == "1"
+        and os.environ.get("TPW_BINDERS_USE_REMOTE", "").strip() != "1"
+        and not _skip(24)
+    )
+    if not _skip(22) and ligq_replaces_binders:
+        _record_pipeline_stage(
+            22,
+            "get_binders",
+            status="info",
+            message="Remote LigQ stage 24 loads binder evidence directly.",
+        )
+    if not _skip(22) and not ligq_replaces_binders:
         if os.environ.get("TPW_BINDERS_USE_REMOTE", "").strip() == "1":
             _run_configured_remote_stage(
                 22,
@@ -432,8 +505,15 @@ def run_genome(
         else:
             _assert_heavy_stage_allowed(22, "get_binders", allow_local_heavy)
             _run_stage(22, "get_binders", get_binders_cmd(working_dir, genome))
-    if not _skip(23):
+    if not _skip(23) and not ligq_replaces_binders:
         _run_stage(23, "load_binders", load_binders_cmd(working_dir, genome))
+    elif not _skip(23):
+        _record_pipeline_stage(
+            23,
+            "load_binders",
+            status="info",
+            message="Remote LigQ stage 24 loads binder evidence directly.",
+        )
     if not _skip(24):
         if os.environ.get("TPW_LIGQ_USE_REMOTE", "").strip() == "1":
             _run_python_stage(
@@ -447,11 +527,31 @@ def run_genome(
         else:
             _assert_heavy_stage_allowed(24, "ligq_remote", allow_local_heavy)
             print("LigQ_2 stage 24 skipped: set TPW_LIGQ_USE_REMOTE=1 to enable.")
+    if not _skip(23) or not _skip(24):
+        # Direct vs. homolog also counts identical copies' UniProt entries,
+        # which may only exist after the stage 13 sequence recovery.
+        _run_completion_step(24, "binder_directness", binder_directness_cmd(working_dir, genome))
 
 
 def _clear_folder(folder_path):
     if os.path.exists(folder_path):
         shutil.rmtree(folder_path)
+
+
+def _resolve_working_dir(cfg):
+    """Project root the pipeline_commands.py manage.py commands run against.
+    Priority matches the legacy TargetConfig: explicit env var, then
+    settings.ini's [GENERAL] WorkingDir, then the repo root inferred from
+    this file's own location. Deliberately not os.getcwd() -- the queue
+    worker invokes this script with cwd set to pipeline/ itself (see
+    _build_pipeline_runtime in tpweb/services/genome_uploads.py), which
+    would otherwise resolve here to .../pipeline instead of the actual
+    project root, breaking every {working_dir}/manage.py command."""
+    return (
+        os.environ.get("TPW_PIPELINE_WORKING_DIR")
+        or cfg.get("GENERAL", "WorkingDir", fallback=None)
+        or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -564,11 +664,7 @@ if __name__ == "__main__":
         cfg.read(settings_ini)
 
     # Resolve working_dir with the same priority as TargetConfig.
-    working_dir = (
-        os.environ.get("TPW_PIPELINE_WORKING_DIR")
-        or (cfg.get("GENERAL", "WorkingDir", fallback=None))
-        or os.getcwd()
-    )
+    working_dir = _resolve_working_dir(cfg)
 
     _initialize_pipeline_run(run_specs, gram, custom, args.test)
     internal_genomes = [target for _, target in run_specs]

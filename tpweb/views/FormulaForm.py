@@ -2,6 +2,8 @@ from django import forms
 
 from tpweb.models.ScoreParam import ScoreParam
 from tpweb.services.score_params import visible_score_params_queryset
+from tpweb.services.project_branding import branded_choices
+from tpweb.services.visibility_settings import VISIBILITY_PRIVATE, FORMULA_VISIBILITY_CHOICES
 
 _CTRL = "form-control tp-ui-control"
 
@@ -32,7 +34,18 @@ class FormulaForm(forms.Form):
             }
         ),
     )
+    # Who else can see/use this formula -- private by default, changeable
+    # later from the Settings page (tpweb/views/SettingsView.py) without
+    # needing to recreate it.
+    visibility = forms.ChoiceField(
+        choices=FORMULA_VISIBILITY_CHOICES,
+        initial=VISIBILITY_PRIVATE,
+        required=False,
+        widget=forms.Select(attrs={"class": _CTRL}),
+    )
 
-    def __init__(self, *args, user=None, **kwargs):
+    def __init__(self, *args, user=None, viewer=None, **kwargs):
         super().__init__(*args, **kwargs)
+        # "Project members" reads "Gates members" for Gates roles and admins.
+        self.fields["visibility"].choices = branded_choices(FORMULA_VISIBILITY_CHOICES, viewer)
         self.fields["param"].queryset = visible_score_params_queryset(user)
