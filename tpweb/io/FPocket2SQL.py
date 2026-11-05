@@ -1,4 +1,5 @@
 import warnings
+from collections import defaultdict
 
 from Bio import (
     BiopythonWarning,
@@ -7,7 +8,6 @@ from Bio import (
     BiopythonExperimentalWarning,
 )
 from django.db import transaction
-from django.db.models import Max
 from tqdm import tqdm
 
 from tpweb.models.pdb import (
@@ -126,9 +126,18 @@ class FPocket2SQL:
 
     def load_pockets(self, p2rank=False):
         rss = []
-        nro_atm = (
-            Atom.objects.filter(residue__pdb=self.pdb).aggregate(Max("serial"))["serial__max"] or 0
-        )
+        # The structure's atoms, fetched once and looked up by serial per
+        # pocket. A per-pocket "residue__pdb=... AND serial IN (...)" query took
+        # 1-3 s on the shared atom table (human proteome included), dozens of
+        # times per structure. Residue ids first, so the lookup uses the
+        # atom.residue_id index.
+        residue_ids = list(Residue.objects.filter(pdb=self.pdb).values_list("id", flat=True))
+        atoms_by_serial = defaultdict(list)
+        for atom in Atom.objects.filter(residue_id__in=residue_ids).only(
+            "id", "serial", "residue_id"
+        ):
+            atoms_by_serial[atom.serial].append(atom)
+        nro_atm = max(atoms_by_serial, default=0)
         with transaction.atomic():
             for pocket in tqdm(self.res_pockets):
                 pocket = Struct(**pocket)
@@ -140,11 +149,11 @@ class FPocket2SQL:
                 if not p2rank:
                     nro_atm = self._process_pocket_alphas(pocket, nro_atm, p2=p2rank)
 
-                atoms = list(
-                    Atom.objects.filter(
-                        residue__pdb=self.pdb, serial__in=[int(x) for x in pocket.atoms]
-                    )
-                )
+                atoms = [
+                    atom
+                    for serial in {int(x) for x in pocket.atoms}
+                    for atom in atoms_by_serial.get(serial, ())
+                ]
                 # Bulk inserts (Postgres returns the new ids, which the atom
                 # links below need): one query per table, not one per row.
                 rs_dict = {
