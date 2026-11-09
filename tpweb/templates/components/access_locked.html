@@ -23,8 +23,8 @@
                     <a class="btn tp-btn tp-btn--secondary" href="{% url 'tpwebapp:index' %}">{% trans "Back to home" %}</a>
                 </div>
             {% else %}
-                {% include "components/request_access_form.html" %}
                 <div class="access-locked-actions">
+                    <a class="btn tp-btn tp-btn--primary" href="{% url 'tpwebapp:profile' %}">{% trans "Ask for a collaborator role" %}</a>
                     <a class="btn tp-btn tp-btn--secondary" href="{% url 'tpwebapp:index' %}">{% trans "Back to home" %}</a>
                 </div>
             {% endif %}

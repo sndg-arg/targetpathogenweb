@@ -5,7 +5,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261109-institution">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261109-noask">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -68,9 +68,6 @@
                         {% trans "You requested access; an administrator will review it." %}
                     {% endif %}
                 </p>
-                {% if user.is_authenticated and not user.wants_collaborator_access %}
-                    {% include "components/request_access_form.html" with form_class="genomes-request-access" button_class="tp-btn--secondary" %}
-                {% endif %}
             {% endif %}
         </section>
 

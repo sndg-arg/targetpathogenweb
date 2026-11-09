@@ -1004,13 +1004,16 @@ class RequestAccessTests(TestCase):
         self.assertIn("Request access button", mail.outbox[0].body)
         self.assertIn("Instituto Leloir", mail.outbox[0].body)
 
-    def test_locked_page_offers_the_request_button_and_a_small_fallback(self):
+    def test_locked_page_points_at_the_profile_and_keeps_a_small_fallback(self):
         self.client.force_login(self.user)
 
         response = self.client.get(reverse("tpwebapp:genome_upload"))
 
         self.assertEqual(response.status_code, 403)
-        self.assertContains(response, reverse("tpwebapp:request_access"), status_code=403)
+        # The form itself lives on the profile: a locked page says where to
+        # ask rather than asking on the spot.
+        self.assertContains(response, reverse("tpwebapp:profile"), status_code=403)
+        self.assertNotContains(response, reverse("tpwebapp:request_access"), status_code=403)
         self.assertContains(response, "access-locked-fallback", status_code=403)
 
     def test_post_requests_access_and_redirects_back(self):
