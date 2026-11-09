@@ -1,12 +1,14 @@
 {% load i18n %}
+{% load static %}
 {% comment %}"Request access" for an account that already exists. The institution is
 what the owner actually reviews before granting a role, so it is asked here too and
-not only on the signup form.{% endcomment %}
+not only on the signup form -- but only once the button is pressed (request-access.js),
+since a field sitting open next to the button reads as something left unfinished.{% endcomment %}
 <form method="post" action="{% url 'tpwebapp:request_access' %}" class="tp-request-access {{ form_class }}"
       data-tp-loader-copy="{% trans 'Sending your request…' %}">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
-    <div class="tp-ui-field">
+    <div class="tp-ui-field" data-request-access-field>
         <label class="tp-ui-field-label" for="request-access-institution">{% trans "Institution" %}</label>
         <input class="form-control" type="text" id="request-access-institution"
                name="institution" maxlength="255" required autocomplete="organization"
@@ -14,5 +16,7 @@ not only on the signup form.{% endcomment %}
                value="{{ request.user.collaborator_institution }}">
         <p class="tp-request-access-hint">{% trans "Required. It is what we review." %}</p>
     </div>
-    <button type="submit" class="btn tp-btn {{ button_class|default:'tp-btn--primary' }}">{% trans "Request access" %}</button>
+    <button type="submit" class="btn tp-btn {{ button_class|default:'tp-btn--primary' }}"
+            data-request-access-submit="{% trans 'Send request' %}">{% trans "Request access" %}</button>
 </form>
+<script src="{% static 'js/global/request-access.js' %}?v=20261109-reveal"></script>

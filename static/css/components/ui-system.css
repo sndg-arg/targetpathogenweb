@@ -492,6 +492,18 @@
     min-width: 0;
 }
 
+/* Closed until the button is pressed (js/global/request-access.js); there is
+   no site-wide .is-hidden rule, so the scope has to be its own. */
+.tp-request-access .tp-ui-field.is-hidden {
+    display: none;
+}
+
+/* The locked page is a centered column, and a lone button hanging off its
+   left edge would be the only thing in it that is not. */
+.access-locked-panel .tp-request-access {
+    justify-content: center;
+}
+
 .tp-request-access-hint {
     margin: 0;
     font-size: var(--tp-font-size-xs);
