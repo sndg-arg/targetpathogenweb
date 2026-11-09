@@ -108,8 +108,19 @@ class Command(BaseCommand):
                 total += 1
                 selected_pdbs.add(pdb_code)
                 combined_pdbs.add((protein_id, pdb_code))
+                score = scores.get(protein_id, {}).get(score_field, "-") or "-"
+                pocket = scores.get(protein_id, {}).get(pocket_field, "-") or "-"
                 loaded_ids = loaded.get((protein_id, pdb_code))
                 if not loaded_ids:
+                    # A no-pockets row needs no structure: the pocket import
+                    # skips it without loading one.
+                    if _is_expected_no_pockets(method, pocket):
+                        expected_no_pockets += 1
+                        if len(expected_examples) < examples_limit:
+                            expected_examples.append(
+                                (accession, pdb_code, f"expected no pockets pocket={pocket}")
+                            )
+                        continue
                     missing_structure += 1
                     combined_missing.add((protein_id, pdb_code, method, "structure"))
                     if len(examples) < examples_limit:
@@ -120,8 +131,6 @@ class Command(BaseCommand):
                 if loaded_ids & pockets_by_type[residue_set_name]:
                     pocket_count += 1
                 else:
-                    score = scores.get(protein_id, {}).get(score_field, "-") or "-"
-                    pocket = scores.get(protein_id, {}).get(pocket_field, "-") or "-"
                     if _is_expected_no_pockets(method, pocket):
                         expected_no_pockets += 1
                         if len(expected_examples) < examples_limit:
