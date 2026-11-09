@@ -24,8 +24,8 @@
         </div>
     </form>
 
-    {# Django's own validator wording, so a password rejected here reads
-       exactly as it would coming back from the server. #}
+    {% comment %}Django's own validator wording, so a password rejected here reads
+    exactly as it would coming back from the server.{% endcomment %}
     <script>
         window.TPW_SIGNUP_I18N = {
             tooShort: "{% trans 'This password is too short. It must contain at least 8 characters.' %}",
