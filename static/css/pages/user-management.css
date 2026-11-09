@@ -92,7 +92,8 @@
 }
 
 .user-mgmt-person-name,
-.user-mgmt-person-email {
+.user-mgmt-person-email,
+.user-mgmt-person-institution {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -105,6 +106,14 @@
 
 .user-mgmt-person-email {
     font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-muted);
+}
+
+/* What the requester typed when asking for a role -- identity, so it sits
+   under the name and email instead of in the request chip, which a long
+   institution name would stretch out of the Role column. */
+.user-mgmt-person-institution {
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
 }
 

@@ -1,0 +1,16 @@
+{% load i18n %}
+{% comment %}"Request access" for an account that already exists. The institution is
+what the owner actually reviews before granting a role, so it is asked here too and
+not only on the signup form.{% endcomment %}
+<form method="post" action="{% url 'tpwebapp:request_access' %}" class="tp-request-access {{ form_class }}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <div class="tp-ui-field">
+        <label class="tp-ui-field-label" for="request-access-institution">{% trans "Institution" %}</label>
+        <input class="form-control" type="text" id="request-access-institution"
+               name="institution" maxlength="255" required autocomplete="organization"
+               placeholder="{% trans 'Where you work or study' %}"
+               value="{{ request.user.collaborator_institution }}">
+    </div>
+    <button type="submit" class="btn tp-btn {{ button_class|default:'tp-btn--primary' }}">{% trans "Request access" %}</button>
+</form>

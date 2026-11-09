@@ -475,6 +475,23 @@
     gap: var(--tp-space-3);
 }
 
+/* "Request access" wherever it appears (locked page, profile, genome list):
+   one institution field and the button on the same line, the field taking
+   whatever width is left and dropping below the button when there is none. */
+.tp-request-access {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--tp-space-3);
+    width: 100%;
+    text-align: left;
+}
+
+.tp-request-access .tp-ui-field {
+    flex: 1 1 200px;
+    min-width: 0;
+}
+
 .access-locked-panel .access-locked-status {
     color: var(--tp-color-success-ink);
     font-weight: 600;

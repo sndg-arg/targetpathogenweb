@@ -23,12 +23,10 @@
                     <a class="btn tp-btn tp-btn--secondary" href="{% url 'tpwebapp:index' %}">{% trans "Back to home" %}</a>
                 </div>
             {% else %}
-                <form method="post" action="{% url 'tpwebapp:request_access' %}" class="access-locked-actions">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                    <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Request access" %}</button>
+                {% include "components/request_access_form.html" %}
+                <div class="access-locked-actions">
                     <a class="btn tp-btn tp-btn--secondary" href="{% url 'tpwebapp:index' %}">{% trans "Back to home" %}</a>
-                </form>
+                </div>
             {% endif %}
             {% if contact_email %}
                 <p class="access-locked-fallback">{% trans "Something not working? Write to" %} <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>

@@ -95,15 +95,22 @@ def activate_new_signup(user, wants_collaborator_access=False, institution=""):
     return user
 
 
-def request_collaborator_access(user):
+def request_collaborator_access(user, institution=""):
     """In-app "Request access" from a locked page or the profile, for an
     account that already exists: flags it for review on /users and emails
     the superusers once. Returns False if it was already requested (no
-    second email)."""
+    second email). The institution is asked for by the same form as at
+    signup; an empty one leaves whatever the account already had rather
+    than wiping it."""
     if user.wants_collaborator_access:
         return False
     user.wants_collaborator_access = True
-    user.save(update_fields=["wants_collaborator_access"])
+    update_fields = ["wants_collaborator_access"]
+    institution = (institution or "").strip()
+    if institution:
+        user.collaborator_institution = institution
+        update_fields.append("collaborator_institution")
+    user.save(update_fields=update_fields)
     transaction.on_commit(lambda: _notify_collaborator_access_requested(user, from_signup=False))
     return True
 

@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261109-institution">
-    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261029-access">
+    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261109-institution">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -69,12 +69,8 @@
                 {% if user.wants_collaborator_access %}
                 <p class="tp-state-note profile-access-note">{% trans "Access request pending review." %}</p>
                 {% else %}
-                <form method="post" action="{% url 'tpwebapp:request_access' %}" class="profile-request-access">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                    <span>{% trans "Need more access?" %}</span>
-                    <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn--sm">{% trans "Request access" %}</button>
-                </form>
+                <p class="profile-request-access-lead">{% trans "Need more access?" %}</p>
+                {% include "components/request_access_form.html" with button_class="tp-btn--secondary" %}
                 {% endif %}
                 {% endif %}
             </div>

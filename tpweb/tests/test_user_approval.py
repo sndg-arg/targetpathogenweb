@@ -984,14 +984,16 @@ class RequestAccessTests(TestCase):
 
     def test_request_flags_the_account_and_notifies_once(self):
         with self.captureOnCommitCallbacks(execute=True):
-            self.assertTrue(request_collaborator_access(self.user))
+            self.assertTrue(request_collaborator_access(self.user, institution="Instituto Leloir"))
         with self.captureOnCommitCallbacks(execute=True):
             self.assertFalse(request_collaborator_access(self.user))
 
         self.user.refresh_from_db()
         self.assertTrue(self.user.wants_collaborator_access)
+        self.assertEqual(self.user.collaborator_institution, "Instituto Leloir")
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("Request access button", mail.outbox[0].body)
+        self.assertIn("Instituto Leloir", mail.outbox[0].body)
 
     def test_locked_page_offers_the_request_button_and_a_small_fallback(self):
         self.client.force_login(self.user)
@@ -1007,17 +1009,36 @@ class RequestAccessTests(TestCase):
         upload_url = reverse("tpwebapp:genome_upload")
 
         with self.captureOnCommitCallbacks(execute=True):
-            response = self.client.post(reverse("tpwebapp:request_access"), {"next": upload_url})
+            response = self.client.post(
+                reverse("tpwebapp:request_access"),
+                {"next": upload_url, "institution": "FCEN, UBA"},
+            )
 
         self.assertRedirects(response, upload_url, fetch_redirect_response=False)
         self.user.refresh_from_db()
         self.assertTrue(self.user.wants_collaborator_access)
+        self.assertEqual(self.user.collaborator_institution, "FCEN, UBA")
+
+    def test_post_without_an_institution_files_nothing(self):
+        self.client.force_login(self.user)
+        upload_url = reverse("tpwebapp:genome_upload")
+
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(
+                reverse("tpwebapp:request_access"), {"next": upload_url, "institution": "   "}
+            )
+
+        self.assertRedirects(response, upload_url, fetch_redirect_response=False)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.wants_collaborator_access)
+        self.assertEqual(len(mail.outbox), 0)
 
     def test_post_ignores_an_external_next_url(self):
         self.client.force_login(self.user)
 
         response = self.client.post(
-            reverse("tpwebapp:request_access"), {"next": "https://evil.example.com/"}
+            reverse("tpwebapp:request_access"),
+            {"next": "https://evil.example.com/", "institution": "FCEN, UBA"},
         )
 
         self.assertRedirects(response, reverse("tpwebapp:profile"), fetch_redirect_response=False)

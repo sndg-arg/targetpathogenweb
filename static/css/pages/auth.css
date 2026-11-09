@@ -168,7 +168,7 @@
     margin-bottom: 0;
 }
 
-.auth-card .form-group label {
+.auth-card .form-group label:not(.custom-control-label) {
     font-size: var(--tp-font-size-xs);
     font-weight: 500;
     color: var(--tp-color-text-muted);
@@ -181,6 +181,52 @@
     height: auto;
     min-height: 80px;
     padding: var(--tp-space-3) var(--tp-space-4);
+}
+
+/* A checkbox label is a sentence the user agrees to, not the uppercase
+   rótulo above a field. */
+.auth-card .custom-control-label {
+    font-size: var(--tp-font-size-sm);
+    font-weight: 400;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.35;
+    cursor: pointer;
+}
+
+/* Bootstrap draws its own blue box here; the site has one accent. */
+.auth-card .custom-control-input:checked ~ .custom-control-label::before {
+    background: var(--tp-color-primary);
+    border-color: var(--tp-color-primary);
+}
+
+.auth-card .custom-control-input:focus ~ .custom-control-label::before {
+    border-color: var(--tp-focus-color);
+    box-shadow: var(--tp-focus-outline);
+}
+
+/* Bootstrap's own muted gray and error red, in tokens -- and dark-mode
+   aware, which its hardcoded values are not. */
+.auth-card .form-group .form-text {
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.5;
+    color: var(--tp-color-text-muted);
+    margin-top: var(--tp-space-1);
+}
+
+.auth-card .form-group .invalid-feedback {
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-danger-ink);
+    margin-top: var(--tp-space-1);
+}
+
+.auth-card .form-group .form-control.is-invalid {
+    border-color: var(--tp-color-danger-border);
+}
+
+/* Hidden until "Request a collaborator role" is ticked (js/pages/signup.js).
+   There is no site-wide .is-hidden rule, so the scope has to be its own. */
+.auth-card .form-group.is-hidden {
+    display: none;
 }
 
 /* ── Animation ── */
@@ -209,9 +255,3 @@
 }
 
 /* Dark: typed text as bright as the standard field's. */
-
-/* Hidden until "Request a collaborator role" is ticked (js/pages/signup.js).
-   There is no site-wide .is-hidden rule, so the scope has to be its own. */
-.auth-card .form-group.is-hidden {
-    display: none;
-}

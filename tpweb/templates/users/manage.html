@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20261021-dangling">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20261109-institution">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -97,6 +97,9 @@
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--person" role="cell">
                     <span class="user-mgmt-person-name" title="{{ approved_user.name|default:approved_user.get_username }}">{{ approved_user.name|default:approved_user.get_username }}</span>
                     <span class="user-mgmt-person-email" title="{{ approved_user.email }}">{{ approved_user.email|default:"—" }}</span>
+                    {% if approved_user.wants_collaborator_access and approved_user.collaborator_institution %}
+                        <span class="user-mgmt-person-institution" title="{{ approved_user.collaborator_institution }}">{{ approved_user.collaborator_institution }}</span>
+                    {% endif %}
                 </div>
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--meta" role="cell" data-label="{% trans 'Signed up' %}">
                     {{ approved_user.date_joined|date:"Y-m-d H:i" }}
@@ -113,7 +116,7 @@
                         <span class="tp-chip">{{ approved_user.get_role_display }}</span>
                     {% endif %}
                     {% if approved_user.wants_collaborator_access %}
-                        <span class="tp-chip tp-chip--warning">{% trans "Requested collaborator access" %}{% if approved_user.collaborator_institution %} · {{ approved_user.collaborator_institution }}{% endif %}</span>
+                        <span class="tp-chip tp-chip--warning">{% trans "Requested collaborator access" %}</span>
                     {% endif %}
                 </div>
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="cell">

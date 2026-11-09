@@ -115,12 +115,10 @@
     color: var(--tp-color-text-soft);
 }
 
-.profile-request-access {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--tp-space-2) var(--tp-space-4);
-    margin: var(--tp-space-5) 0 0;
+/* Layout comes from .tp-request-access (ui-system.css); the page only
+   places it under its lead line. */
+.profile-request-access-lead {
+    margin: var(--tp-space-5) 0 var(--tp-space-2);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
 }

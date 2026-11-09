@@ -46,10 +46,12 @@
     font-weight: 600;
 }
 
-/* Inline "Request access": reads as a link inside the sentence, but it's a
-   POST (it changes the account), so a real form button. */
+/* "Request access" now asks for an institution, so it is a field and a
+   button under the note instead of a button inside its sentence (a form
+   was never valid inside a <p> anyway). Layout: .tp-request-access. */
 .genomes-request-access {
-    display: inline;
+    margin-top: var(--tp-space-3);
+    max-width: min(100%, 480px);
 }
 
 .genomes-pipeline {
