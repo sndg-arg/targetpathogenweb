@@ -67,7 +67,7 @@ def _grant_default_permissions(user):
         user.user_permissions.add(*permissions)
 
 
-def activate_new_signup(user, wants_collaborator_access=False):
+def activate_new_signup(user, wants_collaborator_access=False, institution=""):
     """Self-serve signup activates immediately as a Basic account -- no
     admin approval wait. is_staff is deliberately left untouched (never
     granted automatically by any of this): it only controls Django-admin
@@ -84,6 +84,10 @@ def activate_new_signup(user, wants_collaborator_access=False):
     user.is_active = True
     user.role = User.Role.BASIC
     user.wants_collaborator_access = wants_collaborator_access
+    # Only kept for an actual request -- an institution typed and then
+    # unchecked is not a request, and storing it would show a stray
+    # institution next to a plain Basic account on /users.
+    user.collaborator_institution = (institution or "").strip() if wants_collaborator_access else ""
     user.save()
     _grant_default_permissions(user)
     if wants_collaborator_access:
@@ -155,18 +159,22 @@ def _notify_collaborator_access_requested(user, from_signup=True):
     if not recipients:
         return
     display_name = user.name or user.get_username()
+    # Free text the requester typed, so it goes in as-is and is never
+    # treated as anything but a line of the message.
+    institution = (user.collaborator_institution or "").strip()
     try:
         send_mail(
             subject=f"Target Pathogen: {display_name} requested collaborator access",
             message=(
                 (
                     f"{display_name} ({user.email}) signed up and is already using the site "
-                    'as a Basic account. They checked "Solicitar acceso de colaborador" -- '
+                    "as a Basic account. They asked for a collaborator role -- "
                     if from_signup
                     else f"{display_name} ({user.email}) asked for collaborator access from "
                     "the site (Request access button) -- "
                 )
                 + "review and assign a role from the Manage users screen if appropriate."
+                + (f"\n\nInstitution they gave: {institution}" if institution else "")
             ),
             html_message=render_to_string(
                 "email/collaborator_access_requested_email.html",
@@ -174,6 +182,7 @@ def _notify_collaborator_access_requested(user, from_signup=True):
                     "display_name": display_name,
                     "user_email": user.email,
                     "from_signup": from_signup,
+                    "institution": institution,
                 },
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,

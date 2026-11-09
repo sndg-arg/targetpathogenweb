@@ -14,10 +14,12 @@ class AccountAdapter(DefaultAccountAdapter):
 
     def save_user(self, request, user, form, commit=True):
         user = super().save_user(request, user, form, commit=False)
-        wants_collaborator_access = bool(
-            getattr(form, "cleaned_data", {}).get("wants_collaborator_access")
+        cleaned_data = getattr(form, "cleaned_data", {})
+        activate_new_signup(
+            user,
+            wants_collaborator_access=bool(cleaned_data.get("wants_collaborator_access")),
+            institution=cleaned_data.get("collaborator_institution") or "",
         )
-        activate_new_signup(user, wants_collaborator_access=wants_collaborator_access)
         return user
 
 
@@ -33,10 +35,10 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         # "solicitar acceso de colaborador" checkbox in that path, so it
         # always activates as a plain Basic account.
         user = super().save_user(request, sociallogin, form)
-        wants_collaborator_access = (
-            bool(getattr(form, "cleaned_data", {}).get("wants_collaborator_access"))
-            if form
-            else False
+        cleaned_data = getattr(form, "cleaned_data", {}) if form else {}
+        activate_new_signup(
+            user,
+            wants_collaborator_access=bool(cleaned_data.get("wants_collaborator_access")),
+            institution=cleaned_data.get("collaborator_institution") or "",
         )
-        activate_new_signup(user, wants_collaborator_access=wants_collaborator_access)
         return user

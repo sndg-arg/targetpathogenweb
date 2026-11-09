@@ -25,6 +25,7 @@ class UserAdmin(auth_admin.UserAdmin):
                     "is_superuser",
                     "role",
                     "wants_collaborator_access",
+                    "collaborator_institution",
                     "groups",
                     "user_permissions",
                 ),

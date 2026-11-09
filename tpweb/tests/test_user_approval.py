@@ -309,6 +309,7 @@ class SignupAdapterTests(TestCase):
                     "last_name": "Access",
                     "email": "wants-access@example.com",
                     "wants_collaborator_access": "on",
+                    "collaborator_institution": "FCEN, UBA",
                     "password1": "S0me-Strong-Pass!23",
                     "password2": "S0me-Strong-Pass!23",
                 },
@@ -317,7 +318,49 @@ class SignupAdapterTests(TestCase):
         user = User.objects.get(email="wants-access@example.com")
         self.assertTrue(user.is_active)
         self.assertTrue(user.wants_collaborator_access)
+        self.assertEqual(user.collaborator_institution, "FCEN, UBA")
         self.assertEqual(len(mail.outbox), 1)
+        # The whole point of asking: the owner reads where they come from
+        # in the notification instead of having to go look it up.
+        self.assertIn("FCEN, UBA", mail.outbox[0].body)
+        self.assertIn("FCEN, UBA", mail.outbox[0].alternatives[0][0])
+
+    @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
+    def test_signup_asking_for_a_role_without_an_institution_is_rejected(self):
+        response = self.client.post(
+            reverse("account_signup"),
+            {
+                "first_name": "No",
+                "last_name": "Institution",
+                "email": "no-institution@example.com",
+                "wants_collaborator_access": "on",
+                "password1": "S0me-Strong-Pass!23",
+                "password2": "S0me-Strong-Pass!23",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(User.objects.filter(email="no-institution@example.com").exists())
+        self.assertIn("collaborator_institution", response.context["form"].errors)
+
+    @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
+    def test_an_institution_typed_without_asking_for_a_role_is_not_kept(self):
+        with self.captureOnCommitCallbacks(execute=True):
+            self.client.post(
+                reverse("account_signup"),
+                {
+                    "first_name": "Just",
+                    "last_name": "Basic",
+                    "email": "just-basic@example.com",
+                    "collaborator_institution": "Typed then unchecked",
+                    "password1": "S0me-Strong-Pass!23",
+                    "password2": "S0me-Strong-Pass!23",
+                },
+            )
+
+        user = User.objects.get(email="just-basic@example.com")
+        self.assertFalse(user.wants_collaborator_access)
+        self.assertEqual(user.collaborator_institution, "")
 
     @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
     def test_signup_capitalizes_the_name_regardless_of_input_casing(self):

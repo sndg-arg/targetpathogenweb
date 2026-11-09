@@ -91,6 +91,13 @@ class TPUser(AbstractUser):
     # signups. Cleared automatically once the owner moves role off BASIC
     # (see UserManagementView.post's update_permissions branch).
     wants_collaborator_access = BooleanField(_("Requested collaborator access"), default=False)
+    # Free text the requester typed when asking for a role ("Institution"
+    # on the signup form) -- quoted in the heads-up email to the superusers
+    # and shown next to the request chip on /users, so the owner can tell a
+    # project partner from a stranger before granting anything. Blank for
+    # accounts that never asked, and for the social-signup path that shows
+    # no form.
+    collaborator_institution = CharField(_("Institution"), blank=True, max_length=255)
 
     class Meta:
         verbose_name = _("user")

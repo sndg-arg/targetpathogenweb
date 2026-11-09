@@ -50,13 +50,19 @@ class UserSignupForm(SignupForm):
     first_name = forms.CharField(label=_("First name"), max_length=150)
     last_name = forms.CharField(label=_("Last name"), max_length=150)
     wants_collaborator_access = forms.BooleanField(
-        label=_("Solicitar acceso de colaborador"),
+        label=_("Request a collaborator role"),
         required=False,
         help_text=_(
-            "Tu cuenta ya queda activa. Marcá esto solo si trabajás en el desarrollo del "
-            "proyecto (subir genomas, editar fórmulas, etc.), te vamos a contactar para "
-            "asignarte el rol."
+            "Your account is active either way. Check this only if you work on the project "
+            "itself (uploading genomes, editing formulas, Gates data) and we will contact "
+            "you to assign the role."
         ),
+    )
+    collaborator_institution = forms.CharField(
+        label=_("Institution"),
+        max_length=255,
+        required=False,
+        help_text=_("Where you work or study. We include it in the request we review."),
     )
 
     def __init__(self, *args, **kwargs):
@@ -67,10 +73,26 @@ class UserSignupForm(SignupForm):
                 "last_name",
                 "email",
                 "wants_collaborator_access",
+                "collaborator_institution",
                 "password1",
                 "password2",
             ]
         )
+
+    def clean(self):
+        # The field is hidden until the checkbox is ticked (signup.html),
+        # so it can only be required conditionally -- declaring it
+        # required=True would reject every plain Basic signup.
+        cleaned_data = super().clean()
+        if (
+            cleaned_data.get("wants_collaborator_access")
+            and not (cleaned_data.get("collaborator_institution") or "").strip()
+        ):
+            self.add_error(
+                "collaborator_institution",
+                _("Tell us which institution you belong to."),
+            )
+        return cleaned_data
 
     def custom_signup(self, request, user):
         # wants_collaborator_access is read straight from this form's

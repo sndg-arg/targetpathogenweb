@@ -113,7 +113,7 @@
                         <span class="tp-chip">{{ approved_user.get_role_display }}</span>
                     {% endif %}
                     {% if approved_user.wants_collaborator_access %}
-                        <span class="tp-chip tp-chip--warning">{% trans "Requested collaborator access" %}</span>
+                        <span class="tp-chip tp-chip--warning">{% trans "Requested collaborator access" %}{% if approved_user.collaborator_institution %} · {{ approved_user.collaborator_institution }}{% endif %}</span>
                     {% endif %}
                 </div>
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="cell">

@@ -11,6 +11,11 @@
 <p style="margin:0 0 16px;">
     {% if from_signup %}{% blocktrans %}<strong>{{ display_name }}</strong> ({{ user_email }}) signed up and is already using the site as a Basic account.{% endblocktrans %}{% else %}{% blocktrans %}<strong>{{ display_name }}</strong> ({{ user_email }}) asked for collaborator access from the site.{% endblocktrans %}{% endif %}
 </p>
+{% if institution %}
+<p style="margin:0 0 16px;">
+    {% trans "Institution they gave" %}: <strong>{{ institution }}</strong>
+</p>
+{% endif %}
 <p style="margin:0;">
     {% trans "Review and assign a role from the Manage users screen if appropriate." %}
 </p>
