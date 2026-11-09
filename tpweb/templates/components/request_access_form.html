@@ -11,6 +11,7 @@ not only on the signup form.{% endcomment %}
                name="institution" maxlength="255" required autocomplete="organization"
                placeholder="{% trans 'Where you work or study' %}"
                value="{{ request.user.collaborator_institution }}">
+        <p class="tp-request-access-hint">{% trans "Required. It is what we review." %}</p>
     </div>
     <button type="submit" class="btn tp-btn {{ button_class|default:'tp-btn--primary' }}">{% trans "Request access" %}</button>
 </form>

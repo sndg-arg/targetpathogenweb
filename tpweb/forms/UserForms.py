@@ -61,8 +61,14 @@ class UserSignupForm(SignupForm):
     collaborator_institution = forms.CharField(
         label=_("Institution"),
         max_length=255,
+        # required=False is about Django: the field is only mandatory when
+        # the checkbox above it is ticked (see clean), and a field declared
+        # required would reject every plain Basic signup. For the person
+        # filling the form it is required, so it says so, and signup.js
+        # puts the real "required" attribute on the input whenever the
+        # field is visible.
         required=False,
-        help_text=_("Where you work or study. We include it in the request we review."),
+        help_text=_("Required. Where you work or study -- it is what we review."),
     )
 
     def __init__(self, *args, **kwargs):

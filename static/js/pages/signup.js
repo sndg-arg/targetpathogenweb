@@ -18,6 +18,10 @@
 
     function sync() {
         group.classList.toggle("is-hidden", !checkbox.checked);
+        // Required only while it is on screen: the browser refuses to
+        // submit a form holding a required field it cannot focus, which is
+        // exactly what a hidden one is.
+        input.required = checkbox.checked;
     }
 
     checkbox.addEventListener("change", sync);

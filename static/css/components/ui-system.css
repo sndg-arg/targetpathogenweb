@@ -492,6 +492,13 @@
     min-width: 0;
 }
 
+.tp-request-access-hint {
+    margin: 0;
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.5;
+    color: var(--tp-color-text-muted);
+}
+
 .access-locked-panel .access-locked-status {
     color: var(--tp-color-success-ink);
     font-weight: 600;
