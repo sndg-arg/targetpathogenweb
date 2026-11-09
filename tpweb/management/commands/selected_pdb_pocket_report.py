@@ -10,6 +10,7 @@ from tpweb.management.commands._shared import is_pdb_code as _is_pdb_code
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.pdb import PDBResidueSet
+from tpweb.services.structure_files import CHAIN_SUFFIX_RE
 
 
 SELECTED_FIELDS = (
@@ -62,14 +63,16 @@ class Command(BaseCommand):
             )
             scores[spv.bioentry_id][spv.score_param.name] = _clean(value)
 
-        loaded = {}
+        # Selected code -> loaded structures: the bare PDB and any chain-isolated
+        # copy (6BQY_chain_A), which is where Gates pocket outputs get loaded.
+        loaded = defaultdict(set)
         pdb_ids = set()
         for link in BioentryStructure.objects.filter(
             bioentry_id__in=protein_ids,
             pdb__experiment="EX",
         ).select_related("pdb"):
-            code = _clean(link.pdb.code).upper()
-            loaded[(link.bioentry_id, code)] = link.pdb_id
+            code = CHAIN_SUFFIX_RE.sub("", _clean(link.pdb.code)).upper()
+            loaded[(link.bioentry_id, code)].add(link.pdb_id)
             pdb_ids.add(link.pdb_id)
 
         pockets_by_type = defaultdict(set)
@@ -105,8 +108,8 @@ class Command(BaseCommand):
                 total += 1
                 selected_pdbs.add(pdb_code)
                 combined_pdbs.add((protein_id, pdb_code))
-                pdb_db_id = loaded.get((protein_id, pdb_code))
-                if pdb_db_id is None:
+                loaded_ids = loaded.get((protein_id, pdb_code))
+                if not loaded_ids:
                     missing_structure += 1
                     combined_missing.add((protein_id, pdb_code, method, "structure"))
                     if len(examples) < examples_limit:
@@ -114,7 +117,7 @@ class Command(BaseCommand):
                     continue
 
                 loaded_count += 1
-                if pdb_db_id in pockets_by_type[residue_set_name]:
+                if loaded_ids & pockets_by_type[residue_set_name]:
                     pocket_count += 1
                 else:
                     score = scores.get(protein_id, {}).get(score_field, "-") or "-"
