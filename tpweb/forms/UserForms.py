@@ -3,6 +3,7 @@ from allauth.socialaccount.forms import SignupForm as SocialSignupForm
 from django import forms
 from django.contrib.auth import forms as admin_forms
 from django.contrib.auth import get_user_model
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
@@ -68,7 +69,7 @@ class UserSignupForm(SignupForm):
         # puts the real "required" attribute on the input whenever the
         # field is visible.
         required=False,
-        help_text=_("Required. Where you work or study -- it is what we review."),
+        help_text=_("Required. Where you work or study, which is what we review."),
     )
 
     def __init__(self, *args, **kwargs):
@@ -84,6 +85,12 @@ class UserSignupForm(SignupForm):
                 "password2",
             ]
         )
+        # crispy marks every required field with an asterisk, and it asks
+        # Django, which calls this one optional (it is required only with
+        # the checkbox ticked). Without this the one field a person must
+        # fill would be the only one on the form looking optional.
+        institution = self.fields["collaborator_institution"]
+        institution.label = format_html('{}<span class="asteriskField">*</span>', institution.label)
 
     def clean(self):
         # The field is hidden until the checkbox is ticked (signup.html),

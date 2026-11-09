@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261109-institution">
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20261109-clientside">
     <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20261109-institution">
 {% endblock %}
 
@@ -105,7 +105,8 @@
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
                 </button>
             </div>
-            <form class="auth-form profile-edit-form" id="profile-edit-form" method="post" action="{% url 'tpwebapp:profile' %}">
+            <form class="auth-form profile-edit-form" id="profile-edit-form" method="post" action="{% url 'tpwebapp:profile' %}"
+                  data-tp-loader-copy="{% trans 'Saving your profile…' %}">
                 {% csrf_token %}
                 <div class="tp-modal-body profile-edit-body">
                     {% if form.non_field_errors %}

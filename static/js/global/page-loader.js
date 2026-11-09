@@ -82,6 +82,15 @@
         copyEl.textContent = LOADER_OPENING_PREFIX + " " + trimmed + "…";
     }
 
+    // A form that says what it is doing (data-tp-loader-copy) gets that
+    // sentence verbatim: "Opening Create account…" describes the control
+    // that was clicked, not what the wait is for.
+    function setLoaderCopyVerbatim(copy) {
+        const copyEl = loaderCopyEl();
+        if (!copyEl) return;
+        copyEl.textContent = copy;
+    }
+
     function stopLoaderSequence() {
         window.clearInterval(sequenceTimer);
         sequenceTimer = null;
@@ -147,6 +156,9 @@
         const opts = options || {};
         if (opts.sequence) {
             startLoaderSequence(opts.sequence);
+        } else if (opts.copy) {
+            stopLoaderSequence();
+            setLoaderCopyVerbatim(opts.copy);
         } else {
             stopLoaderSequence();
             setLoaderCopy(opts.label || null);
@@ -238,7 +250,9 @@
                 if (shouldSkipFormUrl(formUrl(form))) return;
                 const submitter = event.submitter || form.querySelector("button[type='submit'], input[type='submit'], .tp-btn");
                 markAction(submitter);
-                show({ label: deriveLoaderLabel(submitter) });
+                const copy = (submitter && submitter.getAttribute("data-tp-loader-copy"))
+                    || form.getAttribute("data-tp-loader-copy");
+                show(copy ? { copy: copy } : { label: deriveLoaderLabel(submitter) });
             }, 0);
         });
 

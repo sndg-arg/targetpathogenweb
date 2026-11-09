@@ -292,6 +292,15 @@ class SignupAdapterTests(TestCase):
         self.assertEqual(len(mail.outbox), 0)
 
     @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
+    def test_the_institution_field_carries_the_required_mark(self):
+        # Django calls the field optional (it only applies with the
+        # checkbox ticked), so crispy would leave the one field a person
+        # must fill looking optional next to every other one.
+        response = self.client.get(reverse("account_signup"))
+
+        self.assertContains(response, 'Institution<span class="asteriskField">*</span>')
+
+    @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
     def test_signup_with_collaborator_checkbox_notifies_superusers(self):
         User.objects.create_user(
             username="notify-owner",

@@ -213,6 +213,12 @@
     margin-top: var(--tp-space-1);
 }
 
+/* Bootstrap only reveals .invalid-feedback next to a field it marked
+   itself; the ones signup.js writes are shown unconditionally. */
+.auth-card .form-group .invalid-feedback.tp-client-error {
+    display: block;
+}
+
 .auth-card .form-group .invalid-feedback {
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-danger-ink);

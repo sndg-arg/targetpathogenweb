@@ -2,7 +2,8 @@
 {% comment %}"Request access" for an account that already exists. The institution is
 what the owner actually reviews before granting a role, so it is asked here too and
 not only on the signup form.{% endcomment %}
-<form method="post" action="{% url 'tpwebapp:request_access' %}" class="tp-request-access {{ form_class }}">
+<form method="post" action="{% url 'tpwebapp:request_access' %}" class="tp-request-access {{ form_class }}"
+      data-tp-loader-copy="{% trans 'Sending your request…' %}">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
     <div class="tp-ui-field">
