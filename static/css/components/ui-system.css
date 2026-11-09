@@ -489,6 +489,8 @@
 
 .tp-request-access .tp-ui-field {
     flex: 1 1 200px;
+    /* One short answer, not a page-wide text box. */
+    max-width: 360px;
     min-width: 0;
 }
 
@@ -502,13 +504,6 @@
    left edge would be the only thing in it that is not. */
 .access-locked-panel .tp-request-access {
     justify-content: center;
-}
-
-.tp-request-access-hint {
-    margin: 0;
-    font-size: var(--tp-font-size-xs);
-    line-height: 1.5;
-    color: var(--tp-color-text-muted);
 }
 
 .access-locked-panel .access-locked-status {
