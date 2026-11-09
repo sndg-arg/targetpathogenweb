@@ -112,9 +112,9 @@ class Command(BaseCommand):
                 pocket = scores.get(protein_id, {}).get(pocket_field, "-") or "-"
                 loaded_ids = loaded.get((protein_id, pdb_code))
                 if not loaded_ids:
-                    # A no-pockets row needs no structure: the pocket import
-                    # skips it without loading one.
-                    if _is_expected_no_pockets(method, pocket):
+                    # A no-pockets row (either method) needs no structure: the
+                    # pocket import skips it without loading one.
+                    if _clean(pocket).lower() == "no_pockets":
                         expected_no_pockets += 1
                         if len(expected_examples) < examples_limit:
                             expected_examples.append(
