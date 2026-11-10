@@ -547,6 +547,11 @@ def pdb_structure(
             graphic_features.append(gf)
 
     context["pockets"].sort(key=lambda p: p.druggability or 0, reverse=True)
+    # FPocket's own numbers (p.name) skip whatever the 0.2 cutoff/limit dropped,
+    # so the cards read 1, 2, 3... in display order, like P2Rank's ranks.
+    # p.name stays the identifier (NGL reprs, ?pocket= links, data-pocket-id).
+    for index, p in enumerate(context["pockets"], start=1):
+        p.display_name = str(index)
 
     for p2 in context["p2_pockets"]:
         p2.p2score = [x.value for x in p2.properties.all() if x.property == p2s][0]
@@ -643,7 +648,9 @@ def pdb_structure(
     # annotated functional site) -- computed here, after every pocket/site geometric
     # center is known, and appended to the same inspector_properties summary string
     # the sidebar already renders per pocket.
-    fpocket_centers = [(f"FPocket {p.name}", p.geometric_center) for p in context["pockets"]]
+    fpocket_centers = [
+        (f"FPocket {p.display_name}", p.geometric_center) for p in context["pockets"]
+    ]
     p2_centers = [(f"P2Rank {p2.name}", p2.geometric_center) for p2 in context["p2_pockets"]]
     site_centers = [
         (rs_dict["display_label"], rs_dict["center"])
@@ -710,7 +717,7 @@ def pdb_structure(
                 (
                     candidate
                     for candidate in context["pockets"]
-                    if f"FPocket {candidate.name}" == consensus[0]
+                    if f"FPocket {candidate.display_name}" == consensus[0]
                 ),
                 None,
             )

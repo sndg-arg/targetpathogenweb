@@ -1192,8 +1192,10 @@
                     var cards = Array.prototype.slice.call(document.querySelectorAll(
                         '.js-structure-annotations[data-structure-key="' + slot + '"] .pocket-card--fpocket'
                     ));
+                    // Cards are titled by display order; match FPocket's own number instead.
+                    var pocketId = "FPocket #" + (pocketTitle || "").replace(/^pocket\s*/i, "");
                     var card = cards.find(function (c) {
-                        return c.getAttribute("data-pocket-title") === pocketTitle;
+                        return c.getAttribute("data-pocket-id") === pocketId;
                     }) || cards[0];
                     var head = card && card.querySelector(".js-inspect-pocket");
                     if (head) head.click();
