@@ -3,6 +3,7 @@ from allauth.socialaccount.forms import SignupForm as SocialSignupForm
 from django import forms
 from django.contrib.auth import forms as admin_forms
 from django.contrib.auth import get_user_model
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
@@ -41,21 +42,14 @@ class UserSignupForm(SignupForm):
     No username field is shown -- ACCOUNT_USERNAME_REQUIRED=False (settings.py)
     tells allauth's SignupForm to omit it and auto-generate one from the
     email instead (DefaultAccountAdapter.populate_username(), unchanged).
-    first_name/last_name are joined into TPUser.name (the model's only name
-    field -- AbstractUser's first_name/last_name are removed, see
-    tpweb/models/__init__.py) via custom_signup() (allauth's own hook for
-    extra signup fields). The institution is asked of everyone and stored in
-    collaborator_institution by AccountAdapter.save_user.
+    first_name/last_name are the only addition, joined into TPUser.name
+    (the model's only name field -- AbstractUser's first_name/last_name are
+    removed, see tpweb/models/__init__.py) via custom_signup() (allauth's
+    own hook for extra signup fields).
     """
 
     first_name = forms.CharField(label=_("First name"), max_length=150)
     last_name = forms.CharField(label=_("Last name"), max_length=150)
-    collaborator_institution = forms.CharField(
-        label=_("Institution or affiliation"),
-        max_length=255,
-        help_text=_("Where you work or study, e.g. UBA, LNCC, University of Manitoba."),
-        widget=forms.TextInput(attrs={"autocomplete": "organization"}),
-    )
     wants_collaborator_access = forms.BooleanField(
         label=_("Request a collaborator role"),
         required=False,
@@ -65,6 +59,18 @@ class UserSignupForm(SignupForm):
             "you to assign the role."
         ),
     )
+    collaborator_institution = forms.CharField(
+        label=_("Institution"),
+        max_length=255,
+        # required=False is about Django: the field is only mandatory when
+        # the checkbox above it is ticked (see clean), and a field declared
+        # required would reject every plain Basic signup. For the person
+        # filling the form it is required, so it says so, and signup.js
+        # puts the real "required" attribute on the input whenever the
+        # field is visible.
+        required=False,
+        help_text=_("Required. Where you work or study, which is what we review."),
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -72,13 +78,34 @@ class UserSignupForm(SignupForm):
             [
                 "first_name",
                 "last_name",
-                "collaborator_institution",
                 "email",
                 "wants_collaborator_access",
+                "collaborator_institution",
                 "password1",
                 "password2",
             ]
         )
+        # crispy marks every required field with an asterisk, and it asks
+        # Django, which calls this one optional (it is required only with
+        # the checkbox ticked). Without this the one field a person must
+        # fill would be the only one on the form looking optional.
+        institution = self.fields["collaborator_institution"]
+        institution.label = format_html('{}<span class="asteriskField">*</span>', institution.label)
+
+    def clean(self):
+        # The field is hidden until the checkbox is ticked (signup.html),
+        # so it can only be required conditionally -- declaring it
+        # required=True would reject every plain Basic signup.
+        cleaned_data = super().clean()
+        if (
+            cleaned_data.get("wants_collaborator_access")
+            and not (cleaned_data.get("collaborator_institution") or "").strip()
+        ):
+            self.add_error(
+                "collaborator_institution",
+                _("Tell us which institution you belong to."),
+            )
+        return cleaned_data
 
     def custom_signup(self, request, user):
         # wants_collaborator_access is read straight from this form's
