@@ -1,5 +1,4 @@
-// Signup form: the conditional Institution field, and the password rules
-// checked here instead of only on the server.
+// Signup form: the password rules checked here instead of only on the server.
 //
 // Django validates every one of these again (that is what actually guards the
 // account); this exists so the three usual mistakes -- too short, entirely
@@ -15,8 +14,6 @@
         return;
     }
 
-    var checkbox = document.getElementById("id_wants_collaborator_access");
-    var institution = document.getElementById("id_collaborator_institution");
     var password = document.getElementById("id_password1");
     var confirmation = document.getElementById("id_password2");
     var email = document.getElementById("id_email");
@@ -41,21 +38,6 @@
         "zaq12wsx", "asdfghjkl", "1q2w3e4r", "1qaz2wsx", "passw0rd", "p@ssword",
         "secret", "test123", "changeme", "charlie", "donald", "hello123"
     ];
-
-    function toggleInstitution() {
-        if (!checkbox || !institution) {
-            return;
-        }
-        // crispy-forms (bootstrap4) wraps every field in a .form-group; fall
-        // back to the input's own parent if that ever changes, so the label
-        // and help text never end up visible on their own.
-        var group = institution.closest(".form-group") || institution.parentNode;
-        group.classList.toggle("is-hidden", !checkbox.checked);
-        // Required only while it is on screen: the browser refuses to submit
-        // a form holding a required field it cannot focus, which is exactly
-        // what a hidden one is.
-        institution.required = checkbox.checked;
-    }
 
     function clearErrors() {
         Array.prototype.forEach.call(
@@ -151,11 +133,6 @@
             return false;
         }
         return true;
-    }
-
-    if (checkbox && institution) {
-        checkbox.addEventListener("change", toggleInstitution);
-        toggleInstitution();
     }
 
     form.addEventListener("submit", function (event) {

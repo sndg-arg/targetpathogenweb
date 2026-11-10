@@ -84,10 +84,8 @@ def activate_new_signup(user, wants_collaborator_access=False, institution=""):
     user.is_active = True
     user.role = User.Role.BASIC
     user.wants_collaborator_access = wants_collaborator_access
-    # Only kept for an actual request -- an institution typed and then
-    # unchecked is not a request, and storing it would show a stray
-    # institution next to a plain Basic account on /users.
-    user.collaborator_institution = (institution or "").strip() if wants_collaborator_access else ""
+    # Signup asks everyone for it, not only collaborator requests.
+    user.collaborator_institution = (institution or "").strip()
     user.save()
     _grant_default_permissions(user)
     if wants_collaborator_access:

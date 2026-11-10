@@ -277,6 +277,7 @@ class SignupAdapterTests(TestCase):
                 {
                     "first_name": "Fresh",
                     "last_name": "Signup",
+                    "collaborator_institution": "LNCC",
                     "email": "fresh@example.com",
                     "password1": "S0me-Strong-Pass!23",
                     "password2": "S0me-Strong-Pass!23",
@@ -289,16 +290,9 @@ class SignupAdapterTests(TestCase):
         self.assertFalse(user.wants_collaborator_access)
         self.assertFalse(user.is_staff)
         self.assertEqual(user.name, "Fresh Signup")
+        # Asked of everyone now, not only collaborator requests.
+        self.assertEqual(user.collaborator_institution, "LNCC")
         self.assertEqual(len(mail.outbox), 0)
-
-    @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
-    def test_the_institution_field_carries_the_required_mark(self):
-        # Django calls the field optional (it only applies with the
-        # checkbox ticked), so crispy would leave the one field a person
-        # must fill looking optional next to every other one.
-        response = self.client.get(reverse("account_signup"))
-
-        self.assertContains(response, 'Institution<span class="asteriskField">*</span>')
 
     @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
     def test_signup_with_collaborator_checkbox_notifies_superusers(self):
@@ -335,14 +329,13 @@ class SignupAdapterTests(TestCase):
         self.assertIn("FCEN, UBA", mail.outbox[0].alternatives[0][0])
 
     @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
-    def test_signup_asking_for_a_role_without_an_institution_is_rejected(self):
+    def test_signup_without_an_institution_is_rejected(self):
         response = self.client.post(
             reverse("account_signup"),
             {
                 "first_name": "No",
                 "last_name": "Institution",
                 "email": "no-institution@example.com",
-                "wants_collaborator_access": "on",
                 "password1": "S0me-Strong-Pass!23",
                 "password2": "S0me-Strong-Pass!23",
             },
@@ -353,25 +346,6 @@ class SignupAdapterTests(TestCase):
         self.assertIn("collaborator_institution", response.context["form"].errors)
 
     @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
-    def test_an_institution_typed_without_asking_for_a_role_is_not_kept(self):
-        with self.captureOnCommitCallbacks(execute=True):
-            self.client.post(
-                reverse("account_signup"),
-                {
-                    "first_name": "Just",
-                    "last_name": "Basic",
-                    "email": "just-basic@example.com",
-                    "collaborator_institution": "Typed then unchecked",
-                    "password1": "S0me-Strong-Pass!23",
-                    "password2": "S0me-Strong-Pass!23",
-                },
-            )
-
-        user = User.objects.get(email="just-basic@example.com")
-        self.assertFalse(user.wants_collaborator_access)
-        self.assertEqual(user.collaborator_institution, "")
-
-    @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
     def test_signup_capitalizes_the_name_regardless_of_input_casing(self):
         with self.captureOnCommitCallbacks(execute=True):
             self.client.post(
@@ -379,6 +353,7 @@ class SignupAdapterTests(TestCase):
                 {
                     "first_name": "ana",
                     "last_name": "GUTSON",
+                    "collaborator_institution": "FCEN, UBA",
                     "email": "casing@example.com",
                     "password1": "S0me-Strong-Pass!23",
                     "password2": "S0me-Strong-Pass!23",

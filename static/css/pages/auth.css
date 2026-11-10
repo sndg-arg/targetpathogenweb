@@ -229,12 +229,6 @@
     border-color: var(--tp-color-danger-border);
 }
 
-/* Hidden until "Request a collaborator role" is ticked (js/pages/signup.js).
-   There is no site-wide .is-hidden rule, so the scope has to be its own. */
-.auth-card .form-group.is-hidden {
-    display: none;
-}
-
 /* ── Animation ── */
 
 .auth-card {
