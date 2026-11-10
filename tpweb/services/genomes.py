@@ -154,13 +154,13 @@ def _curated_genome_names(genome_names):
 
 
 def _importing_genome_names(genome_names):
-    """Genomes with a curated import running right now (web or shell)."""
+    """Genomes with a curated import running right now (web or shell), by current step."""
     if not genome_names:
-        return set()
-    return set(
+        return {}
+    return dict(
         CuratedImportJob.objects.filter(
             genome_name__in=genome_names, status=CuratedImportJob.STATUS_RUNNING
-        ).values_list("genome_name", flat=True)
+        ).values_list("genome_name", "phase")
     )
 
 
@@ -220,7 +220,7 @@ def build_genome_dto(
     ec_counts_by_genome = ec_counts_by_genome or {}
     curated_genome_names = curated_genome_names or set()
     restricted_genome_names = restricted_genome_names or set()
-    importing_genome_names = importing_genome_names or set()
+    importing_genome_names = importing_genome_names or {}
 
     workspace_scope = describe_genome_scope(user, genome.name)
     genome_dto = {
@@ -233,6 +233,7 @@ def build_genome_dto(
         "has_curated_data": genome.name in curated_genome_names,
         "is_restricted": genome.name in restricted_genome_names,
         "curated_import_running": genome.name in importing_genome_names,
+        "curated_import_phase": importing_genome_names.get(genome.name, ""),
     }
     qualifiers = genome.qualifiers_dict()
     protein_count = safe_int(

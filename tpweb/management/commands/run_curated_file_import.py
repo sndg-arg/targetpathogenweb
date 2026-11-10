@@ -30,6 +30,16 @@ KNOWN_ARCHIVE_DIRS = (
 
 GBK_SUFFIXES = (".gbk", ".gbk.gz", ".gbff", ".gbff.gz")
 
+# What the UI shows as the job's current step, per command run.
+STEP_LABELS = {
+    "import_external_results": "Curated scores and structures",
+    "sync_genome_metadata": "Genome metadata",
+    "backfill_curated_uniprot_annotations": "UniProt annotations",
+    "fetch_experimental_structures": "Experimental structures",
+    "import_gates_pocket_outputs": "Pockets",
+    "load_ligq_2_results": "LigQ_2 binders",
+}
+
 
 @dataclass
 class ArchiveLayout:
@@ -127,6 +137,11 @@ class Command(BaseCommand):
             help="Do not run fetch_experimental_structures --all-xrefs during --execute.",
         )
         parser.add_argument(
+            "--skip-pockets",
+            action="store_true",
+            help="Do not run import_gates_pocket_outputs during --execute.",
+        )
+        parser.add_argument(
             "--skip-ligq",
             action="store_true",
             help="Do not run load_ligq_2_results during --execute even if LigQ output is detected.",
@@ -142,7 +157,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        job = self._start_job(options)
+        job = self._job = self._start_job(options)
         if job is None:
             self._run(options)
             return
@@ -331,6 +346,17 @@ class Command(BaseCommand):
         )
         self._line(
             report_lines,
+            "  import_gates_pocket_outputs --scope selected: "
+            + (
+                "skipped"
+                if options["skip_pockets"] or not structures_dir
+                else "will run"
+                if options["execute"]
+                else "would run"
+            ),
+        )
+        self._line(
+            report_lines,
             "  load_ligq_2_results: "
             + (
                 "skipped"
@@ -352,6 +378,7 @@ class Command(BaseCommand):
                 overwrite_scores=options["overwrite_scores"],
                 skip_uniprot_backfill=options["skip_uniprot_backfill"],
                 skip_experimental_fetch=options["skip_experimental_fetch"],
+                skip_pockets=options["skip_pockets"],
                 skip_ligq=options["skip_ligq"],
                 report_lines=report_lines,
             )
@@ -504,40 +531,68 @@ class Command(BaseCommand):
         overwrite_scores,
         skip_uniprot_backfill,
         skip_experimental_fetch,
+        skip_pockets=False,
         skip_ligq,
         report_lines,
     ):
-        self._line(report_lines, "")
-        self._line(report_lines, "Execution log")
-        self._call(
-            report_lines,
-            "import_external_results",
-            genome,
-            results_tsv=results_tsv,
-            structures_dir=structures_dir,
-            datadir=datadir,
-            overwrite=overwrite_scores,
-        )
+        steps = [
+            (
+                "import_external_results",
+                (genome,),
+                {
+                    "results_tsv": results_tsv,
+                    "structures_dir": structures_dir,
+                    "datadir": datadir,
+                    "overwrite": overwrite_scores,
+                },
+            )
+        ]
         if gbk_path:
-            self._call(report_lines, "sync_genome_metadata", genome, gbk_path)
+            steps.append(("sync_genome_metadata", (genome, gbk_path), {}))
         if not skip_uniprot_backfill:
-            self._call(
-                report_lines,
-                "backfill_curated_uniprot_annotations",
-                genome,
-                results_tsv=results_tsv,
-                datadir=datadir,
+            steps.append(
+                (
+                    "backfill_curated_uniprot_annotations",
+                    (genome,),
+                    {"results_tsv": results_tsv, "datadir": datadir},
+                )
             )
         if not skip_experimental_fetch:
-            self._call(
-                report_lines,
-                "fetch_experimental_structures",
-                genome,
-                datadir=datadir,
-                all_xrefs=True,
+            steps.append(
+                (
+                    "fetch_experimental_structures",
+                    (genome,),
+                    {"datadir": datadir, "all_xrefs": True},
+                )
+            )
+        # Pockets need the structures above: they load against them.
+        if structures_dir and not skip_pockets:
+            steps.append(
+                (
+                    "import_gates_pocket_outputs",
+                    (genome,),
+                    {
+                        "results_tsv": results_tsv,
+                        "structures_dir": structures_dir,
+                        "datadir": datadir,
+                        "scope": "selected",
+                    },
+                )
             )
         if ligq_dir and not skip_ligq:
-            self._call(report_lines, "load_ligq_2_results", ligq_dir)
+            steps.append(("load_ligq_2_results", (ligq_dir,), {}))
+
+        self._line(report_lines, "")
+        self._line(report_lines, "Execution log")
+        for number, (command_name, args, kwargs) in enumerate(steps, start=1):
+            self._set_phase(f"{STEP_LABELS[command_name]} ({number}/{len(steps)})")
+            self._call(report_lines, command_name, *args, **kwargs)
+
+    def _set_phase(self, phase):
+        job = getattr(self, "_job", None)
+        if job is not None:
+            job.phase = phase[:64]
+            job.save(update_fields=["phase"])
 
     def _call(self, report_lines, command_name, *args, **kwargs):
         self._line(report_lines, f"  RUN {command_name}")

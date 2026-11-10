@@ -1729,12 +1729,13 @@ class PipelineStatusTests(SimpleTestCase):
         self.assertEqual(status.workspace_owner_id, 42)
         self.assertEqual(status.stage_current, 9)
 
-    def test_finished_run_with_skipped_stages_reports_its_last_stage(self):
+    @staticmethod
+    def _skipped_stages_run():
         events = [
             SimpleNamespace(stage_number=n, status="completed", task_id=None, app_name="")
             for n in (1, 2, 3)
         ]
-        fake_run = type(
+        return type(
             "FakeRun",
             (),
             {
@@ -1756,7 +1757,17 @@ class PipelineStatusTests(SimpleTestCase):
             },
         )()
 
-        status = _status_from_pipeline_run(fake_run)
+    @patch("tpweb.services.pipeline_status._curated_import_finished_after", return_value=True)
+    def test_skipped_stages_run_completed_by_a_curated_import_reads_finished(self, _finished):
+        status = _status_from_pipeline_run(self._skipped_stages_run())
+
+        self.assertEqual(status.stage_current, status.stage_total)
+        self.assertEqual(status.state_label, "Finished (curated import)")
+        self.assertEqual(status.progress_percent, 100)
+
+    @patch("tpweb.services.pipeline_status._curated_import_finished_after", return_value=False)
+    def test_finished_run_with_skipped_stages_reports_its_last_stage(self, _finished):
+        status = _status_from_pipeline_run(self._skipped_stages_run())
 
         self.assertEqual(status.stage_current, 3)
         self.assertIn("later stages skipped", status.stage_label)
@@ -2453,7 +2464,7 @@ class CuratedImportTrackingTests(TestCase):
 
         self._job(status=CuratedImportJob.STATUS_RUNNING)
 
-        self.assertEqual(_importing_genome_names(["AbTEST", "Other"]), {"AbTEST"})
+        self.assertEqual(list(_importing_genome_names(["AbTEST", "Other"])), ["AbTEST"])
 
     def test_run_job_starts_a_background_import_after_commit(self):
         from tpweb.models import CuratedImportJob

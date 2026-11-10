@@ -103,7 +103,7 @@
                 </div>
                 {% if curated_import_running %}
                     <p class="tp-state-note tp-state-note--loading">
-                        {% trans "Curated import running" %}: <code>{{ curated_import_running.genome_name }}</code>{% if curated_import_running.started_at %} · {% trans "started" %} {{ curated_import_running.started_at|date:"Y-m-d H:i" }}{% endif %}
+                        {% trans "Curated import running" %}: <code>{{ curated_import_running.genome_name }}</code>{% if curated_import_running.phase != "running" and curated_import_running.phase != "starting" %} · {{ curated_import_running.phase }}{% endif %}{% if curated_import_running.started_at %} · {% trans "started" %} {{ curated_import_running.started_at|date:"Y-m-d H:i" }}{% endif %}
                     </p>
                 {% endif %}
             </div>

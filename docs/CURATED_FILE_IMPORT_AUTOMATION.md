@@ -25,6 +25,7 @@ It supports:
   existing `import_external_results` command;
 - optionally loading existing LigQ_2 binders;
 - running UniProt and experimental PDB backfill through existing commands;
+- loading the reviewed FPocket/P2Rank outputs (`import_gates_pocket_outputs --scope selected`, skip with `--skip-pockets`);
 - printing a final audit and safe resume command;
 - saving each UI validation/run as a `CuratedImportJob` with status, command, logs, report path, and retry metadata.
 
@@ -158,7 +159,7 @@ the panel can be copied and rerun from the shell for reproducibility.
 
 The staff UI stores validations and curated-flow executions as `CuratedImportJob` records. Each job keeps the genome name, input paths, equivalent command, validation summary, stdout/stderr, generated report path, report text, status, phase, timestamps, and error message.
 
-**Run curated flow** starts the import in a background process (log at `<genome folder>/curated_import/curated-import-<id>.log`) and returns at once; the command itself marks the job running, finished or failed (`--job-id`). A shell `--execute` run without `--job-id` records its own job, so the upload page lists it and the genome list shows "Importing" either way.
+**Run curated flow** starts the import in a background process (log at `<genome folder>/curated_import/curated-import-<id>.log`) and returns at once; the command itself marks the job running, finished or failed (`--job-id`) and records the current step as its phase ("Pockets (5/6)"), shown on the home page and the genome list. Once it finishes, the home status reads "Finished (curated import)" instead of where the genome-loading run stopped. A shell `--execute` run without `--job-id` records its own job, so the upload page lists it and the genome list shows "Importing" either way.
 
 A failed curated-flow job can be retried from the same Upload Genome panel. Retry uses the stored parameters and writes a fresh report for the same job. Archive extraction during UI execution is confined to the genome-scoped curated import workspace and allows overwrite only inside that workspace so failed partial extracts can be retried without touching unrelated genome data.
 

@@ -330,6 +330,21 @@ def _active_stage_from_pipeline_run(run):
     }
 
 
+def _curated_import_finished_after(run):
+    """Whether a curated import for the run's genome finished after the run started."""
+    from tpweb.models import CuratedImportJob
+
+    genome = str(run.internal_accession or "").strip()
+    if not genome:
+        return False
+    jobs = CuratedImportJob.objects.filter(
+        genome_name=genome, status=CuratedImportJob.STATUS_FINISHED
+    )
+    if run.started_at:
+        jobs = jobs.filter(finished_at__gte=run.started_at)
+    return jobs.exists()
+
+
 def _status_from_pipeline_run(run):
     if run is None:
         return None
@@ -392,6 +407,14 @@ def _status_from_pipeline_run(run):
         status_data["progress_percent"] = 100
         status_data["stages_active"] = ()
         last_stage = active_info.get("last_completed_stage") or PIPELINE_STAGE_TOTAL
+        if last_stage < PIPELINE_STAGE_TOTAL and _curated_import_finished_after(run):
+            # The run only loaded the genome; a curated import brought in the
+            # rest, so the genome is complete.
+            status_data["state_label"] = "Finished (curated import)"
+            status_data["stage_current"] = PIPELINE_STAGE_TOTAL
+            status_data["stage_label"] = "Curated results imported"
+            status_data["stages_completed"] = tuple(range(1, PIPELINE_STAGE_TOTAL + 1))
+            return PipelineStatus(**status_data)
         if last_stage < PIPELINE_STAGE_TOTAL:
             # A run with --skip-stages (e.g. only loading a genome before a
             # curated import) ends early: report where it really stopped.
