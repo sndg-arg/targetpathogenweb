@@ -529,10 +529,50 @@ a.filter-pill .filter-pill-remove {
     opacity: 0.78;
 }
 
-/* The note above and the box's own scrollbar already say "scroll right";
-   skip the shared floating hint here so there aren't three cues for one thing. */
+/* Second horizontal scrollbar above the table (the box's own one is at its
+   bottom), so the wide table can be moved from either end. */
+.protein-table-top-scroll {
+    position: relative;
+    height: 10px;
+    border-radius: var(--tp-radius-pill);
+    background: var(--tp-color-surface-muted);
+    border: 1px solid var(--tp-color-border-soft);
+    overflow: hidden;
+    --protein-scroll-thumb-size: 96px;
+    --protein-scroll-thumb-offset: 0px;
+    cursor: grab;
+}
+
+/* The note + scrollbars already say "scroll right"; skip the shared
+   floating hint here so there aren't three cues for one thing. */
 .protein-table-panel .tp-table-scroll-hint {
     display: none;
+}
+
+.protein-table-top-scroll__inner {
+    height: 1px;
+    opacity: 0;
+}
+
+.protein-table-top-scroll::after {
+    content: "";
+    position: absolute;
+    inset: 2px auto 2px 2px;
+    width: var(--protein-scroll-thumb-size);
+    transform: translateX(var(--protein-scroll-thumb-offset));
+    border-radius: var(--tp-radius-pill);
+    background: var(--tp-color-border-strong);
+    transition: transform 140ms ease, width 140ms ease, opacity 140ms ease;
+}
+
+.protein-table-top-scroll.is-disabled::after {
+    width: calc(100% - 4px);
+    transform: translateX(0);
+    opacity: 0.46;
+}
+
+.protein-table-top-scroll.is-dragging {
+    cursor: grabbing;
 }
 
 .protein-table {

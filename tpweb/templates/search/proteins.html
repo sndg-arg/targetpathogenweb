@@ -5,7 +5,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261109-sticky">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261109-topscroll">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -386,6 +386,9 @@
                 <div class="protein-table-scroll-note" id="protein-table-scroll-note" hidden>
                     <span class="protein-table-scroll-note__label">{% trans "More columns available" %}</span>
                     <span class="protein-table-scroll-note__hint">{% trans "Scroll right to inspect all evidence" %}</span>
+                </div>
+                <div class="protein-table-top-scroll" id="protein-table-top-scroll" hidden aria-hidden="true">
+                    <div class="protein-table-top-scroll__inner" id="protein-table-top-scroll-inner"></div>
                 </div>
                 <section class="table-wrap tp-table-shell" data-table-scroll-wrap="off">
                     <table id="proteins_table"
@@ -1363,6 +1366,6 @@
             confirmClearAll: "{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}"
         };
     </script>
-    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261109-sticky"></script>
+    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261109-topscroll"></script>
     <script src="{% static 'js/pages/filter-values-input.js' %}?v=20261018-notes"></script>
 {% endblock %}
