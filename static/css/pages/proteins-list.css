@@ -423,36 +423,18 @@ a.filter-pill .filter-pill-remove {
     overflow: hidden;
 }
 
-/* The table scrolls inside its own box, no taller than the screen below the
-   sticky top bar and result line. A sticky <thead> only sticks within its
-   scroll container, and this one already scrolls sideways, so this is what
-   keeps the column titles (sticky top: 0) and the horizontal scrollbar (the
-   box's bottom edge) in view while reading down the rows. */
-.protein-table-panel .table-wrap,
+/* Sideways only: the page is the one vertical scroll. The native bar is
+   hidden; the two .protein-table-hscroll bars (above the table, and one
+   pinned to the screen's bottom edge) move it instead. */
 .protein-table-panel .table-wrap.tp-table-shell--with-export {
-    overflow: auto;
-    max-height: calc(100dvh - var(--tp-sticky-chrome-h, 66px) - var(--tp-space-8) - var(--tp-space-5));
-    scrollbar-width: thin;
-    scrollbar-color: var(--tp-color-border-strong) var(--tp-color-surface-muted);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
 }
 
-.protein-table-panel .table-wrap::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-}
-
-.protein-table-panel .table-wrap::-webkit-scrollbar-track {
-    background: var(--tp-color-surface-muted);
-}
-
-.protein-table-panel .table-wrap::-webkit-scrollbar-thumb {
-    background: var(--tp-color-border-strong);
-    border-radius: var(--tp-radius-pill);
-    border: 2px solid var(--tp-color-surface-muted);
-}
-
-.protein-table-panel .table-wrap::-webkit-scrollbar-thumb:hover {
-    background: var(--tp-color-text-soft);
+.protein-table-panel .table-wrap.tp-table-shell--with-export::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
 
 /* This table's shell is itself the horizontal scroll container, so the
@@ -529,9 +511,9 @@ a.filter-pill .filter-pill-remove {
     opacity: 0.78;
 }
 
-/* Second horizontal scrollbar above the table (the box's own one is at its
-   bottom), so the wide table can be moved from either end. */
-.protein-table-top-scroll {
+/* Horizontal scrollbars for the table: one above it, one below that stays
+   pinned to the bottom of the screen while the table is in view. */
+.protein-table-hscroll {
     position: relative;
     height: 10px;
     border-radius: var(--tp-radius-pill);
@@ -543,18 +525,23 @@ a.filter-pill .filter-pill-remove {
     cursor: grab;
 }
 
+/* A surface-colored border keeps rows from showing around it while pinned. */
+.protein-table-hscroll--bottom {
+    position: sticky;
+    bottom: 0;
+    z-index: calc(var(--tp-table-sticky-z) + 6);
+    height: calc(10px + 2 * var(--tp-space-2));
+    border: var(--tp-space-2) solid var(--tp-color-surface);
+    background-clip: padding-box;
+}
+
 /* The note + scrollbars already say "scroll right"; skip the shared
    floating hint here so there aren't three cues for one thing. */
 .protein-table-panel .tp-table-scroll-hint {
     display: none;
 }
 
-.protein-table-top-scroll__inner {
-    height: 1px;
-    opacity: 0;
-}
-
-.protein-table-top-scroll::after {
+.protein-table-hscroll::after {
     content: "";
     position: absolute;
     inset: 2px auto 2px 2px;
@@ -565,14 +552,47 @@ a.filter-pill .filter-pill-remove {
     transition: transform 140ms ease, width 140ms ease, opacity 140ms ease;
 }
 
-.protein-table-top-scroll.is-disabled::after {
+.protein-table-hscroll.is-disabled::after {
     width: calc(100% - 4px);
     transform: translateX(0);
     opacity: 0.46;
 }
 
-.protein-table-top-scroll.is-dragging {
+.protein-table-hscroll.is-dragging {
     cursor: grabbing;
+}
+
+/* Copy of the column titles, fixed under the sticky result line once the
+   real ones scroll off (proteins-list.js keeps widths and sideways scroll in
+   sync). The clip box is its own scroll container, so the pinned "#" and
+   "Protein" titles stay pinned in the copy too. */
+.protein-table-floating-head {
+    position: fixed;
+    z-index: calc(var(--tp-table-sticky-z) + 5);
+    overflow: hidden;
+    border-bottom: 1px solid var(--tp-color-border);
+    background: var(--tp-color-surface-soft);
+}
+
+.protein-table-floating-head[hidden] {
+    display: none;
+}
+
+.protein-table-floating-head .protein-table {
+    width: auto;
+    min-width: 0;
+    table-layout: fixed;
+}
+
+.protein-table-floating-head .protein-table thead th {
+    position: static;
+}
+
+@media (min-width: 768px) {
+    .protein-table-floating-head .protein-table thead th:nth-child(1),
+    .protein-table-floating-head .protein-table thead th:nth-child(2) {
+        position: sticky;
+    }
 }
 
 .protein-table {
@@ -582,9 +602,7 @@ a.filter-pill .filter-pill-remove {
     table-layout: auto;
 }
 
-/* Edge fades are positioned in the box and would scroll away with the rows. */
-.protein-table-panel .tp-table-shell.is-h-scrollable::after,
-.protein-table-panel .tp-table-shell.is-h-scrollable::before {
+.protein-table-panel .tp-table-shell.is-h-scrollable::after {
     content: none;
 }
 
@@ -609,12 +627,6 @@ a.filter-pill .filter-pill-remove {
     top: 0;
     z-index: var(--tp-table-sticky-z);
     white-space: nowrap;
-}
-
-/* Sticky offsets count from inside the box's padding, which here holds the
-   Export bar: pull the titles up over it so no rows peek through above them. */
-.tp-table-shell--with-export .protein-table thead th {
-    top: calc(-1 * var(--tp-space-8));
 }
 
 .protein-table thead th,

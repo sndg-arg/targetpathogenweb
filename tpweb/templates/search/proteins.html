@@ -5,7 +5,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261109-topscroll">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261109-floathead">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -387,9 +387,7 @@
                     <span class="protein-table-scroll-note__label">{% trans "More columns available" %}</span>
                     <span class="protein-table-scroll-note__hint">{% trans "Scroll right to inspect all evidence" %}</span>
                 </div>
-                <div class="protein-table-top-scroll" id="protein-table-top-scroll" hidden aria-hidden="true">
-                    <div class="protein-table-top-scroll__inner" id="protein-table-top-scroll-inner"></div>
-                </div>
+                <div class="protein-table-hscroll" hidden aria-hidden="true"></div>
                 <section class="table-wrap tp-table-shell" data-table-scroll-wrap="off">
                     <table id="proteins_table"
                            class="table tp-table tp-table--compact protein-table"
@@ -541,6 +539,7 @@
                         </tbody>
                     </table>
                 </section>
+                <div class="protein-table-hscroll protein-table-hscroll--bottom" hidden aria-hidden="true"></div>
 
                 <div class="pagination-row">
                     <span class="pagination-label">
@@ -1366,6 +1365,6 @@
             confirmClearAll: "{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}"
         };
     </script>
-    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261109-topscroll"></script>
+    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261109-floathead"></script>
     <script src="{% static 'js/pages/filter-values-input.js' %}?v=20261018-notes"></script>
 {% endblock %}
