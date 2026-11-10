@@ -1201,8 +1201,6 @@ function jsloaded() {
 
     const proteinTableShell = document.querySelector(".protein-table-panel .tp-table-shell");
     const proteinTableScrollNote = document.getElementById("protein-table-scroll-note");
-    const proteinTableTopScroll = document.getElementById("protein-table-top-scroll");
-    const proteinTableTopScrollInner = document.getElementById("protein-table-top-scroll-inner");
 
     function syncProteinTableScrollNote() {
         if (!proteinTableShell || !proteinTableScrollNote) return;
@@ -1220,84 +1218,13 @@ function jsloaded() {
         } else if (scrollHost.scrollLeft > maxScrollLeft) {
             scrollHost.scrollLeft = maxScrollLeft;
         }
-        const hasOverflow = maxScrollLeft > 16;
-        proteinTableScrollNote.hidden = !hasOverflow;
-        if (proteinTableTopScroll && proteinTableTopScrollInner) {
-            proteinTableTopScroll.hidden = !hasOverflow;
-            const trackInset = 4;
-            const trackWidth = Math.max(1, (proteinTableTopScroll.clientWidth || scrollHost.clientWidth || 1) - trackInset);
-            const proportionalThumb = Math.round((scrollHost.clientWidth / contentWidth) * trackWidth);
-            const thumbWidth = hasOverflow
-                ? Math.min(
-                    Math.round(trackWidth * 0.72),
-                    Math.max(88, proportionalThumb)
-                )
-                : trackWidth;
-            const maxThumbOffset = Math.max(0, trackWidth - thumbWidth);
-            const thumbOffset = hasOverflow
-                ? Math.round((scrollHost.scrollLeft / maxScrollLeft) * maxThumbOffset)
-                : 0;
-
-            proteinTableTopScroll.classList.toggle("is-disabled", !hasOverflow);
-            proteinTableTopScroll.style.setProperty("--protein-scroll-thumb-size", `${thumbWidth}px`);
-            proteinTableTopScroll.style.setProperty("--protein-scroll-thumb-offset", `${thumbOffset}px`);
-            proteinTableTopScrollInner.style.width = contentWidth + "px";
-        }
+        proteinTableScrollNote.hidden = maxScrollLeft <= 16;
     }
 
     if (proteinTableShell && proteinTableScrollNote) {
         const scrollHost = proteinTableShell.querySelector(":scope > .tp-table-shell__scroll") || proteinTableShell;
         if (scrollHost) {
             scrollHost.addEventListener("scroll", syncProteinTableScrollNote, { passive: true });
-            if (proteinTableTopScroll) {
-                let isDraggingTopScroll = false;
-
-                const moveTableScrollFromTrack = function (clientX) {
-                    const trackRect = proteinTableTopScroll.getBoundingClientRect();
-                    const trackInset = 6;
-                    const trackWidth = Math.max(1, trackRect.width - trackInset);
-                    const trackLeft = trackRect.left + (trackInset / 2);
-                    const table = scrollHost.querySelector("#proteins_table");
-                    const contentWidth = Math.max(
-                        scrollHost.clientWidth || 1,
-                        table ? Math.ceil(table.getBoundingClientRect().width) : 0,
-                        table ? table.scrollWidth : 0
-                    );
-                    const maxScrollLeft = Math.max(0, contentWidth - scrollHost.clientWidth);
-                    if (maxScrollLeft <= 0) return;
-                    const proportionalThumb = Math.round((scrollHost.clientWidth / contentWidth) * trackWidth);
-                    const thumbWidth = Math.min(
-                        Math.round(trackWidth * 0.72),
-                        Math.max(88, proportionalThumb)
-                    );
-                    const maxThumbOffset = Math.max(0, trackWidth - thumbWidth);
-                    const centeredOffset = Math.min(
-                        Math.max(0, clientX - trackLeft - (thumbWidth / 2)),
-                        maxThumbOffset
-                    );
-                    const centeredRatio = maxThumbOffset > 0 ? (centeredOffset / maxThumbOffset) : 0;
-                    scrollHost.scrollLeft = centeredRatio * maxScrollLeft;
-                };
-
-                proteinTableTopScroll.addEventListener("mousedown", function (event) {
-                    if (proteinTableTopScroll.classList.contains("is-disabled")) return;
-                    isDraggingTopScroll = true;
-                    proteinTableTopScroll.classList.add("is-dragging");
-                    moveTableScrollFromTrack(event.clientX);
-                    event.preventDefault();
-                });
-
-                window.addEventListener("mousemove", function (event) {
-                    if (!isDraggingTopScroll) return;
-                    moveTableScrollFromTrack(event.clientX);
-                });
-
-                window.addEventListener("mouseup", function () {
-                    if (!isDraggingTopScroll) return;
-                    isDraggingTopScroll = false;
-                    proteinTableTopScroll.classList.remove("is-dragging");
-                });
-            }
         }
         window.addEventListener("resize", syncProteinTableScrollNote);
         setTimeout(syncProteinTableScrollNote, 0);

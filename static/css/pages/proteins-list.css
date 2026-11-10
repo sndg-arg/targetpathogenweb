@@ -423,15 +423,36 @@ a.filter-pill .filter-pill-remove {
     overflow: hidden;
 }
 
+/* The table scrolls inside its own box, no taller than the screen below the
+   sticky top bar and result line. A sticky <thead> only sticks within its
+   scroll container, and this one already scrolls sideways, so this is what
+   keeps the column titles (sticky top: 0) and the horizontal scrollbar (the
+   box's bottom edge) in view while reading down the rows. */
+.protein-table-panel .table-wrap,
 .protein-table-panel .table-wrap.tp-table-shell--with-export {
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
+    overflow: auto;
+    max-height: calc(100dvh - var(--tp-sticky-chrome-h, 66px) - var(--tp-space-8) - var(--tp-space-5));
+    scrollbar-width: thin;
+    scrollbar-color: var(--tp-color-border-strong) var(--tp-color-surface-muted);
 }
 
-.protein-table-panel .table-wrap.tp-table-shell--with-export::-webkit-scrollbar {
-    width: 0;
-    height: 0;
+.protein-table-panel .table-wrap::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.protein-table-panel .table-wrap::-webkit-scrollbar-track {
+    background: var(--tp-color-surface-muted);
+}
+
+.protein-table-panel .table-wrap::-webkit-scrollbar-thumb {
+    background: var(--tp-color-border-strong);
+    border-radius: var(--tp-radius-pill);
+    border: 2px solid var(--tp-color-surface-muted);
+}
+
+.protein-table-panel .table-wrap::-webkit-scrollbar-thumb:hover {
+    background: var(--tp-color-text-soft);
 }
 
 /* This table's shell is itself the horizontal scroll container, so the
@@ -508,48 +529,10 @@ a.filter-pill .filter-pill-remove {
     opacity: 0.78;
 }
 
-.protein-table-top-scroll {
-    position: relative;
-    height: 10px;
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-surface-muted);
-    border: 1px solid var(--tp-color-border-soft);
-    overflow: hidden;
-    --protein-scroll-thumb-size: 96px;
-    --protein-scroll-thumb-offset: 0px;
-    cursor: grab;
-}
-
-/* The note + top scrollbar above already say "scroll right"; skip the shared
-   floating hint here so there aren't three cues for one thing. */
+/* The note above and the box's own scrollbar already say "scroll right";
+   skip the shared floating hint here so there aren't three cues for one thing. */
 .protein-table-panel .tp-table-scroll-hint {
     display: none;
-}
-
-.protein-table-top-scroll__inner {
-    height: 1px;
-    opacity: 0;
-}
-
-.protein-table-top-scroll::after {
-    content: "";
-    position: absolute;
-    inset: 2px auto 2px 2px;
-    width: var(--protein-scroll-thumb-size);
-    transform: translateX(var(--protein-scroll-thumb-offset));
-    border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-border-strong);
-    transition: transform 140ms ease, width 140ms ease, opacity 140ms ease;
-}
-
-.protein-table-top-scroll.is-disabled::after {
-    width: calc(100% - 4px);
-    transform: translateX(0);
-    opacity: 0.46;
-}
-
-.protein-table-top-scroll.is-dragging {
-    cursor: grabbing;
 }
 
 .protein-table {
@@ -559,7 +542,9 @@ a.filter-pill .filter-pill-remove {
     table-layout: auto;
 }
 
-.protein-table-panel .tp-table-shell.is-h-scrollable::after {
+/* Edge fades are positioned in the box and would scroll away with the rows. */
+.protein-table-panel .tp-table-shell.is-h-scrollable::after,
+.protein-table-panel .tp-table-shell.is-h-scrollable::before {
     content: none;
 }
 
@@ -584,6 +569,12 @@ a.filter-pill .filter-pill-remove {
     top: 0;
     z-index: var(--tp-table-sticky-z);
     white-space: nowrap;
+}
+
+/* Sticky offsets count from inside the box's padding, which here holds the
+   Export bar: pull the titles up over it so no rows peek through above them. */
+.tp-table-shell--with-export .protein-table thead th {
+    top: calc(-1 * var(--tp-space-8));
 }
 
 .protein-table thead th,
