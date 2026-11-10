@@ -149,9 +149,12 @@
     outline-offset: 2px;
 }
 
+/* Sits inside the uppercase field label but reads as plain text. */
 .blast-field-hint {
     color: var(--tp-color-text-muted);
     font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .blast-actions {
