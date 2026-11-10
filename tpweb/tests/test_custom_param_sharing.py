@@ -347,6 +347,13 @@ class BlastTabularTests(SimpleTestCase):
         self.assertEqual(len(hits), 1)
         self.assertEqual(hits[0]["subject_id"], "PA0001")
         self.assertEqual(hits[0]["evalue"], "1e-150")
+        self.assertEqual(hits[0]["genome"], "")
+
+    def test_reads_the_genome_column_run_blast_appends(self):
+        from tpweb.views.NewView import parse_blast_tabular
+
+        raw = "q1\tPA0001\t99.5\t300\t1\t0\t1\t300\t10\t309\t1e-150\t540\tGENOME_A\n"
+        self.assertEqual(parse_blast_tabular(raw)[0]["genome"], "GENOME_A")
 
 
 class FormulaReadabilityTests(SimpleTestCase):

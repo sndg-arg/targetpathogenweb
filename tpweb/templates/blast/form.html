@@ -5,7 +5,7 @@
 {% load custom_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261021-phone">
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261109-multi">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -43,7 +43,7 @@
                 {% if blast_locked_to_genome %}
                     {% trans "Search the currently selected genome with a nucleotide or protein sequence." %}
                 {% else %}
-                    {% trans "Search a genome with a nucleotide sequence (against its genes) or a protein sequence (against its proteins)." %}
+                    {% trans "Search one or more genomes with a nucleotide sequence (against their genes) or a protein sequence (against their proteins)." %}
                 {% endif %}
             </p>
 
@@ -66,14 +66,19 @@
                         <input type="hidden" name="genome_name" value="{{ selected_genome_name }}">
                         <p class="blast-bound-note">{% trans "This search runs on the genome above. To search another one, open BLAST from that genome's page or from the top bar." %}</p>
                     {% else %}
-                        <div class="tp-ui-field">
-                            <label class="tp-ui-field-label" for="dropdown">{% trans "Genome" %}</label>
-                            <select name="dropdown" id="dropdown" class="form-control tp-ui-control">
+                        <fieldset class="tp-ui-field blast-type-field">
+                            <legend class="tp-ui-field-label">{% trans "Genomes" %} <span class="blast-field-hint">{% blocktrans %}up to {{ max_genomes }}{% endblocktrans %}</span></legend>
+                            <div class="blast-genome-chips">
                                 {% for option in db_options %}
-                                    <option value="{{ option.value }}" {% if option.value|stringformat:"s" == selected_db_value|stringformat:"s" %}selected{% endif %}>{{ option.label|genome_title }}</option>
+                                    {% with value=option.value|stringformat:"s" %}
+                                    <label class="filter-chip blast-genome-chip{% if value in selected_db_values %} filter-chip--active{% endif %}">
+                                        <input type="checkbox" name="genomes" value="{{ value }}"{% if value in selected_db_values %} checked{% endif %}>
+                                        {{ option.label|genome_title }}
+                                    </label>
+                                    {% endwith %}
                                 {% endfor %}
-                            </select>
-                        </div>
+                            </div>
+                        </fieldset>
                     {% endif %}
 
                     <fieldset class="tp-ui-field blast-type-field">
@@ -130,4 +135,12 @@ ATGACCACTGATCGTTGGTAACTTGACGCTAA</pre>
 
         </section>
     </div>
+    <script>
+        // Genome chips are checkboxes; mirror each one's state on its chip.
+        document.querySelectorAll(".blast-genome-chip input").forEach(function (input) {
+            input.addEventListener("change", function () {
+                input.closest(".blast-genome-chip").classList.toggle("filter-chip--active", input.checked);
+            });
+        });
+    </script>
 {% endblock %}

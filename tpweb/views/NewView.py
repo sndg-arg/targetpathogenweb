@@ -1,4 +1,5 @@
 import uuid
+from urllib.parse import urlencode
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
@@ -6,9 +7,8 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
 
-from bioseq.models.Biodatabase import Biodatabase
-from bioseq.models.Bioentry import Bioentry
 from tpweb.services.blast_files import blast_results_dir
+from tpweb.services.blast_search import annotate_blast_hits
 from tpweb.services.genome_workspace import display_genome_name, resolve_genome_from_slug
 
 # blastn runs with -outfmt 6: the 12 standard tabular columns.
@@ -34,7 +34,10 @@ def parse_blast_tabular(raw):
         fields = line.split("\t")
         if len(fields) < len(_OUTFMT6_FIELDS):
             continue
-        hits.append(dict(zip(_OUTFMT6_FIELDS, fields[: len(_OUTFMT6_FIELDS)], strict=True)))
+        hit = dict(zip(_OUTFMT6_FIELDS, fields[: len(_OUTFMT6_FIELDS)], strict=True))
+        # run_blast appends the genome each row came from.
+        hit["genome"] = fields[len(_OUTFMT6_FIELDS)] if len(fields) > len(_OUTFMT6_FIELDS) else ""
+        hits.append(hit)
     return hits
 
 
@@ -57,35 +60,38 @@ class NewView(LoginRequiredMixin, View):
         result = result_path.read_text(encoding="utf-8", errors="replace")
         hits = parse_blast_tabular(result)
 
-        # ?genome= (set by FormView's redirect) lets each hit link to its
-        # protein and "Run another search" keep the same genome selected.
-        genome_slug = (request.GET.get("genome") or "").strip()
-        genome_name = resolve_genome_from_slug(request.user, genome_slug) if genome_slug else None
-        if genome_name:
-            subject_ids = {hit["subject_id"] for hit in hits}
-            proteins_by_accession = {
-                protein.accession: protein
-                for protein in Bioentry.objects.filter(
-                    biodatabase__name=genome_name + Biodatabase.PROT_POSTFIX,
-                    accession__in=subject_ids,
-                )
-            }
+        # ?genome= (one per genome searched, set by FormView's redirect) lets
+        # each hit link to its protein and "Run another search" keep the same
+        # genomes selected. Resolving them is also the access check.
+        genomes = {}
+        for slug in request.GET.getlist("genome"):
+            slug = slug.strip()
+            name = resolve_genome_from_slug(request.user, slug) if slug else None
+            if name:
+                genomes[name] = slug
+        if len(genomes) == 1:
+            # Results saved before rows carried their genome.
+            only = next(iter(genomes))
             for hit in hits:
-                hit["protein"] = proteins_by_accession.get(hit["subject_id"])
+                hit["genome"] = hit["genome"] or only
+        annotate_blast_hits(hits, list(genomes))
 
-        # Keep the genome for the next search: still locked to it when the
+        # Keep the genomes for the next search: still locked to it when the
         # search came from a genome page, otherwise just preselected.
         new_search_url = reverse("tpwebapp:form")
-        if genome_name:
-            param = "genome" if request.GET.get("locked") else "select"
-            new_search_url += f"?{param}={genome_slug}"
+        if genomes:
+            param = "genome" if request.GET.get("locked") and len(genomes) == 1 else "select"
+            new_search_url += "?" + urlencode([(param, slug) for slug in genomes.values()])
         return render(
             request,
             self.template_name,
             {
                 "result": result,
                 "hits": hits,
-                "genome_label": display_genome_name(genome_name) if genome_name else "",
+                "genome_label": display_genome_name(next(iter(genomes)))
+                if len(genomes) == 1
+                else "",
+                "genome_count": len(genomes),
                 "new_search_url": new_search_url,
             },
         )

@@ -4,20 +4,27 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261021-phone">
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261109-multi">
 {% endblock %}
 
 {% block breadcrumbs %}
 <div class="tp-breadcrumb-bar">
     <div class="tp-breadcrumb-bar-inner">
-        {% trans "Genomes" as crumb_genomes %}
-        {% trans "Proteins" as crumb_proteins %}
-        {% trans "Sequence search" as crumb_blast %}
         {% url 'tpwebapp:index' as index_url %}
-        {% url 'tpwebapp:genomes_list' as genomes_url %}
-        {% with crumb_genome=genome_label|genome_title %}
-        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_blast %}
-        {% endwith %}
+        {% if genome_labels %}
+            {% trans "BLAST" as crumb_blast %}
+            {% trans "Results" as crumb_results %}
+            {% url 'tpwebapp:form' as blast_url %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_blast crumb_2_url=blast_url crumb_3_label=crumb_results %}
+        {% else %}
+            {% trans "Genomes" as crumb_genomes %}
+            {% trans "Proteins" as crumb_proteins %}
+            {% trans "Sequence search" as crumb_blast %}
+            {% url 'tpwebapp:genomes_list' as genomes_url %}
+            {% with crumb_genome=genome_label|genome_title %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_blast %}
+            {% endwith %}
+        {% endif %}
     </div>
 </div>
 {% endblock %}
@@ -27,10 +34,14 @@
 
         {# ── Hero ── #}
         <section class="tp-page-hero blast-hero">
-            <span class="tp-view-eyebrow blast-eyebrow">{% trans "Sequence search · blastp · genome-specific" %}</span>
+            <span class="tp-view-eyebrow blast-eyebrow">{% if genome_labels %}{% trans "Sequence search · blastp" %}{% else %}{% trans "Sequence search · blastp · genome-specific" %}{% endif %}</span>
             <h1 class="tp-view-title">{% trans "BLAST results" %}</h1>
             <p class="tp-view-lead blast-subtitle">
-                {% blocktrans with genome=genome_label|genome_title %}Amino acid BLAST (blastp) against every protein loaded for {{ genome }}.{% endblocktrans %}
+                {% if genome_labels %}
+                    {% blocktrans count n=genome_labels|length %}Amino acid BLAST (blastp) against every protein loaded for {{ n }} genome.{% plural %}Amino acid BLAST (blastp) against every protein loaded for {{ n }} genomes.{% endblocktrans %}
+                {% else %}
+                    {% blocktrans with genome=genome_label|genome_title %}Amino acid BLAST (blastp) against every protein loaded for {{ genome }}.{% endblocktrans %}
+                {% endif %}
             </p>
         </section>
 
@@ -40,22 +51,30 @@
                     <h2 class="tp-section-title">{% trans "Closest proteins" %}</h2>
                     {% if hits %}<p class="blast-result-count">{% blocktrans count n=hits|length %}{{ n }} match, best first{% plural %}{{ n }} matches, best first{% endblocktrans %}</p>{% endif %}
                 </div>
+                {% if genome_labels %}
+                <a class="btn tp-btn tp-btn--secondary tp-btn-with-icon" href="{{ new_search_url }}">
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
+                    <span>{% trans "Run another search" %}</span>
+                </a>
+                {% else %}
                 <a class="btn tp-btn tp-btn--secondary tp-btn-with-icon" href="{{ proteins_url }}">
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                     <span>{% trans "Back to protein list" %}</span>
                 </a>
+                {% endif %}
             </div>
 
             {% if error_message %}
                 <p class="blast-error" role="alert">{{ error_message }}</p>
             {% elif not hits %}
-                <p class="blast-bound-note">{% trans "No hits found for this query in this genome (e-value ≤ 1e-5)." %}</p>
+                <p class="blast-bound-note">{% if genome_labels %}{% trans "No hits found for this query in the selected genomes (e-value ≤ 1e-5)." %}{% else %}{% trans "No hits found for this query in this genome (e-value ≤ 1e-5)." %}{% endif %}</p>
             {% else %}
                 <div class="table-shell tp-table-shell">
                     <table class="table mb-0 tp-table">
                         <thead>
                             <tr>
                                 <th scope="col">{% trans "Protein" %}</th>
+                                {% if genome_labels %}<th scope="col">{% trans "Genome" %}</th>{% endif %}
                                 <th scope="col" title="{% trans 'Percent identity between query and subject over the aligned region.' %}">{% trans "% identity" %}</th>
                                 <th scope="col" title="{% trans 'Length of the aligned region, in residues.' %}">{% trans "Align. length" %}</th>
                                 <th scope="col" title="{% trans 'Expect value — lower means a more significant match.' %}">{% trans "E-value" %}</th>
@@ -67,12 +86,13 @@
                             <tr>
                                 <td>
                                     {% if hit.protein %}
-                                        <a class="blast-hit-link" href="{% url 'tpwebapp:protein' hit.protein.bioentry_id %}">{{ hit.protein.accession }}</a>
+                                        <a class="blast-hit-link" href="{% url 'tpwebapp:protein' hit.protein.bioentry_id %}">{{ hit.protein.accession }}</a>{% if hit.gene %}<span class="blast-hit-gene" title="{% trans 'Gene' %}">{{ hit.gene }}</span>{% endif %}
                                         {% if hit.protein.description %}<span class="blast-hit-desc">{{ hit.protein.description }}</span>{% endif %}
                                     {% else %}
                                         {{ hit.subject_id }}
                                     {% endif %}
                                 </td>
+                                {% if genome_labels %}<td>{{ hit.genome_label|genome_title }}</td>{% endif %}
                                 <td>{{ hit.identity }}%</td>
                                 <td>{{ hit.length }}</td>
                                 <td>{{ hit.evalue }}</td>

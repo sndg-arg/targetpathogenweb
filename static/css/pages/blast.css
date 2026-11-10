@@ -122,6 +122,38 @@
     margin-bottom: var(--tp-space-2);
 }
 
+/* Genome picker: one filter chip per genome, a real checkbox underneath
+   (visually hidden, still focusable and submitted with the form). */
+.blast-genome-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+}
+
+.blast-genome-chip {
+    position: relative;
+    margin: 0;
+    cursor: pointer;
+}
+
+.blast-genome-chip input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.blast-genome-chip:focus-within {
+    outline: 2px solid var(--tp-focus-color);
+    outline-offset: 2px;
+}
+
+.blast-field-hint {
+    color: var(--tp-color-text-muted);
+    font-weight: 400;
+}
+
 .blast-actions {
     display: flex;
     flex-wrap: wrap;
@@ -199,6 +231,15 @@
 .blast-hit-link {
     font-family: var(--tp-font-mono);
     font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+}
+
+/* Gene symbol next to the accession: italic, as on the protein page. */
+.blast-hit-gene {
+    margin-left: var(--tp-space-2);
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-style: italic;
     font-weight: 600;
 }
 

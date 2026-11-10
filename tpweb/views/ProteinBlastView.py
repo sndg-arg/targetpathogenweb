@@ -1,19 +1,15 @@
 import logging
 import os
-import subprocess as sp
-import uuid
 
-from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
 
-from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Biodatabase import Biodatabase
-from bioseq.models.Bioentry import Bioentry
 from tpweb.services.blast_files import blast_results_dir
+from tpweb.services.blast_search import BlastError, annotate_blast_hits, run_blast
 from tpweb.services.genome_workspace import display_genome_name, resolve_genome_from_slug
 
 logger = logging.getLogger(__name__)
@@ -75,87 +71,41 @@ class ProteinBlastView(LoginRequiredMixin, View):
             context["sequence_value"] = sequence[:max_chars]
             return render(request, self.form_template_name, context)
 
-        query_id = uuid.uuid4()
         try:
             result_dir = blast_results_dir()
-            db_location = SeqStore(settings.SEQS_DATA_DIR).faa(resolved)
         except Exception:
             logger.exception("Protein BLAST setup failed for %s", resolved)
             context["error_message"] = "BLAST is unavailable right now. Please try again later."
             return render(request, self.form_template_name, context)
-        query_path = result_dir / f"{query_id}.faa"
-        output_path = result_dir / f"{query_id}.tsv"
-        blast_bin = getattr(settings, "BLASTP_PATH", "blastp")
-        timeout_seconds = int(os.environ.get("TPW_BLAST_TIMEOUT_SEC", "60"))
-
+        query_text = sequence if sequence.startswith(">") else f">query_1\n{sequence}"
         try:
-            query_text = sequence if sequence.startswith(">") else f">query_1\n{sequence}"
-            query_path.write_text(query_text, encoding="utf-8")
-            cmd = [
-                blast_bin,
-                "-query",
-                str(query_path),
-                "-db",
-                db_location,
-                "-evalue",
-                "1e-5",
-                "-num_threads",
-                "2",
-                "-max_target_seqs",
-                "20",
-                "-out",
-                str(output_path),
-                "-outfmt",
-                "6 qseqid sseqid pident length mismatch evalue bitscore",
-            ]
-            sp.check_output(cmd, stderr=sp.STDOUT, timeout=timeout_seconds)
-        except sp.TimeoutExpired:
-            context["error_message"] = f"BLAST query timed out after {timeout_seconds} seconds."
+            rows = run_blast("protein", query_text, [resolved], result_dir)
+        except BlastError as exc:
+            context["error_message"] = str(exc)
             return render(request, self.form_template_name, context)
-        except sp.CalledProcessError as exc:
-            details = exc.output.decode("utf-8", errors="replace") if exc.output else str(exc)
-            context["error_message"] = f"BLAST query failed. {details}"
-            return render(request, self.form_template_name, context)
-        except OSError as exc:
-            context["error_message"] = f"BLAST executable is unavailable. {exc}"
-            return render(request, self.form_template_name, context)
-        finally:
-            query_path.unlink(missing_ok=True)
 
-        hits = []
-        if output_path.is_file():
-            raw = output_path.read_text(encoding="utf-8", errors="replace")
-            output_path.unlink(missing_ok=True)
-            for line in raw.splitlines():
-                fields = line.split("\t")
-                if len(fields) < 7:
-                    continue
-                qseqid, sseqid, pident, length, mismatch, evalue, bitscore = fields[:7]
-                hits.append(
-                    {
-                        "query": qseqid,
-                        "subject_id": sseqid,
-                        "identity": pident,
-                        "length": length,
-                        "mismatch": mismatch,
-                        "evalue": evalue,
-                        "bitscore": bitscore,
-                    }
-                )
-
-        # Best-effort mapping of the BLAST subject id back to a clickable protein --
-        # the protein FASTA headers written by index_genome_seq_clean are keyed by
-        # accession, matching what every other page in the app links proteins by.
-        proteome_name = resolved + Biodatabase.PROT_POSTFIX
-        subject_ids = {hit["subject_id"] for hit in hits}
-        proteins_by_accession = {
-            protein.accession: protein
-            for protein in Bioentry.objects.filter(
-                biodatabase__name=proteome_name, accession__in=subject_ids
-            )
-        }
-        for hit in hits:
-            hit["protein"] = proteins_by_accession.get(hit["subject_id"])
-
-        context["hits"] = hits
+        context["hits"] = annotate_blast_hits(parse_blastp_rows(rows), [resolved])
         return render(request, self.result_template_name, context)
+
+
+def parse_blastp_rows(rows):
+    """Rows from run_blast("protein", ...): the 7 requested columns + genome."""
+    hits = []
+    for line in rows:
+        fields = line.split("\t")
+        if len(fields) < 8:
+            continue
+        qseqid, sseqid, pident, length, mismatch, evalue, bitscore, genome = fields[:8]
+        hits.append(
+            {
+                "query": qseqid,
+                "subject_id": sseqid,
+                "identity": pident,
+                "length": length,
+                "mismatch": mismatch,
+                "evalue": evalue,
+                "bitscore": bitscore,
+                "genome": genome,
+            }
+        )
+    return hits

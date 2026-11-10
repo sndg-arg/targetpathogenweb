@@ -5,7 +5,7 @@
 {% load custom_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261021-phone">
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20261109-multi">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -30,6 +30,8 @@
             <p class="tp-view-lead blast-subtitle">
                 {% if genome_label %}
                     {% blocktrans with genome=genome_label|genome_title %}Nucleotide matches for your query in {{ genome }} (e-value ≤ 1e-6).{% endblocktrans %}
+                {% elif genome_count > 1 %}
+                    {% blocktrans with n=genome_count %}Nucleotide matches for your query in {{ n }} genomes (e-value ≤ 1e-6).{% endblocktrans %}
                 {% else %}
                     {% trans "Nucleotide matches for your query (e-value ≤ 1e-6)." %}
                 {% endif %}
@@ -55,6 +57,7 @@
                         <thead>
                             <tr>
                                 <th scope="col">{% trans "Gene" %}</th>
+                                {% if genome_count > 1 %}<th scope="col">{% trans "Genome" %}</th>{% endif %}
                                 <th scope="col" title="{% trans 'Percent identity between query and subject over the aligned region.' %}">{% trans "% identity" %}</th>
                                 <th scope="col" title="{% trans 'Length of the aligned region, in nucleotides.' %}">{% trans "Align. length" %}</th>
                                 <th scope="col" title="{% trans 'Positions of the alignment on your query.' %}">{% trans "Query range" %}</th>
@@ -68,12 +71,13 @@
                             <tr>
                                 <td>
                                     {% if hit.protein %}
-                                        <a class="blast-hit-link" href="{% url 'tpwebapp:protein' hit.protein.bioentry_id %}">{{ hit.protein.accession }}</a>
+                                        <a class="blast-hit-link" href="{% url 'tpwebapp:protein' hit.protein.bioentry_id %}">{{ hit.protein.accession }}</a>{% if hit.gene %}<span class="blast-hit-gene" title="{% trans 'Gene' %}">{{ hit.gene }}</span>{% endif %}
                                         {% if hit.protein.description %}<span class="blast-hit-desc">{{ hit.protein.description }}</span>{% endif %}
                                     {% else %}
                                         {{ hit.subject_id }}
                                     {% endif %}
                                 </td>
+                                {% if genome_count > 1 %}<td>{{ hit.genome_label|genome_title }}</td>{% endif %}
                                 <td>{{ hit.identity }}%</td>
                                 <td>{{ hit.length }}</td>
                                 <td>{{ hit.qstart }}–{{ hit.qend }}</td>
