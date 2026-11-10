@@ -30,16 +30,19 @@
     color: var(--tp-color-text-secondary);
 }
 
-/* ── Hero annotation groups ── */
-
-.hero-chip-gene .gene-value {
-    display: inline-block;
-    max-width: min(74vw, 980px);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    vertical-align: bottom;
+/* Gene symbol leads the identity line: italic (bacterial gene convention), text ink. */
+.protein-gene {
+    font-size: var(--tp-font-size-lg);
+    font-style: italic;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
 }
+
+.protein-accession-sep {
+    margin: 0 var(--tp-space-2);
+}
+
+/* ── Hero annotation groups ── */
 
 a.hero-chip.tp-chip--link .tp-chip-acc {
     font-family: var(--tp-font-mono);
@@ -1097,13 +1100,6 @@ body.residue-modal-open {
     .structure-actions .structure-action-btn {
         min-width: 152px;
     }
-}
-
-@media (max-width: 991px) {
-    .hero-chip-gene .gene-value {
-        max-width: min(78vw, 520px);
-    }
-
 }
 
 @media (max-width: 700px) {

@@ -6,7 +6,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261104-tips">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261104-zoombtn">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261109-gene">
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
 {% endblock %}
 
@@ -40,8 +40,8 @@
                         {% trans "Protein target profile" %}
                     </p>
                     <h1 class="tp-view-title">{{ protein.description|default:protein.accession }}</h1>
-                    <p class="protein-accession-line" title="{% trans "Accession assigned to this protein in the genome's GenBank record." %}">
-                        <span class="protein-accession-label">{% trans "Accession" %}:</span> {{ protein.accession }}
+                    <p class="protein-accession-line">
+                        {% if protein.gene and protein.gene != protein.accession %}<span class="protein-gene" title="{% trans 'Gene name reported for this protein' %}">{{ protein.gene }}</span><span class="protein-accession-sep" aria-hidden="true">&middot;</span>{% endif %}<span title="{% trans "Accession assigned to this protein in the genome's GenBank record." %}">{{ protein.accession }}</span>
                     </p>
                     {% if identical_sequence_siblings %}
                     <p class="protein-accession-line shared-sequence-line">
@@ -52,10 +52,6 @@
                     {% endif %}
                     {% if target_summary.verdict %}<p class="protein-lede">{{ target_summary.verdict }}</p>{% endif %}
                     <div class="hero-chip-list tp-chip-group">
-                        <span class="hero-chip tp-chip hero-chip-gene" title="{% trans 'Gene name or locus tag reported for this protein' %}: {{ protein.gene|default_if_none:'-' }}">
-                            <strong>{% trans "Gene" %}:</strong>
-                            <span class="gene-value">{{ protein.gene|default:"-" }}</span>
-                        </span>
                         <span class="hero-chip tp-chip">
                             <strong>{% trans "3D evidence" %}:</strong>
                             <span>{{ structure_summary.label }}</span>
