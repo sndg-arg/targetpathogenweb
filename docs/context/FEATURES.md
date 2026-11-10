@@ -65,6 +65,10 @@ detail page.
   reference), `MetabolicReaction` (per-genome, keyed by BioCyc frame id), `GeneReactionLink`
   (`Bioentry` ↔ `MetabolicReaction`, carries `chokepoint_role`), `MetabolicReactionEdge`
   (per-genome reaction-reaction adjacency, powers the diagram).
+- **COBRA models + MetaGraphTools metrics** (curated packages, e.g. AbATCC19606 iLP844): SBML
+  L3v2 with `R_`/`M_`/`G_` ids is read as-is; `--metabolic-results-tsv` may be MetaGraphTools'
+  per-gene table (`locus_tag`, `Chokepoint`, `mgt_max_betweenness`); flagged genes get chokepoint
+  roles from the model's stoichiometry; `--currency-metabolites` takes the organism's own list.
 - **Ingestion**: `python manage.py load_metabolism <genome_name> --sbml PATH
   --metabolic-results-tsv PATH --network-sif PATH [--overwrite] [--dry-run]`. Also reachable via
   `import_external_results` with the same three flags as an additional step. Centrality/chokepoint

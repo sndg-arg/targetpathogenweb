@@ -23,6 +23,7 @@ KNOWN_ARCHIVE_DIRS = (
     "structures",
     "offtarget",
     "essentiality",
+    "metabolism",
     "ligq2",
     "LigQ_2",
     "ligq_2",
@@ -37,8 +38,38 @@ STEP_LABELS = {
     "backfill_curated_uniprot_annotations": "UniProt annotations",
     "fetch_experimental_structures": "Experimental structures",
     "import_gates_pocket_outputs": "Pockets",
+    "load_metabolism": "Metabolism",
     "load_ligq_2_results": "LigQ_2 binders",
 }
+
+
+def detect_metabolism_inputs(metabolism_dir):
+    """The model, per-gene metrics and reaction network in a reviewed
+    metabolism/ folder, or None when any of the three is missing.
+
+    Metrics: metabolic_network_metrics.tsv (the README's validated
+    MetaGraphTools table). Network: the currency-filtered SIF of the latest
+    MetaGraphTools run, unfiltered as a fallback."""
+    folder = Path(metabolism_dir) if metabolism_dir else None
+    if folder is None or not folder.is_dir():
+        return None
+    sbml = sorted(folder.glob("*.xml")) + sorted(folder.glob("*.sbml"))
+    metrics = folder / "metabolic_network_metrics.tsv"
+    sif = None
+    for name in ("metabolic_network_filter.sif", "metabolic_network.sif"):
+        found = sorted(folder.glob(f"MGT_results_*/{name}")) + sorted(folder.glob(name))
+        if found:
+            sif = found[-1]
+            break
+    if not sbml or not metrics.is_file() or sif is None:
+        return None
+    currency = folder / "modularity_ubiquitous_filter.tsv"
+    return {
+        "sbml": str(sbml[0]),
+        "metabolic_results_tsv": str(metrics),
+        "network_sif": str(sif),
+        "currency_metabolites": str(currency) if currency.is_file() else None,
+    }
 
 
 @dataclass
@@ -140,6 +171,16 @@ class Command(BaseCommand):
             "--skip-pockets",
             action="store_true",
             help="Do not run import_gates_pocket_outputs during --execute.",
+        )
+        parser.add_argument(
+            "--metabolism-dir",
+            default=None,
+            help="Reviewed metabolism/ folder. Defaults to the archive's, or the one next to --structures-dir.",
+        )
+        parser.add_argument(
+            "--skip-metabolism",
+            action="store_true",
+            help="Do not run load_metabolism during --execute.",
         )
         parser.add_argument(
             "--skip-ligq",
@@ -305,10 +346,20 @@ class Command(BaseCommand):
             self._detect_ligq_path(layout, extract_root) if layout else None
         )
         gbk_path = self._first_gbk_path(layout, extract_root) if layout else None
+        metabolism_dir = options.get("metabolism_dir") or (
+            self._detected_path(layout, extract_root, "metabolism") if layout else None
+        )
+        if not metabolism_dir and structures_dir:
+            metabolism_dir = str(Path(structures_dir).parent / "metabolism")
+        metabolism = detect_metabolism_inputs(metabolism_dir)
 
         self._line(report_lines, "")
         self._line(report_lines, "Detected usable inputs")
         self._line(report_lines, f"  structures: {structures_dir or '-'}")
+        self._line(
+            report_lines,
+            f"  metabolism: {metabolism['sbml'] + ' + ' + metabolism['network_sif'] if metabolism else '-'}",
+        )
         self._line(report_lines, f"  GBK/GBFF: {gbk_path or '-'}")
         self._line(report_lines, f"  LigQ_2: {ligq_dir or '-'}")
 
@@ -357,6 +408,17 @@ class Command(BaseCommand):
         )
         self._line(
             report_lines,
+            "  load_metabolism: "
+            + (
+                "skipped"
+                if options["skip_metabolism"] or not metabolism
+                else "will run"
+                if options["execute"]
+                else "would run"
+            ),
+        )
+        self._line(
+            report_lines,
             "  load_ligq_2_results: "
             + (
                 "skipped"
@@ -379,6 +441,7 @@ class Command(BaseCommand):
                 skip_uniprot_backfill=options["skip_uniprot_backfill"],
                 skip_experimental_fetch=options["skip_experimental_fetch"],
                 skip_pockets=options["skip_pockets"],
+                metabolism=None if options["skip_metabolism"] else metabolism,
                 skip_ligq=options["skip_ligq"],
                 report_lines=report_lines,
             )
@@ -532,6 +595,7 @@ class Command(BaseCommand):
         skip_uniprot_backfill,
         skip_experimental_fetch,
         skip_pockets=False,
+        metabolism=None,
         skip_ligq,
         report_lines,
     ):
@@ -577,6 +641,14 @@ class Command(BaseCommand):
                         "datadir": datadir,
                         "scope": "selected",
                     },
+                )
+            )
+        if metabolism:
+            steps.append(
+                (
+                    "load_metabolism",
+                    (genome,),
+                    {key: value for key, value in metabolism.items() if value},
                 )
             )
         if ligq_dir and not skip_ligq:

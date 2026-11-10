@@ -9,6 +9,7 @@ import os
 import tempfile
 import xml.etree.ElementTree as ET
 
+import pandas as pd
 from django.test import SimpleTestCase
 
 from tpweb.management.commands.load_metabolism import (
@@ -21,8 +22,12 @@ from tpweb.management.commands.load_metabolism import (
     _species_participants,
     _tag,
     _walk_gpr,
+    normalize_metrics_table,
     parse_network_sif,
+    parse_sbml,
+    sbml_chokepoint_roles,
 )
+from tpweb.models.Metabolism import GeneReactionLink
 
 
 def _gene_ref(gp_id):
@@ -188,3 +193,79 @@ class AnnotationResourcesTests(SimpleTestCase):
     def test_no_li_elements_yields_nothing(self):
         root = ET.Element("annotation")
         self.assertEqual(list(_annotation_resources(root)), [])
+
+
+COBRA_SBML = """<?xml version='1.0' encoding='utf-8'?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" level="3" version="2"
+      xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2">
+  <model id="m">
+    <listOfSpecies>
+      <species id="M_a_c0" name="A_c0" compartment="c0"/>
+      <species id="M_b_c0" name="B_c0" compartment="c0"/>
+      <species id="M_c_c0" name="C_c0" compartment="c0"/>
+    </listOfSpecies>
+    <listOfReactions>
+      <reaction id="R_rxn1_c0" name="A to B" reversible="false">
+        <listOfReactants><speciesReference species="M_a_c0" stoichiometry="1"/></listOfReactants>
+        <listOfProducts><speciesReference species="M_b_c0" stoichiometry="1"/></listOfProducts>
+        <fbc:geneProductAssociation><fbc:geneProductRef fbc:geneProduct="G_FQU82_00001"/></fbc:geneProductAssociation>
+      </reaction>
+      <reaction id="R_rxn2_c0" name="B to C" reversible="false">
+        <listOfReactants><speciesReference species="M_b_c0" stoichiometry="1"/></listOfReactants>
+        <listOfProducts><speciesReference species="M_c_c0" stoichiometry="1"/></listOfProducts>
+      </reaction>
+      <reaction id="R_rxn3_c0" name="A to C" reversible="false">
+        <listOfReactants><speciesReference species="M_a_c0" stoichiometry="1"/></listOfReactants>
+        <listOfProducts><speciesReference species="M_c_c0" stoichiometry="1"/></listOfProducts>
+      </reaction>
+    </listOfReactions>
+    <fbc:listOfGeneProducts>
+      <fbc:geneProduct fbc:id="G_FQU82_00001" fbc:label="G_FQU82_00001"/>
+    </fbc:listOfGeneProducts>
+  </model>
+</sbml>
+"""
+
+
+class CobraSbmlTests(SimpleTestCase):
+    """COBRA exports (SBML L3 version 2, R_/M_/G_ prefixes), e.g. iLP844."""
+
+    def setUp(self):
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".xml", delete=False, encoding="utf-8"
+        ) as f:
+            f.write(COBRA_SBML)
+            self.path = f.name
+        self.addCleanup(os.unlink, self.path)
+
+    def test_reads_version_2_reactions_by_unprefixed_id(self):
+        reactions, species = parse_sbml(self.path)
+
+        self.assertEqual(set(reactions), {"rxn1_c0", "rxn2_c0", "rxn3_c0"})
+        self.assertEqual(reactions["rxn1_c0"]["name"], "A to B")
+        self.assertEqual(reactions["rxn1_c0"]["genes"], {"FQU82_00001"})
+        self.assertEqual(reactions["rxn1_c0"]["reactants"], [("M_a_c0", 1.0)])
+        self.assertIn("M_b_c0", species)
+
+    def test_chokepoints_are_sole_producers_or_consumers(self):
+        reactions, _species = parse_sbml(self.path)
+
+        roles = sbml_chokepoint_roles(reactions)
+
+        # B: only rxn1 makes it, only rxn2 uses it.
+        self.assertEqual(roles["rxn1_c0"], GeneReactionLink.CHOKEPOINT_PRODUCING)
+        self.assertEqual(roles["rxn2_c0"], GeneReactionLink.CHOKEPOINT_CONSUMING)
+        self.assertNotIn("rxn3_c0", roles)
+
+    def test_currency_list_matches_prefixed_compartment_ids(self):
+        self.assertTrue(_is_currency_species("M_cpd00067_c0", "c0", {"CPD00067_C0"}))
+
+    def test_metrics_table_maps_onto_results_columns(self):
+        df = normalize_metrics_table(
+            pd.DataFrame(
+                {"locus_tag": ["FQU82_00001"], "Chokepoint": ["true"], "mgt_max_betweenness": [0.5]}
+            )
+        )
+
+        self.assertEqual(list(df["gene"]), ["FQU82_00001"])
+        self.assertEqual(list(df["PTOOLS_betweenness_centrality"]), [0.5])

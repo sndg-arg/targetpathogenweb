@@ -26,6 +26,7 @@ It supports:
 - optionally loading existing LigQ_2 binders;
 - running UniProt and experimental PDB backfill through existing commands;
 - loading the reviewed FPocket/P2Rank outputs (`import_gates_pocket_outputs --scope selected`, skip with `--skip-pockets`);
+- loading a reviewed `metabolism/` folder with `load_metabolism`: the SBML model, `metabolic_network_metrics.tsv` (Chokepoint, betweenness) and the latest `MGT_results_*/metabolic_network_filter.sif`, with `modularity_ubiquitous_filter.tsv` as currency list (skip with `--skip-metabolism`);
 - printing a final audit and safe resume command;
 - saving each UI validation/run as a `CuratedImportJob` with status, command, logs, report path, and retry metadata.
 

@@ -100,13 +100,19 @@ def _tag(elem):
     return elem.tag.split("}")[-1]
 
 
+def _strip_cobra_prefix(value, prefix):
+    """COBRA SBML ids carry a type prefix (G_ genes, R_ reactions, M_ metabolites)."""
+    value = value or ""
+    return value[len(prefix) :] if value.startswith(prefix) else value
+
+
 def _walk_gpr(elem, gene_products):
     """Return (set of locus tags, human-readable boolean expression string)."""
     tag = _tag(elem)
     if tag == "geneProductRef":
         gp_id = elem.get(f"{{{SBML_NS['fbc']}}}geneProduct")
         gp = gene_products.get(gp_id)
-        locus = gp["locus_tag"] if gp else gp_id
+        locus = gp["locus_tag"] if gp else _strip_cobra_prefix(gp_id, "G_")
         return {locus}, locus
     if tag in ("and", "or"):
         genes = set()
@@ -147,10 +153,10 @@ def _decode_sbml_id(raw_id):
     return re.sub(r"__(\d+)__", lambda m: chr(int(m.group(1))), raw_id)
 
 
-def _species_participants(elem):
+def _species_participants(elem, core_ns=SBML_NS["sbml"]):
     """Return list of (species_id, stoichiometry) from a <listOfReactants>/<listOfProducts>."""
     participants = []
-    for ref in elem.findall(f"{{{SBML_NS['sbml']}}}speciesReference"):
+    for ref in elem.findall(f"{{{core_ns}}}speciesReference"):
         species_id = ref.get("species")
         if not species_id:
             continue
@@ -168,6 +174,9 @@ def parse_sbml(sbml_path):
     compartment}})."""
     tree = ET.parse(sbml_path)
     root = tree.getroot()
+    # SBML L3 version 1 (MetaFlux) or version 2 (COBRA exports): read whichever
+    # core namespace the document declares.
+    core_ns = root.tag[1:].split("}", 1)[0] if root.tag.startswith("{") else SBML_NS["sbml"]
 
     gene_products = {}
     for gp in root.iterfind(f".//{{{SBML_NS['fbc']}}}geneProduct"):
@@ -175,12 +184,12 @@ def parse_sbml(sbml_path):
         label = gp.get(f"{{{SBML_NS['fbc']}}}label") or ""
         if gp_id and label:
             gene_products[gp_id] = {
-                "locus_tag": label,
+                "locus_tag": _strip_cobra_prefix(label, "G_"),
                 "gene_name": gp.get(f"{{{SBML_NS['fbc']}}}name") or "",
             }
 
     species = {}
-    for sp in root.iterfind(f".//{{{SBML_NS['sbml']}}}species"):
+    for sp in root.iterfind(f".//{{{core_ns}}}species"):
         species_id = sp.get("id")
         if not species_id:
             continue
@@ -190,8 +199,16 @@ def parse_sbml(sbml_path):
         }
 
     reactions = {}
-    for rxn in root.iterfind(f".//{{{SBML_NS['sbml']}}}reaction"):
-        reaction_id = rxn.get("name") or rxn.get("id")
+    for rxn in root.iterfind(f".//{{{core_ns}}}reaction"):
+        raw_id = rxn.get("id") or ""
+        if raw_id.startswith("R_"):
+            # COBRA ids (R_rxn00225_c0) are what MetaGraphTools' network.sif
+            # uses, minus the prefix; the name is a readable label.
+            reaction_id = raw_id[2:]
+            reaction_name = rxn.get("name") or reaction_id
+        else:
+            reaction_id = rxn.get("name") or raw_id
+            reaction_name = reaction_id
         if not reaction_id:
             continue
 
@@ -212,17 +229,17 @@ def parse_sbml(sbml_path):
             isoenzyme_count = _count_isoenzymes(gpa[0])
 
         reactants = []
-        list_of_reactants = rxn.find(f"{{{SBML_NS['sbml']}}}listOfReactants")
+        list_of_reactants = rxn.find(f"{{{core_ns}}}listOfReactants")
         if list_of_reactants is not None:
-            reactants = _species_participants(list_of_reactants)
+            reactants = _species_participants(list_of_reactants, core_ns)
 
         products = []
-        list_of_products = rxn.find(f"{{{SBML_NS['sbml']}}}listOfProducts")
+        list_of_products = rxn.find(f"{{{core_ns}}}listOfProducts")
         if list_of_products is not None:
-            products = _species_participants(list_of_products)
+            products = _species_participants(list_of_products, core_ns)
 
         reactions[reaction_id] = {
-            "name": reaction_id,
+            "name": reaction_name,
             "ec_numbers": ",".join(ec_numbers),
             "kegg_reaction_id": kegg_reaction_id,
             "reversible": (rxn.get("reversible") or "false").lower() == "true",
@@ -271,10 +288,72 @@ def load_currency_metabolite_set():
 def _is_currency_species(species_id, compartment, currency_set):
     if not currency_set:
         return False
-    decoded = _decode_sbml_id(species_id)
+    decoded = _strip_cobra_prefix(_decode_sbml_id(species_id), "M_")
+    # A list may name the compartment-specific id (cpd00067_c0) or the bare one.
+    if decoded.upper() in currency_set:
+        return True
     if compartment and decoded.upper().endswith("_" + compartment.upper()):
         decoded = decoded[: -(len(compartment) + 1)]
     return decoded.upper() in currency_set
+
+
+def load_currency_metabolite_file(path):
+    """Organism-specific currency list: first column of a TSV/text file, one id per line."""
+    ids = set()
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            value = line.strip().split("\t", 1)[0].strip()
+            if value and value.lower() not in {"metabolite", "metabolite_id"}:
+                ids.add(_strip_cobra_prefix(value, "M_").upper())
+    return ids
+
+
+def sbml_chokepoint_roles(reactions_by_id):
+    """{reaction_id: role} for reactions that are the only producer or the only
+    consumer of some metabolite (a reversible reaction does both)."""
+    producers = {}
+    consumers = {}
+    for reaction_id, data in reactions_by_id.items():
+        sides = [(data.get("products") or [], producers), (data.get("reactants") or [], consumers)]
+        if data.get("reversible"):
+            sides += [
+                (data.get("reactants") or [], producers),
+                (data.get("products") or [], consumers),
+            ]
+        for participants, index in sides:
+            for species_id, _stoichiometry in participants:
+                index.setdefault(species_id, set()).add(reaction_id)
+
+    producing = {next(iter(r)) for r in producers.values() if len(r) == 1}
+    consuming = {next(iter(r)) for r in consumers.values() if len(r) == 1}
+    roles = {}
+    for reaction_id in producing | consuming:
+        if reaction_id in producing and reaction_id in consuming:
+            roles[reaction_id] = GeneReactionLink.CHOKEPOINT_BOTH
+        elif reaction_id in producing:
+            roles[reaction_id] = GeneReactionLink.CHOKEPOINT_PRODUCING
+        else:
+            roles[reaction_id] = GeneReactionLink.CHOKEPOINT_CONSUMING
+    return roles
+
+
+def normalize_metrics_table(results_df):
+    """Accept a MetaGraphTools per-gene table (locus_tag, Chokepoint,
+    mgt_max_betweenness, ...) in place of the PTOOLS results TSV."""
+    if "gene" not in results_df.columns and "locus_tag" in results_df.columns:
+        results_df = results_df.rename(columns={"locus_tag": "gene"})
+    if (
+        "PTOOLS_betweenness_centrality" not in results_df.columns
+        and "mgt_max_betweenness" in results_df.columns
+    ):
+        results_df = results_df.assign(
+            PTOOLS_betweenness_centrality=results_df["mgt_max_betweenness"]
+        )
+    return results_df
+
+
+def _is_true(value):
+    return str(value).strip().lower() in {"true", "1", "yes", "y"}
 
 
 def _clean(value):
@@ -296,6 +375,12 @@ class Command(BaseCommand):
         parser.add_argument("--sbml", required=True, metavar="PATH")
         parser.add_argument("--metabolic-results-tsv", required=True, metavar="PATH")
         parser.add_argument("--network-sif", required=True, metavar="PATH")
+        parser.add_argument(
+            "--currency-metabolites",
+            default=None,
+            metavar="PATH",
+            help="Organism-specific currency/ubiquitous metabolite list (first column).",
+        )
         parser.add_argument("--overwrite", action="store_true")
         parser.add_argument("--dry-run", action="store_true")
         parser.add_argument(
@@ -336,7 +421,9 @@ class Command(BaseCommand):
         self.stdout.write(f"  {len(sif_edges)} edges across {len(sif_nodes)} nodes.")
 
         self.stdout.write(self.style.HTTP_INFO("Step 3/5 - Parsing results TSV ..."))
-        results_df = pd.read_csv(results_tsv, sep="\t", index_col=False, low_memory=False)
+        results_df = normalize_metrics_table(
+            pd.read_csv(results_tsv, sep="\t", index_col=False, low_memory=False)
+        )
         if "gene" not in results_df.columns:
             raise CommandError("Results TSV must have a 'gene' column with locus tags.")
 
@@ -360,7 +447,11 @@ class Command(BaseCommand):
                     "(requires internet access) to enable pathway membership."
                 )
             )
-        currency_set = load_currency_metabolite_set()
+        currency_set = (
+            load_currency_metabolite_file(options["currency_metabolites"])
+            if options.get("currency_metabolites")
+            else load_currency_metabolite_set()
+        )
 
         if overwrite:
             self.stdout.write(
@@ -379,6 +470,8 @@ class Command(BaseCommand):
             self._save_gene_links(proteome, reaction_objs, reactions_by_id)
             self._save_edges(genome_accession, reaction_objs, sif_edges)
             self._apply_chokepoints(proteome, reaction_objs, results_df)
+            if "Chokepoint" in results_df.columns:
+                self._apply_sbml_chokepoints(proteome, reaction_objs, reactions_by_id, results_df)
 
         self.stdout.write(self.style.HTTP_INFO("Step 5/5 - Writing metabolites/stoichiometry ..."))
         with transaction.atomic():
@@ -628,19 +721,41 @@ class Command(BaseCommand):
                     defaults={"chokepoint_role": role},
                 )
 
+    def _apply_sbml_chokepoints(self, proteome, reaction_objs, reactions_by_id, results_df):
+        """A per-gene Chokepoint flag (MetaGraphTools) names no reaction: mark the
+        flagged genes' reactions that are chokepoints by the model's stoichiometry."""
+        flagged = {
+            _clean(gene)
+            for gene, value in zip(results_df["gene"], results_df["Chokepoint"], strict=True)
+            if _clean(gene) and _is_true(value)
+        }
+        roles = sbml_chokepoint_roles(reactions_by_id)
+        marked = 0
+        for reaction_id, role in roles.items():
+            reaction_obj = reaction_objs.get(reaction_id)
+            if reaction_obj is None:
+                continue
+            marked += GeneReactionLink.objects.filter(
+                reaction=reaction_obj,
+                bioentry__biodatabase=proteome,
+                bioentry__accession__in=flagged,
+            ).update(chokepoint_role=role)
+        self.stdout.write(f"  Chokepoint links: {marked} (genes flagged: {len(flagged)})")
+
     def _load_scalar_scores(self, genome_name, results_df, overwrite):
         if "PTOOLS_betweenness_centrality" not in results_df.columns:
             return
 
         chokepoint_cols = [c for c in CHOKEPOINT_COLUMNS if c in results_df.columns]
-        is_chokepoint = (
-            results_df[chokepoint_cols].apply(
+        if "Chokepoint" in results_df.columns:
+            is_chokepoint = results_df["Chokepoint"].map(_is_true)
+        elif chokepoint_cols:
+            is_chokepoint = results_df[chokepoint_cols].apply(
                 lambda row: any(_clean(v) for v in row),
                 axis=1,
             )
-            if chokepoint_cols
-            else pd.Series(False, index=results_df.index)
-        )
+        else:
+            is_chokepoint = pd.Series(False, index=results_df.index)
 
         scores_df = pd.DataFrame(
             {
