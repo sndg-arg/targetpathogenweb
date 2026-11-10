@@ -29,8 +29,8 @@ no raw rem font sizes, no raw shadows, no page-local color aliases (`--blast-ink
   Data-viz palettes in JS read tones too (`success-ink`, `danger-ink`, `warning-ink`, `info-ink`).
 - **Spacing**: `--tp-space-1..8` = 4/8/12/16/20/24/32/40px for every padding/margin/gap (literal px only
   for <=3px nudges and rare >44px layout). The page inset is `--tp-space-5` (20px).
-- **Type**: families `--tp-font-{head,body,mono}`; sizes `--tp-font-size-{2xs .7, xs .78, sm .88,
-  md .98, lg 1.12, xl 1.28}rem` + `--tp-heading-{md,lg,xl}`; tracking `--tp-tracking-label` (uppercase
+- **Type**: families `--tp-font-{head,body,mono}`; sizes `--tp-font-size-{2xs .75, xs .82, sm .94,
+  md 1, lg 1.12, xl 1.28}rem` (bottom raised 2026-11-09 for legibility/screenshots; `text-soft` meets 4.5:1) + `--tp-heading-{md,lg,xl}`; tracking `--tp-tracking-label` (uppercase
   labels) / `--tp-tracking-tight` (display headings); weights only 400/500/600 (no 700, not loaded).
 - **Shadows**: `--tp-shadow-sm` (menus, tooltips, popovers) and `--tp-shadow-lg` (modals, drawers,
   FAB). In-flow content is flat. Focus = `--tp-focus-outline` (or `outline: 2px solid var(--tp-focus-color)`).
