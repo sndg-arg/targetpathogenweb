@@ -31,8 +31,6 @@ services:
       - ${TPW_FASTTARGET_DB_DIR:-/data/targetpathogen/fasttarget_db}:/app/fasttarget/databases
       - ${TPW_FASTTARGET_RUNTIME_DIR:-/data/targetpathogen/fasttarget_organism}:/app/fasttarget/organism
       - ${TPW_FASTTARGET_LOG_DIR:-/data/targetpathogen/fasttarget_logs}:/app/fasttarget/logs
-      - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/home/appuser/.ssh:ro
-      - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/root/.ssh:ro
       - ${TPW_COLABFOLD_DIR:-/opt/localcolabfold}:${TPW_COLABFOLD_MOUNT:-/opt/localcolabfold}:ro
       - ${TPW_P2RANK_DIR:-/data/targetpathogen/opt/p2rank}:/app/targetpathogenweb/opt/p2rank/distro:ro
     environment:

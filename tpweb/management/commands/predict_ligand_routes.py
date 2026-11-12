@@ -6,7 +6,7 @@ SLURM job against USPTO-50K and PaRoutes, copies the plans back and loads them
 with load_ligand_routes. match_ligand_reactions.py travels along, because the
 expander imports its SMILES handling.
 
-Usage (as root, which owns data/ and has the cluster SSH config mounted):
+Usage (in the queue container, the only one with the cluster SSH config mounted):
     python manage.py predict_ligand_routes [--dry-run] [--load-only]
 """
 

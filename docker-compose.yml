@@ -62,8 +62,6 @@ services:
       - ${TPW_FASTTARGET_DB_DIR:-./fasttarget/databases}:/app/fasttarget/databases
       - ${TPW_FASTTARGET_RUNTIME_DIR:-./data/fasttarget/organism}:/app/fasttarget/organism
       - ${TPW_FASTTARGET_LOG_DIR:-./data/fasttarget/logs}:/app/fasttarget/logs
-      - ${HOME}/.ssh:/home/appuser/.ssh:ro
-      - ${HOME}/.ssh:/root/.ssh:ro
     ports:
       - "${TPW_WEB_PORT_BIND:-8085}:8000"
     init: true

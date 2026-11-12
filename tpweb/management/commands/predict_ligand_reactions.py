@@ -5,7 +5,7 @@ in one SLURM job (RDKit from the LigQ_2 conda env) against USPTO-50K and
 PaRoutes, copies the matches back and loads them with load_ligand_reactions.
 The datasets live on the cluster (/storage, see docs/context/FEATURES.md).
 
-Usage (as root, which owns data/ and has the cluster SSH config mounted):
+Usage (in the queue container, the only one with the cluster SSH config mounted):
     python manage.py predict_ligand_reactions [--dry-run] [--load-only]
 """
 

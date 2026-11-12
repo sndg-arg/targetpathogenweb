@@ -241,7 +241,9 @@ def latest_pipeline_run_for_upload(upload_id):
     )
 
 
-def _scancel_remote_job(job_id):
+def scancel_remote_job(job_id):
+    """Only the queue container calls this: it is the one holding the
+    cluster SSH key (the public web container has none)."""
     ssh_host = str(os.getenv("SSH_HOSTNAME") or "").strip()
     ssh_user = str(os.getenv("SSH_USERNAME") or "").strip()
     if not ssh_host or not ssh_user or not job_id:
@@ -310,6 +312,10 @@ def terminate_launch_pid(pid):
 
 
 def cancel_pipeline_run(run):
+    """Marks the run cancelled. The queue worker running it watches for that
+    status and stops the orchestrator and its SLURM job
+    (genome_uploads.run_genome_upload_pipeline): the web container has no
+    cluster SSH key to scancel with."""
     PipelineRun, _ = _models()
     if run is None:
         return False
@@ -317,10 +323,6 @@ def cancel_pipeline_run(run):
     cancelled = terminate_launch_pid(getattr(run, "launch_pid", None))
 
     remote_job_id = str(getattr(run, "remote_job_id", "") or "").strip()
-    remote_cancelled = False
-    if remote_job_id:
-        remote_cancelled = _scancel_remote_job(remote_job_id)
-        cancelled = cancelled or remote_cancelled
 
     run.status = PipelineRun.STATUS_CANCELLED
     run.error_message = "Pipeline run cancelled."
@@ -335,10 +337,7 @@ def cancel_pipeline_run(run):
         app_name=run.current_app,
         task_id=run.current_task_id,
         status="failed",
-        message=(
-            "Pipeline run cancelled"
-            + (f"; remote job {remote_job_id} cancelled" if remote_cancelled else "")
-        ),
+        message="Pipeline run cancelled",
         payload={"remote_job_id": remote_job_id},
     )
     return cancelled
