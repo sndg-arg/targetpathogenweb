@@ -250,7 +250,15 @@ def scancel_remote_job(job_id):
         return False
 
     target = f"{ssh_user}@{ssh_host}"
-    command = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", target, f"scancel {job_id}"]
+    command = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10"]
+    # The ssh CLI reads ~/.ssh/config from the passwd home, not the $HOME
+    # start_queue.sh points paramiko at, so name the key explicitly.
+    key_file = os.path.expanduser(
+        str(os.getenv("SSH_KEY_FILENAME") or "").strip() or "~/.ssh/id_ed25519_agutson_cluster"
+    )
+    if os.path.isfile(key_file):
+        command += ["-i", key_file, "-o", "IdentitiesOnly=yes"]
+    command += [target, f"scancel {job_id}"]
     try:
         result = subprocess.run(command, capture_output=True, text=True, timeout=30)
     except subprocess.TimeoutExpired:
