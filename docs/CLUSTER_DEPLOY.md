@@ -272,8 +272,12 @@ ls -ln "${TPW_SSH_DIR:-/home/appuser/.ssh}"   # key files must be owned by $UID_
 sudo chown -R "$UID_APP:$UID_APP" /data/targetpathogen/data /data/targetpathogen/fasttarget_db \
   /data/targetpathogen/fasttarget_organism /data/targetpathogen/fasttarget_logs
 echo "TPW_QUEUE_USER=$UID_APP:$UID_APP" >> .env
+sed -i 's#^SSH_KEY_FILENAME=/root/#SSH_KEY_FILENAME=/home/appuser/#' .env   # appuser can't read /root
 make up ENV=cluster svc=queue
 ```
+
+`known_hosts` must hold the cluster's current key for both its name and its IP:
+OpenSSH 8.4 aborts silently in BatchMode when the IP entry is stale.
 
 Never chown the database volume.
 
