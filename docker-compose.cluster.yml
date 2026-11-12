@@ -157,7 +157,8 @@ services:
       - OPENAI_AGENT_ENABLED=${OPENAI_AGENT_ENABLED:-}
 
   queue:
-    user: "0:0"
+    # Root until the data dirs are chowned to appuser (docs/CLUSTER_DEPLOY.md, "Queue user").
+    user: "${TPW_QUEUE_USER:-0:0}"
     deploy:
       resources:
         limits:

@@ -255,6 +255,28 @@ sudo find /data/targetpathogen/data/uploads -maxdepth 1 -type f -size +500M -pri
 Avoid broad/deep `du` over `/data/targetpathogen`; it may traverse millions of
 files and appear hung. Prefer scoped `find` commands over known staging paths.
 
+## Container Privileges
+
+- No container mounts `/var/run/docker.sock` (root-equivalent on the host). The
+  socket stays `root:docker` 660.
+- Only the queue mounts the cluster SSH key; the public web container has none.
+
+### Queue user
+
+The queue runs as root until its data is owned by `appuser`. One-time switch,
+with no pipeline running:
+
+```bash
+UID_APP=$(docker compose exec -T web id -u)
+ls -ln "${TPW_SSH_DIR:-/home/appuser/.ssh}"   # key files must be owned by $UID_APP
+sudo chown -R "$UID_APP:$UID_APP" /data/targetpathogen/data /data/targetpathogen/fasttarget_db \
+  /data/targetpathogen/fasttarget_organism /data/targetpathogen/fasttarget_logs
+echo "TPW_QUEUE_USER=$UID_APP:$UID_APP" >> .env
+make up ENV=cluster svc=queue
+```
+
+Never chown the database volume.
+
 ## First-Time Cluster Setup
 
 Use this only for a fresh Nodo0 install.
