@@ -141,10 +141,9 @@ WORKDIR /app/targetpathogenweb
 
 ENV PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
 
-# Non-root user with Docker group access for DinD
-ARG DOCKER_GID=999
-RUN groupadd -g ${DOCKER_GID} docker || true \
-    && useradd -m -s /bin/bash -G docker appuser \
+# Non-root user for the web app. It gets no Docker socket: Docker access is
+# root on the host, so it would make any web bug a host compromise.
+RUN useradd -m -s /bin/bash appuser \
     && chown -R appuser:appuser /app
 
 USER appuser
