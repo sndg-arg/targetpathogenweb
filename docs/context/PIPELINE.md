@@ -46,4 +46,4 @@ public curated copy already has that evidence; the page reads it live. Metabolis
 `TPW_REUSE_IDENTICAL_EVIDENCE=0` recomputes everything.
 
 ## PSORTb
-On the cluster it runs remotely on SLURM (`TPW_PSORT_USE_REMOTE=1`, udocker). No container on Nodo0 mounts `/var/run/docker.sock` (it is root-equivalent on the host); only the local dev queue does, for `docker run psortb`. Has fallback to `tpweb_psort_fallback` management command when Docker is unavailable.
+On the cluster it runs remotely on SLURM (`TPW_PSORT_USE_REMOTE=1`, udocker). No container on Nodo0 mounts `/var/run/docker.sock` (it is root-equivalent on the host); only a local dev queue does, through `docker-compose.override.yml` (see the `.example`), for `docker run psortb`. Has fallback to `tpweb_psort_fallback` management command when Docker is unavailable.
