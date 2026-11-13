@@ -954,22 +954,6 @@
                 surfaceOpacity: 0.34
             });
 
-            const sequenceViewer = document.getElementById("protein-sequence-viewer");
-            if (sequenceViewer && typeof SeqView === "function" && proteinSequence) {
-                sequenceViewer.innerHTML = "";
-                var seq1 = new SeqView(proteinSequence);
-                seq1.render('#protein-sequence-viewer', {
-                    showLineNumbers: true,
-                    wrapAminoAcids: true,
-                    charsPerLine: FEATURE_VIEWER_CONFIG.charsPerLine,
-                    toolbar: false,
-                    search: false,
-                    title: '{{ protein.accession }}',
-                    sequenceMaxHeight: FEATURE_VIEWER_CONFIG.sequenceMaxHeightPx + "px",
-                    badge: true
-                });
-            }
-
             const copySequenceBtn = document.getElementById("copy-sequence-btn");
             if (copySequenceBtn && typeof proteinDetail.initCopyButton === "function") {
                 proteinDetail.initCopyButton(copySequenceBtn, function () {
