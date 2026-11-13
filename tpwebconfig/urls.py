@@ -36,7 +36,6 @@ urlpatterns = (
         path("", include("tpweb.urls")),
         path("human/", include("human_target.urls")),
         path("accounts/", include("allauth.urls")),
-        path("ckeditor/", include("ckeditor_uploader.urls")),
     ]
     if not settings.WORKERPROC
     else []

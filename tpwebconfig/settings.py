@@ -57,8 +57,6 @@ ALLAUTHAPPS = []
 if not WORKERPROC:
     THIRD_PARTY_APPS = THIRD_PARTY_APPS + [
         "corsheaders",
-        "ckeditor",
-        "ckeditor_uploader",
         #'crispy_forms',
     ]
 
@@ -224,8 +222,6 @@ STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
-CKEDITOR_UPLOAD_PATH = "uploads/"
-
 # Celery
 # ------------------------------------------------------------------------------
 if USE_TZ:
