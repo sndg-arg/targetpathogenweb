@@ -61,7 +61,8 @@
     }
 
     function post(form) {
-        return fetch(form.action, {
+        // getAttribute: the hidden <input name="action"> shadows form.action.
+        return fetch(form.getAttribute("action") || window.location.href, {
             method: "POST",
             body: new FormData(form),
             headers: HEADERS,
