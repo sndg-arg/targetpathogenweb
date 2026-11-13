@@ -18,43 +18,26 @@ Flow:
 
 import os
 import shlex
-import socket
 import subprocess
 import time
 from dataclasses import dataclass
 from datetime import datetime
 
-import paramiko
-from scp import SCPClient
-
-
-REMOTE_FAILURE_PREFIXES = (
-    "FAILED",
-    "CANCELLED",
-    "TIMEOUT",
-    "OUT_OF_MEMORY",
-    "NODE_FAIL",
+from identical_reuse import reusable_loci
+from slurm_remote_command import (
+    REMOTE_FAILURE_PREFIXES,
+    _assert_ssh_reachable,
+    _close_remote_session,
+    _config_text,
+    _env_int,
+    _env_text,
+    _exec_remote,
+    _open_remote_session,
+    _resolve_ssh_options,
 )
 
+
 LIGQ_EXCLUDED_LOCI_REPORT = "excluded_loci.tsv"
-
-
-def _env_int(name, default):
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    try:
-        return int(raw.strip())
-    except (TypeError, ValueError):
-        return default
-
-
-def _env_text(name, default=None):
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    text = str(raw).strip()
-    return text or default
 
 
 def _env_float(name, default):
@@ -65,51 +48,6 @@ def _env_float(name, default):
         return float(raw.strip())
     except (TypeError, ValueError):
         return default
-
-
-def _config_text(cfg_dict, section, option, default=None):
-    try:
-        value = cfg_dict.get(section, option, fallback=None)
-    except Exception:
-        value = None
-    text = str(value or "").strip()
-    return text or default
-
-
-def _resolve_ssh_options(host, user=None, port=22):
-    resolved = {"host": host, "user": user, "port": port, "key_filename": None}
-    config_path = os.path.expanduser("~/.ssh/config")
-    if not os.path.exists(config_path):
-        return resolved
-    try:
-        ssh_config = paramiko.SSHConfig()
-        with open(config_path, encoding="utf-8") as handle:
-            ssh_config.parse(handle)
-        entry = ssh_config.lookup(host)
-    except Exception:
-        return resolved
-    resolved["host"] = entry.get("hostname") or resolved["host"]
-    resolved["user"] = user or entry.get("user") or resolved["user"]
-    entry_port = entry.get("port")
-    if entry_port:
-        try:
-            resolved["port"] = int(entry_port)
-        except (TypeError, ValueError):
-            pass
-    identity_files = entry.get("identityfile") or []
-    if identity_files:
-        expanded = [os.path.expanduser(p) for p in identity_files]
-        resolved["key_filename"] = expanded if len(expanded) > 1 else expanded[0]
-    return resolved
-
-
-def _assert_ssh_reachable(host, port, timeout):
-    probe = socket.socket()
-    probe.settimeout(timeout)
-    try:
-        probe.connect((host, int(port or 22)))
-    finally:
-        probe.close()
 
 
 def _record_event(run_id_raw, *, stage_number, status, message, payload=None):
@@ -227,49 +165,6 @@ def _build_ligq_config(cfg_dict):
     )
 
 
-# ---------------------------------------------------------------------------
-# SSH helpers
-# ---------------------------------------------------------------------------
-
-
-def _open_remote_session(config):
-    ssh = paramiko.SSHClient()
-    ssh.load_system_host_keys()
-    ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
-    ssh.connect(
-        config.ssh_host,
-        port=config.ssh_port,
-        username=config.ssh_user,
-        password=config.ssh_password,
-        timeout=config.ssh_connect_timeout,
-        banner_timeout=config.ssh_connect_timeout,
-        auth_timeout=config.ssh_connect_timeout,
-        allow_agent=True,
-        look_for_keys=True,
-        key_filename=config.ssh_key_filename,
-    )
-    scp_client = SCPClient(ssh.get_transport())
-    sftp = ssh.open_sftp()
-    return ssh, scp_client, sftp
-
-
-def _close_remote_session(ssh, scp_client, sftp):
-    for handle in (scp_client, sftp, ssh):
-        if handle is not None:
-            try:
-                handle.close()
-            except Exception:
-                pass
-
-
-def _exec_remote(ssh, cmd):
-    stdin, stdout, stderr = ssh.exec_command(cmd)
-    exit_code = stdout.channel.recv_exit_status()
-    out = stdout.read().decode("utf-8", errors="replace").strip()
-    err = stderr.read().decode("utf-8", errors="replace").strip()
-    return exit_code, out, err
-
-
 def _filter_fasta_loci(path, excluded_loci):
     if not excluded_loci:
         return []
@@ -315,6 +210,21 @@ def _write_excluded_loci_report(local_ligq_dir, skipped_loci):
 
 
 def _build_slurm_script(config, remote_input, remote_output_dir, remote_workdir):
+    # Prefix environments are self-contained; some compute nodes (e.g. nodo1)
+    # do not mount the base Conda installation under /home/shared.
+    if config.conda_env.startswith("/"):
+        env_dir = config.conda_env.rstrip("/")
+        python = f"{env_dir}/bin/python"
+        setup = [
+            f'export PATH={shlex.quote(env_dir + "/bin")}:"$PATH"',
+            f"export CONDA_PREFIX={shlex.quote(env_dir)}",
+        ]
+    else:
+        python = "python"
+        setup = [
+            f"source {shlex.quote(config.conda_prefix + '/etc/profile.d/conda.sh')}",
+            f"conda activate {shlex.quote(config.conda_env)}",
+        ]
     return "\n".join(
         [
             "#!/bin/bash",
@@ -329,8 +239,7 @@ def _build_slurm_script(config, remote_input, remote_output_dir, remote_workdir)
             f"#SBATCH --chdir={remote_workdir}",
             "",
             "set -euo pipefail",
-            f'source "{config.conda_prefix}/etc/profile.d/conda.sh"',
-            f'conda activate "{config.conda_env}"',
+            *setup,
             f'mkdir -p "{remote_output_dir}"',
             'WORKDIR="$(mktemp -d -p /tmp ligq2_run.XXXXXX)"',
             'trap "rm -rf ${WORKDIR}" EXIT',
@@ -338,7 +247,7 @@ def _build_slurm_script(config, remote_input, remote_output_dir, remote_workdir)
             f'ln -s "{config.ligq_data_dir}" databases',
             'echo "[$(date)] starting LigQ_2"',
             (
-                f'python "{config.ligq_dir}/run_ligq_2.py" '
+                f'{shlex.quote(python)} "{config.ligq_dir}/run_ligq_2.py" '
                 f'--input-fasta "{remote_input}" '
                 f'--output-dir "{remote_output_dir}"'
             ),
@@ -379,12 +288,46 @@ def run_remote_ligq(cfg_dict, folder_path, genome):
             f"{len(skipped_loci)} problematic loci from FASTA: "
             f"{', '.join(skipped_loci)}"
         )
+    reused = reusable_loci(genome, "ligands")
+    if reused:
+        _filter_fasta_loci(local_fasta, reused)
+    with open(local_fasta, encoding="utf-8") as handle:
+        if not any(line.startswith(">") for line in handle):
+            print("LigQ_2 remote: every protein reuses an identical curated copy; nothing to run.")
+            return
 
+    job_id = run_ligq_job(config, local_fasta, local_ligq_dir, genome, run_id_raw=run_id_raw)
+
+    print("LigQ_2 remote: loading results into DB")
+    call_command(
+        "load_ligq_2_results",
+        local_output_dir,
+        max_known_per_protein=config.max_known_per_protein,
+        max_zinc_per_protein=config.max_zinc_per_protein,
+        min_tanimoto=config.min_tanimoto,
+    )
+
+    _record_event(
+        run_id_raw,
+        stage_number=24,
+        status="info",
+        message=f"LigQ_2 stage complete (job {job_id})",
+        payload={"job_id": job_id, "genome": genome},
+    )
+
+
+def run_ligq_job(config, local_fasta, local_ligq_dir, label, *, run_id_raw="", remove_remote=False):
+    """Run LigQ_2 on local_fasta in one SLURM job; output lands in <local_ligq_dir>/output.
+
+    Returns the SLURM job id. remove_remote deletes the remote workdir once the
+    output is copied back (bulk runs whose outputs would otherwise pile up).
+    """
+    local_output_dir = os.path.join(local_ligq_dir, "output")
     _assert_ssh_reachable(config.ssh_host, config.ssh_port, config.ssh_connect_timeout)
 
-    safe_genome = "".join(c if c.isalnum() or c in ("_", "-") else "_" for c in genome)
+    safe_label = "".join(c if c.isalnum() or c in ("_", "-") else "_" for c in label)
     run_label = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    remote_workdir = f"{config.ssh_rootfolder.rstrip('/')}/tpw_ligq/{safe_genome}_{run_label}"
+    remote_workdir = f"{config.ssh_rootfolder.rstrip('/')}/tpw_ligq/{safe_label}_{run_label}"
     remote_input = f"{remote_workdir}/proteins.fasta"
     remote_output_dir = f"{remote_workdir}/output"
     remote_slurm = f"{remote_workdir}/ligq_batch.slurm"
@@ -420,8 +363,8 @@ def run_remote_ligq(cfg_dict, folder_path, genome):
             run_id_raw,
             stage_number=24,
             status="info",
-            message=f"Submitted remote LigQ_2 job {job_id} for {genome}",
-            payload={"job_id": job_id, "remote_workdir": remote_workdir, "genome": genome},
+            message=f"Submitted remote LigQ_2 job {job_id} for {label}",
+            payload={"job_id": job_id, "remote_workdir": remote_workdir, "genome": label},
         )
 
         waited = 0
@@ -479,24 +422,11 @@ def run_remote_ligq(cfg_dict, folder_path, genome):
             check=True,
         )
         os.remove(local_tar)
-        _exec_remote(ssh, f"rm -f {shlex.quote(remote_tar)}")
-
-        print("LigQ_2 remote: loading results into DB")
-        call_command(
-            "load_ligq_2_results",
-            local_output_dir,
-            max_known_per_protein=config.max_known_per_protein,
-            max_zinc_per_protein=config.max_zinc_per_protein,
-            min_tanimoto=config.min_tanimoto,
-        )
-
-        _record_event(
-            run_id_raw,
-            stage_number=24,
-            status="info",
-            message=f"LigQ_2 stage complete (job {job_id})",
-            payload={"job_id": job_id, "genome": genome},
-        )
+        if remove_remote:
+            _exec_remote(ssh, f"rm -rf {shlex.quote(remote_workdir)}")
+        else:
+            _exec_remote(ssh, f"rm -f {shlex.quote(remote_tar)}")
+        return job_id
     finally:
         if not finished and job_id:
             try:

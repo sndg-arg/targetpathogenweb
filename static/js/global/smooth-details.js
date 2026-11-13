@@ -82,8 +82,13 @@
         });
     }
 
+    // For markup inserted after load (e.g. the overview's fetched rankings).
+    window.tpWireSmoothDetails = function (root) {
+        if (prefersReducedMotion || !root) return;
+        root.querySelectorAll(SELECTOR).forEach(wireSmoothDetails);
+    };
+
     document.addEventListener("DOMContentLoaded", function () {
-        if (prefersReducedMotion) return;
-        document.querySelectorAll(SELECTOR).forEach(wireSmoothDetails);
+        window.tpWireSmoothDetails(document);
     });
 }());

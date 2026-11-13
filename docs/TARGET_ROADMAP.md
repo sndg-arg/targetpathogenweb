@@ -235,7 +235,58 @@ Investigacion + fix de por que `/genome/<slug>` y `/protein/<id>` tardaban en ab
 - Proteina sin estructura (96 features): 0.42-0.50s, estable.
 - Indice en `ScoreParamValue.value` (considerado, no implementado): con estos tiempos no parece necesario. Queda en To Do por si vuelve a aparecer lentitud puntual en filtros de localizacion/druggability.
 
+### Memoria del asistente (chatbot), por sesion de navegador
+
+Persistencia server-side del historial del drawer, dividida en conversaciones multiples por sesion en vez de un solo hilo continuo de 7 dias sin cortes.
+
+**Incluye.**
+
+- Retencion fisica de 7 dias (`HISTORY_RETENTION`), corte automatico a conversacion nueva tras 45 min de inactividad o boton manual "Nueva conversacion".
+- Selector de conversaciones previas en el drawer: reabrir, renombrar, borrar (confirmacion inline, sin popup nativo).
+- Limpieza fisica via management command `clear_old_agent_chats` (sin Celery beat -- agendar por cron externo).
+- Resolucion de contexto (que genoma/proteina esta en foco) corregida para las vistas de estructura 3D y de binder, que antes nunca resolvian scope y dejaban al asistente sin poder responder preguntas de genoma/target ahi. Sugerencias del chat (Explain target, Audit evidence, Clear filters, Find selective targets) ahora se muestran solo en las paginas donde tienen sentido.
+
 ## En progreso
+
+### Auditoria de usabilidad (octubre 2026)
+
+Auditoria completa de la app desde el punto de vista de un biologo (codigo + recorrido en vivo,
+celular y modo oscuro). El resumen del target ahora nombra solo la evidencia que la proteina
+tiene y muestra el riesgo de microbioma; la tabla de proteinas ya no tapa off-target/esencialidad
+con "No structure" y oculta la columna Metabolism en genomas sin modelo; columnas, filtros y
+descripciones usan nombres legibles (sin Ptools, S Gene, Y/N, Gates, curated pipeline); GO y EC
+muestran el nombre del termino; el explorador tiene selector EC/GO; el ranking del genoma se
+muestra en puntos (x / 15); el asistente filtra "esenciales" como hit en DEG y aclara que sus
+listas no estan rankeadas. En celular se corrigieron Methodology, el visor 3D completo, el boton
+del asistente y se agrego el tema oscuro. Runs huerfanos sin upload se marcan fallados a las 24 h
+y gunicorn usa workers con hilos.
+
+Tambien: la tarjeta de evidencia de pockets dice de que estructura y pocket sale el valor de
+FPocket; la paleta de variables y las formulas base se filtran por los datos del genoma; no se
+puede lanzar un segundo run del mismo genoma (`manage.py cancel_pipeline_run <id>` libera uno
+colgado); roles y opciones de compartir sin "Gates" en Profile/Settings.
+
+Tambien (14/10): boton "Show this pocket" que cambia el visor de la ficha a la estructura del
+mejor pocket; Human Targets en la barra principal y barra compacta entre 992 y 1280 px; BLAST
+unico (nucleotido/proteina) con resultados en tabla linkeada; pagina "Uploaded data" por genoma
+con descarga TSV; explorador EC/GO carga solo esas anotaciones y se cachea; textos de Methodology,
+Home, asistente, ligandos y Human Targets sin jerga; htmx servido localmente; blastp exige el
+permiso de BLAST. El visor 3D embebido no estaba roto (carga al llegar a la seccion).
+Migracion 0093 con los cambios de modelo que faltaban; email de contacto (`TPW_CONTACT_EMAIL`)
+en todos los textos de acceso restringido.
+Upload oculto sin permiso; pasos "por donde empezar" en Home; pie de pagina con contacto;
+"Sign in/Sign out" en todo el sitio; el visor completo muestra la proteina; la pastilla de
+drogabilidad lleva a Binding-site evidence; tooltips de Lipinski, PAINS y descriptores.
+Formula activa en palabras y escala de cada variable en el constructor; Settings muestra y borra
+formulas; valores faltantes como "—"; Human Targets con nombre como titulo; Methodology empieza
+por "How to read the results"; About us con contacto; tooltips de alcance en Genomes.
+Decisiones (15/10): P2Rank es la senal principal de pocket (tambien en el ranking del genoma;
+FPocket suma solo si coincide o si no hay P2Rank), se llama "binding-site probability",
+localizacion sin colores de juicio, interfaz solo en ingles, gen core = Roary >= 99% de las cepas. About us suma "How to cite".
+
+**Pendiente para cerrar.**
+
+- Ficha de proteina lenta (10-38 s): medir consultas en Nodo0 y optimizar.
 
 ### Batch de pedidos de las biologas (6/08 + reporte previo)
 
@@ -290,12 +341,6 @@ Django/browser local en la sesion donde se implemento) y quedan 2-3 puntos sin a
 - Busqueda por secuencia de aminoacidos (blastp) embebida en la tabla de proteinas, reusando el
   indice proteico que el pipeline ya genera por genoma (stage 9) -- falta correr una busqueda
   real contra un genoma cargado.
-- Chatbot: persistencia de 7 dias por sesion de navegador (antes 0 persistencia real pese al
-  docstring "stateless"), modelo `AgentChatSession` nuevo keyeado por session key de Django (no
-  por usuario autenticado, ya que la app comparte una cuenta "public"). Cleanup via management
-  command `clear_old_agent_chats` (sin Celery beat -- agendar por cron externo). Falta correr
-  `python manage.py migrate` (migracion `0071_agentchatsession`) y probar en dos sesiones de
-  navegador distintas que no se mezclen los mensajes.
 - Boton "Open full pathway map" del grafo genome-wide: investigado a fondo, el codigo esta
   correctamente conectado para el tap sobre un nodo de pathway/cluster (para nodos de
   reaccion/metabolito el detalle es solo hover por diseño actual, sin boton ahi) -- no se
@@ -456,6 +501,14 @@ Permitir columnas custom por genoma o analisis.
 - Uso futuro en scores.
 - Validacion al importar.
 - Provenance de quien cargo cada columna.
+
+**Hecho (13/10).** Compartir por genoma al subir (solo yo / miembros del proyecto / todos los que ven
+el genoma; en genomas restringidos las dos ultimas son lo mismo), descripcion obligatoria al
+compartir, grupo "Shared by users" en Columns/Filters con autor, sin agregarse solo a la tabla.
+Settings permite cambiar visibilidad y borrar por genoma; borrar la saca para todos. Nombres
+repetidos: la columna propia gana y no se puede compartir un nombre ya compartido por otro.
+
+**Pendiente.** Pagina por genoma con los datos cargados por usuarios (detalle, descarga del TSV).
 
 ### Auditoria y migracion de funcionalidades del Target viejo
 

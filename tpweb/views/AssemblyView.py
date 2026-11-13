@@ -18,6 +18,9 @@ from tpweb.services.pipeline_status import (
     sanitize_pipeline_status_for_user,
 )
 from tpweb.services.assembly_workspace import (
+    EVIDENCE_CONVERGENCE_MAX_SCORE,
+    EVIDENCE_CONVERGENCE_MODERATE_MIN,
+    EVIDENCE_CONVERGENCE_STRONG_MIN,
     build_assembly_workspace_metrics,
     export_composite_ranking_rows,
     get_overview_target_rankings,
@@ -32,6 +35,13 @@ from tpweb.services.genome_workspace import (
 )
 from tpweb.services.genome_uploads import delete_genome_workspace, workspace_has_active_upload
 from tpweb.services.csv_exports import build_view_export_url, csv_response, xlsx_sections_response
+from tpweb.services.protein_list import (
+    EC_ANY_VALUE,
+    LIGAND_EVIDENCE_KINDS,
+    build_special_filter_payload,
+    protein_list_filter_url,
+    structure_source_filter_payload,
+)
 
 
 class AssemblyView(View):
@@ -78,9 +88,6 @@ class AssemblyView(View):
             "prop_rows": build_genome_metadata_rows(props),
         }
         workspace_metrics = build_assembly_workspace_metrics(biodb.name)
-        top_targets_by_score, unexplored_targets = get_overview_target_rankings(
-            biodb.name, request.user, limit=5
-        )
         overview = build_assembly_overview(
             request.user,
             biodb.name,
@@ -89,11 +96,14 @@ class AssemblyView(View):
             workspace_metrics=workspace_metrics,
         )
         slug = genome_url_slug(biodb.name)
+        proteins_url = reverse("tpwebapp:protein_list", kwargs={"genome": slug})
         workspace_links = {
-            "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": slug}),
+            "proteins_url": proteins_url,
             "metabolism_url": reverse("tpwebapp:genome_metabolism", kwargs={"genome": slug}),
             "custom_scores_url": reverse("tpwebapp:customparam", kwargs={"genome": slug}),
+            "uploaded_data_url": reverse("tpwebapp:uploaded_data", kwargs={"genome": slug}),
             "formula_url": reverse("tpwebapp:formula_form", kwargs={"genome": slug}),
+            "targets_url": reverse("tpwebapp:assembly_targets", kwargs={"genome": slug}),
             "ec_explorer_url": reverse(
                 "tpwebapp:annotation_explorer",
                 kwargs={"genome": slug, "annotation_kind": "ec"},
@@ -101,6 +111,23 @@ class AssemblyView(View):
             "blast_url": f"{reverse('tpwebapp:form')}?genome={biodb.name}",
             "protein_blast_url": reverse("tpwebapp:protein_blast", kwargs={"genome": slug}),
         }
+        # Each genome-page counter links to the proteins it counts: the link
+        # replaces the visitor's active filters with just that one.
+        filter_links = {
+            "all": protein_list_filter_url(proteins_url, []),
+            "ec_any": protein_list_filter_url(
+                proteins_url, [build_special_filter_payload("ec", EC_ANY_VALUE)]
+            ),
+        }
+        for source in ("any", "experimental", "alphafold", "colabfold"):
+            filter_links[f"structure_{source}"] = protein_list_filter_url(
+                proteins_url, [structure_source_filter_payload(source)]
+            )
+        for kind in LIGAND_EVIDENCE_KINDS:
+            filter_links[f"ligand_{kind}"] = protein_list_filter_url(
+                proteins_url, [build_special_filter_payload("ligands", kind)]
+            )
+        workspace_links["filters"] = filter_links
 
         media_root = Path(settings.MEDIA_ROOT)
         if not media_root.is_absolute():
@@ -137,8 +164,6 @@ class AssemblyView(View):
             "assembly": assembly,
             "overview": overview,
             "workspace_metrics": workspace_metrics,
-            "unexplored_targets": unexplored_targets,
-            "top_targets_by_score": top_targets_by_score,
             "workspace_links": workspace_links,
             "view_export_url": build_view_export_url(request),
             "jbrowse_url": jbrowse_url,
@@ -205,10 +230,11 @@ class AssemblyView(View):
                         [
                             "Structures loaded",
                             (
-                                f"{workspace_metrics.get('proteins_with_structure')} total "
-                                f"(Experimental {workspace_metrics.get('experimental_structures')}, "
-                                f"AlphaFold DB models {workspace_metrics.get('alphafold_structures')}, "
-                                f"ColabFold {workspace_metrics.get('colabfold_structures')})"
+                                f"{workspace_metrics.get('proteins_with_structure')} proteins "
+                                f"(PDB {workspace_metrics.get('experimental_entries')} entries on "
+                                f"{workspace_metrics.get('experimental_structures')} proteins, "
+                                f"AlphaFold DB {workspace_metrics.get('alphafold_proteins')}, "
+                                f"ColabFold {workspace_metrics.get('colabfold_proteins')})"
                             ),
                         ],
                         [
@@ -282,3 +308,36 @@ class AssemblyView(View):
         delete_genome_workspace(biodb.name, owner=request.user)
         genomes_url = reverse("tpwebapp:genomes_list")
         return redirect(f"{genomes_url}?workspace_deleted={quote_plus(expected_accession)}")
+
+
+class AssemblyTargetsView(View):
+    """The overview's two triage rankings, fetched by the overview once it is
+    shown: scoring every protein of the genome is the slow part of a cold
+    overview load. Same access rules as AssemblyView."""
+
+    template_name = "genomic/_overview_targets.html"
+
+    def get(self, request, genome, *args, **kwargs):
+        internal_name = resolve_genome_from_slug(request.user, genome)
+        if not internal_name:
+            raise Http404("Genome not found")
+        top_targets_by_score, unexplored_targets = get_overview_target_rankings(
+            internal_name, request.user, limit=5
+        )
+        slug = genome_url_slug(internal_name)
+        return render(
+            request,
+            self.template_name,
+            {
+                "top_targets_by_score": top_targets_by_score,
+                "unexplored_targets": unexplored_targets,
+                "triage_scoring": {
+                    "maximum": int(EVIDENCE_CONVERGENCE_MAX_SCORE),
+                    "strong_min": EVIDENCE_CONVERGENCE_STRONG_MIN,
+                    "moderate_min": EVIDENCE_CONVERGENCE_MODERATE_MIN,
+                },
+                "workspace_links": {
+                    "formula_url": reverse("tpwebapp:formula_form", kwargs={"genome": slug}),
+                },
+            },
+        )

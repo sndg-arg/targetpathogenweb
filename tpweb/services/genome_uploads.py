@@ -3,6 +3,7 @@ import signal
 import shlex
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from django.conf import settings
@@ -17,6 +18,7 @@ from tpweb.services.pipeline_runs import (
     cancel_pipeline_run,
     latest_pipeline_run_for_accession,
     latest_pipeline_run_for_upload,
+    scancel_remote_job,
 )
 
 
@@ -87,6 +89,8 @@ def _mark_upload_running(upload, process_pid, log_path):
 
 
 def _dataset_ready(internal_accession):
+    if not internal_accession:
+        return False
     return Biodatabase.objects.filter(name=internal_accession).exists()
 
 
@@ -237,26 +241,65 @@ def run_genome_upload_pipeline(upload):
             env=runtime["env"],
             start_new_session=True,
         )
+        started_at = timezone.now()
         _mark_upload_running(upload, process.pid, runtime["log_path"])
         timeout_seconds = _pipeline_timeout_seconds()
-        try:
-            returncode = process.wait(timeout=timeout_seconds)
-        except subprocess.TimeoutExpired:
-            error_message = (
-                f"Pipeline exceeded timeout of {timeout_seconds} seconds during genome processing."
-            )
+        deadline = time.monotonic() + timeout_seconds
+        remote_job_id = ""
+        returncode = None
+        while returncode is None:
+            try:
+                returncode = process.wait(timeout=CANCEL_POLL_SECONDS)
+                continue
+            except subprocess.TimeoutExpired:
+                pass
+            cancelled, remote_job_id = _cancel_requested(upload, started_at, remote_job_id)
+            if cancelled:
+                error_message = "Pipeline run cancelled."
+            elif time.monotonic() >= deadline:
+                error_message = f"Pipeline exceeded timeout of {timeout_seconds} seconds during genome processing."
+            else:
+                continue
             log_handle.write((error_message + "\n").encode("utf-8", errors="ignore"))
             log_handle.flush()
-            os.killpg(process.pid, signal.SIGTERM)
-            try:
-                returncode = process.wait(timeout=30)
-            except subprocess.TimeoutExpired:
-                os.killpg(process.pid, signal.SIGKILL)
-                returncode = process.wait(timeout=10)
+            returncode = _stop_process_group(process)
+            # The web container cancels by status only (it has no cluster
+            # SSH key); this worker does the scancel.
+            if cancelled and remote_job_id:
+                scancel_remote_job(remote_job_id)
     finally:
         log_handle.close()
 
     return _finalize_upload(upload, returncode, error_message=error_message)
+
+
+# How often the queue worker checks whether its running pipeline was cancelled.
+CANCEL_POLL_SECONDS = 15
+
+
+def _cancel_requested(upload, started_at, last_remote_job_id):
+    """(cancelled?, remote job id) for the run this worker started. A deleted
+    upload counts as cancelled; runs older than this launch (an earlier,
+    already-cancelled attempt) are ignored."""
+    if _upload_was_deleted(upload):
+        return True, last_remote_job_id
+    run = latest_pipeline_run_for_upload(upload.id)
+    if run is None or run.started_at < started_at:
+        return False, last_remote_job_id
+    remote_job_id = str(run.remote_job_id or "").strip() or last_remote_job_id
+    return run.status == run.STATUS_CANCELLED, remote_job_id
+
+
+def _stop_process_group(process):
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return process.wait()
+    try:
+        return process.wait(timeout=30)
+    except subprocess.TimeoutExpired:
+        os.killpg(process.pid, signal.SIGKILL)
+        return process.wait(timeout=10)
 
 
 def dequeue_next_genome_upload():
@@ -320,8 +363,11 @@ def delete_genome_workspace(internal_accession, owner=None):
     return deleted_uploads
 
 
-def clear_genome_upload_history(owner):
-    uploads = list(owner.genome_uploads.all())
+def clear_genome_upload_history(owner, statuses=None):
+    uploads = owner.genome_uploads.all()
+    if statuses is not None:
+        uploads = uploads.filter(status__in=statuses)
+    uploads = list(uploads)
     deleted_count = 0
 
     for upload in uploads:

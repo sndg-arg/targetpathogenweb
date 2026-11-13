@@ -45,15 +45,19 @@ def main() -> int:
     from django.test.utils import get_runner
 
     settings.MIGRATION_MODULES = DisableMigrations()
+    # Tests call cache.clear() and cache aggregates; on the cluster they run
+    # inside the live web container, so never let them reach its Redis.
+    settings.CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
     django.setup()
     runner_class = get_runner(settings)
     # interactive=False: this runs unattended (CI, `docker exec`, pre-push
     # hook) with no tty to answer Django's "drop and recreate?" prompt --
     # without it, a leftover test DB from a killed prior run hangs forever
-    # waiting on stdin. keepdb=True reuses that DB instead of dropping it,
-    # which is also just faster on repeat runs.
-    test_runner = runner_class(verbosity=2, interactive=False, keepdb=True)
-    failures = test_runner.run_tests(["tpweb"])
+    # waiting on stdin; non-interactive, Django drops and recreates it instead.
+    # No keepdb: with migrations disabled, a kept DB never gets new columns
+    # (every model change then failed hundreds of tests on a stale schema).
+    test_runner = runner_class(verbosity=2, interactive=False, keepdb=False)
+    failures = test_runner.run_tests(["tpweb", "human_target"])
     if failures:
         return 1
 

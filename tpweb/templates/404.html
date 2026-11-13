@@ -1,0 +1,42 @@
+{% extends "base/masterpage.html" %}
+{% load i18n %}
+
+{# Django renders this for any unknown address (DEBUG off). Same full-page #}
+{# message layout as the access-locked page; sends you home after a few seconds. #}
+{% block title %}{% trans "Page not found" %} · {% trans "Target Pathogen" %}{% endblock %}
+
+{% block body %}
+<div class="access-locked-page">
+    <div class="access-locked-panel">
+        <span class="access-locked-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
+        <span class="tp-view-eyebrow">{% trans "Error 404" %}</span>
+        <h1>{% trans "Page not found" %}</h1>
+        <p>{% trans "This address doesn't exist: it may be mistyped or the page may have moved." %}</p>
+        <p class="access-locked-status" id="not-found-countdown" data-seconds="8" aria-live="polite">{% trans "Taking you to the home page…" %}</p>
+        <div class="access-locked-actions">
+            <a class="btn tp-btn tp-btn--primary" href="{% url 'tpwebapp:index' %}">{% trans "Go to home" %}</a>
+            <a class="btn tp-btn tp-btn--secondary" href="{% url 'tpwebapp:genomes_list' %}">{% trans "Browse genomes" %}</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block jsloaded %}
+{{ block.super }}
+<script>
+    (function () {
+        var note = document.getElementById("not-found-countdown");
+        if (!note) return;
+        var left = parseInt(note.dataset.seconds, 10) || 8;
+        var home = "{% url 'tpwebapp:index' %}";
+        var label = "{% trans 'Taking you to the home page in' %}";
+        function tick() {
+            note.textContent = label + " " + left + " s";
+            if (left <= 0) { window.location.replace(home); return; }
+            left -= 1;
+            window.setTimeout(tick, 1000);
+        }
+        tick();
+    })();
+</script>
+{% endblock %}

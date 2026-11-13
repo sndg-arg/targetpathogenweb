@@ -1,0 +1,19 @@
+{% load i18n %}
+<li class="hcx-item">
+    <div class="hcx-head">
+        <span class="hcx-name">{{ cx.name }}</span>
+        <span class="hcx-meta">{% blocktrans count count=cx.subunits|length %}{{ count }} subunit{% plural %}{{ count }} subunits{% endblocktrans %}{% if cx.cell_line %} · {{ cx.cell_line }}{% endif %}{% if cx.methods %} · {{ cx.methods.0 }}{% endif %}{% if cx.pmid %} · <a href="https://pubmed.ncbi.nlm.nih.gov/{{ cx.pmid }}/" target="_blank" rel="noopener">PMID {{ cx.pmid }} <span aria-hidden="true">↗</span></a>{% endif %}</span>
+    </div>
+    <div class="tp-chip-group hcx-subunits">
+        {% for su in cx.subunits %}
+        {% if su.is_self %}
+        <span class="tp-chip hcx-self" title="{{ su.name }}" aria-current="true">{{ su.label }}</span>
+        {% elif su.is_known %}
+        <a class="tp-chip tp-chip--link" href="{% url 'human_target:human_protein' accession=su.accession %}" title="{{ su.name }}">{{ su.label }}</a>
+        {% else %}
+        <span class="tp-chip tp-chip--muted" title="{{ su.name }}{% if su.accession %} · {{ su.accession }}{% endif %}">{{ su.label }}</span>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% if cx.disease_comment %}<p class="human-text hcx-note">{{ cx.disease_comment }}</p>{% endif %}
+</li>

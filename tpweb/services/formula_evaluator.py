@@ -76,7 +76,7 @@ def safe_eval_expression(expr_str: str, variables: dict) -> float:
         if isinstance(node, ast.Expression):
             return _eval(node.body)
         if isinstance(node, ast.Constant):
-            if not isinstance(node.value, (int, float)):
+            if not isinstance(node.value, int | float):
                 raise ValueError("Only numeric literals are allowed")
             return float(node.value)
         if isinstance(node, ast.Name):
@@ -120,6 +120,15 @@ def safe_eval_expression(expr_str: str, variables: dict) -> float:
     return _eval(tree)
 
 
+class ZeroCache(dict):
+    """{variable: 0.0} plus the ids of the ScoreParams the user may read, so
+    build_expression_variables() can ignore everything else. A protein's
+    score_params include other users' private uploaded columns; without this a
+    formula that happened to name one would be scored with its values."""
+
+    visible_param_ids = None
+
+
 def build_all_options_zero(user=None):
     """Return {variable_name: 0.0} for every visible variable for *user*.
 
@@ -129,18 +138,19 @@ def build_all_options_zero(user=None):
     from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
     from django.db.models import Q
     from tpweb.services.score_param_types import is_numeric_score_param
-    from tpweb.services.workspace import resolve_workspace_user
+    from tpweb.services.score_params import score_param_visibility_filter
 
     if user is not None:
-        workspace_user = resolve_workspace_user(user)
-        param_visibility = Q(user__isnull=True) | Q(user=workspace_user)
-        option_visibility = Q(score_param__user__isnull=True) | Q(score_param__user=workspace_user)
+        param_visibility = score_param_visibility_filter(user)
+        option_visibility = Q(score_param__in=ScoreParam.objects.filter(param_visibility))
     else:
         param_visibility = Q(user__isnull=True)
         option_visibility = Q(score_param__user__isnull=True)
 
-    cache = {}
-    params = ScoreParam.objects.filter(param_visibility).order_by("category", "name", "id")
+    cache = ZeroCache()
+    params = list(ScoreParam.objects.filter(param_visibility).order_by("category", "name", "id"))
+    if user is not None:
+        cache.visible_param_ids = {param.pk for param in params}
     for param in params:
         if is_numeric_score_param(param):
             pk = normalize_var_name(param.name)
@@ -161,7 +171,10 @@ def build_expression_variables(protein, zero_cache: dict) -> dict:
     from tpweb.services.score_param_types import is_numeric_score_param
 
     variables = dict(zero_cache)
+    visible_param_ids = getattr(zero_cache, "visible_param_ids", None)
     for spv in protein.score_params.all():
+        if visible_param_ids is not None and spv.score_param_id not in visible_param_ids:
+            continue
         pk = normalize_var_name(spv.score_param.name)
         if not pk:
             continue
@@ -189,8 +202,33 @@ def _is_numeric_option(name: str) -> bool:
         return False
 
 
+def numeric_variable_scale(param_name):
+    """Short scale hint for a numeric palette variable ("%", "0–1", "count",
+    "e-value") so the builder shows that variables live on very different
+    scales -- summing a 0-100 identity with a 0.001 centrality silently lets
+    one dominate. Empty when unknown."""
+    from tpweb.services.protein_list import humanize_identifier
+
+    name = str(param_name or "").lower()
+    label = humanize_identifier(param_name) or ""
+    if "evalue" in name or "e-value" in label.lower():
+        return "e-value"
+    if "(%)" in label or "identity" in name:
+        return "%"
+    if "0–100" in label or "plddt" in name:
+        return "0–100"
+    if "0–1" in label or "probability" in name or name.endswith("_norm"):
+        return "0–1"
+    if name.startswith("n_") or "count" in name or "edges" in name or "analyzed" in name:
+        return "count"
+    return ""
+
+
 def available_variables_grouped(
-    user=None, max_categorical_options=FORMULA_PALETTE_MAX_CATEGORICAL_OPTIONS
+    user=None,
+    max_categorical_options=FORMULA_PALETTE_MAX_CATEGORICAL_OPTIONS,
+    genome_param_names=None,
+    hidden=None,
 ):
     """Return variables grouped by ScoreParam category for the UI palette.
 
@@ -200,14 +238,12 @@ def available_variables_grouped(
     are useful as filters but make the formula builder unusable.
     """
     from tpweb.models.ScoreParam import ScoreParam
-    from django.db.models import Q
     from tpweb.services.score_param_types import is_numeric_score_param
-    from tpweb.services.workspace import resolve_workspace_user
+    from tpweb.services.score_params import score_param_visibility_filter
 
     if user is not None:
-        workspace_user = resolve_workspace_user(user)
         param_qs = (
-            ScoreParam.objects.filter(Q(user__isnull=True) | Q(user=workspace_user))
+            ScoreParam.objects.filter(score_param_visibility_filter(user))
             .prefetch_related("choices")
             .order_by("category", "name")
         )
@@ -220,12 +256,24 @@ def available_variables_grouped(
 
     groups = {}
     for param in param_qs:
+        # genome_param_names (see score_params.genome_score_param_names): only
+        # offer variables this genome actually has values for.
+        if genome_param_names is not None and param.name not in genome_param_names:
+            continue
         cat = param.category or "Other"
         pname = normalize_var_name(param.name)
         if is_numeric_score_param(param):
             if pname:
                 desc = param.description or f"{param.name} raw numeric value"
-                groups.setdefault(cat, []).append({"var": pname, "desc": desc, "kind": "numeric"})
+                groups.setdefault(cat, []).append(
+                    {
+                        "var": pname,
+                        "desc": desc,
+                        "kind": "numeric",
+                        "param": param.name,
+                        "scale": numeric_variable_scale(param.name),
+                    }
+                )
             continue
         if not pname:
             continue
@@ -237,12 +285,36 @@ def available_variables_grouped(
             if vname:
                 palette_options.append((opt, vname))
         if len(palette_options) > max_categorical_options:
+            # Pass a list as `hidden` to learn what was left out, so the page
+            # can say so instead of the column silently missing.
+            if hidden is not None:
+                hidden.append(
+                    {"param": param.name, "category": cat, "options": len(palette_options)}
+                )
             continue
         for opt, vname in palette_options:
             var = f"{pname}_{vname}"
             desc = opt.description or f"{param.name} = {opt.name}"
-            groups.setdefault(cat, []).append({"var": var, "desc": desc, "kind": "categorical"})
+            groups.setdefault(cat, []).append(
+                {"var": var, "desc": desc, "kind": "categorical", "param": param.name}
+            )
     return groups
+
+
+def formula_uses_missing_params(formula, genome_param_names, var_to_param):
+    """True if `formula` relies on a ScoreParam with no values in this genome.
+
+    Expression formulas are checked token by token against the palette's
+    variable -> param map (`var_to_param`, from available_variables_grouped);
+    term-based formulas against their terms' params directly."""
+    expression = (getattr(formula, "expression", "") or "").strip()
+    if expression:
+        for token in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", expression):
+            param_name = var_to_param.get(token.lower())
+            if param_name and param_name not in genome_param_names:
+                return True
+        return False
+    return any(term.score_param.name not in genome_param_names for term in formula.terms.all())
 
 
 def validate_expression_syntax(expr_str: str, user=None) -> dict:

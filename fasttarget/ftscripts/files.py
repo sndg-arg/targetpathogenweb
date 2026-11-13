@@ -6,18 +6,18 @@ import logging
 import math
 
 def file_to_list(file_path):
-    
+
     """
     Read a text file and return a list with each line as an element.
 
     :param file_path: The name of the text file to read from.
 
     :return: List with each line as an element.
-    
+
     """
-    
+
     my_list = []
-    
+
     try:
         with open(file_path, 'r') as file:
             my_list = [line.strip() for line in file]
@@ -62,10 +62,10 @@ def file_check(file_path):
         else:
             # Check if the file is empty
             if os.path.getsize(file_path) > 0:
-                file_res = True   
+                file_res = True
             else:
                 file_res = False
-                
+
     return file_res
 
 def json_to_dict (file_path):
@@ -132,7 +132,7 @@ def dict_to_json(output_path, file_name, my_dict):
         return obj
 
     full_path = os.path.join(output_path, file_name)
-    
+
     if os.path.exists(output_path):
         with open(full_path, 'w') as file:
             json.dump(_sanitize_for_json(my_dict), file, allow_nan=False)
@@ -143,8 +143,8 @@ def dict_to_json(output_path, file_name, my_dict):
 def create_organism_subfolders(output_path, organism_name):
 
     """
-    Create subfolders for an organism. 
-    
+    Create subfolders for an organism.
+
     :param output_path: Output path where the organism folder will be created.
     :param organism_names: Name of the organism.
     """
@@ -153,7 +153,7 @@ def create_organism_subfolders(output_path, organism_name):
     if not os.path.exists(organism_dir):
         os.makedirs(organism_dir, exist_ok=True)
         print(f'Created directory: {organism_dir}')
-    
+
     list_dir = ['offtarget', 'metabolism', 'structures', 'essentiality', 'conservation', 'metadata', 'genome', 'localization']
     # Subfolders
     for dir in list_dir:
@@ -198,7 +198,29 @@ def read_blast_output(file_path, len=False):
 
         blast_output_df.columns = blast_columns
 
+        # BLAST's tabular writer has occasionally been observed to drop a
+        # tab between two fields (e.g. sseqid running into pident), which
+        # shifts every later column on that one row and leaves a numeric
+        # column holding a string for that row alone -- invisible until
+        # something downstream compares it against a real float and raises
+        # TypeError. Coerce the numeric columns and drop any row that
+        # doesn't parse cleanly rather than letting one malformed line (out
+        # of what's typically tens of thousands) take down the whole run.
+        # NOTE: this function's own `len` parameter (above) shadows the
+        # builtin -- use .shape[0], not len(...), for the rest of this scope.
+        numeric_columns = [c for c in blast_columns if c not in ("qseqid", "sseqid")]
+        before = blast_output_df.shape[0]
+        for col in numeric_columns:
+            blast_output_df[col] = pd.to_numeric(blast_output_df[col], errors="coerce")
+        blast_output_df = blast_output_df.dropna(subset=numeric_columns)
+        dropped = before - blast_output_df.shape[0]
+        if dropped:
+            logging.warning(
+                f"Dropped {dropped} malformed row(s) from {file_path} "
+                f"(non-numeric value in a numeric BLAST column)"
+            )
+
         return blast_output_df
-    
+
     else:
         print(f'File {file_path} not found.')

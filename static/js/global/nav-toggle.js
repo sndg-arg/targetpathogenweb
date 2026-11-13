@@ -1,11 +1,16 @@
 /* Mobile topbar nav -- present on every page (loaded directly from masterpage.html,
  * matching the existing plain-script convention used by agent-drawer.js/protein-detail.js).
  *
- * The topbar's hamburger + user dropdown use Bootstrap 4's data-toggle="collapse"/"dropdown"
- * markup, but only Bootstrap's CSS is loaded (no bundle JS, no Popper, no jQuery anywhere in
- * this codebase) -- so those buttons need their own minimal toggle. Bootstrap's CSS already
- * defines `.collapse.show { display: block }` / `.dropdown-menu.show { display: block }`; this
- * script only has to flip that class, not reimplement Bootstrap's JS behavior.
+ * bundle.js still `import 'bootstrap'`s the real jQuery Collapse/Dropdown plugins (other
+ * pages use jQuery for DataTables etc.), which auto-bind to any data-toggle="collapse"/
+ * "dropdown" element on the page. This hamburger button and the mobile user-dropdown
+ * deliberately omit that attribute in masterpage.html so this script is the ONLY thing
+ * wired to them -- leaving it in let Bootstrap's real plugin also react to the same click
+ * and immediately reverse whatever this script had just done ("menu opens then instantly
+ * closes"). Only matched via data-target/the #user_dropdown id here, not data-toggle.
+ * Bootstrap's CSS already defines `.collapse.show { display: block }` /
+ * `.dropdown-menu.show { display: block }`; this script only has to flip that class, not
+ * reimplement Bootstrap's JS behavior.
  */
 (function () {
     "use strict";

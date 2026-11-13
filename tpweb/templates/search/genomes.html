@@ -1,40 +1,39 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
 {% load custom_tags %}
+{% load genome_tags %}
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260804-fusion4">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20261109-noask">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes %}
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}
 
-    <div class="genomes-page">
-        <section class="genomes-hero">
+    <div class="genomes-page" data-motion>
+        <section class="tp-page-hero genomes-hero">
             <div class="tp-view-head">
                 <div class="tp-view-head-copy">
-                    {% trans "Genomes" as crumb_genomes %}
-                    {% url 'tpwebapp:index' as index_url %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes %}
-                </div>
-                <div class="tp-view-head-actions">
-                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
-                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
-                        {% trans "Export view" %}
-                    </a>
-                </div>
-            </div>
-            <span class="genomes-eyebrow">{% trans "Genome collection" %}</span>
-            <div class="genomes-hero-head">
-                <div class="genomes-hero-copy">
-                    <h1>{% trans "Genomes" %}</h1>
+                    <span class="tp-view-eyebrow">{% trans "Genome collection" %}</span>
+                    <h1 class="tp-view-title">{% trans "Genomes" %}</h1>
                     {% if genomes or has_search %}
-                        <p class="genomes-subtitle">{% trans "Open a genome to inspect proteins, annotations, and structural evidence." %}</p>
+                        <p class="tp-view-lead genomes-subtitle">{% trans "Open a genome to inspect proteins, annotations, and structural evidence." %}</p>
                     {% else %}
-                        <p class="genomes-subtitle">{% trans "Upload the first genome to start exploring proteins, annotations, and structures." %}</p>
+                        <p class="tp-view-lead genomes-subtitle">{% trans "Upload the first genome to start exploring proteins, annotations, and structures." %}</p>
                     {% endif %}
                 </div>
-                {% if genomes or has_search %}
+                <div class="tp-view-head-actions">
+                    {% if perms.tpweb.can_upload_genome and genomes or perms.tpweb.can_upload_genome and has_search %}
                     <a class="btn tp-btn tp-btn--primary tp-btn-with-icon genomes-upload-btn" href="{% url 'tpwebapp:genome_upload' %}">
                         <span class="tp-btn-icon" aria-hidden="true">
                             {% include "components/icons/plus.html" %}
@@ -42,20 +41,34 @@
                         {% trans "Upload genome" %}
                     </a>
                 {% endif %}
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--secondary tp-btn-with-icon tp-view-export-link">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                        {% trans "Download Excel summary" %}
+                    </a>
+                </div>
             </div>
             {% if pipeline_status.running and not pipeline_status.running_for_other_workspace %}
                 <div class="genomes-pipeline">
-                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="global" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
-                    {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="global" note_class="genomes-pipeline-note" %}
+                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="global" chip_class="tp-chip tp-chip--state" %}
                 </div>
             {% endif %}
             <div class="genomes-meta" role="list" aria-label="{% trans "Genome summary" %}">
-                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_genomes }} {% trans "genomes" %}</span>
-                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_proteins }} {% trans "proteins" %}</span>
-                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_experimental }} {% trans "loaded experimental structures" %}</span>
-                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_pdb_xrefs }} {% trans "PDB xrefs" %}</span>
-                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_ec_annotated }} {% trans "EC-annotated proteins" %}</span>
+                <span class="genomes-meta-chip tp-chip" role="listitem">{% blocktrans count total=total_genomes %}{{ total }} genome{% plural %}{{ total }} genomes{% endblocktrans %}</span>
+                <span class="genomes-meta-chip tp-chip" role="listitem">{{ total_proteins|thousands }} {% trans "proteins" %}</span>
+                <span class="genomes-meta-chip tp-chip" role="listitem" title="{% trans 'Experimental 3D structures downloaded from the PDB and shown in the viewer.' %}">{{ total_experimental|thousands }} {% trans "experimental structures downloaded" %}</span>
+                <span class="genomes-meta-chip tp-chip" role="listitem" title="{% trans 'PDB entries that UniProt lists for these proteins, whether or not they were downloaded.' %}">{{ total_pdb_xrefs|thousands }} {% trans "PDB entries cited by UniProt" %}</span>
+                <span class="genomes-meta-chip tp-chip" role="listitem">{{ total_ec_annotated|thousands }} {% trans "EC-annotated proteins" %}</span>
             </div>
+            {% if hidden_restricted_count %}
+                <p class="genomes-restricted-note">
+                    {% blocktrans count total=hidden_restricted_count %}{{ total }} more genome belongs to a collaborative project and is only visible to collaborator accounts.{% plural %}{{ total }} more genomes belong to collaborative projects and are only visible to collaborator accounts.{% endblocktrans %}
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'account_login' %}?next={{ request.path|urlencode }}">{% trans "Sign in" %}</a> {% trans "and request access to see them." %}
+                    {% elif user.wants_collaborator_access %}
+                        {% trans "You requested access; an administrator will review it." %}
+                    {% endif %}
+                </p>
+            {% endif %}
         </section>
 
         {% if workspace_deleted %}
@@ -97,60 +110,63 @@
                     </div>
                 </div>
                     <div class="tp-table-shell">
-                        <table class="table table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium"
+                        <table class="table mb-0 tp-table"
                                data-export-url="{{ export_url }}"
                                data-export-title="{% trans 'Genomes' %}">
                             <thead>
                             <tr>
-                                <th>{% trans "Name" %}</th>
-                                <th class="genomes-scope-head">{% trans "Scope" %}</th>
-                                <th>{% trans "Description" %}</th>
-                                {% for col,name in tcolumns.items %}
-                                    <th class="genome-metric-head">{{ name }}</th>
-                                {% endfor %}
-                                <th class="genome-actions-head">{% trans "Actions" %}</th>
+                                <th>{% trans "Genome" %}</th>
+                                <th class="genome-metric-head" title="{% trans 'Proteins loaded for this genome' %}">{% trans "Proteins" %}</th>
+                                <th class="genome-metric-head" title="{% trans 'Proteins with a 3D structure: experimental (PDB), AlphaFold DB or ColabFold' %}">{% trans "With 3D structure" %}</th>
+                                <th class="genome-metric-head" title="{% trans 'Proteins with a high-scoring pocket: P2Rank probability ≥ 0.5, or FPocket druggability ≥ 0.4 when P2Rank has no score' %}">{% trans "Druggable pocket" %}</th>
+                                <th class="genome-metric-head" title="{% trans 'Proteins with a known ligand: a PDB complex or ChEMBL bioactivity for the protein itself' %}">{% trans "Known ligand" %}</th>
+                                {% if show_essential %}<th class="genome-metric-head" title="{% trans 'Proteins with a homolog in the Database of Essential Genes (DEG)' %}">{% trans "Essential" %}</th>{% endif %}
+                                <th class="genome-go-head"><span class="sr-only">{% trans "Proteins" %}</span></th>
                             </tr>
                             </thead>
                             <tbody>
                             {% for genome in genomes %}
+                                {% with g=genome.internal_name|genome_info %}
                                 <tr class="genome-row {% if pipeline_status.running and pipeline_status.genome_accession == genome.internal_name %}is-processing{% endif %}{% if genome.failed_for_current_genome %} is-failed{% elif genome.incomplete_for_current_genome %} is-incomplete{% endif %}"
                                     tabindex="0"
                                     data-assembly-url="{% url 'tpwebapp:assembly' genome.slug %}">
                                     <td class="genomes-name">
-                                        <div class="genomes-name-stack">
-                                            <div class="genomes-name-main">
-                                                <a href="{% url 'tpwebapp:assembly' genome.slug %}">{{ genome.name }}</a>
-                                                {% if pipeline_status.running and pipeline_status.genome_accession == genome.internal_name %}
-                                                    <span class="genome-processing-badge">{% trans "In progress" %}</span>
-                                                {% elif genome.failed_for_current_genome %}
-                                                    <span class="genome-status-badge genome-status-badge--failed">{% trans "Failed" %}</span>
-                                                {% elif genome.incomplete_for_current_genome %}
-                                                    <span class="genome-status-badge genome-status-badge--incomplete">{% trans "Incomplete" %}</span>
-                                                {% endif %}
-                                            </div>
-                                            {% if genome.has_curated_data %}
-                                                <span class="tp-chip tp-chip--state finished tp-chip--sm genome-curated-badge">{% trans "Curated" %}</span>
+                                        <div class="genomes-name-main">
+                                            <a href="{% url 'tpwebapp:assembly' genome.slug %}" title="{{ genome.description }}">{% if g.organism %}<span class="tp-binomial">{{ g.organism }}</span>{% if g.strain %} ({{ g.strain }}){% endif %}{% else %}{{ genome.name }}{% endif %}</a>
+                                            {% if pipeline_status.running and pipeline_status.genome_accession == genome.internal_name %}
+                                                <span class="tp-chip tp-chip--state running">{% trans "In progress" %}</span>
+                                            {% elif genome.curated_import_running %}
+                                                <span class="tp-chip tp-chip--state running" title="{% trans 'Curated results are still being imported; counts will grow until it finishes.' %}">{% trans "Importing" %}{% if genome.curated_import_phase and genome.curated_import_phase != "running" and genome.curated_import_phase != "starting" %} · {{ genome.curated_import_phase }}{% endif %}</span>
+                                            {% elif genome.failed_for_current_genome %}
+                                                <span class="tp-chip tp-chip--state failed">{% trans "Failed" %}</span>
+                                            {% elif genome.incomplete_for_current_genome %}
+                                                <span class="tp-chip tp-chip--warning">{% trans "Incomplete" %}</span>
                                             {% endif %}
                                         </div>
+                                        <p class="genomes-meta">
+                                            {% if g.accession %}<code class="genomes-meta-item">{{ g.accession }}</code>{% endif %}
+                                            {% if genome.has_curated_data %}<span class="genomes-meta-item genomes-meta-curated" title="{% trans 'Includes expert-reviewed results imported from outside the pipeline.' %}">{% trans "Curated" %}</span>{% endif %}
+                                            {% if genome.is_restricted %}<span class="genomes-meta-item" title="{% if gates_viewer %}{% trans 'Only visible to Gates members.' %}{% else %}{% trans 'Only visible to project members.' %}{% endif %}">{% trans "Restricted" %}</span>{% endif %}
+                                            {% if genome.workspace_scope_key == 'personal' %}<span class="genomes-meta-item" title="{% trans 'You uploaded this genome; only you can see it.' %}">{% trans "Private" %}</span>{% endif %}
+                                        </p>
                                         {% if genome.current_genome_status_note %}
                                             <p class="genome-status-note{% if genome.failed_for_current_genome %} genome-status-note--failed{% else %} genome-status-note--incomplete{% endif %}">{{ genome.current_genome_status_note }}</p>
                                         {% endif %}
                                     </td>
-                                    <td class="genomes-scope-cell">
-                                        <span class="tp-chip tp-chip--sm {% if genome.workspace_scope_key == 'personal' %}tp-chip--state finished{% else %}tp-chip--meta{% endif %}">
-                                            {{ genome.workspace_scope_label }}
-                                        </span>
-                                    </td>
-                                    <td>{{ genome.description }}</td>
-                                    {% for col in tcolumns %}
-                                        <td class="genome-metric-cell">{{ genome|dictkey:col|default_if_none:"-" }}</td>
-                                    {% endfor %}
-                                    <td class="genome-actions-cell">
-                                        <div class="genome-actions-inline">
-                                            <a href="{% url 'tpwebapp:protein_list' genome.slug %}" class="btn tp-btn tp-btn--outline btn-sm">{% trans "Proteins" %}</a>
-                                        </div>
+                                    {% with t=genome.targets %}
+                                    <td class="genome-metric-cell">{{ genome.COUNT_CDS|default_if_none:"—"|thousands }}</td>
+                                    <td class="genome-metric-cell" title="{% if t.total_proteins %}{{ t.structure_coverage_pct }}% {% trans 'of its proteins' %}{% endif %}">{{ t.proteins_with_structure|default_if_none:"—"|thousands }}</td>
+                                    <td class="genome-metric-cell">{{ t.druggable_proteins|default_if_none:"—"|thousands }}</td>
+                                    <td class="genome-metric-cell">{{ t.proteins_with_direct_binders|default_if_none:"—"|thousands }}</td>
+                                    {% if show_essential %}<td class="genome-metric-cell">{% if t.has_essentiality_data %}{{ t.essential_proteins|thousands }}{% else %}<span class="genome-metric-missing" title="{% trans 'No essentiality data for this genome' %}">—</span>{% endif %}</td>{% endif %}
+                                    {% endwith %}
+                                    <td class="genome-go-cell">
+                                        <a href="{% url 'tpwebapp:protein_list' genome.slug %}" class="genomes-go" title="{% trans 'Explore proteins' %}">
+                                            {% trans "Proteins" %}<span class="genomes-go-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                                        </a>
                                     </td>
                                 </tr>
+                                {% endwith %}
                             {% endfor %}
                             </tbody>
                         </table>
@@ -162,18 +178,19 @@
                 {% if has_search %}
                     <p class="tp-state-note tp-state-note--empty mb-0">{% trans "No genomes match the current search." %}</p>
                 {% else %}
-                    <div class="genome-workspace-empty-copy">
-                        <span class="genome-workspace-empty-kicker">{% trans "Genome collection" %}</span>
-                        <h2>{% trans "No genomes yet" %}</h2>
-                        <p>{% trans "Upload a compressed GenBank file to create the first genome overview for this account." %}</p>
-                    </div>
-                    <div class="genome-workspace-empty-actions">
+                    <div class="tp-empty">
+                        <h2 class="tp-empty-title">{% trans "No genomes yet" %}</h2>
+                        <p class="tp-empty-text">{% trans "Upload a compressed GenBank file to create the first genome overview for this account." %}</p>
+                    <div class="tp-empty-actions">
+                        {% if perms.tpweb.can_upload_genome %}
                         <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'tpwebapp:genome_upload' %}">
                             <span class="tp-btn-icon" aria-hidden="true">
                                 {% include "components/icons/plus.html" %}
                             </span>
                             {% trans "Upload genome" %}
                         </a>
+                        {% endif %}
+                    </div>
                     </div>
                 {% endif %}
             </section>
@@ -216,7 +233,7 @@
 
             rows.forEach(function (row) {
                 row.addEventListener("click", function (event) {
-                    if (event.target.closest("a")) return;
+                    if (event.target.closest("a, button, form")) return;
                     if (row.dataset.assemblyUrl) {
                         if (window.TPPageLoader) window.TPPageLoader.show();
                         window.location.href = row.dataset.assemblyUrl;

@@ -12,19 +12,13 @@ from bioseq.models.Bioentry import Bioentry
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.score_params import resolve_score_param_for_import
-from tpweb.services.score_param_types import is_numeric_score_param
-
-
-def mkdir(dirpath):
-    if not os.path.exists(dirpath):
-        os.makedirs(dirpath)
+from tpweb.services.score_param_types import canonical_score_column_name, is_numeric_score_param
 
 
 class Command(BaseCommand):
     help = "Imports a PDB"
 
     def add_arguments(self, parser):
-
         parser.add_argument("genome_name")
         parser.add_argument("score_tsv", help="tsv with: gene prop1 prop2 ... ")
         parser.add_argument("--separator", default="\t")
@@ -33,7 +27,6 @@ class Command(BaseCommand):
         parser.add_argument("--username", default=None)
 
     def handle(self, *args, **options):
-
         genome_name = options["genome_name"]
         owner = None
         if options["username"]:
@@ -49,6 +42,9 @@ class Command(BaseCommand):
         genome = genome.get()
 
         df = pd.read_csv(options["score_tsv"], sep=options["separator"], index_col=False)
+        df = df.rename(columns=canonical_score_column_name)
+        if df.columns.duplicated().any():
+            raise CommandError("The file repeats a column after normalizing soft-core names")
 
         assert "gene" in df.columns, "'gene' is not in the column list"
 

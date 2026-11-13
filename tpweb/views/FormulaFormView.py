@@ -1,13 +1,20 @@
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.services.formula_evaluator import available_variables_grouped, validate_expression_syntax
+from tpweb.services.score_params import genome_score_param_names
 from tpweb.services.genome_workspace import (
     display_genome_name,
     genome_url_slug,
     resolve_genome_from_slug,
+)
+from tpweb.services.visibility_settings import (
+    VISIBILITY_PRIVATE,
+    formula_visibility,
+    set_formula_visibility,
 )
 from tpweb.services.workspace import resolve_workspace_user
 from tpweb.views.FormulaForm import FormulaForm
@@ -46,13 +53,35 @@ EXAMPLE_FORMULAS = [
 ]
 
 
+@login_required
+@permission_required("tpweb.can_manage_formulas", raise_exception=True)
 def FormulaFormView(request, genome):
     assembly_name = resolve_genome_from_slug(request.user, genome)
     if not assembly_name:
         raise Http404("Genome not found")
 
     user = resolve_workspace_user(request.user)
-    variable_groups = available_variables_grouped(user)
+    # Only variables this genome has values for -- an empty set (nothing
+    # loaded yet) falls back to the full palette rather than an empty one.
+    hidden_variables = []
+    variable_groups = available_variables_grouped(
+        user,
+        genome_param_names=genome_score_param_names(assembly_name) or None,
+        hidden=hidden_variables,
+    )
+
+    # Edit mode: ?edit=<pk> (GET) / editing_pk (POST) on one of the user's own
+    # expression-based formulas. Term-based legacy formulas (no expression)
+    # can't round-trip through the expression editor, so they're not editable.
+    editing_pk = request.POST.get("editing_pk") or request.GET.get("edit")
+    editing = None
+    if editing_pk and str(editing_pk).isdigit():
+        editing = (
+            ScoreFormula.objects.filter(pk=editing_pk, user=user)
+            .exclude(expression__isnull=True)
+            .exclude(expression="")
+            .first()
+        )
 
     if request.method == "POST":
         if "reset_process" in request.POST:
@@ -60,28 +89,52 @@ def FormulaFormView(request, genome):
                 reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)})
             )
 
-        form = FormulaForm(request.POST)
+        form = FormulaForm(request.POST, viewer=request.user)
         if form.is_valid():
             name = form.cleaned_data["formula_name"].strip()
             expression = form.cleaned_data["expression"].strip()
 
             validation = validate_expression_syntax(expression, user=user)
+            name_taken = (
+                ScoreFormula.objects.filter(name=name, user=user)
+                .exclude(pk=getattr(editing, "pk", None))
+                .exists()
+            )
             if not validation["valid"]:
                 form.add_error("expression", validation["error"] or "Invalid expression")
+            elif editing and name_taken:
+                form.add_error("formula_name", "You already have another formula with this name.")
             else:
-                formula_obj, _ = ScoreFormula.objects.update_or_create(
-                    name=name,
-                    user=user,
-                    defaults={"expression": expression},
-                )
+                if editing:
+                    editing.name = name
+                    editing.expression = expression
+                    editing.save(update_fields=["name", "expression"])
+                    formula_obj = editing
+                else:
+                    formula_obj, _ = ScoreFormula.objects.update_or_create(
+                        name=name,
+                        user=user,
+                        defaults={"expression": expression},
+                    )
+                visibility = form.cleaned_data.get("visibility") or VISIBILITY_PRIVATE
+                set_formula_visibility(formula_obj, user, visibility)
                 return redirect(
                     reverse(
                         "tpwebapp:protein_list", kwargs={"genome": genome_url_slug(assembly_name)}
                     )
                     + f"?scoreformula={name}"
                 )
+    elif editing:
+        form = FormulaForm(
+            viewer=request.user,
+            initial={
+                "formula_name": editing.name,
+                "expression": editing.expression,
+                "visibility": formula_visibility(editing),
+            },
+        )
     else:
-        form = FormulaForm()
+        form = FormulaForm(viewer=request.user)
 
     return render(
         request,
@@ -92,7 +145,11 @@ def FormulaFormView(request, genome):
             "assembly_label": display_genome_name(assembly_name),
             "genome": genome_url_slug(assembly_name),
             "variable_groups": variable_groups,
+            # Only uploaded columns: structure/pocket IDs are covered by the
+            # generic note on the page, and listing them is just noise.
+            "hidden_variables": [h for h in hidden_variables if h["category"] == "Custom"],
             "safe_functions": SAFE_FUNCTIONS,
             "example_formulas": EXAMPLE_FORMULAS,
+            "editing": editing,
         },
     )

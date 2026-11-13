@@ -16,16 +16,10 @@ from tpweb.models.pdb import (
 )
 
 
-def mkdir(dirpath):
-    if not os.path.exists(dirpath):
-        os.makedirs(dirpath)
-
-
 class Command(BaseCommand):
     help = "Imports a PDB"
 
     def add_arguments(self, parser):
-
         parser.add_argument("struct_name")
         parser.add_argument(
             "residueset_tsv", help="tsv with: feature_type feature_id chain_resids prop1 prop2 ... "
@@ -34,7 +28,6 @@ class Command(BaseCommand):
         parser.add_argument("--datadir", default="./data")
 
     def handle(self, *args, **options):
-
         code = options["struct_name"]
         pdb = PDB.objects.filter(code=code)
 
@@ -68,7 +61,7 @@ class Command(BaseCommand):
                     ResidueSetResidue(pdbresidue_set=prs, residue=res).save()
                 for col in set(df.columns) - set("feature_type feature_id chain_resids".split()):
                     if r[col] and not np.isnan(r[col]):
-                        if isinstance(r[col], (int, float, complex)):
+                        if isinstance(r[col], int | float | complex):
                             prop = Property.objects.get_or_create(name=col)[0]
                             ResidueSetProperty(pdbresidue_set=prs, property=prop, value=r[col])
 

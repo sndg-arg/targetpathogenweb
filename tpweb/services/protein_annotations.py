@@ -9,13 +9,13 @@ from bioseq.models.Ontology import Ontology
 
 ANNOTATION_KIND_CONFIG = {
     "ec": {
-        "dbnames": [Ontology.EC, "ec"],
+        "dbnames": list(dict.fromkeys([Ontology.EC, "EC", "ec"])),
         "label": "EC Number",
         "root_label": "EC",
         "supports_prefix": True,
     },
     "go": {
-        "dbnames": [Ontology.GO, "go"],
+        "dbnames": list(dict.fromkeys([Ontology.GO, "GO", "go"])),
         "label": "GO Term",
         "root_label": "GO",
         "supports_prefix": False,
@@ -86,22 +86,41 @@ def annotation_dbnames(kind):
     return ANNOTATION_KIND_CONFIG[normalize_annotation_kind(kind)]["dbnames"]
 
 
+def _dbxref_label(dbxref):
+    """Short human-readable label for a GO/EC dbxref: the term's name (e.g.
+    "cytosol"), falling back to its definition only when the name is missing
+    or just repeats the identifier, and to the curated EC nomenclature for EC
+    numbers. Showing the long GO definition as if it were the name made every
+    GO chip and explorer row unreadable."""
+    accession = str(getattr(dbxref, "accession", "") or "").strip()
+    label = ""
+    terms = getattr(dbxref, "terms", None)
+    if terms is not None:
+        try:
+            term = getattr(terms.all()[0], "term", None)
+        except Exception:
+            term = None
+        name = str(getattr(term, "name", "") or "").strip()
+        identifier = str(getattr(term, "identifier", "") or "").strip()
+        if name and name.upper() not in {accession.upper(), identifier.upper()}:
+            label = name
+        else:
+            label = str(getattr(term, "definition", "") or "").strip()
+    if not label and getattr(dbxref, "dbname", None) in annotation_dbnames("ec"):
+        label = ec_enzyme_name(accession)
+    return label
+
+
 def annotation_name(dbxref_relation):
-    """dbxref -> its first term's definition, or "" if none. Public (no
-    leading underscore) because ProteinView.serialize_prot needs this same
-    lookup for its own annotations list and used to keep a verbatim copy of
-    this function rather than importing it."""
+    """dbxref relation -> a readable label for its term (see _dbxref_label),
+    or "" if none. Public (no leading underscore) because
+    ProteinView.serialize_prot needs this same lookup for its own annotations
+    list and used to keep a verbatim copy of this function rather than
+    importing it."""
     dbxref = getattr(dbxref_relation, "dbxref", None)
     if dbxref is None:
         return ""
-    terms = getattr(dbxref, "terms", None)
-    if terms is None:
-        return ""
-    try:
-        first_term = terms.all()[0]
-    except Exception:
-        return ""
-    return getattr(getattr(first_term, "term", None), "definition", "") or ""
+    return _dbxref_label(dbxref)
 
 
 def iter_protein_annotations(protein, kind):
@@ -166,16 +185,8 @@ def annotation_term_name(kind, accession):
         .first()
     )
     if dbxref is None:
-        return ""
-
-    terms = getattr(dbxref, "terms", None)
-    if terms is None:
-        return ""
-    try:
-        first_term = terms.all()[0]
-    except Exception:
-        return ""
-    return getattr(getattr(first_term, "term", None), "definition", "") or ""
+        return ec_enzyme_name(accession) if normalize_annotation_kind(kind) == "ec" else ""
+    return _dbxref_label(dbxref)
 
 
 def _ec_resolve_name(accession, exact_names):
@@ -270,10 +281,13 @@ def build_annotation_explorer(proteins, kind):
 
     table_rows = []
     for accession, protein_ids in exact_counts.items():
+        name = exact_names.get(accession, "")
+        if not name and kind == "ec":
+            name = _ec_resolve_name(accession, exact_names)
         table_rows.append(
             {
                 "accession": accession,
-                "name": exact_names.get(accession, ""),
+                "name": name,
                 "protein_count": len(protein_ids),
             }
         )

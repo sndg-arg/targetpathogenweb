@@ -1,6 +1,7 @@
 import csv
 import os
 import re
+from functools import partial
 
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
@@ -8,6 +9,8 @@ from django.core.management.base import BaseCommand, CommandError
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.management.commands import backfill_pockets_experimental as bpe
+from tpweb.management.commands._shared import clean
+from tpweb.management.commands._shared import is_pdb_code as _is_shared_pdb_code
 from tpweb.management.commands.import_selected_pdb_pocket_results import (
     fallback_fpocket_to_json,
     fpocket_json_is_empty,
@@ -20,17 +23,7 @@ from tpweb.services.structure_files import CHAIN_SUFFIX_RE
 FP_RESIDUE_SET = "FPocketPocket"
 P2_RESIDUE_SET = "P2RankPocket"
 
-
-def clean(value):
-    value = str(value or "").strip()
-    if value.lower() in {"", "nan", "none", "null"}:
-        return ""
-    return value
-
-
-def is_pdb_code(value):
-    value = clean(value).upper()
-    return len(value) == 4 and value[0].isdigit() and value.isalnum()
+is_pdb_code = partial(_is_shared_pdb_code, require_leading_digit=True)
 
 
 def parse_pdb_chain_source(value):

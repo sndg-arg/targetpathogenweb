@@ -30,9 +30,7 @@ window.msa = msa;
 //window.PhylocanvasGL = PhylocanvasGL;
 //window.TreeTypes = TreeTypes;
 window.Fasta = Fasta;
-import SeqView from "sequence-viewer";
 
-window.SeqView = SeqView;
 
 import FeatureViewer from 'feature-viewer';
 
@@ -89,4 +87,3 @@ export default (name, constructor) => {
 };
 
 * */
-

@@ -9,7 +9,6 @@ Uses UniProt IDs already stored in the DB (UnipSp / UnipTr dbxrefs), so it
 does not require the _unips.lst file to be present on disk.
 """
 
-import math
 import time
 
 from django.conf import settings
@@ -23,6 +22,7 @@ from tpweb.services.functional_annotations import (
     _fetch_uniprot_batch,
     _persist_pdb_xrefs,
 )
+from tpweb.services.structure_files import compute_folder_path
 
 DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
 
@@ -79,9 +79,7 @@ class Command(BaseCommand):
                 fetched = self._fetch_and_persist_pdb_xrefs(assembly_name)
                 self.stdout.write(f"  PDB xrefs stored for {fetched} protein(s).")
 
-            acclen = len(assembly_name)
-            folder_name = assembly_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
-            folder_path = f"{datadir}/{folder_name}/{assembly_name}"
+            folder_path = compute_folder_path(datadir, assembly_name)
             working_dir = datadir[: -len("/data")] if datadir.endswith("/data") else datadir
 
             stats = fetch_and_load_experimental_structures(

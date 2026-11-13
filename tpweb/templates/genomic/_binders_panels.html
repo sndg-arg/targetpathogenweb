@@ -1,0 +1,77 @@
+{% load i18n %}
+{% comment %}
+The five ligand-evidence tab panels of the protein page. Rendered on its own
+(ProteinBindersPanelsView) and loaded when the user reaches the section: with
+~180 records these tables were two thirds of a 1 MB page and ~2 s of
+template rendering on every visit. Protein pages with few records still
+include it inline.
+{% endcomment %}
+{# PDB — this protein #}
+<div class="binders-panel {% if binders.default_tab != 'pdb_direct' %}is-hidden{% endif %}"
+     data-binders-panel="pdb_direct" role="tabpanel">
+    <p class="binders-panel-caption">{% trans "Highest-confidence structural evidence: ligands co-crystallized with this exact protein. If the source PDB is loaded in Target, use Open crystal to inspect it in the structure viewer." %}</p>
+    {% if binders.pdb_direct %}
+        {% include "components/binders/binder_filter_bar.html" %}
+        {% include "components/binders/table_pdb.html" with binder_list=binders.pdb_direct %}
+    {% else %}
+        <p class="tp-state-note tp-state-note--empty binders-empty">
+            {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No PDB structure with a co-crystallized ligand found for this exact protein." %}{% endif %}
+        </p>
+    {% endif %}
+</div>
+
+{# PDB — homologs #}
+<div class="binders-panel {% if binders.default_tab != 'pdb_homolog' %}is-hidden{% endif %}"
+     data-binders-panel="pdb_homolog" role="tabpanel">
+    <p class="binders-panel-caption">{% trans "Structural evidence inferred from similar proteins. The source crystal indicates where the ligand was observed; the UniProt column identifies the homologous protein carrying that ligand." %}</p>
+    {% if binders.pdb_homolog %}
+        {% include "components/binders/binder_filter_bar.html" %}
+        {% include "components/binders/table_pdb.html" with binder_list=binders.pdb_homolog show_uniprot=True %}
+    {% else %}
+        <p class="tp-state-note tp-state-note--empty binders-empty">
+            {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No PDB ligands found through similar proteins." %}{% endif %}
+        </p>
+    {% endif %}
+</div>
+
+{# ChEMBL — this protein #}
+<div class="binders-panel {% if binders.default_tab != 'chembl_direct' %}is-hidden{% endif %}"
+     data-binders-panel="chembl_direct" role="tabpanel">
+    <p class="binders-panel-caption">{% trans "Experimental bioactivity from ChEMBL measured directly on this protein. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
+    {% if binders.chembl_direct %}
+        {% include "components/binders/binder_filter_bar.html" with extra_filter_key="pchembl6" extra_filter_title="pchembl ≥ 6 corresponds to IC₅₀ ≤ 1 μM — a standard hit threshold" extra_filter_label="pchembl ≥ 6" %}
+        {% include "components/binders/table_chembl.html" with binder_list=binders.chembl_direct %}
+    {% else %}
+        <p class="tp-state-note tp-state-note--empty binders-empty">
+            {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No ChEMBL bioactivity data found for this exact protein." %}{% endif %}
+        </p>
+    {% endif %}
+</div>
+
+{# ChEMBL — homologs #}
+<div class="binders-panel {% if binders.default_tab != 'chembl_homolog' %}is-hidden{% endif %}"
+     data-binders-panel="chembl_homolog" role="tabpanel">
+    <p class="binders-panel-caption">{% trans "Bioactivity inferred from similar proteins in ChEMBL. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
+    {% if binders.chembl_homolog %}
+        {% include "components/binders/binder_filter_bar.html" with extra_filter_key="pchembl6" extra_filter_title="pchembl ≥ 6 corresponds to IC₅₀ ≤ 1 μM — a standard hit threshold" extra_filter_label="pchembl ≥ 6" %}
+        {% include "components/binders/table_chembl.html" with binder_list=binders.chembl_homolog show_uniprot=True %}
+    {% else %}
+        <p class="tp-state-note tp-state-note--empty binders-empty">
+            {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No ChEMBL hits found through similar proteins." %}{% endif %}
+        </p>
+    {% endif %}
+</div>
+
+{# ZINC #}
+<div class="binders-panel {% if binders.default_tab != 'zinc' %}is-hidden{% endif %}"
+     data-binders-panel="zinc" role="tabpanel">
+    <p class="binders-panel-caption">{% trans "Proposed virtual-screening candidates from ZINC. Score = Tanimoto similarity to a known binder (0–1; higher = more similar)." %}</p>
+    {% if binders.zinc %}
+        {% include "components/binders/binder_filter_bar.html" with extra_filter_key="tanimoto07" extra_filter_title="Tanimoto similarity ≥ 0.7 — high structural resemblance to a known active compound" extra_filter_label="Tanimoto ≥ 0.7" %}
+        {% include "components/binders/table_zinc.html" with binder_list=binders.zinc %}
+    {% else %}
+        <p class="tp-state-note tp-state-note--empty binders-empty">
+            {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No virtual-screening candidates for this protein." %}{% endif %}
+        </p>
+    {% endif %}
+</div>
