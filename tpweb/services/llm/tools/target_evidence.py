@@ -193,10 +193,10 @@ def format_target_audit(record):
                 ),
                 ("Interpretation", record["metabolic_sentence"]),
                 (
-                    "Gates-project metabolic priority",
+                    "Gr-ADI metabolic priority",
                     record["gates_priority"],
                 ),
-                ("Gates-project quadrant", record["gates_quadrant"]),
+                ("Gr-ADI quadrant", record["gates_quadrant"]),
                 (
                     "Reactions",
                     ", ".join(record["reactions"]) if record["reactions"] else "not loaded",

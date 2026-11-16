@@ -133,7 +133,7 @@
                             <span class="ta-finding">{{ group.finding }}</span>
                         </summary>
                         <div class="ta-body">
-                            <p class="pe-question">{{ group.question }}{% if group.badge %} <span class="tp-chip">{% if gates_viewer %}{% trans "Gates curated" %}{% else %}{{ group.badge }}{% endif %}</span>{% endif %}</p>
+                            <p class="pe-question">{{ group.question }}{% if group.badge %} <span class="tp-chip">{% if gates_viewer %}{% trans "Gr-ADI curated" %}{% else %}{{ group.badge }}{% endif %}</span>{% endif %}</p>
                             <dl class="pe-items">
                                 {% for item in group.items %}
                                 <div class="pe-item"{% if item.tooltip %} title="{{ item.tooltip }}"{% endif %}>

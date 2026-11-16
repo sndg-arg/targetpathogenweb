@@ -77,8 +77,8 @@ class TPUser(AbstractUser):
         # as a value of this field, since it already bypasses every
         # has_perm() check regardless of role.
         BASIC = "basic", _("Basic")
-        GATES_COLLABORATOR = "gates_collaborator", _("Gates collaborator")
-        GATES_CONSUMER = "gates_consumer", _("Gates consumer")
+        GATES_COLLABORATOR = "gates_collaborator", _("Gr-ADI collaborator")
+        GATES_CONSUMER = "gates_consumer", _("Gr-ADI consumer")
 
     #: First and last name do not cover name patterns around the globe
     name = CharField(_("Name of User"), blank=True, max_length=255)

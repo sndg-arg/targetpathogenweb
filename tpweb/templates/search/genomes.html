@@ -146,7 +146,7 @@
                                         <p class="genomes-meta">
                                             {% if g.accession %}<code class="genomes-meta-item">{{ g.accession }}</code>{% endif %}
                                             {% if genome.has_curated_data %}<span class="genomes-meta-item genomes-meta-curated" title="{% trans 'Includes expert-reviewed results imported from outside the pipeline.' %}">{% trans "Curated" %}</span>{% endif %}
-                                            {% if genome.is_restricted %}<span class="genomes-meta-item" title="{% if gates_viewer %}{% trans 'Only visible to Gates members.' %}{% else %}{% trans 'Only visible to project members.' %}{% endif %}">{% trans "Restricted" %}</span>{% endif %}
+                                            {% if genome.is_restricted %}<span class="genomes-meta-item" title="{% if gates_viewer %}{% trans 'Only visible to Gr-ADI members.' %}{% else %}{% trans 'Only visible to project members.' %}{% endif %}">{% trans "Restricted" %}</span>{% endif %}
                                             {% if genome.workspace_scope_key == 'personal' %}<span class="genomes-meta-item" title="{% trans 'You uploaded this genome; only you can see it.' %}">{% trans "Private" %}</span>{% endif %}
                                         </p>
                                         {% if genome.current_genome_status_note %}

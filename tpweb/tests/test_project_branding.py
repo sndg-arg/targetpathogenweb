@@ -20,10 +20,10 @@ class ProjectBrandingTests(TestCase):
         for user in (collaborator, consumer, admin):
             with self.subTest(user=user.username):
                 self.assertTrue(is_gates_viewer(user))
-                self.assertEqual(branded("Project members", user), "Gates members")
+                self.assertEqual(branded("Project members", user), "Gr-ADI members")
                 self.assertEqual(
                     branded("Available to project collaborators.", user),
-                    "Available to Gates collaborators.",
+                    "Available to Gr-ADI collaborators.",
                 )
 
     def test_basic_and_anonymous_keep_neutral_wording(self):
@@ -39,4 +39,4 @@ class ProjectBrandingTests(TestCase):
 
         choices = branded_choices([("gates", "Project members"), ("private", "Only me")], admin)
 
-        self.assertEqual(choices, [("gates", "Gates members"), ("private", "Only me")])
+        self.assertEqual(choices, [("gates", "Gr-ADI members"), ("private", "Only me")])

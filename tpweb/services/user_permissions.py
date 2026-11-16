@@ -56,7 +56,7 @@ PROFILE_PRESETS = [
         # feature, not Gates-Targets output). Every Gates-tier role and up
         # can see restricted genomes.
         "key": "gates_consumer",
-        "label": "Gates consumer",
+        "label": "Gr-ADI consumer",
         "codenames": [
             "can_manage_formulas",
             "can_run_blast",
@@ -70,7 +70,7 @@ PROFILE_PRESETS = [
         # page) -- everything except curated import (writes raw files into
         # a shared server directory, kept deliberately rare/manual).
         "key": "gates_collaborator",
-        "label": "Gates collaborator",
+        "label": "Gr-ADI collaborator",
         "codenames": [
             "can_upload_genome",
             "can_view_activity",

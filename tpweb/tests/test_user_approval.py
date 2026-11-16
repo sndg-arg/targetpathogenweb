@@ -473,8 +473,8 @@ class UserManagementViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         body = response.content.decode()
         self.assertIn('id="user-permissions-role-select"', body)
-        self.assertIn("Gates collaborator", body)
-        self.assertIn("Gates consumer", body)
+        self.assertIn("Gr-ADI collaborator", body)
+        self.assertIn("Gr-ADI consumer", body)
         # There's no hand-picked permission list anymore, just the roles
         # (including Admin, which grants is_superuser -- see
         # UserManagementView.ADMIN_ROLE_VALUE).

@@ -55,7 +55,7 @@ class UserSignupForm(SignupForm):
         required=False,
         help_text=_(
             "Your account is active either way. Check this only if you work on the project "
-            "itself (uploading genomes, editing formulas, Gates data) and we will contact "
+            "itself (uploading genomes, editing formulas, Gr-ADI data) and we will contact "
             "you to assign the role."
         ),
     )

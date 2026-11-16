@@ -9,15 +9,15 @@ GATES_ROLES = frozenset({"gates_collaborator", "gates_consumer"})
 
 # Neutral wording -> Gates wording, longest phrases first.
 _REPLACEMENTS = [
-    (re.compile(r"\bcollaborative-project genomes\b"), "Gates genomes"),
-    (re.compile(r"\bcollaborative project\b"), "the Gates project"),
-    (re.compile(r"\bProject collaborators\b"), "Gates collaborators"),
-    (re.compile(r"\bproject collaborators\b"), "Gates collaborators"),
-    (re.compile(r"\bProject collaborator\b"), "Gates collaborator"),
-    (re.compile(r"\bProject members\b"), "Gates members"),
-    (re.compile(r"\bproject members\b"), "Gates members"),
-    (re.compile(r"\bProject member\b"), "Gates member"),
-    (re.compile(r"\bthe project\b"), "the Gates project"),
+    (re.compile(r"\bcollaborative-project genomes\b"), "Gr-ADI genomes"),
+    (re.compile(r"\bcollaborative project\b"), "the Gr-ADI project"),
+    (re.compile(r"\bProject collaborators\b"), "Gr-ADI collaborators"),
+    (re.compile(r"\bproject collaborators\b"), "Gr-ADI collaborators"),
+    (re.compile(r"\bProject collaborator\b"), "Gr-ADI collaborator"),
+    (re.compile(r"\bProject members\b"), "Gr-ADI members"),
+    (re.compile(r"\bproject members\b"), "Gr-ADI members"),
+    (re.compile(r"\bProject member\b"), "Gr-ADI member"),
+    (re.compile(r"\bthe project\b"), "the Gr-ADI project"),
 ]
 
 

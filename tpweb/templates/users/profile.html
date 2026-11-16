@@ -63,7 +63,7 @@
                     {% trans "Create and edit scoring formulas" as cap_label %}{% include "users/_profile_capability.html" with on=can_manage_formulas label=cap_label meta="" %}
                     {% trans "Upload your own protein data" as cap_label %}{% include "users/_profile_capability.html" with on=can_manage_custom_params label=cap_label meta="" %}
                     {% trans "Use the AI assistant" as cap_label %}{% include "users/_profile_capability.html" with on=can_use_agent_chat label=cap_label meta=chat_quota_label %}
-                    {% if gates_viewer %}{% trans "See Gates genomes" as cap_label %}{% else %}{% trans "See collaborative-project genomes" as cap_label %}{% endif %}{% include "users/_profile_capability.html" with on=can_view_restricted_genomes label=cap_label meta="" %}
+                    {% if gates_viewer %}{% trans "See Gr-ADI genomes" as cap_label %}{% else %}{% trans "See collaborative-project genomes" as cap_label %}{% endif %}{% include "users/_profile_capability.html" with on=can_view_restricted_genomes label=cap_label meta="" %}
                 </ul>
                 {% if not has_full_access %}
                 {% if user.wants_collaborator_access %}

@@ -42,7 +42,7 @@
                 <p class="settings-nav-group">{% trans "Visibility" %}</p>
                 <dl>
                     <div><dt>{% trans "Only me" %}</dt><dd>{% trans "You alone. Administrators can't see it either." %}</dd></div>
-                    <div>{% if gates_viewer %}<dt>{% trans "Gates members" %}</dt><dd>{% trans "Accounts approved for the Gates project." %}</dd>{% else %}<dt>{% trans "Project members" %}</dt><dd>{% trans "Accounts approved for the project." %}</dd>{% endif %}</div>
+                    <div>{% if gates_viewer %}<dt>{% trans "Gr-ADI members" %}</dt><dd>{% trans "Accounts approved for the Gr-ADI project." %}</dd>{% else %}<dt>{% trans "Project members" %}</dt><dd>{% trans "Accounts approved for the project." %}</dd>{% endif %}</div>
                     <div><dt>{% trans "Everyone" %}</dt><dd>{% trans "Every signed-in user who can see that genome." %}</dd></div>
                 </dl>
             </div>
@@ -61,7 +61,7 @@
                         {% if active_section == 'formulas' %}{% trans "Choose who can use each formula. Changes are saved as soon as you pick." %}
                         {% elif active_section == 'data' %}{% trans "Each column is shared per genome. Shared columns show up for others under Columns, Filters and Make my own score." %}
                         {% elif active_section == 'users' %}{% trans "What each researcher has and what they shared. Only me items are counted, never shown." %}
-                        {% else %}{% if gates_viewer %}{% trans "Only Gates members can see these genomes and everything on them. This is the one place to restrict or unrestrict a genome." %}{% else %}{% trans "Only project members can see these genomes and everything on them. This is the one place to restrict or unrestrict a genome." %}{% endif %}{% endif %}
+                        {% else %}{% if gates_viewer %}{% trans "Only Gr-ADI members can see these genomes and everything on them. This is the one place to restrict or unrestrict a genome." %}{% else %}{% trans "Only project members can see these genomes and everything on them. This is the one place to restrict or unrestrict a genome." %}{% endif %}{% endif %}
                     </p>
                 </div>
                 <form class="section-tools settings-search" method="get" role="search">
