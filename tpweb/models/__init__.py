@@ -16,6 +16,7 @@ from .AgentChatMessageLog import AgentChatMessageLog
 from .RequestLog import RequestLog
 from .RestrictedGenome import RestrictedGenome
 from .IdenticalSequence import IdenticalSequenceGroup, IdenticalSequenceMember
+from .HumanOfftargetHit import HumanOfftargetHit
 from .LigandReaction import LigandReaction
 from .LigandRoutePlan import LigandRoutePlan
 from .Metabolism import (
@@ -41,6 +42,7 @@ __all__ = [
     "FilterPreset",
     "GeneReactionLink",
     "GenomeUpload",
+    "HumanOfftargetHit",
     "IdenticalSequenceGroup",
     "IdenticalSequenceMember",
     "LigandReaction",

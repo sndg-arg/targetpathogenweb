@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.views import View
 from django.shortcuts import render
-from django.db.models import Count, Exists, OuterRef, Prefetch, Q
+from django.db.models import Case, Count, Exists, IntegerField, OuterRef, Prefetch, Q, Value, When
 from bioseq.models.BioentryQualifierValue import BioentryQualifierValue
 from django.http import JsonResponse
 from django.http import Http404
@@ -20,6 +20,7 @@ from tpweb.models.Metabolism import MetabolicReaction
 from django.shortcuts import redirect
 from urllib.parse import urlencode, parse_qs
 from tpweb.services.protein_list import (
+    core_option_label,
     readable_column_name,
     suggest_filter_values,
     DEFAULT_PAGE_SIZE,
@@ -146,15 +147,34 @@ class ProteinSearchSuggestionsView(View):
             limit = 8
         limit = max(1, min(limit, 20))
 
+        def gene_match(**lookup):
+            return Exists(
+                BioentryQualifierValue.objects.filter(
+                    bioentry=OuterRef("pk"), term__identifier="gene", **lookup
+                )
+            )
+
+        # Name matches first, then gene, then description; exact before
+        # prefix before substring within each.
         suggestions = (
             Bioentry.objects.filter(biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX)
+            .annotate(gene_hit=gene_match(value__icontains=query))
             .filter(
-                Q(accession__icontains=query)
-                | Q(description__icontains=query)
-                | Q(qualifiers__value__icontains=query, qualifiers__term__identifier="gene")
+                Q(accession__icontains=query) | Q(description__icontains=query) | Q(gene_hit=True)
             )
-            .distinct()
-            .order_by("accession")
+            .annotate(
+                match_rank=Case(
+                    When(accession__iexact=query, then=Value(0)),
+                    When(accession__istartswith=query, then=Value(1)),
+                    When(accession__icontains=query, then=Value(2)),
+                    When(gene_match(value__iexact=query), then=Value(3)),
+                    When(gene_match(value__istartswith=query), then=Value(4)),
+                    When(gene_hit=True, then=Value(5)),
+                    default=Value(6),
+                    output_field=IntegerField(),
+                )
+            )
+            .order_by("match_rank", "accession")
             .values("bioentry_id", "accession", "description")[:limit]
         )
 
@@ -801,6 +821,8 @@ class ProteinListView(View):
                         option_label = raw or option.name
                 elif is_user_column:
                     option_label = option.name
+                elif core_option_label(param_name_lower, option.name):
+                    option_label = core_option_label(param_name_lower, option.name)
                 else:
                     option_label = humanize_identifier(option.name) or option.name
                 option_active = str(option.pk) in selected_option_ids

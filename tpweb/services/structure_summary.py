@@ -327,7 +327,7 @@ def _ranked_pocket_ids(pdbobj, residue_set, property_obj, limit, min_value=None,
 def pdb_structure(
     pdbobj,
     graphic_features,
-    pocket_limit=4,
+    pocket_limit=5,
     p2rank_limit=5,
     include_pockets_in_graphic_features=False,
     target_chain=None,

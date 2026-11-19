@@ -31,9 +31,9 @@ def score_metric_display(value, column_name):
     except (TypeError, ValueError):
         if column_key in {"core_roary", "core_corecruncher"}:
             if text.lower() in {"true", "1", "yes", "y", "core"}:
-                return "Core"
+                return "True"
             if text.lower() in {"false", "0", "no", "n", "accessory"}:
-                return "Accessory"
+                return "False"
             return text
         if column_key.endswith("_structure"):
             return text
@@ -51,7 +51,7 @@ def score_metric_display(value, column_name):
     if column_key.endswith("_identity"):
         return f"{numeric:.1f}%"
     if column_key in {"core_roary", "core_corecruncher"}:
-        return "Core" if numeric >= 0.5 else "Accessory"
+        return "True" if numeric >= 0.5 else "False"
     if (
         column_key.endswith("_probability")
         or column_key.endswith("_score")

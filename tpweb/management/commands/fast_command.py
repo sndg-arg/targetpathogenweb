@@ -12,6 +12,7 @@ import pandas as pd
 import shutil
 
 from tpweb.services.genome_workspace import display_genome_name
+from tpweb.services.human_offtarget_hits import store_human_offtarget_hits
 
 
 class Command(BaseCommand):
@@ -363,6 +364,9 @@ class Command(BaseCommand):
             os.path.join(offtarget_dir, "human_offtarget_blast.tsv"),
         )
         human_out = ss.human_offtarget(genome)
+        if human_blast_src and os.path.getsize(human_blast_src) > 0:
+            stored = store_human_offtarget_hits(genome, human_blast_src)
+            self.stdout.write(f"Stored {stored} human off-target hits.")
         if human_src:
             human = pd.read_csv(human_src, sep="\t")
             if "gene" not in human.columns or "human_offtarget" not in human.columns:

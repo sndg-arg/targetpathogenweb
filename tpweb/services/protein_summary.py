@@ -19,6 +19,7 @@ from tpweb.services.assembly_workspace import OVERVIEW_CACHE_TTL_SECONDS
 from tpweb.services.binder_summary import create_binders_dict
 from tpweb.services.metabolism_summary import build_target_metabolic_sentence
 from tpweb.services.genome_workspace import genome_url_slug
+from tpweb.services.human_offtarget_hits import shown_human_hits
 from tpweb.services.score_params import GATES_METABOLIC_HELP, GATES_REGULATORY_HELP
 from tpweb.services.structure_sources import (
     STRUCTURE_SOURCE_EXPERIMENTAL,
@@ -543,8 +544,8 @@ def build_conservation_profile(raw_scores):
         "roary": roary,
         "corecruncher": corecruncher,
         "is_core": roary and corecruncher,
-        "roary_label": "core" if roary else "accessory",
-        "corecruncher_label": "core" if corecruncher else "accessory",
+        "roary_label": "true" if roary else "false",
+        "corecruncher_label": "true" if corecruncher else "false",
     }
 
 
@@ -903,6 +904,7 @@ def build_prioritization(
     microbiome_context,
     gates_metabolic_priority,
     gates_regulatory=None,
+    human_hits=None,
 ):
     """ "Prioritization evidence" as separate questions, each with a verdict
     (tone = success / warning / idle, the design-system chip variants), plus the
@@ -1107,9 +1109,9 @@ def build_prioritization(
                 "key": "conservation",
                 "title": "Conservation",
                 "question": "Is the gene present in every strain analyzed?",
-                "verdict": "Core gene" if conservation_profile["is_core"] else "Accessory gene",
-                "summary": "Conservation",
-                "summary_value": "Core" if conservation_profile["is_core"] else "Accessory",
+                "verdict": "Core gene" if conservation_profile["is_core"] else "Not a core gene",
+                "summary": "Core",
+                "summary_value": "True" if conservation_profile["is_core"] else "False",
                 "tone": "success" if conservation_profile["is_core"] else "warning",
                 "items": [
                     {
@@ -1117,7 +1119,7 @@ def build_prioritization(
                         "kind": "chip",
                         "value": conservation_profile["roary_label"].capitalize(),
                         "tone": "success" if conservation_profile["roary"] else "",
-                        "note": "Core = present in at least 99% of the genomes.",
+                        "note": "True = present in at least 99% of the genomes.",
                         "key": "core_roary",
                     },
                     {
@@ -1158,6 +1160,16 @@ def build_prioritization(
                     if human_hit
                     else "No significant human homolog in the BLAST screen.",
                     "key": "human_offtarget",
+                }
+            )
+        if human_hit and human_hits:
+            items.append(
+                {
+                    "label": "Human proteins hit",
+                    "kind": "hits",
+                    "value": ", ".join(hit["gene"] or hit["accession"] for hit in human_hits),
+                    "hits": human_hits,
+                    "note": "Best BLAST matches; with several, only those above 10% identity (top 5).",
                 }
             )
         if human_identity:
@@ -1464,7 +1476,7 @@ def build_target_executive_summary(
             _append_summary_item(
                 risks,
                 "Mixed conservation",
-                "Core/accessory calls are not fully concordant.",
+                "Roary and CoreCruncher core calls disagree.",
                 "watch",
                 "#section-target-profile",
             )
@@ -1841,6 +1853,7 @@ def build_protein_executive_context(
         microbiome_context,
         gates_metabolic_priority,
         gates_regulatory,
+        human_hits=shown_human_hits(protein),
     )
 
     target_summary = build_target_executive_summary(

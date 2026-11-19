@@ -427,7 +427,7 @@ class ProteinListServiceTests(SimpleTestCase):
             {"score_param_name": "Core Corecruncher", "name": "Accessory", "group_id": "adv:1"},
         ]
         grouped = grouped_selected_parameters(selected)
-        self.assertEqual(grouped, [("Core Corecruncher", "Core AND Accessory")])
+        self.assertEqual(grouped, [("Core Corecruncher", "True AND False")])
 
     def test_grouped_selected_parameters_merges_same_group_values(self):
         # Multiple values picked within the *same* group (or the plain
@@ -438,7 +438,7 @@ class ProteinListServiceTests(SimpleTestCase):
             {"score_param_name": "Core Corecruncher", "name": "Accessory", "group_id": "adv:0"},
         ]
         grouped = grouped_selected_parameters(selected)
-        self.assertEqual(grouped, [("Core Corecruncher", "Core, Accessory")])
+        self.assertEqual(grouped, [("Core Corecruncher", "True, False")])
 
     def test_add_and_remove_selected_parameter(self):
         selected = [{"id": 1, "name": "High"}]

@@ -2044,3 +2044,8 @@ body.residue-modal-open {
         animation: none;
     }
 }
+
+/* Human off-target hits: full-width table under the off-target readings. */
+.ta-body .pe-hits-note {
+    margin: var(--tp-space-3) 0 var(--tp-space-2);
+}

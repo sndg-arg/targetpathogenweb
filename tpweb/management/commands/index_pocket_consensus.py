@@ -3,7 +3,7 @@ binding pocket.
 
 structure_summary.py's render-time "Likely same site as X" callout (the
 pocket detail cards) only ever evaluates the top few pockets a page actually
-displays (pocket_limit=4 for FPocket, p2rank_limit=5 for P2Rank) and isn't
+displays (pocket_limit=5 for FPocket, p2rank_limit=5 for P2Rank) and isn't
 persisted anywhere -- useful to look at, but not something you can filter or
 rank proteins by. This command checks every pocket, not just the displayed
 ones: does any FPocket pocket scored druggable (>= 0.7, this app's own

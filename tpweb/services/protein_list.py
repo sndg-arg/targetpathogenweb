@@ -13,6 +13,17 @@ from tpweb.services.structure_sources import (
 )
 
 CORE_GENOME_PARAM_NAMES = {"core_roary", "core_corecruncher"}
+# Core options stay stored as Core/Accessory; the site shows them as True/False.
+CORE_OPTION_LABELS = {"Core": "True", "Accessory": "False"}
+
+
+def core_option_label(param_name, option_name):
+    """True/False for a core_* option, None for anything else."""
+    key = str(param_name or "").strip().lower().replace(" ", "_")
+    if key not in CORE_GENOME_PARAM_NAMES:
+        return None
+    return CORE_OPTION_LABELS.get(str(option_name or "").strip().capitalize())
+
 
 # Session key for the protein table's chosen columns (None = the defaults).
 VISIBLE_COLUMNS_SESSION_KEY = "protein_visible_columns"
@@ -302,6 +313,9 @@ def _selected_parameter_display_value(parameter, humanize=False):
         return humanize_identifier(special_value) if humanize else special_value
     if kind != "numeric":
         option_name = parameter.get("name", "")
+        core_label = core_option_label(parameter.get("score_param_name"), option_name)
+        if core_label:
+            return core_label
         return humanize_identifier(option_name) if humanize else option_name
 
     operation = _normalize_numeric_operation(parameter.get("operation")) or ""

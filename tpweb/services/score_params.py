@@ -301,8 +301,8 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "category": "Conservation",
         "description": (
             "Pan-genome core status from Roary. "
-            "Core genes are conserved across all (or nearly all) strains in the pan-genome; "
-            "accessory genes are present only in a subset of strains. "
+            "True: conserved across all (or nearly all) strains in the pan-genome; "
+            "False: present only in a subset of strains. "
             "Only available for genomes with imported expert-reviewed results."
         ),
         "type": "C",
@@ -318,8 +318,8 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "category": "Conservation",
         "description": (
             "Pan-genome core status from CoreCruncher. "
-            "Core genes are conserved across all (or nearly all) strains in the pan-genome; "
-            "accessory genes are present only in a subset of strains. "
+            "True: conserved across all (or nearly all) strains in the pan-genome; "
+            "False: present only in a subset of strains. "
             "Only available for genomes with imported expert-reviewed results."
         ),
         "type": "C",
