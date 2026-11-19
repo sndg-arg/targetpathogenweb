@@ -1,9 +1,11 @@
 from django import template
-import re
 
+from tpweb.services.protein_list import humanize_identifier as _humanize_identifier
 from tpweb.services.protein_summary import druggability_label
 
 register = template.Library()
+
+register.filter("humanize_identifier", _humanize_identifier)
 
 
 @register.filter
@@ -18,66 +20,6 @@ def replace_char(value, old_char_coma_new_char):
 
 
 @register.filter
-def humanize_identifier(value):
-    text = str(value or "").strip()
-    if not text:
-        return ""
-
-    exact_replacements = {
-        "human_offtarget": "Human off-target",
-        "gut_microbiome_offtarget": "Gut microbiome off-target",
-        "human_identity": "Human identity (%)",
-        "human_evalue": "Human E-value",
-        "deg_identity": "DEG identity (%)",
-        "deg_evalue": "DEG E-value",
-        "hit_in_deg": "Hit in DEG",
-        "no_hit": "No hit",
-        "druggability": "Druggability (FPocket)",
-        "p2rank_probability": "Druggability (P2Rank)",
-    }
-    exact_replacement = exact_replacements.get(text.lower())
-    if exact_replacement:
-        return exact_replacement
-
-    acronym_tokens = {
-        "deg": "DEG",
-        "ppi": "PPI",
-        "dna": "DNA",
-        "rna": "RNA",
-        "p2rank": "P2RANK",
-        "fpocket": "FPocket",
-        "alphafold": "AlphaFold",
-        "colabfold": "ColabFold",
-        "plddt": "pLDDT",
-        "id": "ID",
-    }
-    token_replacements = {
-        "offtarget": "Off-target",
-    }
-    lower_connectors = {"and", "or", "of", "in", "on", "to", "for", "with", "without", "by"}
-
-    text = re.sub(r"[_-]+", " ", text)
-    text = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    tokens = text.split(" ")
-    human_tokens = []
-    for idx, token in enumerate(tokens):
-        token_l = token.lower()
-        if token_l in acronym_tokens:
-            human_tokens.append(acronym_tokens[token_l])
-            continue
-        if token_l in token_replacements:
-            human_tokens.append(token_replacements[token_l])
-            continue
-        if idx > 0 and token_l in lower_connectors:
-            human_tokens.append(token_l)
-            continue
-        human_tokens.append(token.capitalize())
-
-    return " ".join(human_tokens)
-
-
-@register.filter
 def score_metric_display(value, column_name):
     text = str(value if value is not None else "").strip()
     if not text or text in {"-", "—"} or text.lower() in {"none", "nan", "null"}:
@@ -89,9 +31,9 @@ def score_metric_display(value, column_name):
     except (TypeError, ValueError):
         if column_key in {"core_roary", "core_corecruncher"}:
             if text.lower() in {"true", "1", "yes", "y", "core"}:
-                return "Core"
+                return "True"
             if text.lower() in {"false", "0", "no", "n", "accessory"}:
-                return "Accessory"
+                return "False"
             return text
         if column_key.endswith("_structure"):
             return text
@@ -102,19 +44,22 @@ def score_metric_display(value, column_name):
                 suffix = text[len("Pocket pocket") :].strip()
                 return f"Pocket {suffix}" if suffix else "Pocket"
             return text
-        return humanize_identifier(text) or text
+        return _humanize_identifier(text) or text
 
     if column_key.endswith("_evalue"):
         return f"{numeric:.2e}"
     if column_key.endswith("_identity"):
         return f"{numeric:.1f}%"
     if column_key in {"core_roary", "core_corecruncher"}:
-        return "Core" if numeric >= 0.5 else "Accessory"
+        return "True" if numeric >= 0.5 else "False"
     if (
         column_key.endswith("_probability")
         or column_key.endswith("_score")
         or column_key.endswith("_norm")
     ):
+        # Below 0.001 three decimals would read 0.000: switch to 1.23e-04.
+        if 0 < abs(numeric) < 0.001:
+            return f"{numeric:.2e}"
         return f"{numeric:.3f}"
     return f"{numeric:g}"
 
@@ -139,6 +84,15 @@ def druggability_tone(value):
     """
     result = druggability_label(value)
     return result[1] if result else ""
+
+
+@register.filter
+def thousands(value):
+    """6264404 -> "6,264,404"; anything that is not a whole number passes through."""
+    try:
+        return f"{int(str(value)):,}"
+    except (TypeError, ValueError):
+        return value
 
 
 @register.filter
@@ -170,17 +124,17 @@ def score_metric_tone(value, column_name):
             return "secondary"
         return ""
 
-    if column_key == "localization":
-        if text in {
-            "extracellular",
-            "outer membrane",
-            "cellwall",
-            "periplasmic",
-            "cytoplasmic membrane",
-        }:
-            return "favorable"
-        if text == "cytoplasmic":
-            return "risk"
-        return ""
+    # Localization stays neutral (no green/red): whether a compartment is a
+    # good target is a per-project judgement for the scoring formula, not
+    # something the table should imply (team decision, 2026-10).
 
     return ""
+
+
+@register.filter
+def branded(text, user):
+    """{{ text|branded:user }} -- names the project "Gates" for Gates roles and
+    admins (tpweb.services.project_branding)."""
+    from tpweb.services.project_branding import branded as _branded
+
+    return _branded(text, user)

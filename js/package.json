@@ -31,8 +31,7 @@
     "protvista-track": "^3.8.8",
     "query-string": "^4.3.2",
     "rc-checkbox": "^1.4.3",
-    "rc-slider": "^7.0.6",
-    "sequence-viewer": "^0.2"
+    "rc-slider": "^7.0.6"
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",

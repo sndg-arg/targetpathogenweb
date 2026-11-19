@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Target Pathogen">
+  <rect width="64" height="64" rx="14" fill="#ffffff"/>
+  <circle cx="32" cy="32" r="26" fill="#252b93"/>
+  <circle cx="32" cy="32" r="20" fill="#ffffff"/>
+  <circle cx="32" cy="32" r="14" fill="#336fb0"/>
+  <circle cx="32" cy="32" r="8" fill="#ffffff"/>
+  <circle cx="32" cy="32" r="4.5" fill="#ff1f27"/>
+</svg>

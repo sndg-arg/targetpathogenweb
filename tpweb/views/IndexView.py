@@ -7,6 +7,7 @@ from django.utils.html import strip_tags
 
 from tpweb.models.TPPost import TPPost
 from tpweb.services.genomes import build_genomes_dto, build_genomes_queryset, summarize_genomes
+from tpweb.services.curated_import_jobs import running_curated_import
 from tpweb.services.pipeline_status import (
     get_pipeline_status,
     sanitize_pipeline_status_for_user,
@@ -79,15 +80,19 @@ class IndexView(View):
         ]
 
         pipeline_status = sanitize_pipeline_status_for_user(get_pipeline_status(), request.user)
+        curated_import = running_curated_import(request.user)
 
         context = {
             "post": post,
             "has_project_notes": has_project_notes,
             "total_genomes": genome_metrics["total_genomes"],
             "total_proteins": genome_metrics["total_proteins"],
+            "total_proteins_display": f"{genome_metrics['total_proteins'] or 0:,}",
             "featured_genomes": featured_genomes,
             "pipeline_status": pipeline_status,
-            "show_pipeline_panel": should_show_home_pipeline_panel(pipeline_status),
+            "show_pipeline_panel": should_show_home_pipeline_panel(pipeline_status)
+            or curated_import is not None,
             "pipeline_stages": pipeline_stages,
+            "curated_import_running": curated_import,
         }
         return render(request, self.template_name, context)

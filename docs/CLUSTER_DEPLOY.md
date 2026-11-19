@@ -5,14 +5,18 @@ orchestration node: it hosts Docker services, Traefik routing, PostgreSQL, file
 staging, and lightweight Django management commands. It is not a bioinformatics
 compute node.
 
+The live site, https://target2.infra.cluster.qb.fcen.uba.ar/, is served from
+Nodo0 — there is no separate production server. Code reaches it only by being
+pushed to `misc-fixes` and pulled + rebuilt on Nodo0 (see "Deploy Code").
+
 ## Access
 
 ```bash
-ssh agutson@cluster.qb.fcen.uba.ar
-sudo su glyco
+ssh agutson@cluster.qb.fcen.uba.ar   # login node
+su glyco
 ssh nodo0
 sudo su dockeradmin
-cd /home/dockeradmin/targetpathogenweb
+cd ~/targetpathogenweb               # = /home/dockeradmin/targetpathogenweb
 ```
 
 Important paths:
@@ -52,11 +56,26 @@ Nodo0.
 
 ## Deploy Code
 
-Default web deploy:
+Full update (all services + database migrations) — the standard way to put
+whatever is on `misc-fixes` live:
+
+```bash
+cd ~/targetpathogenweb
+git pull origin misc-fixes
+make build ENV=cluster
+make up ENV=cluster
+make migrate ENV=cluster
+```
+
+`make migrate` is required whenever the pull brought new files under any
+`*/migrations/` directory; it's harmless (a no-op) otherwise. Pushing to GitHub
+alone never changes the live site.
+
+Faster web-only deploy (templates/CSS/JS/views, no new migrations):
 
 ```bash
 cd /home/dockeradmin/targetpathogenweb
-git pull --ff-only origin file-ingestion
+git pull --ff-only origin misc-fixes
 make build ENV=cluster svc=web
 make up ENV=cluster svc=web
 ```
@@ -65,10 +84,14 @@ Queue-only code changes:
 
 ```bash
 cd /home/dockeradmin/targetpathogenweb
-git pull --ff-only origin file-ingestion
+git pull --ff-only origin misc-fixes
 make build ENV=cluster svc=queue
 make up ENV=cluster svc=queue
 ```
+
+Check `git branch --show-current` on the Nodo0 checkout before pulling if unsure which
+branch is actually live — `file-ingestion` and `main` are both far behind `misc-fixes`
+as of this pass.
 
 Use cached service-scoped builds. Avoid `--no-cache` unless debugging a concrete
 image-cache problem.
@@ -231,6 +254,32 @@ sudo find /data/targetpathogen/data/uploads -maxdepth 1 -type f -size +500M -pri
 
 Avoid broad/deep `du` over `/data/targetpathogen`; it may traverse millions of
 files and appear hung. Prefer scoped `find` commands over known staging paths.
+
+## Container Privileges
+
+- No container mounts `/var/run/docker.sock` (root-equivalent on the host). The
+  socket stays `root:docker` 660.
+- Only the queue mounts the cluster SSH key; the public web container has none.
+
+### Queue user
+
+The queue runs as root until its data is owned by `appuser`. One-time switch,
+with no pipeline running:
+
+```bash
+UID_APP=$(docker compose exec -T web id -u)
+ls -ln "${TPW_SSH_DIR:-/home/appuser/.ssh}"   # key files must be owned by $UID_APP
+sudo chown -R "$UID_APP:$UID_APP" /data/targetpathogen/data /data/targetpathogen/fasttarget_db \
+  /data/targetpathogen/fasttarget_organism /data/targetpathogen/fasttarget_logs
+echo "TPW_QUEUE_USER=$UID_APP:$UID_APP" >> .env
+sed -i 's#^SSH_KEY_FILENAME=/root/#SSH_KEY_FILENAME=/home/appuser/#' .env   # appuser can't read /root
+make up ENV=cluster svc=queue
+```
+
+`known_hosts` must hold the cluster's current key for both its name and its IP:
+OpenSSH 8.4 aborts silently in BatchMode when the IP entry is stale.
+
+Never chown the database volume.
 
 ## First-Time Cluster Setup
 

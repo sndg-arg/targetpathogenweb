@@ -1,14 +1,14 @@
 {% load i18n %}
-<div class="binder-table-wrap">
-    <table class="binder-tbl tp-table tp-table--plain">
+<div class="tp-table-shell binder-table-wrap">
+    <table class="binder-tbl tp-table">
         <thead>
             <tr>
                 <th scope="col">{% trans "Ligand" %}</th>
                 {% if show_uniprot %}<th scope="col">{% trans "UniProt (homolog)" %}</th>{% endif %}
-                <th scope="col" class="binder-tbl__score-col">{% trans "pchembl" %}</th>
-                <th scope="col" class="binder-tbl__props-col">{% trans "MW · LogP · TPSA" %}</th>
-                <th scope="col">{% trans "Lipinski" %}</th>
-                <th scope="col">{% trans "PAINS" %}</th>
+                <th scope="col" class="binder-tbl__score-col" title="{% trans 'pChEMBL: −log10 of the measured IC50/Ki/Kd in molar units. 6 ≈ 1 µM; higher means more potent.' %}">{% trans "Potency (pChEMBL)" %}</th>
+                <th scope="col" class="binder-tbl__props-col" title="{% trans 'Molecular weight (Da) · lipophilicity (LogP) · polar surface area (TPSA, Å²), computed from the structure.' %}">{% trans "MW · LogP · TPSA" %}</th>
+                <th scope="col" title="{% trans 'Lipinski rule of five: MW ≤ 500 Da, LogP ≤ 5, ≤ 5 H-bond donors, ≤ 10 acceptors. Pass suggests the compound could be orally available.' %}">{% trans "Lipinski" %}</th>
+                <th scope="col" title="{% trans 'PAINS: chemical substructures that often give false positives in assays. Flagged compounds deserve extra caution.' %}">{% trans "PAINS" %}</th>
                 <th scope="col" class="binder-tbl__smiles-col">{% trans "SMILES" %}</th>
             </tr>
         </thead>
@@ -21,8 +21,9 @@
                     data-score="{{ binder.score|default:'' }}">
                     <td class="binder-tbl__name">
                         <a href="{% url 'tpwebapp:binder_detail' binder_id=binder.id %}" class="binder-tbl__name-main" onclick="event.stopPropagation()">{{ binder.name }}</a>
+                        {% if binder.shared_from_accession %}<a class="tp-chip binder-tbl__source-link" href="{% url 'tpwebapp:protein' binder.source_protein_id %}" onclick="event.stopPropagation()">{% trans "From" %} {{ binder.shared_from_accession }} ↗</a>{% endif %}
                         {% if binder.external_url %}
-                        <a href="{{ binder.external_url }}" class="tp-chip tp-chip--meta tp-chip--sm binder-tbl__source-link" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="{% trans 'Open compound in ChEMBL' %}">{{ binder.external_label }}</a>
+                        <a href="{{ binder.external_url }}" class="tp-chip binder-tbl__source-link" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="{% trans 'Open compound in ChEMBL' %}">{{ binder.external_label }}</a>
                         {% endif %}
                     </td>
                     {% if show_uniprot %}<td class="binder-tbl__uniprot">{{ binder.uniprot|default:"—" }}</td>{% endif %}
@@ -41,12 +42,12 @@
                     </td>
                     <td>
                         {% if binder.props.lipinski_class %}
-                            <span class="binder-quality binder-quality--{{ binder.props.lipinski_class }}">{{ binder.props.lipinski_label }}</span>
+                            <span class="tp-chip {% if binder.props.lipinski_class == 'ok' %}tp-chip--success{% elif binder.props.lipinski_class == 'check' %}tp-chip--warning{% else %}tp-chip--danger{% endif %}">{{ binder.props.lipinski_label }}</span>
                         {% else %}—{% endif %}
                     </td>
                     <td>
                         {% if binder.props %}
-                            <span class="binder-quality {% if binder.props.pains_alert %}binder-quality--alert{% else %}binder-quality--ok{% endif %}">{% if binder.props.pains_alert %}{{ binder.props.pains_label }}{% else %}✓ Clean{% endif %}</span>
+                            <span class="tp-chip {% if binder.props.pains_alert %}tp-chip--danger{% else %}tp-chip--success{% endif %}">{% if binder.props.pains_alert %}{{ binder.props.pains_label }}{% else %}✓ Clean{% endif %}</span>
                         {% else %}—{% endif %}
                     </td>
                     <td class="binder-tbl__smiles"

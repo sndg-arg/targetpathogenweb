@@ -7,11 +7,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import pandas as pd
+from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
+from tpweb.models import CuratedImportJob
 from tpweb.services.curated_pipeline import build_curated_pipeline_plan, compute_folder_path
 
 
@@ -20,12 +23,53 @@ KNOWN_ARCHIVE_DIRS = (
     "structures",
     "offtarget",
     "essentiality",
+    "metabolism",
     "ligq2",
     "LigQ_2",
     "ligq_2",
 )
 
 GBK_SUFFIXES = (".gbk", ".gbk.gz", ".gbff", ".gbff.gz")
+
+# What the UI shows as the job's current step, per command run.
+STEP_LABELS = {
+    "import_external_results": "Curated scores and structures",
+    "sync_genome_metadata": "Genome metadata",
+    "backfill_curated_uniprot_annotations": "UniProt annotations",
+    "fetch_experimental_structures": "Experimental structures",
+    "import_gates_pocket_outputs": "Pockets",
+    "load_metabolism": "Metabolism",
+    "load_ligq_2_results": "LigQ_2 binders",
+}
+
+
+def detect_metabolism_inputs(metabolism_dir):
+    """The model, per-gene metrics and reaction network in a reviewed
+    metabolism/ folder, or None when any of the three is missing.
+
+    Metrics: metabolic_network_metrics.tsv (the README's validated
+    MetaGraphTools table). Network: the currency-filtered SIF of the latest
+    MetaGraphTools run, unfiltered as a fallback."""
+    folder = Path(metabolism_dir) if metabolism_dir else None
+    if folder is None or not folder.is_dir():
+        return None
+    sbml = sorted(folder.glob("*.xml")) + sorted(folder.glob("*.sbml"))
+    metrics = folder / "metabolic_network_metrics.tsv"
+    sif = None
+    for name in ("metabolic_network_filter.sif", "metabolic_network.sif"):
+        found = sorted(folder.glob(f"MGT_results_*/{name}")) + sorted(folder.glob(name))
+        if found:
+            sif = found[-1]
+            break
+    if not sbml or not metrics.is_file() or sif is None:
+        return None
+    currency = folder / "modularity_ubiquitous_filter.tsv"
+    return {
+        "sbml": str(sbml[0]),
+        "metabolic_results_tsv": str(metrics),
+        "network_sif": str(sif),
+        "currency_metabolites": str(currency) if currency.is_file() else None,
+    }
 
 
 @dataclass
@@ -124,12 +168,103 @@ class Command(BaseCommand):
             help="Do not run fetch_experimental_structures --all-xrefs during --execute.",
         )
         parser.add_argument(
+            "--skip-pockets",
+            action="store_true",
+            help="Do not run import_gates_pocket_outputs during --execute.",
+        )
+        parser.add_argument(
+            "--metabolism-dir",
+            default=None,
+            help="Reviewed metabolism/ folder. Defaults to the archive's, or the one next to --structures-dir.",
+        )
+        parser.add_argument(
+            "--skip-metabolism",
+            action="store_true",
+            help="Do not run load_metabolism during --execute.",
+        )
+        parser.add_argument(
             "--skip-ligq",
             action="store_true",
             help="Do not run load_ligq_2_results during --execute even if LigQ output is detected.",
         )
+        parser.add_argument(
+            "--job-id",
+            type=int,
+            default=None,
+            help=(
+                "CuratedImportJob to report progress to. Without it, an --execute run from "
+                "the shell records its own job so the upload page and genome list show it."
+            ),
+        )
 
     def handle(self, *args, **options):
+        job = self._job = self._start_job(options)
+        if job is None:
+            self._run(options)
+            return
+        try:
+            self._run(options)
+        except BaseException as exc:
+            self._finish_job(job, options, CuratedImportJob.STATUS_FAILED, str(exc) or repr(exc))
+            raise
+        self._finish_job(job, options, CuratedImportJob.STATUS_FINISHED, "")
+
+    def _start_job(self, options):
+        """Mark the import as running so the UI can show it while it works."""
+        if not options["execute"]:
+            return None
+        if options["job_id"]:
+            job = CuratedImportJob.objects.filter(pk=options["job_id"]).first()
+            if job is None:
+                raise CommandError(f"Curated import job {options['job_id']} not found.")
+        else:
+            owner = (
+                get_user_model()
+                .objects.filter(is_superuser=True, is_active=True)
+                .order_by("pk")
+                .first()
+            )
+            if owner is None:
+                return None
+            job = CuratedImportJob.objects.create(
+                owner=owner,
+                genome_name=options["genome"].strip(),
+                results_tsv=options["results_tsv"],
+                structures_dir=options.get("structures_dir") or "",
+                archive=options.get("archive") or "",
+                archive_root=options.get("archive_root") or "",
+                ligq_output_dir=options.get("ligq_output_dir") or "",
+                datadir=options["datadir"],
+                overwrite_scores=bool(options["overwrite_scores"]),
+                load_ligq_output=not options["skip_ligq"],
+                command="manage.py run_curated_file_import (shell)",
+            )
+        if not options["report"]:
+            folder_path = compute_folder_path(options["datadir"], job.genome_name)
+            options["report"] = str(
+                Path(folder_path) / "curated_import" / f"curated-import-{job.pk}.txt"
+            )
+        job.status = CuratedImportJob.STATUS_RUNNING
+        job.phase = "running"
+        job.started_at = timezone.now()
+        job.finished_at = None
+        job.report_path = options["report"]
+        job.report_text = ""
+        job.error_message = ""
+        job.save()
+        return job
+
+    def _finish_job(self, job, options, status, error_message):
+        job.status = status
+        job.phase = status
+        job.error_message = error_message
+        report = Path(options["report"])
+        if report.is_file():
+            job.report_text = report.read_text(encoding="utf-8", errors="replace")
+        job.finished_at = timezone.now()
+        job.save()
+
+    def _run(self, options):
         genome = options["genome"].strip()
         datadir = options["datadir"]
         folder_path = compute_folder_path(datadir, genome)
@@ -211,10 +346,20 @@ class Command(BaseCommand):
             self._detect_ligq_path(layout, extract_root) if layout else None
         )
         gbk_path = self._first_gbk_path(layout, extract_root) if layout else None
+        metabolism_dir = options.get("metabolism_dir") or (
+            self._detected_path(layout, extract_root, "metabolism") if layout else None
+        )
+        if not metabolism_dir and structures_dir:
+            metabolism_dir = str(Path(structures_dir).parent / "metabolism")
+        metabolism = detect_metabolism_inputs(metabolism_dir)
 
         self._line(report_lines, "")
         self._line(report_lines, "Detected usable inputs")
         self._line(report_lines, f"  structures: {structures_dir or '-'}")
+        self._line(
+            report_lines,
+            f"  metabolism: {metabolism['sbml'] + ' + ' + metabolism['network_sif'] if metabolism else '-'}",
+        )
         self._line(report_lines, f"  GBK/GBFF: {gbk_path or '-'}")
         self._line(report_lines, f"  LigQ_2: {ligq_dir or '-'}")
 
@@ -252,6 +397,28 @@ class Command(BaseCommand):
         )
         self._line(
             report_lines,
+            "  import_gates_pocket_outputs --scope selected: "
+            + (
+                "skipped"
+                if options["skip_pockets"] or not structures_dir
+                else "will run"
+                if options["execute"]
+                else "would run"
+            ),
+        )
+        self._line(
+            report_lines,
+            "  load_metabolism: "
+            + (
+                "skipped"
+                if options["skip_metabolism"] or not metabolism
+                else "will run"
+                if options["execute"]
+                else "would run"
+            ),
+        )
+        self._line(
+            report_lines,
             "  load_ligq_2_results: "
             + (
                 "skipped"
@@ -273,6 +440,8 @@ class Command(BaseCommand):
                 overwrite_scores=options["overwrite_scores"],
                 skip_uniprot_backfill=options["skip_uniprot_backfill"],
                 skip_experimental_fetch=options["skip_experimental_fetch"],
+                skip_pockets=options["skip_pockets"],
+                metabolism=None if options["skip_metabolism"] else metabolism,
                 skip_ligq=options["skip_ligq"],
                 report_lines=report_lines,
             )
@@ -425,40 +594,77 @@ class Command(BaseCommand):
         overwrite_scores,
         skip_uniprot_backfill,
         skip_experimental_fetch,
+        skip_pockets=False,
+        metabolism=None,
         skip_ligq,
         report_lines,
     ):
-        self._line(report_lines, "")
-        self._line(report_lines, "Execution log")
-        self._call(
-            report_lines,
-            "import_external_results",
-            genome,
-            results_tsv=results_tsv,
-            structures_dir=structures_dir,
-            datadir=datadir,
-            overwrite=overwrite_scores,
-        )
+        steps = [
+            (
+                "import_external_results",
+                (genome,),
+                {
+                    "results_tsv": results_tsv,
+                    "structures_dir": structures_dir,
+                    "datadir": datadir,
+                    "overwrite": overwrite_scores,
+                },
+            )
+        ]
         if gbk_path:
-            self._call(report_lines, "sync_genome_metadata", genome, gbk_path)
+            steps.append(("sync_genome_metadata", (genome, gbk_path), {}))
         if not skip_uniprot_backfill:
-            self._call(
-                report_lines,
-                "backfill_curated_uniprot_annotations",
-                genome,
-                results_tsv=results_tsv,
-                datadir=datadir,
+            steps.append(
+                (
+                    "backfill_curated_uniprot_annotations",
+                    (genome,),
+                    {"results_tsv": results_tsv, "datadir": datadir},
+                )
             )
         if not skip_experimental_fetch:
-            self._call(
-                report_lines,
-                "fetch_experimental_structures",
-                genome,
-                datadir=datadir,
-                all_xrefs=True,
+            steps.append(
+                (
+                    "fetch_experimental_structures",
+                    (genome,),
+                    {"datadir": datadir, "all_xrefs": True},
+                )
+            )
+        # Pockets need the structures above: they load against them.
+        if structures_dir and not skip_pockets:
+            steps.append(
+                (
+                    "import_gates_pocket_outputs",
+                    (genome,),
+                    {
+                        "results_tsv": results_tsv,
+                        "structures_dir": structures_dir,
+                        "datadir": datadir,
+                        "scope": "selected",
+                    },
+                )
+            )
+        if metabolism:
+            steps.append(
+                (
+                    "load_metabolism",
+                    (genome,),
+                    {key: value for key, value in metabolism.items() if value},
+                )
             )
         if ligq_dir and not skip_ligq:
-            self._call(report_lines, "load_ligq_2_results", ligq_dir)
+            steps.append(("load_ligq_2_results", (ligq_dir,), {}))
+
+        self._line(report_lines, "")
+        self._line(report_lines, "Execution log")
+        for number, (command_name, args, kwargs) in enumerate(steps, start=1):
+            self._set_phase(f"{STEP_LABELS[command_name]} ({number}/{len(steps)})")
+            self._call(report_lines, command_name, *args, **kwargs)
+
+    def _set_phase(self, phase):
+        job = getattr(self, "_job", None)
+        if job is not None:
+            job.phase = phase[:64]
+            job.save(update_fields=["phase"])
 
     def _call(self, report_lines, command_name, *args, **kwargs):
         self._line(report_lines, f"  RUN {command_name}")

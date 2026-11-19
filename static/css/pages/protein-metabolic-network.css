@@ -7,10 +7,6 @@
  * (from metabolism-overview.css -- the same reaction-row component metabolism_pathway.html uses).
  */
 
-.protein-metabolic-network-summary {
-    margin-top: 0;
-}
-
 #metabolic-network-cy {
     min-height: clamp(520px, 70vh, 820px);
 }
@@ -33,13 +29,13 @@
 }
 
 .protein-metabolic-network-page .pathway-reaction-row:focus-visible {
-    outline: 2px solid var(--tp-color-brand-300);
+    outline: 2px solid var(--tp-focus-color);
     outline-offset: -1px;
 }
 
 .protein-metabolic-network-page .pathway-reaction-row.is-active {
-    border-color: var(--tp-color-brand-300);
-    background: var(--tp-color-brand-050);
+    border-color: var(--tp-color-border-strong);
+    background: var(--tp-color-brand-100);
 }
 
 /* Brief background flash on the "Selected reaction" card whenever a new node/row is picked, so
@@ -70,4 +66,18 @@
 
 .metabolic-legend-line--cross {
     border-top-style: dashed;
+}
+
+.metabolite-plus {
+    margin: 0 var(--tp-space-1);
+    color: var(--tp-color-text-muted);
+}
+
+.genome-description a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.genome-description a:hover {
+    text-decoration: underline;
 }

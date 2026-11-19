@@ -23,12 +23,19 @@ class GenomeUploadForm(forms.Form):
     )
     gbk_file = forms.FileField(
         label=_("Compressed GBK file"),
-        help_text=_("Upload a `.gbk.gz` file to run the genome pipeline."),
+        help_text=_("Upload a compressed GenBank file (.gbk.gz) to start the analysis."),
         widget=forms.ClearableFileInput(
             attrs={
                 "class": "tp-file-input",
             }
         ),
+    )
+    make_public = forms.BooleanField(
+        label=_("Make this genome public (visible to everyone)"),
+        help_text=_(
+            "Only the owner account can do this. Otherwise the genome stays private to your account."
+        ),
+        required=False,
     )
 
     def clean_accession(self):

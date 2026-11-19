@@ -12,7 +12,10 @@ from tpweb.services.genome_workspace import (
     genome_url_slug,
     resolve_genome_from_slug,
 )
-from tpweb.services.metabolism_summary import build_genome_metabolism_summary
+from tpweb.services.metabolism_summary import (
+    build_genome_metabolism_summary,
+    druggable_protein_ids,
+)
 from tpweb.services.metabolism_network import (
     _primary_pathway_buckets,
     build_genome_metabolism_network,
@@ -367,9 +370,16 @@ def _reaction_metabolite_graph(reactions):
     reaction_nodes = []
     metabolite_by_id = {}
     participants = []
+    druggable = druggable_protein_ids(
+        {link.bioentry_id for reaction in reactions for link in reaction.genes.all()}
+    )
 
     for reaction in reactions:
-        reaction_nodes.append(_reaction_topology_row(reaction))
+        node = _reaction_topology_row(reaction)
+        node["has_druggable_protein"] = any(
+            gene["protein_id"] in druggable for gene in node["genes"]
+        )
+        reaction_nodes.append(node)
         for participant in reaction.participants.all():
             species = participant.species
             if species.species_id not in metabolite_by_id:

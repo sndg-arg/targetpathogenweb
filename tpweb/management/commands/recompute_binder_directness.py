@@ -3,7 +3,6 @@ from django.db import transaction
 from django.db.models import Count
 
 from bioseq.models.Biodatabase import Biodatabase
-from bioseq.models.BioentryDbxref import BioentryDbxref
 from tpweb.models.Binders import Binders
 
 
@@ -103,17 +102,14 @@ class Command(BaseCommand):
 
 
 def _protein_uniprot_map(db):
-    mapping = {}
-    qs = BioentryDbxref.objects.filter(
-        bioentry__biodatabase=db,
-        dbxref__dbname__in=("UnipSp", "UnipTr"),
-    ).values("bioentry__accession", "dbxref__accession")
-    for row in qs:
-        protein_accession = row["bioentry__accession"]
-        uniprot_accession = (row["dbxref__accession"] or "").strip()
-        if uniprot_accession:
-            mapping.setdefault(protein_accession, set()).add(uniprot_accession)
-    return {key: frozenset(values) for key, values in mapping.items()}
+    # Own UniProt entries plus those of identical copies in other strains
+    # (same sequence = same UniProt entry), same rule load_ligq_2_results uses.
+    from bioseq.models.Bioentry import Bioentry
+    from tpweb.services.binder_directness import protein_uniprot_map
+
+    return protein_uniprot_map(
+        Bioentry.objects.filter(biodatabase=db).values_list("accession", flat=True)
+    )
 
 
 def _source_counts(qs):

@@ -1,0 +1,100 @@
+{% extends "base/masterpage.html" %}
+{% load i18n %}
+{% load static %}
+{% load custom_tags %}
+
+{% block title %}{% trans "Retrosynthesis benchmark" %} · {% trans "Human Targets" %}{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/retrosynthesis-benchmark.css' %}?v=20261026">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'human_target:human_protein_list' as human_url %}
+        {% url 'human_target:human_ligand_atlas' as atlas_url %}
+        {% trans "Human Targets" as crumb_human %}
+        {% trans "Ligand coverage" as crumb_atlas %}
+        {% trans "Retrosynthesis benchmark" as crumb_bench %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_human crumb_2_url=human_url crumb_3_label=crumb_atlas crumb_3_url=atlas_url crumb_4_label=crumb_bench %}
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="bench-page" data-motion>
+
+    <section class="tp-page-hero">
+        <div class="tp-view-head">
+            <div class="tp-view-head-copy">
+                <span class="tp-view-eyebrow">{% trans "Human Targets" %}</span>
+                <h1 class="tp-view-title">{% trans "Retrosynthesis benchmark" %}</h1>
+                <p class="tp-view-lead">{% blocktrans with n=benchmark.test_reactions|thousands %}Single-step retrosynthesis models on the USPTO-50K test split ({{ n }} reactions).{% endblocktrans %}</p>
+            </div>
+        </div>
+        <div class="tp-metrics bench-metrics" aria-label="{% trans 'Benchmark summary' %}">
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "Best top-1" %}</span>
+                <span class="metric-value">{{ benchmark.best_top1.top1 }}%</span>
+                <span class="metric-note">{{ benchmark.best_top1.name }}</span>
+            </div>
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "Best top-10" %}</span>
+                <span class="metric-value">{{ benchmark.best_top10.top10 }}%</span>
+                <span class="metric-note">{{ benchmark.best_top10.name }}</span>
+            </div>
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "Models run" %}</span>
+                <span class="metric-value">{{ benchmark.models|length }}</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="bench-panel">
+        <div class="section-head">
+            <div>
+                <span class="tp-view-eyebrow">{% trans "Accuracy" %}</span>
+                <h2>{% trans "Top-1 and top-10 by model" %}</h2>
+                <p class="section-subtitle">{% trans "Share of test reactions whose true reactants are the first prediction (top-1) or among the first ten (top-10)." %}</p>
+            </div>
+            <div class="section-tools bench-legend" aria-hidden="true">
+                <span><i class="bench-swatch bench-swatch--top1"></i>{% trans "Top-1" %}</span>
+                <span><i class="bench-swatch bench-swatch--top10"></i>{% trans "Top-10" %}</span>
+            </div>
+        </div>
+        <div class="bench-rows">
+            {% for model in benchmark.models %}
+            <div class="bench-row">
+                <div class="bench-model">
+                    <span class="bench-model-name">{{ model.name }}</span>
+                    <span class="bench-model-meta">{{ model.toolkit }}{% if model.note %} · {{ model.note }} ({{ model.evaluated|thousands }}){% endif %}</span>
+                </div>
+                <div class="bench-bars">
+                    <span class="bench-bar">
+                        <span class="tp-bar tp-bar--accent" aria-hidden="true"><span class="tp-bar-fill" style="width: {{ model.top1 }}%"></span></span>
+                        <span class="bench-value">{{ model.top1 }}%</span>
+                    </span>
+                    <span class="bench-bar">
+                        <span class="tp-bar" aria-hidden="true"><span class="tp-bar-fill" style="width: {{ model.top10 }}%"></span></span>
+                        <span class="bench-value">{{ model.top10 }}%</span>
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+            {% for model in benchmark.unavailable %}
+            <div class="bench-row is-unavailable">
+                <div class="bench-model">
+                    <span class="bench-model-name">{{ model.name }}</span>
+                    <span class="bench-model-meta">{{ model.toolkit }}</span>
+                </div>
+                <span class="bench-missing">{% trans "Not run: model files unavailable" %}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <p class="bench-footnote">{% trans "Measured by the Target Human team with ASKCOS. Synthesis routes on ligand pages come from literature reactions, not from these models." %}</p>
+</div>
+{% endblock %}

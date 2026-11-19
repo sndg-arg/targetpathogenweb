@@ -106,6 +106,7 @@ class Command(BaseCommand):
                 "search_proteins",
             ),
             ("Clear all filters.", "clear_filters"),
+            ("Add a Druggability column and sort the table by it.", "set_table_view"),
             # Scope-guardrail checks: expected_tool=None means "no tool call is correct
             # here" -- these should be read by a human to confirm the reply is a short
             # decline, not the off-topic content itself (see prompts.py's SCOPE_GUARDRAIL).

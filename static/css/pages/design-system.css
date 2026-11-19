@@ -1,0 +1,445 @@
+/* ── /design: a showcase of the site's look, shared at stands. Only the
+   layout of the page lives here; every sample is the real component. ── */
+
+.ds-page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--tp-space-4);
+    padding-bottom: var(--tp-space-8);
+    color: var(--tp-color-text-primary);
+}
+
+.ds-page [id] {
+    scroll-margin-top: calc(var(--tp-sticky-chrome-h, 0px) + 61px);
+}
+
+.ds-hero .tp-view-head-actions {
+    align-self: flex-end;
+}
+
+/* ── Chapters ── */
+.ds-chapter {
+    display: grid;
+    gap: var(--tp-space-6);
+    margin: var(--tp-space-6) var(--tp-space-5) 0;
+    min-width: 0;
+}
+
+.ds-chapter ~ .ds-chapter {
+    margin-top: var(--tp-space-7);
+    padding-top: var(--tp-space-7);
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-chapter-head {
+    display: grid;
+    gap: var(--tp-space-2);
+}
+
+.ds-chapter-head h2 {
+    margin: 0;
+    color: var(--tp-color-brand-900);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-heading-lg);
+    font-weight: 600;
+    letter-spacing: var(--tp-tracking-tight);
+    line-height: 1.1;
+}
+
+.ds-subhead {
+    margin: 0 0 calc(-1 * var(--tp-space-3));
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-lg);
+    font-weight: 600;
+}
+
+.ds-index {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-1) var(--tp-space-4);
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-index a {
+    color: var(--tp-color-text-secondary);
+}
+
+.ds-index a:hover {
+    color: var(--tp-color-link-hover);
+}
+
+/* ── Color ── */
+.ds-scale {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    border-radius: var(--tp-radius-md);
+    overflow: hidden;
+}
+
+.ds-swatch {
+    min-height: 132px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 2px;
+    padding: var(--tp-space-2);
+}
+
+.ds-swatch span,
+.ds-swatch .ds-hex {
+    align-self: flex-start;
+    padding: 1px var(--tp-space-1);
+    border-radius: var(--tp-radius-xs);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-2xs);
+    font-style: normal;
+}
+
+.ds-neutrals {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--tp-space-4);
+}
+
+.ds-neutral {
+    display: grid;
+    gap: var(--tp-space-2);
+    margin: 0;
+}
+
+.ds-neutral i {
+    display: block;
+    height: 64px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+}
+
+.ds-neutral figcaption {
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-tones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-3);
+}
+
+/* ── Typography ── */
+.ds-fonts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--tp-space-6);
+}
+
+.ds-font {
+    display: grid;
+    gap: var(--tp-space-2);
+    margin: 0;
+}
+
+.ds-font-sample {
+    margin: 0;
+    color: var(--tp-color-brand-900);
+    font-size: 5rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.ds-font-sample--head { font-family: var(--tp-font-head); }
+.ds-font-sample--body { font-family: var(--tp-font-body); }
+.ds-font-sample--mono { font-family: var(--tp-font-mono); }
+
+.ds-font figcaption {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-font figcaption strong {
+    display: block;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-md);
+    font-weight: 600;
+}
+
+.ds-type > tbody > tr > th {
+    vertical-align: baseline;
+}
+
+.ds-type > tbody > tr > td {
+    white-space: normal;
+}
+
+.ds-t { color: var(--tp-color-text-primary); }
+.ds-t--head { font-family: var(--tp-font-head); font-weight: 600; letter-spacing: var(--tp-tracking-tight); }
+.ds-t--heading-lg { font-size: var(--tp-heading-lg); line-height: 1.1; }
+.ds-t--heading-md { font-size: var(--tp-heading-md); line-height: 1.2; }
+.ds-t--lg { font-size: var(--tp-font-size-lg); font-weight: 600; }
+.ds-t--md { font-size: var(--tp-font-size-md); }
+.ds-t--sm { color: var(--tp-color-text-secondary); font-size: var(--tp-font-size-sm); }
+.ds-t--mono { color: var(--tp-color-text-secondary); font-family: var(--tp-font-mono); font-size: var(--tp-font-size-sm); }
+
+.ds-t--label {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+/* ── Components: name, then every variant side by side ── */
+.ds-comp {
+    display: grid;
+    gap: var(--tp-space-3);
+    min-width: 0;
+}
+
+.ds-comp + .ds-comp {
+    margin-top: var(--tp-space-5);
+    padding-top: var(--tp-space-6);
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-comp h3 {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-head);
+    font-size: var(--tp-font-size-xl);
+    font-weight: 600;
+}
+
+.ds-matrix-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.ds-matrix {
+    border-collapse: collapse;
+}
+
+.ds-matrix > * > tr > th,
+.ds-matrix > * > tr > td {
+    padding: var(--tp-space-3) var(--tp-space-6) var(--tp-space-3) 0;
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.ds-matrix > thead > tr > th {
+    padding-bottom: var(--tp-space-1);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 500;
+    letter-spacing: var(--tp-tracking-label);
+    text-transform: uppercase;
+}
+
+.ds-matrix > tbody > tr > th {
+    min-width: 128px;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+}
+
+.ds-matrix--top > tbody > tr > td,
+.ds-matrix--top > tbody > tr > th {
+    vertical-align: top;
+}
+
+/* Full-width samples, one per row (page headers). */
+.ds-matrix--stack {
+    width: 100%;
+}
+
+.ds-matrix--stack > tbody > tr > th {
+    vertical-align: top;
+    padding-top: var(--tp-space-5);
+}
+
+.ds-matrix--stack > tbody > tr > td {
+    width: 100%;
+    padding-right: 0;
+    white-space: normal;
+}
+
+.ds-matrix .tp-message,
+.ds-matrix .tp-state-note {
+    white-space: normal;
+}
+
+/* Frozen samples must not react to the mouse. */
+.ds-matrix .is-hover,
+.ds-matrix .is-focus,
+.ds-matrix .tp-select,
+.ds-matrix .tp-select-menu {
+    pointer-events: none;
+}
+
+.ds-control {
+    width: 200px;
+}
+
+.ds-matrix .tp-select {
+    position: relative;
+}
+
+.ds-menu {
+    position: static;
+    width: 200px;
+    margin-top: var(--tp-space-2);
+}
+
+.ds-metric {
+    min-width: 150px;
+}
+
+.ds-bar {
+    width: 140px;
+}
+
+.ds-cell {
+    width: 240px;
+}
+
+.ds-topology {
+    width: 360px;
+}
+
+.ds-card {
+    display: grid;
+    gap: var(--tp-space-1);
+    width: 240px;
+    white-space: normal;
+}
+
+a.ds-card {
+    color: inherit;
+    text-decoration: none;
+}
+
+.ds-card-meta {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.ds-frame {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+}
+
+/* Assistant button: the real fixed button, placed in the page instead.
+   Room around it so the scroll box doesn't clip its shadow. */
+.ds-fab {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin: var(--tp-space-3) var(--tp-space-6) var(--tp-space-8);
+}
+
+.ds-fab--open {
+    width: 182px;
+}
+
+.ds-fab .tp-agent-fab-ring {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 60px;
+    height: 60px;
+    z-index: 0;
+}
+
+.ds-fab .tp-agent-fab {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    width: 56px;
+    height: 56px;
+    z-index: 1;
+    cursor: default;
+}
+
+.ds-fab .tp-agent-fab.is-peeking {
+    width: 178px;
+}
+
+.ds-fab .tp-agent-fab-icon {
+    flex-basis: 56px;
+    width: 56px;
+    height: 56px;
+}
+
+/* Top-bar menu: the real dropdown, shown in place. Scoped to .dropdown-menu:
+   a bare .ds-menu also hit the Select sample's menu and laid its options out
+   in one clipped row. */
+.dropdown-menu.ds-menu {
+    position: static;
+    display: block;
+    float: none;
+    margin: 0 !important;
+}
+
+.ds-pagination {
+    margin: 0;
+}
+
+.ds-crumb {
+    position: static;
+}
+
+.ds-table {
+    width: 100%;
+}
+
+.ds-tip {
+    display: inline-grid;
+    justify-items: center;
+    gap: var(--tp-space-3);
+    white-space: normal;
+}
+
+.ds-page .ds-tip-bubble {
+    position: relative;
+    width: max-content;
+    max-width: 320px;
+    white-space: normal;
+    opacity: 1;
+    z-index: auto;
+}
+
+.ds-scrim-cell {
+    padding: var(--tp-space-5) !important;
+    background: var(--tp-color-scrim);
+}
+
+.ds-scrim-cell + .ds-scrim-cell {
+    border-left: var(--tp-space-3) solid var(--tp-color-surface);
+}
+
+.ds-loader {
+    max-width: 340px;
+}
+
+.ds-modal-text {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+    .ds-scale {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .ds-swatch {
+        min-height: 88px;
+    }
+
+    .ds-font-sample {
+        font-size: 3.5rem;
+    }
+}
