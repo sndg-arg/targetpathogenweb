@@ -35,6 +35,7 @@ from tpweb.services.genome_workspace import (
 )
 from tpweb.services.genome_uploads import delete_genome_workspace, workspace_has_active_upload
 from tpweb.services.csv_exports import build_view_export_url, csv_response, xlsx_sections_response
+from tpweb.services.genome_visuals import build_genome_visuals
 from tpweb.services.protein_list import (
     EC_ANY_VALUE,
     LIGAND_EVIDENCE_KINDS,
@@ -128,6 +129,7 @@ class AssemblyView(View):
                 proteins_url, [build_special_filter_payload("ligands", kind)]
             )
         workspace_links["filters"] = filter_links
+        visuals = build_genome_visuals(biodb.name, proteins_url)
 
         media_root = Path(settings.MEDIA_ROOT)
         if not media_root.is_absolute():
@@ -165,6 +167,7 @@ class AssemblyView(View):
             "overview": overview,
             "workspace_metrics": workspace_metrics,
             "workspace_links": workspace_links,
+            "visuals": visuals,
             "view_export_url": build_view_export_url(request),
             "jbrowse_url": jbrowse_url,
             "jbrowse_embed": jbrowse_embed,

@@ -550,6 +550,10 @@ def refresh_genome_overview_caches(assembly_name, ranking_limit=5):
         _overview_target_rankings(assembly_name, None, ranking_limit, scored),
         OVERVIEW_CACHE_TTL_SECONDS,
     )
+    # Local import: genome_visuals imports this module.
+    from tpweb.services.genome_visuals import refresh_genome_visuals
+
+    refresh_genome_visuals(assembly_name)
 
 
 def export_composite_ranking_rows(assembly_name):

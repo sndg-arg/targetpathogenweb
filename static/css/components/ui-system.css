@@ -364,6 +364,19 @@
     padding: var(--tp-space-5) 0;
 }
 
+/* A line drawing over every empty state: a lens over a small molecule.
+   Drawn as a mask so it takes the theme colour. */
+.tp-empty::before {
+    content: "";
+    width: 56px;
+    height: 56px;
+    margin-bottom: var(--tp-space-1);
+    background: var(--tp-color-primary);
+    opacity: 0.55;
+    -webkit-mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><circle cx='27' cy='27' r='17'/><path d='M39.5 39.5 56 56'/><path d='M27 17.5l8 4.6v9.3l-8 4.6-8-4.6v-9.3z'/><path d='M27 17.5V12M35 31.4l4.6 2.7M19 31.4l-4.6 2.7'/><circle cx='27' cy='27' r='2.2' fill='black' stroke='none'/></svg>") center / contain no-repeat;
+    mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><circle cx='27' cy='27' r='17'/><path d='M39.5 39.5 56 56'/><path d='M27 17.5l8 4.6v9.3l-8 4.6-8-4.6v-9.3z'/><path d='M27 17.5V12M35 31.4l4.6 2.7M19 31.4l-4.6 2.7'/><circle cx='27' cy='27' r='2.2' fill='black' stroke='none'/></svg>") center / contain no-repeat;
+}
+
 .tp-empty-title {
     margin: 0;
     color: var(--tp-color-text-primary);

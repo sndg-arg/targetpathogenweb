@@ -5,7 +5,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261123-bars">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261123-icons">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -428,9 +428,9 @@
                                 <td class="gene-col">{{ protein.genes|join:', ' }}</td>
                                 <td data-col="structure-source">
                                     {% if protein.has_structure %}
-                                        <span class="tp-chip">{{ protein.structure_source_label }}</span>
+                                        <span class="tp-chip structure-chip structure-chip--{{ protein.structure_source }}"><span class="structure-chip-icon">{% if protein.structure_source == "experimental" or protein.structure_source == "mixed" %}{% include "components/icons/structure_experimental.html" %}{% else %}{% include "components/icons/structure_predicted.html" %}{% endif %}</span>{{ protein.structure_source_label }}</span>
                                     {% else %}
-                                        <span class="tp-chip structure-unavailable">{{ protein.structure_source_label }}<span class="cell-tooltip" role="tooltip">{% trans "No 3D model loaded (no PDB entry, AlphaFold DB model or ColabFold prediction)." %}</span></span>
+                                        <span class="tp-chip structure-chip structure-unavailable"><span class="structure-chip-icon">{% include "components/icons/structure_none.html" %}</span>{{ protein.structure_source_label }}<span class="cell-tooltip" role="tooltip">{% trans "No 3D model loaded (no PDB entry, AlphaFold DB model or ColabFold prediction)." %}</span></span>
                                     {% endif %}
                                 </td>
                                 <td data-col="ec">
@@ -535,7 +535,7 @@
                         {% empty %}
                             <tr>
                                 <td colspan="99">
-                                    <p class="tp-state-note tp-state-note--empty protein-table-empty-note">{% trans "No proteins match the current search and filters." %}</p>
+                                    <div class="tp-empty protein-table-empty-note"><p class="tp-empty-title">{% trans "No proteins match the current search and filters." %}</p><p class="tp-empty-text">{% trans "Try removing a filter or searching for a gene, locus tag or description." %}</p></div>
                                 </td>
                             </tr>
                         {% endfor %}

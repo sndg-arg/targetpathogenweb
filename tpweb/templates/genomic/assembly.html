@@ -6,7 +6,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/genome-page.css' %}?v=20261021-split">
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261104-links">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20261123-landscape">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -143,6 +143,7 @@
         </section>
 
         <nav class="quick-nav" aria-label="{% trans 'Genome sections' %}">
+            {% if visuals.funnel or visuals.cell or visuals.ring %}<a href="#section-landscape" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Landscape" %}</a>{% endif %}
             <a href="#section-evidence" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Evidence" %}</a>
             {% if jbrowse_embed.enabled %}
                 <a href="#section-browse" class="btn tp-btn tp-btn--secondary tp-btn--sm tp-focusable quick-nav-link">{% trans "Genome browser" %}</a>
@@ -157,6 +158,8 @@
         </nav>
 
         <div class="genome-grid">
+            {% if visuals.funnel or visuals.cell or visuals.ring %}{% include "genomic/_genome_visuals.html" %}{% endif %}
+
             <!-- Evidence available -->
             <section class="genome-card genome-card--evidence" id="section-evidence">
                 <div class="section-head">

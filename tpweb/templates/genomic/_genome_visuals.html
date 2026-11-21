@@ -1,0 +1,141 @@
+{% load i18n l10n %}
+{% comment %}
+Genome overview drawings (tpweb.services.genome_visuals): target funnel, the
+cell by PSORTb compartment and the genome ring. Each part draws only when its
+data is loaded; every count links to the proteins it counts.
+{% endcomment %}
+{% localize off %}
+<section class="genome-card genome-card--landscape" id="section-landscape">
+    <div class="section-head">
+        <div>
+            <h2>{% trans "Target landscape" %}</h2>
+            <p class="section-subtitle">{% trans "Where the candidates are: how many survive each filter, where they sit in the cell and along the genome." %}</p>
+        </div>
+    </div>
+
+    {% if visuals.funnel %}
+    <ol class="landscape-funnel" aria-label="{% trans 'Target funnel' %}">
+        {% for step in visuals.funnel %}
+        <li class="landscape-funnel-step{% if forloop.last %} is-final{% endif %}">
+            <a href="{{ step.url }}" class="landscape-funnel-link" title="{% trans 'Show these proteins' %}">
+                <span class="landscape-funnel-label">{% if not forloop.first %}<span class="landscape-funnel-plus" aria-hidden="true">+</span>{% endif %}{{ step.label }}</span>
+                <span class="landscape-funnel-track" aria-hidden="true"><span class="landscape-funnel-fill" style="width: {{ step.width }}%"></span></span>
+                <span class="landscape-funnel-count" data-countup>{{ step.count }}</span>
+            </a>
+        </li>
+        {% endfor %}
+    </ol>
+    {% endif %}
+
+    {% if visuals.cell or visuals.ring %}
+    <div class="landscape-figures">
+        {% if visuals.cell %}
+        {% with cell=visuals.cell %}
+        <figure class="landscape-figure landscape-cell{% if cell.gram_positive %} is-gram-positive{% endif %}" data-cell>
+            <svg viewBox="0 0 360 220" class="landscape-cell-svg" role="img" aria-label="{% trans 'Proteins by predicted subcellular localization' %}">
+                {% for region in cell.regions %}{% if region.key == "Extracellular" %}
+                <a href="{{ region.url|default:'#section-landscape' }}" class="cell-region cell-region--space" data-region="{{ region.key }}" style="--level: {{ region.level }}"><title>{{ region.label }} · {{ region.count }}</title>
+                    <rect x="6" y="6" width="348" height="208" rx="104"/>
+                </a>
+                {% endif %}{% endfor %}
+                {% for region in cell.regions %}{% if region.key == "Periplasmic" %}
+                <a href="{{ region.url|default:'#section-landscape' }}" class="cell-region cell-region--space" data-region="{{ region.key }}" style="--level: {{ region.level }}"><title>{{ region.label }} · {{ region.count }}</title>
+                    <rect x="36" y="36" width="288" height="148" rx="74"/>
+                </a>
+                {% endif %}{% endfor %}
+                {% for region in cell.regions %}{% if region.key == "Cytoplasmic" %}
+                <a href="{{ region.url|default:'#section-landscape' }}" class="cell-region cell-region--space" data-region="{{ region.key }}" style="--level: {{ region.level }}"><title>{{ region.label }} · {{ region.count }}</title>
+                    <rect x="{% if cell.gram_positive %}50{% else %}60{% endif %}" y="{% if cell.gram_positive %}50{% else %}60{% endif %}" width="{% if cell.gram_positive %}260{% else %}240{% endif %}" height="{% if cell.gram_positive %}120{% else %}100{% endif %}" rx="{% if cell.gram_positive %}60{% else %}50{% endif %}"/>
+                </a>
+                {% endif %}{% endfor %}
+                {# Nucleoid and a few ribosomes: drawing only, not data. #}
+                <g class="cell-decor" aria-hidden="true">
+                    <path d="M132 112c10-16 22 14 34-2s22 16 34 0 22 14 30-2"/>
+                    <circle cx="112" cy="94" r="2.2"/><circle cx="246" cy="130" r="2.2"/><circle cx="214" cy="88" r="2.2"/><circle cx="150" cy="136" r="2.2"/>
+                    <path d="M324 110c6-7 12 7 18 0s10-7 14 0" class="cell-decor-flagellum"/>
+                </g>
+                {% for region in cell.regions %}{% if region.key == "OuterMembrane" or region.key == "Cellwall" %}
+                <a href="{{ region.url|default:'#section-landscape' }}" class="cell-region cell-region--membrane{% if region.key == 'Cellwall' %} is-wall{% endif %}" data-region="{{ region.key }}" style="--level: {{ region.level }}"><title>{{ region.label }} · {{ region.count }}</title>
+                    <rect x="36" y="36" width="288" height="148" rx="74"/>
+                </a>
+                {% endif %}{% endfor %}
+                {% for region in cell.regions %}{% if region.key == "CytoplasmicMembrane" %}
+                <a href="{{ region.url|default:'#section-landscape' }}" class="cell-region cell-region--membrane" data-region="{{ region.key }}" style="--level: {{ region.level }}"><title>{{ region.label }} · {{ region.count }}</title>
+                    <rect x="{% if cell.gram_positive %}50{% else %}60{% endif %}" y="{% if cell.gram_positive %}50{% else %}60{% endif %}" width="{% if cell.gram_positive %}260{% else %}240{% endif %}" height="{% if cell.gram_positive %}120{% else %}100{% endif %}" rx="{% if cell.gram_positive %}60{% else %}50{% endif %}"/>
+                </a>
+                {% endif %}{% endfor %}
+            </svg>
+            <figcaption>
+                <ul class="landscape-legend">
+                    {% for region in cell.regions %}
+                    <li>
+                        {% if region.url %}<a href="{{ region.url }}" class="landscape-legend-item" data-region="{{ region.key }}">{% else %}<span class="landscape-legend-item is-empty" data-region="{{ region.key }}">{% endif %}
+                            <i class="landscape-swatch" style="--level: {{ region.level }}" aria-hidden="true"></i>
+                            <span class="landscape-legend-label">{{ region.label }}</span>
+                            <span class="landscape-legend-count">{{ region.count }}</span>
+                            <span class="landscape-legend-share">{{ region.share }}%</span>
+                        {% if region.url %}</a>{% else %}</span>{% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                <p class="landscape-note">{% blocktrans with known=cell.known unknown=cell.unknown %}PSORTb predictions for {{ known }} proteins; {{ unknown }} without a confident call.{% endblocktrans %}</p>
+            </figcaption>
+        </figure>
+        {% endwith %}
+        {% endif %}
+
+        {% if visuals.ring %}
+        {% with ring=visuals.ring %}
+        <figure class="landscape-figure landscape-ring">
+            <svg viewBox="0 0 {{ ring.size }} {{ ring.size }}" class="landscape-ring-svg" role="img" aria-label="{% trans 'Best pocket score along the genome' %}">
+                <defs>
+                    <mask id="landscape-ring-reveal" maskUnits="userSpaceOnUse">
+                        <circle class="landscape-ring-sweep" cx="{{ ring.center }}" cy="{{ ring.center }}" r="{{ ring.inner|add:12 }}" pathLength="1" transform="rotate(-90 {{ ring.center }} {{ ring.center }})"/>
+                    </mask>
+                </defs>
+                <circle class="landscape-ring-axis" cx="{{ ring.center }}" cy="{{ ring.center }}" r="{{ ring.inner }}"/>
+                <g mask="url(#landscape-ring-reveal)">
+                    <path class="landscape-ring-tick is-none" d="{{ ring.paths.none }}"/>
+                    <path class="landscape-ring-tick is-low" d="{{ ring.paths.low }}"/>
+                    <path class="landscape-ring-tick is-mid" d="{{ ring.paths.mid }}"/>
+                    <path class="landscape-ring-tick is-high" d="{{ ring.paths.high }}"/>
+                </g>
+                {% for mark in ring.contig_marks %}<path class="landscape-ring-contig" d="{{ mark.d }}"><title>{{ mark.label }}</title></path>{% endfor %}
+                {% for mark in ring.marks %}<a href="{% url 'tpwebapp:protein' mark.id %}" class="landscape-ring-mark"><title>{{ mark.accession }}</title><circle cx="{{ mark.x }}" cy="{{ mark.y }}" r="3.2"/></a>{% endfor %}
+                <text x="{{ ring.center }}" y="{{ ring.center }}" class="landscape-ring-value" text-anchor="middle">{{ ring.length_mb }} Mb</text>
+                <text x="{{ ring.center }}" y="{{ ring.center|add:18 }}" class="landscape-ring-sub" text-anchor="middle">{% blocktrans count n=ring.contig_count %}{{ n }} contig{% plural %}{{ n }} contigs{% endblocktrans %}</text>
+            </svg>
+            <figcaption>
+                <ul class="landscape-legend landscape-legend--ring">
+                    <li><span class="landscape-legend-item"><i class="landscape-tick is-high" aria-hidden="true"></i>{% trans "Pocket ≥ 0.5" %}</span></li>
+                    <li><span class="landscape-legend-item"><i class="landscape-tick is-mid" aria-hidden="true"></i>{% trans "0.2–0.5" %}</span></li>
+                    <li><span class="landscape-legend-item"><i class="landscape-tick is-low" aria-hidden="true"></i>{% trans "Below 0.2 or no score" %}</span></li>
+                    {% if ring.marks %}<li><span class="landscape-legend-item"><i class="landscape-dot" aria-hidden="true"></i>{% trans "Passes every filter above · click to open" %}</span></li>{% endif %}
+                </ul>
+                <p class="landscape-note">{% trans "Best pocket score (P2Rank, else FPocket) around the chromosome, starting at the top and running clockwise." %}</p>
+            </figcaption>
+        </figure>
+        {% endwith %}
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+{% if visuals.cell %}
+<script>
+    // Legend and drawing light each other up.
+    (function () {
+        var cell = document.querySelector("[data-cell]");
+        if (!cell) return;
+        function toggle(key, on) {
+            cell.querySelectorAll('[data-region="' + key + '"]').forEach(function (el) {
+                el.classList.toggle("is-hot", on);
+            });
+        }
+        cell.querySelectorAll("[data-region]").forEach(function (el) {
+            el.addEventListener("mouseenter", function () { toggle(el.dataset.region, true); });
+            el.addEventListener("mouseleave", function () { toggle(el.dataset.region, false); });
+        });
+    })();
+</script>
+{% endif %}
+{% endlocalize %}

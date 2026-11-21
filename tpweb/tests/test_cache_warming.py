@@ -24,6 +24,7 @@ class RefreshGenomeOverviewCachesTests(SimpleTestCase):
             mock.patch.object(
                 assembly_workspace, "_overview_target_rankings", return_value=("top", "new")
             ),
+            mock.patch("tpweb.services.genome_visuals.refresh_genome_visuals") as visuals,
         ):
             assembly_workspace.refresh_genome_overview_caches("G")
             self.assertEqual(assembly_workspace.build_assembly_workspace_metrics("G"), {"m": 1})
@@ -33,3 +34,4 @@ class RefreshGenomeOverviewCachesTests(SimpleTestCase):
             )
             self.assertEqual(assembly_workspace._cached_score_proteins("G"), [])
         score.assert_called_once_with("G")
+        visuals.assert_called_once_with("G")

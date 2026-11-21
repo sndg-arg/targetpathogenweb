@@ -3555,3 +3555,28 @@ body.is-resizing-column * {
     color: inherit;
     font-weight: 700;
 }
+
+/* Structure source: a small drawing before the label -- a crystal for
+   experimental entries, a ribbon for predicted models, a dashed outline
+   for none. */
+.structure-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.structure-chip-icon {
+    display: inline-flex;
+    flex: none;
+    color: var(--tp-color-text-muted);
+}
+
+.structure-chip-icon svg {
+    width: 13px;
+    height: 13px;
+}
+
+.structure-chip--experimental .structure-chip-icon,
+.structure-chip--mixed .structure-chip-icon {
+    color: var(--tp-color-primary);
+}
