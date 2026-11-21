@@ -642,7 +642,21 @@ function jsloaded() {
         }
     }
 
-    function renderSuggestions(items) {
+    // Bold the typed text inside a suggestion (case-insensitive, first match).
+    function setHighlighted(el, text, query) {
+        el.textContent = "";
+        const at = query ? text.toLowerCase().indexOf(query.toLowerCase()) : -1;
+        if (at < 0) {
+            el.textContent = text;
+            return;
+        }
+        const match = document.createElement("mark");
+        match.className = "search-suggestion-match";
+        match.textContent = text.slice(at, at + query.length);
+        el.append(text.slice(0, at), match, text.slice(at + query.length));
+    }
+
+    function renderSuggestions(items, query) {
         if (!suggestionsBox) return;
         suggestionsBox.innerHTML = "";
         activeSuggestionIndex = -1;
@@ -666,20 +680,23 @@ function jsloaded() {
 
             const accession = document.createElement("span");
             accession.className = "search-suggestion-accession";
-            accession.textContent = item.accession || "";
+            setHighlighted(accession, item.accession || "", query);
             button.appendChild(accession);
 
             if (item.gene) {
                 const gene = document.createElement("span");
                 gene.className = "search-suggestion-gene";
-                gene.textContent = "Gene: " + item.gene;
+                gene.append("Gene: ");
+                const geneName = document.createElement("span");
+                setHighlighted(geneName, item.gene, query);
+                gene.appendChild(geneName);
                 button.appendChild(gene);
             }
 
             if (item.description) {
                 const description = document.createElement("span");
                 description.className = "search-suggestion-description";
-                description.textContent = item.description;
+                setHighlighted(description, item.description, query);
                 button.appendChild(description);
             }
 
@@ -719,7 +736,7 @@ function jsloaded() {
             })
             .then(function (payload) {
                 if (currentRequestId !== suggestionRequestId) return;
-                renderSuggestions(payload && payload.results ? payload.results : []);
+                renderSuggestions(payload && payload.results ? payload.results : [], query);
             })
             .catch(function () {
                 if (currentRequestId !== suggestionRequestId) return;

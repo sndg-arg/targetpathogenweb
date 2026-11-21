@@ -64,6 +64,31 @@ def score_metric_display(value, column_name):
     return f"{numeric:g}"
 
 
+# Columns with a fixed scale get a thin magnitude bar in the protein table.
+_METRIC_SCALE = {
+    "druggability": 1,
+    "colabfold_druggability_score": 1,
+    "p2rank_probability": 1,
+    "gut_microbiome_offtarget_norm": 1,
+    "human_identity": 100,
+    "deg_identity": 100,
+    "colabfold_plddt": 100,
+}
+
+
+@register.filter
+def metric_fraction(value, column_name):
+    """Percent of the column's scale ("37.5"), or "" when it has none."""
+    scale = _METRIC_SCALE.get(str(column_name or "").strip().lower())
+    try:
+        numeric = float(str(value).replace(",", "."))
+    except (TypeError, ValueError):
+        return ""
+    if not scale:
+        return ""
+    return f"{max(0.0, min(numeric / scale, 1.0)) * 100:.1f}"
+
+
 @register.filter
 def druggability_display(value):
     try:

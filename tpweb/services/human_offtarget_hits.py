@@ -207,3 +207,31 @@ def human_homolog_row(hits):
     if not items:
         return None
     return {"key": "human", "label": "Human homologs", "items": items, "kind": "segments"}
+
+
+def top_human_hit_labels(bioentry_ids):
+    """{bioentry id: "TKT · 31%"}: the best human match, for the protein table."""
+    best = list(
+        HumanOfftargetHit.objects.filter(bioentry_id__in=list(bioentry_ids))
+        .order_by("bioentry_id", "-bitscore")
+        .distinct("bioentry_id")
+        .values("bioentry_id", "human_accession", "human_entry_name", "identity")
+    )
+    if not best:
+        return {}
+    from human_target.models import HumanProtein  # local: avoids an app import cycle
+
+    symbols = dict(
+        HumanProtein.objects.filter(
+            uniprot_accession__in=[hit["human_accession"] for hit in best]
+        ).values_list("uniprot_accession", "gene_symbol")
+    )
+    labels = {}
+    for hit in best:
+        gene = (
+            symbols.get(hit["human_accession"])
+            or hit["human_entry_name"].replace("_HUMAN", "")
+            or hit["human_accession"]
+        )
+        labels[hit["bioentry_id"]] = f"{gene} · {hit['identity']:.0f}%"
+    return labels

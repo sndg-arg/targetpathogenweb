@@ -5,7 +5,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261109-floathead">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261123-bars">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -502,6 +502,7 @@
                                                     <span class="tp-chip tp-chip--code {% with tone=val|druggability_tone %}{% if tone == "high" %}tp-chip--success{% elif tone == "mid" %}tp-chip--warning{% elif tone == "low" %}tp-chip--danger{% endif %}{% endwith %} druggability-tip" data-score="{{ val }}">
                                                         {{ val|druggability_display }}
                                                     </span>
+                                                    {% with pct=val|metric_fraction:"druggability" %}{% if pct %}<span class="protein-metric-bar" aria-hidden="true"><span style="width: {{ pct }}%"></span></span>{% endif %}{% endwith %}
                                                 {% else %}
                                                     <span class="tp-drugg-none druggability-tip">{% trans "No pocket" %}</span>
                                                 {% endif %}
@@ -512,8 +513,10 @@
                                                     {% with tone=val|score_metric_tone:col %}
                                                         {% if tone %}
                                                             <span class="tp-chip protein-metric-chip protein-metric-chip--{{ tone }}">{{ val|score_metric_display:col }}</span>
+                                                            {% if col == "human_offtarget" %}{% with top=top_human_hits|dictkey:protein.id %}{% if top %}<span class="protein-metric-sub" title="{% trans 'Best human match and its identity' %}">{{ top }}</span>{% endif %}{% endwith %}{% endif %}
                                                         {% else %}
                                                             <span class="protein-metric-value">{{ val|score_metric_display:col }}</span>
+                                                            {% with pct=val|metric_fraction:col %}{% if pct %}<span class="protein-metric-bar" aria-hidden="true"><span style="width: {{ pct }}%"></span></span>{% endif %}{% endwith %}
                                                         {% endif %}
                                                     {% endwith %}
                                                 {% else %}
@@ -1365,6 +1368,6 @@
             confirmClearAll: "{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}"
         };
     </script>
-    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261109-floathead"></script>
+    <script src="{% static 'js/pages/proteins-list.js' %}?v=20261123-match"></script>
     <script src="{% static 'js/pages/filter-values-input.js' %}?v=20261018-notes"></script>
 {% endblock %}

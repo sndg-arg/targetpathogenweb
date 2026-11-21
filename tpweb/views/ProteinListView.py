@@ -19,6 +19,7 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.Metabolism import MetabolicReaction
 from django.shortcuts import redirect
 from urllib.parse import urlencode, parse_qs
+from tpweb.services.human_offtarget_hits import top_human_hit_labels
 from tpweb.services.protein_list import (
     core_option_label,
     readable_column_name,
@@ -2395,6 +2396,9 @@ class ProteinListView(View):
                 "structure_columns": structure_dependent_columns(score_dict),
                 "genome_has_metabolism": genome_has_metabolism,
                 "tdata": page_tdatas,
+                "top_human_hits": top_human_hit_labels(proteins_ids_paginated)
+                if "human_offtarget" in tcolumns
+                else {},
                 "formula": formuladto,
                 "col_descriptions": col_descriptions,
                 "formulas": formulas,
