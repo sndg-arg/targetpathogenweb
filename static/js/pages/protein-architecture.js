@@ -6,11 +6,12 @@
 (function () {
     "use strict";
 
-    // Clicking a domain on the architecture map marks its residues in the
-    // sequence below and scrolls them into view; clicking it again clears it.
+    // Clicking a domain on the architecture map (or a human match's track in
+    // the off-target table) marks its residues in the sequence below and
+    // scrolls them into view; clicking it again clears it.
     function initArchitectureMap() {
         var sequence = document.querySelector("[data-sequence-blocks]");
-        var domains = document.querySelectorAll(".ha-domain[data-start]");
+        var domains = document.querySelectorAll(".ha-domain[data-start], .pe-align[data-start]");
         if (!sequence || !domains.length) return;
         var blocks = Array.prototype.slice.call(sequence.querySelectorAll(".hseq-block"));
         blocks.forEach(function (block) { block.dataset.text = block.textContent; });
@@ -51,6 +52,11 @@
                 if (wasActive) return;
                 domain.classList.add("is-active");
                 mark(parseInt(domain.dataset.start, 10), parseInt(domain.dataset.end, 10));
+                // The off-target table sits far above the sequence: bring it in.
+                if (!domain.closest(".ha-map")) {
+                    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                    sequence.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+                }
             });
         });
     }

@@ -1845,6 +1845,7 @@ def build_protein_executive_context(
     if binders is None:
         binders = create_binders_dict(protein, search_query=search_query, structures=structures)
 
+    human_hits = shown_human_hits(protein)
     prioritization = build_prioritization(
         raw_scores,
         target_profile,
@@ -1853,7 +1854,7 @@ def build_protein_executive_context(
         microbiome_context,
         gates_metabolic_priority,
         gates_regulatory,
-        human_hits=shown_human_hits(protein),
+        human_hits=human_hits,
     )
 
     target_summary = build_target_executive_summary(
@@ -1885,4 +1886,5 @@ def build_protein_executive_context(
         "target_summary": target_summary,
         "score_breakdown": score_breakdown,
         "prioritization": prioritization,
+        "human_hits": human_hits,
     }

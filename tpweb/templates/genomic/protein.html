@@ -1,12 +1,12 @@
 {% extends '../base/masterpage.html' %}
-{% load i18n %}
+{% load i18n l10n %}
 {% load genome_tags %}
 {% load static %}
 {% load custom_tags %}
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261104-tips">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261119-humanhits">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261121-align">
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
 {% endblock %}
 
@@ -154,7 +154,7 @@
                             <p class="pe-note pe-hits-note">{{ item.label }} · {{ item.note }}</p>
                             <div class="tp-table-shell pe-table-shell">
                                 <table class="table tp-table tp-table--compact pe-table">
-                                    <thead><tr><th scope="col">{% trans "Human protein" %}</th><th scope="col">{% trans "Identity" %}</th><th scope="col">{% trans "Coverage" %}</th><th scope="col">{% trans "E-value" %}</th><th scope="col">{% trans "Bit score" %}</th><th scope="col">{% trans "Aligned" %}</th></tr></thead>
+                                    <thead><tr><th scope="col">{% trans "Human protein" %}</th><th scope="col">{% trans "Identity" %}</th><th scope="col">{% trans "Coverage" %}</th><th scope="col">{% trans "E-value" %}</th><th scope="col">{% trans "Bit score" %}</th><th scope="col">{% trans "Aligned · this protein / human" %}</th></tr></thead>
                                     <tbody>
                                         {% for hit in item.hits %}
                                         <tr>
@@ -163,7 +163,13 @@
                                             <td>{{ hit.coverage|default:"—" }}</td>
                                             <td class="pe-mono">{{ hit.evalue }}</td>
                                             <td>{{ hit.bitscore|default:"—" }}</td>
-                                            <td>{% if hit.query_range %}<span class="pe-mono">{{ hit.query_range }}</span><span class="pe-cell-sub">{% blocktrans with r=hit.subject_range %}human {{ r }}{% endblocktrans %}</span>{% else %}—{% endif %}</td>
+                                            <td class="pe-align-cell">{% if hit.query_range %}
+                                                {% localize off %}{% if hit.query_span %}<button type="button" class="pe-align" data-start="{{ hit.query_start }}" data-end="{{ hit.query_end }}" title="{% blocktrans with r=hit.query_range %}Show residues {{ r }} in the sequence{% endblocktrans %}">
+                                                    <span class="pe-align-rail"><span class="pe-align-span" style="left: {{ hit.query_span.left }}%; width: {{ hit.query_span.width }}%"></span></span>
+                                                    {% if hit.subject_span %}<span class="pe-align-rail pe-align-rail--human"><span class="pe-align-span" style="left: {{ hit.subject_span.left }}%; width: {{ hit.subject_span.width }}%"></span></span>{% endif %}
+                                                </button>{% endif %}{% endlocalize %}
+                                                <span class="pe-cell-sub pe-mono">{{ hit.query_range }}{% if hit.subject_range %} · {% blocktrans with r=hit.subject_range %}human {{ r }}{% endblocktrans %}{% endif %}</span>
+                                            {% else %}—{% endif %}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -926,7 +932,7 @@
 {% block jsloaded %}
     {{ graphic_features|json_script:"seqfeatures" }}
 
-    <script src="{% static 'js/pages/protein-architecture.js' %}?v=20261022"></script>
+    <script src="{% static 'js/pages/protein-architecture.js' %}?v=20261121-hits"></script>
     <script src="{% static 'js/pages/protein-dossier.js' %}?v=20261026-quiet"></script>
     <script src="{% static 'js/pages/protein-detail.js' %}?v=20261018-neutral"></script>
     <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20261025-inspector"></script>

@@ -4,6 +4,7 @@ off-target screen (offtarget/human_offtarget_blast.tsv, outfmt
 
 import csv
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.urls import reverse
 
@@ -107,6 +108,27 @@ def store_human_offtarget_hits(genome_name, path):
     return len(rows)
 
 
+def _span(start, end, length):
+    """left/width percentages of start..end on a 1..length track."""
+    if not (start and end and length):
+        return None
+    start, end = sorted((start, end))
+    start, end = max(1, start), min(end, length)
+    if end < start:
+        return None
+    return {
+        "left": round((start - 1) / length * 100, 2),
+        "width": max(round((end - start + 1) / length * 100, 2), 1),
+    }
+
+
+def _sequence_length(bioentry):
+    try:
+        return bioentry.seq.length
+    except ObjectDoesNotExist:
+        return None
+
+
 def shown_human_hits(bioentry):
     """The hits the protein page names, with the human protein's name and link."""
     hits = list(
@@ -126,9 +148,10 @@ def shown_human_hits(bioentry):
         protein.uniprot_accession: protein
         for protein in HumanProtein.objects.filter(
             uniprot_accession__in=[hit.human_accession for hit in hits]
-        ).only("uniprot_accession", "gene_symbol", "protein_name")
+        ).only("uniprot_accession", "gene_symbol", "protein_name", "sequence_length")
     }
 
+    query_length = _sequence_length(bioentry)
     shown = []
     for hit in hits:
         protein = known.get(hit.human_accession)
@@ -154,6 +177,33 @@ def shown_human_hits(bioentry):
                 "subject_range": f"{hit.subject_start}–{hit.subject_end}"
                 if hit.subject_start and hit.subject_end
                 else "",
+                "query_start": hit.query_start,
+                "query_end": hit.query_end,
+                # Where the match sits on this protein and on the human one.
+                "query_span": _span(hit.query_start, hit.query_end, query_length),
+                "subject_span": _span(
+                    hit.subject_start,
+                    hit.subject_end,
+                    protein.sequence_length if protein else None,
+                ),
             }
         )
     return shown
+
+
+def human_homolog_row(hits):
+    """Architecture-map row (segments) marking where the human matches sit."""
+    items = [
+        {
+            **hit["query_span"],
+            "start": hit["query_start"],
+            "end": hit["query_end"],
+            "label": hit["gene"] or hit["accession"],
+            "description": f"{hit['identity']} identity",
+        }
+        for hit in hits
+        if hit.get("query_span")
+    ]
+    if not items:
+        return None
+    return {"key": "human", "label": "Human homologs", "items": items, "kind": "segments"}

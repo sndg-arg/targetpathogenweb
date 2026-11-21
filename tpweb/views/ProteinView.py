@@ -13,6 +13,7 @@ from tpweb.models.BioentryStructure import ExperimentalStructureXref
 from tpweb.services.structure_summary import pdb_structure
 from tpweb.services.identical_sequences import identical_siblings_for_bioentry
 from tpweb.services.topology_diagram import build_topology_diagram
+from tpweb.services.human_offtarget_hits import human_homolog_row
 from tpweb.services.protein_architecture import (
     build_interpro_architecture,
     coverage_cells,
@@ -607,6 +608,9 @@ class ProteinView(View):
         gates_metabolic_priority = executive_context["gates_metabolic_priority"]
         target_summary = executive_context["target_summary"]
         score_breakdown = executive_context["score_breakdown"]
+        human_row = human_homolog_row(executive_context["human_hits"])
+        if architecture and human_row:
+            architecture["tick_rows"].append(human_row)
 
         if request.GET.get("export") == "view_csv":
             sections = [

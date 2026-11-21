@@ -2049,3 +2049,72 @@ body.residue-modal-open {
 .ta-body .pe-hits-note {
     margin: var(--tp-space-3) 0 var(--tp-space-2);
 }
+
+/* Where each human match sits: this protein above, the human one below.
+   Clicking marks the matched residues in the sequence. */
+.pe-align {
+    display: grid;
+    gap: 3px;
+    width: 9rem;
+    padding: var(--tp-space-1) 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+
+.pe-align-rail {
+    position: relative;
+    display: block;
+    height: 5px;
+    border-radius: var(--tp-radius-pill);
+    background: var(--tp-color-border-soft);
+}
+
+.pe-align-rail--human {
+    height: 3px;
+}
+
+.pe-align-span {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: inherit;
+    background: var(--tp-color-primary);
+    transform-origin: left center;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.pe-align-rail--human .pe-align-span {
+    background: var(--tp-color-text-muted);
+}
+
+.pe-align:hover .pe-align-span,
+.pe-align.is-active .pe-align-span {
+    background: var(--tp-color-primary-hover);
+}
+
+.pe-align:focus-visible {
+    outline: 2px solid var(--tp-color-primary);
+    outline-offset: 2px;
+    border-radius: var(--tp-radius-sm);
+}
+
+.ta-item[open] .pe-align-span {
+    animation: pe-align-grow calc(var(--tp-ui-motion-base) * 3) var(--tp-ui-ease-standard) both;
+}
+
+@keyframes pe-align-grow {
+    from { transform: scaleX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ta-item[open] .pe-align-span {
+        animation: none;
+    }
+}
+
+/* Architecture map: the human-match row in the accent, so it reads apart
+   from disorder/coils. */
+.ha-row--human .ha-seg {
+    background: var(--tp-color-primary);
+}
