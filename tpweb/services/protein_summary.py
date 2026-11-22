@@ -1180,19 +1180,23 @@ def build_prioritization(
                         "kind": "chip",
                         "value": "True" if call else "False",
                         "tone": "success" if call else "",
+                        "note": "True = present in at least 95% of the genomes.",
                     }
                 )
-        items[-1]["note"] = (
-            "Core when both core calls are True; otherwise soft core when both "
-            "soft-core calls are True; otherwise accessory."
-            if conservation_profile["has_soft"]
-            else "Core when both tools say so. No soft-core data for this genome yet."
-        )
         groups.append(
             {
                 "key": "conservation",
                 "title": "Conservation",
-                "question": "Is the gene present in every strain analyzed?",
+                "question": "How widely is the gene present across the strains analyzed?",
+                # How the four calls combine: about the whole block, so it
+                # sits under the question, not under one card.
+                "rule": (
+                    "Core when both core calls are True; otherwise soft core when both "
+                    "soft-core calls are True; otherwise accessory."
+                    if conservation_profile["has_soft"]
+                    else "Core when both core calls are True. No soft-core data for this "
+                    "genome yet."
+                ),
                 "verdict": {
                     "core": "Core gene",
                     "soft_core": "Soft-core gene",

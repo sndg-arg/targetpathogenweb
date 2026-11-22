@@ -6,7 +6,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261124-mobile">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261124-mobile">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20261124-rule">
     <link rel="stylesheet" href="{% static 'css/components/pocket-list.css' %}?v=20261025-inspector">
 {% endblock %}
 
@@ -134,6 +134,7 @@
                         </summary>
                         <div class="ta-body">
                             <p class="pe-question">{{ group.question }}{% if group.badge %} <span class="tp-chip">{% if gates_viewer %}{% trans "Gr-ADI curated" %}{% else %}{{ group.badge }}{% endif %}</span>{% endif %}</p>
+                            {% if group.rule %}<p class="pe-rule">{{ group.rule }}</p>{% endif %}
                             <dl class="pe-items">
                                 {% for item in group.items %}{% if item.kind != "hits" %}
                                 <div class="pe-item"{% if item.tooltip %} title="{{ item.tooltip }}"{% endif %}>

@@ -1725,6 +1725,18 @@ body.residue-modal-open {
     margin: 0 0 var(--tp-space-3);
 }
 
+/* How the cards below combine into the verdict (e.g. core / soft core). */
+.ta-body .pe-question:has(+ .pe-rule) {
+    margin-bottom: var(--tp-space-1);
+}
+
+.ta-body .pe-rule {
+    margin: 0 0 var(--tp-space-3);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.4;
+}
+
 .ta-body .pe-items {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-sm);
