@@ -43,7 +43,10 @@ from tpweb.services.protein_list import (
     resolve_filter_values,
     VISIBLE_COLUMNS_SESSION_KEY,
 )
-from tpweb.services.score_param_types import is_categorical_score_param
+from tpweb.services.score_param_types import (
+    canonical_score_column_name,
+    is_categorical_score_param,
+)
 from tpweb.services.protein_formula import (
     NO_FORMULA_SENTINEL,
     annotate_formula_terms,
@@ -127,6 +130,12 @@ import logging
 FILTER_CHIPS_VISIBLE = 10
 FILTER_CHIPS_MAX = 60
 USER_COLUMN_CATEGORIES = {"Custom", SHARED_COLUMNS_CATEGORY}
+# The soft-core columns are uploaded like any user column but belong with
+# the core calls: always offered under Conservation, like the core ones.
+SOFT_CORE_FILTER_LABELS = {
+    "soft_core_roary": "Soft core (Roary)",
+    "soft_core_corecruncher": "Soft core (CoreCruncher)",
+}
 
 
 logger = logging.getLogger(__name__)
@@ -753,8 +762,12 @@ class ProteinListView(View):
         grouped = {}
         numeric_param_count = 0
         for score_param in score_params:
+            soft_core_label = SOFT_CORE_FILTER_LABELS.get(
+                canonical_score_column_name(score_param.name.strip().lower().replace(" ", "_"))
+            )
             if (
                 shown_column_names is not None
+                and not soft_core_label
                 and (score_param.category or "").strip() == SHARED_COLUMNS_CATEGORY
                 and score_param.name not in shown_column_names
                 and str(score_param.pk) not in filtered_param_ids
@@ -763,10 +776,12 @@ class ProteinListView(View):
             type_code = (score_param.type or "").upper()
             is_categorical = type_code.startswith("C") or type_code == "CATEGORICAL"
             category = (score_param.category or "Other").strip() or "Other"
+            if soft_core_label:
+                category = "Conservation"
             # Uploaded columns keep the exact names and values from the user's
             # file -- humanizing turned "KPN_00002" into "Kpn 00002".
             is_user_column = category in USER_COLUMN_CATEGORIES
-            param_label = (
+            param_label = soft_core_label or (
                 readable_column_name(score_param.name)
                 if is_user_column
                 else humanize_identifier(score_param.name) or score_param.name
