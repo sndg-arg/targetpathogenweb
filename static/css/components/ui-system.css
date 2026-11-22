@@ -1628,9 +1628,15 @@ button.tp-chip:hover,
     line-height: 1.2;
     letter-spacing: 0;
     white-space: nowrap;
-    max-width: 220px;
+    max-width: 280px;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Ellipsis needs a block box: in inline-flex the text overflowed into the
+   padding and touched the next "/". The home link keeps flex for its icon. */
+.tp-breadcrumb-link:not(:has(.tp-breadcrumb-home-icon)) {
+    display: inline-block;
 }
 
 .tp-breadcrumb-link {
