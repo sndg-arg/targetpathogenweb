@@ -71,7 +71,7 @@
         </section>
 
         <section class="toolbar-card">
-            <form method="GET" action="{{ request.path }}" class="search-form tp-ui-toolbar-form" id="protein-search-form">
+            <form method="GET" action="{{ request.path }}" class="search-form tp-ui-toolbar-form" id="protein-search-form" data-tp-loader-copy="{% trans 'Searching proteins…' %}">
                 {% if request.GET.scoreformula %}
                     <input type="hidden" name="scoreformula" value="{{ request.GET.scoreformula }}">
                 {% endif %}
@@ -1047,7 +1047,7 @@
                         {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--danger tp-btn-with-icon drawer-clear-btn" %}
                     {% endif %}
                 </form>
-                <form method="POST" action="" id="filters-apply-form" class="filters-apply-form">
+                <form method="POST" action="" id="filters-apply-form" class="filters-apply-form" data-tp-loader-copy="{% trans 'Applying filters…' %}">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="apply_filter_changes">
                     <input type="hidden" name="return_query" value="{{ query_string }}">

@@ -30,6 +30,7 @@
     let activeAction = null;
     const LOADER_DEFAULT_COPY = window.TPW_I18N.pageLoader.defaultCopy;
     const LOADER_OPENING_PREFIX = window.TPW_I18N.pageLoader.openingPrefix;
+    const LOADER_SUBMIT_COPY = window.TPW_I18N.pageLoader.submitCopy || LOADER_DEFAULT_COPY;
     const LOADER_LABEL_MAX_LENGTH = 42;
 
     // Genome overview and protein detail are the two heaviest pages to
@@ -252,7 +253,10 @@
                 markAction(submitter);
                 const copy = (submitter && submitter.getAttribute("data-tp-loader-copy"))
                     || form.getAttribute("data-tp-loader-copy");
-                show(copy ? { copy: copy } : { label: deriveLoaderLabel(submitter) });
+                // A button label after "Opening" reads wrong for an action
+                // ("Opening Apply filters 1…"): unlabelled forms get a plain
+                // "Updating…" instead.
+                show({ copy: copy || LOADER_SUBMIT_COPY });
             }, 0);
         });
 
