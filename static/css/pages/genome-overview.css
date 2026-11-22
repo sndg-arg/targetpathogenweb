@@ -891,6 +891,22 @@
     margin: 0;
 }
 
+/* Each drawing centred in its column with its legend under it, so the
+   cell and the ring sit as a balanced pair. */
+.landscape-figure > svg,
+.landscape-figure > figcaption {
+    justify-self: center;
+    width: 100%;
+}
+
+.landscape-cell > figcaption {
+    max-width: 30rem;
+}
+
+.landscape-ring > figcaption {
+    max-width: 24rem;
+}
+
 /* The cell: compartments filled by how many proteins they hold. */
 .landscape-cell-svg {
     width: 100%;

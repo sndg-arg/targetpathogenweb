@@ -78,15 +78,16 @@ _METRIC_SCALE = {
 
 @register.filter
 def metric_fraction(value, column_name):
-    """Percent of the column's scale ("37.5"), or "" when it has none."""
+    """Percent of the column's scale ("37.5"), or "" when it has none or the
+    value is zero (an empty track under "0.0%" reads as a broken bar)."""
     scale = _METRIC_SCALE.get(str(column_name or "").strip().lower())
     try:
         numeric = float(str(value).replace(",", "."))
     except (TypeError, ValueError):
         return ""
-    if not scale:
+    if not scale or numeric <= 0:
         return ""
-    return f"{max(0.0, min(numeric / scale, 1.0)) * 100:.1f}"
+    return f"{min(numeric / scale, 1.0) * 100:.1f}"
 
 
 @register.filter
