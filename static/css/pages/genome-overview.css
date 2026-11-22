@@ -891,29 +891,45 @@
     margin: 0;
 }
 
-/* Each drawing centred in its column with its legend under it, so the
-   cell and the ring sit as a balanced pair. */
-.landscape-figure > svg,
+/* Cell and ring as a pair: both drawings share one height, and both legends
+   share one width, so the legends start on the same line and the same
+   left edge in each column. */
+.landscape-figure > svg {
+    justify-self: center;
+    width: auto;
+    max-width: 100%;
+    height: 18rem;
+}
+
+.landscape-figure-title {
+    justify-self: center;
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+}
+
 .landscape-figure > figcaption {
     justify-self: center;
+    display: grid;
+    gap: var(--tp-space-2);
     width: 100%;
-}
-
-.landscape-cell > figcaption {
-    max-width: 30rem;
-}
-
-.landscape-ring > figcaption {
     max-width: 24rem;
 }
 
-/* The cell: compartments filled by how many proteins they hold. */
-.landscape-cell-svg {
-    width: 100%;
-    max-width: 30rem;
-    height: auto;
+@media (max-width: 900px) {
+    .landscape-figure > svg {
+        width: 100%;
+        height: auto;
+        max-width: 30rem;
+    }
+
+    .landscape-ring > svg {
+        max-width: 18rem;
+    }
 }
 
+/* The cell: compartments filled by how many proteins they hold. */
 .cell-region {
     cursor: pointer;
 }
@@ -1028,17 +1044,16 @@ a.landscape-legend-item:hover,
 
 .landscape-note {
     margin: 0;
+    /* Lines up with the legend swatches (the items carry the same padding). */
+    padding: 0 var(--tp-space-2);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-xs);
 }
 
-/* The genome ring: one tick per 1/360 of the chromosome, length and
-   colour by the best pocket score there. */
+/* The genome ring: one tick per 1/180 of the chromosome, gene density in
+   grey and the funnel survivors over it in the accent. */
 .landscape-ring-svg {
-    width: 100%;
-    max-width: 22rem;
-    height: auto;
-    justify-self: center;
+    overflow: visible;
 }
 
 .landscape-ring-axis {

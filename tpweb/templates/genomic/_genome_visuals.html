@@ -32,6 +32,7 @@ data is loaded; every count links to the proteins it counts.
         {% if visuals.cell %}
         {% with cell=visuals.cell %}
         <figure class="landscape-figure landscape-cell{% if cell.gram_positive %} is-gram-positive{% endif %}" data-cell>
+            <h3 class="landscape-figure-title">{% trans "Where in the cell" %}</h3>
             <svg viewBox="0 0 360 220" class="landscape-cell-svg" role="img" aria-label="{% trans 'Proteins by predicted subcellular localization' %}">
                 {% for region in cell.regions %}{% if region.key == "Extracellular" %}
                 <a href="{{ region.url|default:'#section-landscape' }}" class="cell-region cell-region--space" data-region="{{ region.key }}" style="--level: {{ region.level }}"><title>{{ region.label }} · {{ region.count }}</title>
@@ -87,6 +88,7 @@ data is loaded; every count links to the proteins it counts.
         {% if visuals.ring %}
         {% with ring=visuals.ring %}
         <figure class="landscape-figure landscape-ring">
+            <h3 class="landscape-figure-title">{% trans "Where on the chromosome" %}</h3>
             <svg viewBox="0 0 {{ ring.size }} {{ ring.size }}" class="landscape-ring-svg" role="img" aria-label="{% trans 'Best pocket score along the genome' %}">
                 <defs>
                     <mask id="landscape-ring-reveal" maskUnits="userSpaceOnUse">
@@ -104,10 +106,10 @@ data is loaded; every count links to the proteins it counts.
             </svg>
             <figcaption>
                 <ul class="landscape-legend landscape-legend--ring">
-                    <li><span class="landscape-legend-item"><i class="landscape-tick is-candidate" aria-hidden="true"></i>{% blocktrans with n=ring.candidate_count %}Candidates ({{ n }}): taller where more cluster{% endblocktrans %}</span></li>
-                    <li><span class="landscape-legend-item"><i class="landscape-tick is-gene" aria-hidden="true"></i>{% trans "Gene density" %}</span></li>
+                    <li><span class="landscape-legend-item"><i class="landscape-tick is-candidate" aria-hidden="true"></i>{% blocktrans with n=ring.candidate_count %}Candidates ({{ n }}): taller = more in that stretch{% endblocktrans %}</span></li>
+                    <li><span class="landscape-legend-item"><i class="landscape-tick is-gene" aria-hidden="true"></i>{% trans "All genes, for reference" %}</span></li>
                 </ul>
-                <p class="landscape-note">{% trans "Proteins that pass every filter above, placed along the chromosome from the top, clockwise." %}</p>
+                <p class="landscape-note">{% trans "Candidates are the proteins that pass every filter above. The chromosome starts at the top and runs clockwise." %}</p>
             </figcaption>
         </figure>
         {% endwith %}
