@@ -1,5 +1,5 @@
 from django.db.models import Prefetch
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.http import Http404
 from django.views import View
 
@@ -33,6 +33,7 @@ from tpweb.services.pipeline_status import (
 from tpweb.services.genome_workspace import (
     display_genome_name,
     genome_url_slug,
+    HUMAN_STORAGE_NAMES,
     user_can_access_genome_name,
 )
 from tpweb.services.structure_files import (
@@ -534,6 +535,9 @@ class ProteinView(View):
         assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
         if not user_can_access_genome_name(request.user, assembly_name):
             raise Http404("Protein not found")
+        # A Human Targets protein has its own page.
+        if assembly_name in HUMAN_STORAGE_NAMES:
+            return redirect("human_target:human_protein", accession=protein.accession)
         apply_shared_sequence_evidence([protein], request.user)
         proteinDTO, features, annotations, graphic_features = serialize_prot(protein)
         # No consumer of `structures` in this view or the services it calls

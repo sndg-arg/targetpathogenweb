@@ -2,6 +2,7 @@ from django.db.models import Q
 
 from bioseq.models.Biodatabase import Biodatabase
 
+from human_target.services.human_targets import HUMAN_BIODATABASE_NAME, HUMAN_GENOME_SLUG
 from tpweb.models.RestrictedGenome import RestrictedGenome
 from tpweb.services.workspace import (
     PUBLIC_WORKSPACE_USERNAME,
@@ -10,6 +11,8 @@ from tpweb.services.workspace import (
 
 
 WORKSPACE_GENOME_DELIMITER = "__"
+# The Human Targets storage Biodatabase, by either name the views pass in.
+HUMAN_STORAGE_NAMES = {HUMAN_GENOME_SLUG, HUMAN_BIODATABASE_NAME}
 
 
 def is_workspace_genome_name(genome_name):
@@ -77,6 +80,13 @@ def visible_genome_name_filter(user):
 
 
 def user_can_access_genome_name(user, genome_name):
+    # Human Targets proteins live in a Biodatabase shaped like a genome's
+    # proteome, so /protein/<id>, structure and binder links reach them
+    # through the bacterial views: hold them to the Human Targets permission.
+    if genome_name in HUMAN_STORAGE_NAMES and not (
+        user and user.has_perm("tpweb.can_view_human_targets")
+    ):
+        return False
     if (
         not user_can_view_restricted_genomes(user)
         and RestrictedGenome.objects.filter(genome_name=genome_name).exists()
