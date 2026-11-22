@@ -115,6 +115,7 @@ from tpweb.services.score_params import (
 )
 from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_ALPHAFOLD,
+    PDB_EXPERIMENT_BOLTZ,
     PDB_EXPERIMENT_COLABFOLD,
     PDB_MODEL_EXPERIMENTS,
 )
@@ -1127,6 +1128,7 @@ class ProteinListView(View):
             {"value": "experimental", "label": "Has experimental PDB"},
             {"value": "alphafold", "label": "AlphaFold DB model"},
             {"value": "colabfold", "label": "ColabFold model"},
+            {"value": "boltz", "label": "Boltz model"},
             {"value": "none", "label": "No structure"},
         ]
         choices = []
@@ -1757,6 +1759,8 @@ class ProteinListView(View):
             proteins = proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
         elif structure_source == "colabfold":
             proteins = proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD)
+        elif structure_source == "boltz":
+            proteins = proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_BOLTZ)
 
         if annotation_value:
             annotation_query = {

@@ -8,6 +8,7 @@ from tpweb.models.Binders import Binders
 
 from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_ALPHAFOLD,
+    PDB_EXPERIMENT_BOLTZ,
     PDB_EXPERIMENT_COLABFOLD,
     PDB_MODEL_EXPERIMENTS,
 )
@@ -241,6 +242,7 @@ STRUCTURE_SOURCE_FILTER_LABELS = {
     "experimental": "Has experimental PDB",
     "alphafold": "AlphaFold DB model",
     "colabfold": "ColabFold model",
+    "boltz": "Boltz model",
 }
 
 
@@ -1052,6 +1054,8 @@ def _apply_and_selected_parameter_filters(
             structure_query |= Q(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
         if "colabfold" in structure_values:
             structure_query |= Q(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD)
+        if "boltz" in structure_values:
+            structure_query |= Q(structures__pdb__experiment=PDB_EXPERIMENT_BOLTZ)
         if user is not None:
             if structure_query:
                 structure_query = shared_condition(structure_query)
