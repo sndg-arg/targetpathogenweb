@@ -3514,7 +3514,8 @@ body.is-resizing-column * {
     display: block;
     width: 4.5rem;
     height: 3px;
-    margin-top: 4px;
+    /* Cells are centred: sit the bar under the value, not at the cell edge. */
+    margin: 4px auto 0;
     border-radius: var(--tp-radius-pill);
     background: var(--tp-color-border-soft);
     overflow: hidden;
@@ -3524,7 +3525,7 @@ body.is-resizing-column * {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: var(--tp-color-primary);
+    background: var(--tp-color-accent-line);
     opacity: 0.7;
     transform-origin: left center;
     animation: protein-metric-grow calc(var(--tp-ui-motion-base) * 3) var(--tp-ui-ease-standard) both;
@@ -3550,9 +3551,10 @@ body.is-resizing-column * {
 
 /* Typed text inside search suggestions. */
 .search-suggestion-match {
-    padding: 0;
-    background: none;
-    color: inherit;
+    padding: 0 1px;
+    border-radius: 2px;
+    background: var(--tp-color-brand-100);
+    color: var(--tp-color-text-primary);
     font-weight: 700;
 }
 

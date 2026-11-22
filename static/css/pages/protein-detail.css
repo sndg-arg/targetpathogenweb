@@ -2079,7 +2079,7 @@ body.residue-modal-open {
     top: 0;
     bottom: 0;
     border-radius: inherit;
-    background: var(--tp-color-primary);
+    background: var(--tp-color-accent-line);
     transform-origin: left center;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
@@ -2090,7 +2090,7 @@ body.residue-modal-open {
 
 .pe-align:hover .pe-align-span,
 .pe-align.is-active .pe-align-span {
-    background: var(--tp-color-primary-hover);
+    background: var(--tp-color-link-hover);
 }
 
 .pe-align:focus-visible {
@@ -2115,6 +2115,8 @@ body.residue-modal-open {
 
 /* Architecture map: the human-match row in the accent, so it reads apart
    from disorder/coils. */
+/* Hits overlap: translucent spans so stacked hits read darker. */
 .ha-row--human .ha-seg {
-    background: var(--tp-color-primary);
+    background: var(--tp-color-accent-line);
+    opacity: 0.4;
 }

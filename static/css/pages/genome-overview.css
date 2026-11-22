@@ -781,6 +781,10 @@
    Funnel, cell and genome ring: data drawn in the one accent, strength by
    count/score. Motion: the funnel bars grow, counts count up and the ring
    sweeps in once, the first time the section is on screen. */
+.genome-card--landscape {
+    --landscape-ink: var(--tp-color-accent-line);
+}
+
 .landscape-funnel {
     display: grid;
     gap: var(--tp-space-1);
@@ -827,7 +831,7 @@
     display: block;
     height: 100%;
     border-radius: var(--tp-radius-pill);
-    background: var(--tp-color-primary);
+    background: var(--landscape-ink);
     opacity: 0.22;
     transform-origin: center;
     transition: transform calc(var(--tp-ui-motion-base) * 4) var(--tp-ui-ease-standard);
@@ -851,7 +855,7 @@
 
 .landscape-funnel-step.is-final .landscape-funnel-label,
 .landscape-funnel-step.is-final .landscape-funnel-count {
-    color: var(--tp-color-primary);
+    color: var(--landscape-ink);
     font-weight: 700;
 }
 
@@ -898,8 +902,14 @@
     cursor: pointer;
 }
 
+/* A legacy global rule sets rect { rx: 2 }; the capsules carry their own. */
+.cell-region rect {
+    rx: var(--rx);
+    ry: var(--rx);
+}
+
 .cell-region--space rect {
-    fill: var(--tp-color-primary);
+    fill: var(--landscape-ink);
     fill-opacity: var(--level);
     stroke: var(--tp-color-border);
     stroke-width: 1;
@@ -912,7 +922,7 @@
 
 .cell-region--membrane rect {
     fill: none;
-    stroke: var(--tp-color-primary);
+    stroke: var(--landscape-ink);
     stroke-opacity: calc(0.3 + var(--level));
     stroke-width: 7;
     transition: stroke-width var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -984,7 +994,7 @@ a.landscape-legend-item:hover,
     width: 0.75rem;
     height: 0.75rem;
     border-radius: 3px;
-    background: var(--tp-color-primary);
+    background: var(--landscape-ink);
     opacity: calc(0.2 + var(--level));
 }
 
@@ -1027,18 +1037,14 @@ a.landscape-legend-item:hover,
     stroke-linecap: round;
 }
 
-.landscape-ring-tick.is-none,
-.landscape-ring-tick.is-low {
-    stroke: var(--tp-color-border);
+.landscape-ring-tick.is-gene {
+    stroke: var(--tp-color-border-strong);
+    stroke-width: 1.6;
 }
 
-.landscape-ring-tick.is-mid {
-    stroke: var(--tp-color-primary);
-    stroke-opacity: 0.45;
-}
-
-.landscape-ring-tick.is-high {
-    stroke: var(--tp-color-primary);
+.landscape-ring-tick.is-candidate {
+    stroke: var(--landscape-ink);
+    stroke-width: 3;
 }
 
 .landscape-tick {
@@ -1046,16 +1052,11 @@ a.landscape-legend-item:hover,
     width: 3px;
     height: 0.8rem;
     border-radius: 2px;
-    background: var(--tp-color-border);
+    background: var(--tp-color-border-strong);
 }
 
-.landscape-tick.is-mid {
-    background: var(--tp-color-primary);
-    opacity: 0.45;
-}
-
-.landscape-tick.is-high {
-    background: var(--tp-color-primary);
+.landscape-tick.is-candidate {
+    background: var(--landscape-ink);
 }
 
 /* Draws the ticks clockwise once (a mask circle whose stroke unrolls). */
@@ -1076,26 +1077,6 @@ a.landscape-legend-item:hover,
     stroke: var(--tp-color-text-muted);
     stroke-width: 1;
     stroke-dasharray: 2 3;
-}
-
-.landscape-ring-mark circle {
-    fill: var(--tp-color-surface);
-    stroke: var(--tp-color-primary);
-    stroke-width: 1.8;
-    transition: fill var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.landscape-ring-mark:hover circle {
-    fill: var(--tp-color-primary);
-}
-
-.landscape-dot {
-    display: block;
-    width: 0.6rem;
-    height: 0.6rem;
-    border: 1.8px solid var(--tp-color-primary);
-    border-radius: 50%;
-    background: var(--tp-color-surface);
 }
 
 .landscape-ring-value {

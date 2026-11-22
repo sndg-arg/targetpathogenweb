@@ -35,17 +35,17 @@ data is loaded; every count links to the proteins it counts.
             <svg viewBox="0 0 360 220" class="landscape-cell-svg" role="img" aria-label="{% trans 'Proteins by predicted subcellular localization' %}">
                 {% for region in cell.regions %}{% if region.key == "Extracellular" %}
                 <a href="{{ region.url|default:'#section-landscape' }}" class="cell-region cell-region--space" data-region="{{ region.key }}" style="--level: {{ region.level }}"><title>{{ region.label }} · {{ region.count }}</title>
-                    <rect x="6" y="6" width="348" height="208" rx="104"/>
+                    <rect x="6" y="6" width="348" height="208" rx="104" style="--rx: 104px"/>
                 </a>
                 {% endif %}{% endfor %}
                 {% for region in cell.regions %}{% if region.key == "Periplasmic" %}
                 <a href="{{ region.url|default:'#section-landscape' }}" class="cell-region cell-region--space" data-region="{{ region.key }}" style="--level: {{ region.level }}"><title>{{ region.label }} · {{ region.count }}</title>
-                    <rect x="36" y="36" width="288" height="148" rx="74"/>
+                    <rect x="36" y="36" width="288" height="148" rx="74" style="--rx: 74px"/>
                 </a>
                 {% endif %}{% endfor %}
                 {% for region in cell.regions %}{% if region.key == "Cytoplasmic" %}
                 <a href="{{ region.url|default:'#section-landscape' }}" class="cell-region cell-region--space" data-region="{{ region.key }}" style="--level: {{ region.level }}"><title>{{ region.label }} · {{ region.count }}</title>
-                    <rect x="{% if cell.gram_positive %}50{% else %}60{% endif %}" y="{% if cell.gram_positive %}50{% else %}60{% endif %}" width="{% if cell.gram_positive %}260{% else %}240{% endif %}" height="{% if cell.gram_positive %}120{% else %}100{% endif %}" rx="{% if cell.gram_positive %}60{% else %}50{% endif %}"/>
+                    <rect x="{% if cell.gram_positive %}50{% else %}60{% endif %}" y="{% if cell.gram_positive %}50{% else %}60{% endif %}" width="{% if cell.gram_positive %}260{% else %}240{% endif %}" height="{% if cell.gram_positive %}120{% else %}100{% endif %}" rx="{% if cell.gram_positive %}60{% else %}50{% endif %}" style="--rx: {% if cell.gram_positive %}60{% else %}50{% endif %}px"/>
                 </a>
                 {% endif %}{% endfor %}
                 {# Nucleoid and a few ribosomes: drawing only, not data. #}
@@ -56,12 +56,12 @@ data is loaded; every count links to the proteins it counts.
                 </g>
                 {% for region in cell.regions %}{% if region.key == "OuterMembrane" or region.key == "Cellwall" %}
                 <a href="{{ region.url|default:'#section-landscape' }}" class="cell-region cell-region--membrane{% if region.key == 'Cellwall' %} is-wall{% endif %}" data-region="{{ region.key }}" style="--level: {{ region.level }}"><title>{{ region.label }} · {{ region.count }}</title>
-                    <rect x="36" y="36" width="288" height="148" rx="74"/>
+                    <rect x="36" y="36" width="288" height="148" rx="74" style="--rx: 74px"/>
                 </a>
                 {% endif %}{% endfor %}
                 {% for region in cell.regions %}{% if region.key == "CytoplasmicMembrane" %}
                 <a href="{{ region.url|default:'#section-landscape' }}" class="cell-region cell-region--membrane" data-region="{{ region.key }}" style="--level: {{ region.level }}"><title>{{ region.label }} · {{ region.count }}</title>
-                    <rect x="{% if cell.gram_positive %}50{% else %}60{% endif %}" y="{% if cell.gram_positive %}50{% else %}60{% endif %}" width="{% if cell.gram_positive %}260{% else %}240{% endif %}" height="{% if cell.gram_positive %}120{% else %}100{% endif %}" rx="{% if cell.gram_positive %}60{% else %}50{% endif %}"/>
+                    <rect x="{% if cell.gram_positive %}50{% else %}60{% endif %}" y="{% if cell.gram_positive %}50{% else %}60{% endif %}" width="{% if cell.gram_positive %}260{% else %}240{% endif %}" height="{% if cell.gram_positive %}120{% else %}100{% endif %}" rx="{% if cell.gram_positive %}60{% else %}50{% endif %}" style="--rx: {% if cell.gram_positive %}60{% else %}50{% endif %}px"/>
                 </a>
                 {% endif %}{% endfor %}
             </svg>
@@ -90,29 +90,24 @@ data is loaded; every count links to the proteins it counts.
             <svg viewBox="0 0 {{ ring.size }} {{ ring.size }}" class="landscape-ring-svg" role="img" aria-label="{% trans 'Best pocket score along the genome' %}">
                 <defs>
                     <mask id="landscape-ring-reveal" maskUnits="userSpaceOnUse">
-                        <circle class="landscape-ring-sweep" cx="{{ ring.center }}" cy="{{ ring.center }}" r="{{ ring.inner|add:12 }}" pathLength="1" transform="rotate(-90 {{ ring.center }} {{ ring.center }})"/>
+                        <circle class="landscape-ring-sweep" cx="{{ ring.center }}" cy="{{ ring.center }}" r="{{ ring.inner|add:18 }}" pathLength="1" transform="rotate(-90 {{ ring.center }} {{ ring.center }})"/>
                     </mask>
                 </defs>
                 <circle class="landscape-ring-axis" cx="{{ ring.center }}" cy="{{ ring.center }}" r="{{ ring.inner }}"/>
                 <g mask="url(#landscape-ring-reveal)">
-                    <path class="landscape-ring-tick is-none" d="{{ ring.paths.none }}"/>
-                    <path class="landscape-ring-tick is-low" d="{{ ring.paths.low }}"/>
-                    <path class="landscape-ring-tick is-mid" d="{{ ring.paths.mid }}"/>
-                    <path class="landscape-ring-tick is-high" d="{{ ring.paths.high }}"/>
+                    <path class="landscape-ring-tick is-gene" d="{{ ring.genes }}"/>
+                    <path class="landscape-ring-tick is-candidate" d="{{ ring.candidates }}"/>
                 </g>
                 {% for mark in ring.contig_marks %}<path class="landscape-ring-contig" d="{{ mark.d }}"><title>{{ mark.label }}</title></path>{% endfor %}
-                {% for mark in ring.marks %}<a href="{% url 'tpwebapp:protein' mark.id %}" class="landscape-ring-mark"><title>{{ mark.accession }}</title><circle cx="{{ mark.x }}" cy="{{ mark.y }}" r="3.2"/></a>{% endfor %}
-                <text x="{{ ring.center }}" y="{{ ring.center }}" class="landscape-ring-value" text-anchor="middle">{{ ring.length_mb }} Mb</text>
-                <text x="{{ ring.center }}" y="{{ ring.center|add:18 }}" class="landscape-ring-sub" text-anchor="middle">{% blocktrans count n=ring.contig_count %}{{ n }} contig{% plural %}{{ n }} contigs{% endblocktrans %}</text>
+                <text x="{{ ring.center }}" y="{{ ring.center|add:-4 }}" class="landscape-ring-value" text-anchor="middle">{{ ring.length_mb }} Mb</text>
+                <text x="{{ ring.center }}" y="{{ ring.center|add:16 }}" class="landscape-ring-sub" text-anchor="middle">{% blocktrans count n=ring.contig_count %}{{ n }} contig{% plural %}{{ n }} contigs{% endblocktrans %}</text>
             </svg>
             <figcaption>
                 <ul class="landscape-legend landscape-legend--ring">
-                    <li><span class="landscape-legend-item"><i class="landscape-tick is-high" aria-hidden="true"></i>{% trans "Pocket ≥ 0.5" %}</span></li>
-                    <li><span class="landscape-legend-item"><i class="landscape-tick is-mid" aria-hidden="true"></i>{% trans "0.2–0.5" %}</span></li>
-                    <li><span class="landscape-legend-item"><i class="landscape-tick is-low" aria-hidden="true"></i>{% trans "Below 0.2 or no score" %}</span></li>
-                    {% if ring.marks %}<li><span class="landscape-legend-item"><i class="landscape-dot" aria-hidden="true"></i>{% trans "Passes every filter above · click to open" %}</span></li>{% endif %}
+                    <li><span class="landscape-legend-item"><i class="landscape-tick is-candidate" aria-hidden="true"></i>{% blocktrans with n=ring.candidate_count %}Candidates ({{ n }}): taller where more cluster{% endblocktrans %}</span></li>
+                    <li><span class="landscape-legend-item"><i class="landscape-tick is-gene" aria-hidden="true"></i>{% trans "Gene density" %}</span></li>
                 </ul>
-                <p class="landscape-note">{% trans "Best pocket score (P2Rank, else FPocket) around the chromosome, starting at the top and running clockwise." %}</p>
+                <p class="landscape-note">{% trans "Proteins that pass every filter above, placed along the chromosome from the top, clockwise." %}</p>
             </figcaption>
         </figure>
         {% endwith %}

@@ -1,6 +1,6 @@
 """Drawings for the genome overview: the cell (PSORTb localization by
 compartment), the target funnel (essential -> no human homolog -> druggable
-pocket) and the genome ring (pocket score along the chromosome). Built once
+pocket) and the genome ring (where the funnel's survivors sit). Built once
 per genome and cached like the other overview aggregates."""
 
 import math
@@ -29,17 +29,17 @@ CELL_COMPARTMENTS = (
     ("Cytoplasmic", "Cytoplasm"),
 )
 
-RING_BINS = 360
+RING_BINS = 180
 RING_SIZE = 320
 _RING_CENTER = RING_SIZE / 2
-_RING_INNER = 104
-# Tick length per pocket band: no score, < 0.2, 0.2-0.5, >= 0.5.
-_RING_TICK = {"none": 4, "low": 8, "mid": 15, "high": 24}
-RING_MAX_MARKS = 40
+_RING_INNER = 100
+# Gene density ticks stay short and grey; candidate ticks grow over them.
+_RING_GENE_TICK = (3, 7)
+_RING_CANDIDATE_TICK = (7, 30)
 
 
 def _cache_key(assembly_name):
-    return f"genome-visuals:v1:{assembly_name}"
+    return f"genome-visuals:v2:{assembly_name}"
 
 
 def _option_payload(param_name, option_name):
@@ -187,17 +187,16 @@ def _point(angle, radius):
     )
 
 
-def _band(score):
-    if score is None:
-        return "none"
-    if score >= 0.5:
-        return "high"
-    if score >= 0.2:
-        return "mid"
-    return "low"
+def _tick(index, length):
+    angle = 2 * math.pi * (index + 0.5) / RING_BINS - math.pi / 2
+    x1, y1 = _point(angle, _RING_INNER)
+    x2, y2 = _point(angle, _RING_INNER + length)
+    return f"M{x1} {y1}L{x2} {y2}"
 
 
-def _build_ring(assembly_name, proteins, scores, marked_ids):
+def _build_ring(assembly_name, proteins, candidate_ids):
+    """Proteins per 1/RING_BINS of the genome (grey) and, over them, how many
+    pass the whole funnel there (accent): where the candidates cluster."""
     contigs = list(
         Bioentry.objects.filter(biodatabase__name=assembly_name, seq__length__gt=0)
         .order_by("-seq__length")
@@ -215,58 +214,52 @@ def _build_ring(assembly_name, proteins, scores, marked_ids):
         offsets[contig_id] = offset
         offset += length
 
-    bins = [None] * RING_BINS  # best score per angular bin; None = no protein
-    filled = [False] * RING_BINS
-    placed = []
+    genes = [0] * RING_BINS
+    candidates = [0] * RING_BINS
     for protein_id, accession in proteins:
         position = positions.get(accession)
         if position is None or position[0] not in offsets:
             continue
         fraction = (offsets[position[0]] + position[1]) / genome_length
         index = min(int(fraction * RING_BINS), RING_BINS - 1)
-        filled[index] = True
-        score = scores.get(protein_id)
-        if score is not None and (bins[index] is None or score > bins[index]):
-            bins[index] = score
-        if protein_id in marked_ids:
-            placed.append((score or 0, fraction, protein_id, accession))
-    if not any(filled):
+        genes[index] += 1
+        if protein_id in candidate_ids:
+            candidates[index] += 1
+    if not any(candidates):
         return None
 
-    paths = {band: [] for band in _RING_TICK}
-    for index in range(RING_BINS):
-        if not filled[index]:
-            continue
-        band = _band(bins[index])
-        angle = 2 * math.pi * (index + 0.5) / RING_BINS - math.pi / 2
-        x1, y1 = _point(angle, _RING_INNER)
-        x2, y2 = _point(angle, _RING_INNER + _RING_TICK[band])
-        paths[band].append(f"M{x1} {y1}L{x2} {y2}")
+    def scaled(count, peak, bounds):
+        low, high = bounds
+        return round(low + (high - low) * count / peak, 1)
+
+    gene_peak = max(genes)
+    candidate_peak = max(candidates)
+    gene_path = "".join(
+        _tick(i, scaled(n, gene_peak, _RING_GENE_TICK)) for i, n in enumerate(genes) if n
+    )
+    candidate_path = "".join(
+        _tick(i, scaled(n, candidate_peak, _RING_CANDIDATE_TICK))
+        for i, n in enumerate(candidates)
+        if n
+    )
 
     contig_marks = []
-    if len(contigs) > 1:
-        for contig_id, accession, _length in contigs[1:]:
-            angle = 2 * math.pi * offsets[contig_id] / genome_length - math.pi / 2
-            x1, y1 = _point(angle, _RING_INNER - 6)
-            x2, y2 = _point(angle, _RING_INNER + 30)
-            contig_marks.append({"d": f"M{x1} {y1}L{x2} {y2}", "label": accession})
-
-    marks = []
-    for _score, fraction, protein_id, accession in sorted(placed, reverse=True)[:RING_MAX_MARKS]:
-        angle = 2 * math.pi * fraction - math.pi / 2
-        x, y = _point(angle, _RING_INNER - 9)
-        marks.append({"x": x, "y": y, "id": protein_id, "accession": accession})
+    for contig_id, accession, _length in contigs[1:]:
+        angle = 2 * math.pi * offsets[contig_id] / genome_length - math.pi / 2
+        x1, y1 = _point(angle, _RING_INNER - 6)
+        x2, y2 = _point(angle, _RING_INNER + 34)
+        contig_marks.append({"d": f"M{x1} {y1}L{x2} {y2}", "label": accession})
 
     return {
         "size": RING_SIZE,
         "center": _RING_CENTER,
         "inner": _RING_INNER,
-        "paths": {band: "".join(parts) for band, parts in paths.items()},
+        "genes": gene_path,
+        "candidates": candidate_path,
+        "candidate_count": sum(candidates),
         "contig_marks": contig_marks,
-        "marks": marks,
         "length_mb": round(genome_length / 1_000_000, 2),
         "contig_count": len(contigs),
-        "placed": sum(1 for protein_id, accession in proteins if accession in positions),
     }
 
 
@@ -280,21 +273,10 @@ def _build(assembly_name):
     spv_qs = ScoreParamValue.objects.filter(bioentry__biodatabase__name=proteome_name)
     funnel, survivors = _build_funnel(spv_qs, [protein_id for protein_id, _ in proteins])
 
-    scores = dict(
-        spv_qs.filter(score_param__name="Druggability", numeric_value__isnull=False).values_list(
-            "bioentry_id", "numeric_value"
-        )
-    )
-    # P2Rank, the primary pocket signal, wins where both are loaded.
-    scores.update(
-        spv_qs.filter(
-            score_param__name="p2rank_probability", numeric_value__isnull=False
-        ).values_list("bioentry_id", "numeric_value")
-    )
     return {
         "cell": _build_cell(spv_qs, len(proteins)),
         "funnel": funnel,
-        "ring": _build_ring(assembly_name, proteins, scores, survivors) if scores else None,
+        "ring": _build_ring(assembly_name, proteins, survivors) if survivors else None,
     }
 
 

@@ -1165,7 +1165,7 @@ def build_prioritization(
         if human_hit and human_hits:
             items.append(
                 {
-                    "label": "Human proteins hit",
+                    "label": "Matches",
                     "kind": "hits",
                     "value": ", ".join(hit["gene"] or hit["accession"] for hit in human_hits),
                     "hits": human_hits,
