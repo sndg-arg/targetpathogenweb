@@ -1190,7 +1190,7 @@ function jsloaded() {
        to color by under the same bands. */
     var structureIsPredicted = {
         {% for s in all_structures %}
-        "{{ s.id }}": {% if s.experiment == "AF" or s.experiment == "CF" %}true{% else %}false{% endif %},
+        "{{ s.id }}": {% if s.experiment == "AF" or s.experiment == "CF" or s.experiment == "BZ" %}true{% else %}false{% endif %},
         {% endfor %}
     };
     var plddtColorButton = document.querySelector('.js-structure-color[data-color-mode="plddt"]');

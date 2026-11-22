@@ -44,12 +44,12 @@ RETRY_WAIT = 2
 MAX_RETRIES = 3
 
 # Model sources eligible for UniProt feature projection. AlphaFold DB uses
-# canonical UniProt numbering. ColabFold is generated from the local target
-# sequence and therefore requires a validated sequence alignment first.
+# canonical UniProt numbering. ColabFold and Boltz are generated from the local
+# target sequence and therefore require a validated sequence alignment first.
 # Experimental structures (PDB.experiment == "EX") are deliberately excluded —
 # doing that placement correctly needs a SIFTS-style residue mapping, not the
 # linear uniprot_start/uniprot_end offset used elsewhere in this module.
-MODEL_STRUCTURE_EXPERIMENTS = ("AF", "CF")
+MODEL_STRUCTURE_EXPERIMENTS = ("AF", "CF", "BZ")
 MODEL_STRUCTURE_EXPERIMENT_ALPHAFOLD = "AF"
 MODEL_STRUCTURE_EXPERIMENT_COLABFOLD = "CF"
 MIN_SEQUENCE_IDENTITY = 0.90

@@ -19,6 +19,7 @@ from tpweb.services.structure_files import (
 )
 from tpweb.services.structure_sources import (
     STRUCTURE_SOURCE_ALPHAFOLD,
+    STRUCTURE_SOURCE_BOLTZ,
     STRUCTURE_SOURCE_COLABFOLD,
     STRUCTURE_SOURCE_EXPERIMENTAL,
     STRUCTURE_SOURCE_MODEL,
@@ -34,12 +35,14 @@ DOWNLOAD_SOURCE_FOLDERS = {
     STRUCTURE_SOURCE_EXPERIMENTAL: "pdb",
     STRUCTURE_SOURCE_ALPHAFOLD: "alphafold_db",
     STRUCTURE_SOURCE_COLABFOLD: "colabfold",
+    STRUCTURE_SOURCE_BOLTZ: "boltz",
     STRUCTURE_SOURCE_MODEL: "model",
 }
 DOWNLOAD_SOURCE_LABELS = {
     STRUCTURE_SOURCE_EXPERIMENTAL: "Experimental (PDB)",
     STRUCTURE_SOURCE_ALPHAFOLD: "AlphaFold DB",
     STRUCTURE_SOURCE_COLABFOLD: "ColabFold",
+    STRUCTURE_SOURCE_BOLTZ: "Boltz",
     STRUCTURE_SOURCE_MODEL: "Other models",
 }
 # Same number of pockets the protein page shows per method; the rest are
@@ -180,7 +183,7 @@ def pymol_script(structure_text, structure_format, obj_name, title, source, pock
         f"show cartoon, {obj}",
         "set cartoon_transparency, 0.1",
     ]
-    if source in (STRUCTURE_SOURCE_ALPHAFOLD, STRUCTURE_SOURCE_COLABFOLD):
+    if source in (STRUCTURE_SOURCE_ALPHAFOLD, STRUCTURE_SOURCE_COLABFOLD, STRUCTURE_SOURCE_BOLTZ):
         lines += [
             "# Predicted model: colored by pLDDT (B-factor column), blue = confident.",
             f"spectrum b, orange_yellow_cyan_blue, {obj}, minimum=50, maximum=90",

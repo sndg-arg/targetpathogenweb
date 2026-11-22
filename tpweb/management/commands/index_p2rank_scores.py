@@ -22,7 +22,7 @@ def candidate_key(link, pocket_id, probability):
     """Prefer experimental evidence, then probability, with stable ties."""
     if probability is None or not math.isfinite(probability) or not 0 <= probability <= 1:
         return None
-    experimental = (link.pdb.experiment or "").upper() not in {"AF", "CF"}
+    experimental = (link.pdb.experiment or "").upper() not in {"AF", "CF", "BZ"}
     return (experimental, probability, -link.pk, -pocket_id)
 
 

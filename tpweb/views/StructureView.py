@@ -19,7 +19,7 @@ from tpweb.services.structure_sources import (
 from tpweb.services.structure_summary import pdb_structure
 
 
-_SHORT_METHOD = {"EX": "Crystal", "AF": "AlphaFold DB", "CF": "ColabFold"}
+_SHORT_METHOD = {"EX": "Crystal", "AF": "AlphaFold DB", "CF": "ColabFold", "BZ": "Boltz"}
 
 
 def _drop_duplicate_structures(structures):

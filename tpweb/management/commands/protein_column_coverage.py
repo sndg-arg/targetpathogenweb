@@ -54,7 +54,7 @@ def fixed_presence(protein):
         "Gene": bool([gene for gene in protein.genes() if len(gene) <= 6]),
         "Structure": bool(links),
         "Experimental structure": any(
-            (link.pdb.experiment or "").upper() not in {"AF", "CF"} for link in links
+            (link.pdb.experiment or "").upper() not in {"AF", "CF", "BZ"} for link in links
         ),
         "AlphaFold structure": any((link.pdb.experiment or "").upper() == "AF" for link in links),
         "ColabFold structure": any((link.pdb.experiment or "").upper() == "CF" for link in links),

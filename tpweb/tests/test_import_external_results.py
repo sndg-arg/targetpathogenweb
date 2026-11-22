@@ -8,13 +8,40 @@ _counts_to_hit_no_hit are the parsers that decide what pocket data and
 hit/no-hit scores actually get imported.
 """
 
+import os
+import tempfile
+
 from django.test import SimpleTestCase
 
 from tpweb.management.commands.import_external_results import (
+    _boltz_model_path,
     _compute_folder_path,
     _counts_to_hit_no_hit,
     _gates_property_pockets,
 )
+from tpweb.services.structure_sources import (
+    PDB_MODEL_EXPERIMENTS,
+    STRUCTURE_SOURCE_BOLTZ,
+    classify_structure_experiment,
+)
+
+
+class BoltzModelPathTests(SimpleTestCase):
+    def test_finds_top1_cif(self):
+        with tempfile.TemporaryDirectory() as prot_dir:
+            os.makedirs(os.path.join(prot_dir, "boltz_top1"))
+            path = os.path.join(prot_dir, "boltz_top1", "BOLTZ_FQU82_00002.cif")
+            open(path, "w").close()
+
+            self.assertEqual(_boltz_model_path(prot_dir, "FQU82_00002"), path)
+
+    def test_missing_model_returns_none(self):
+        with tempfile.TemporaryDirectory() as prot_dir:
+            self.assertIsNone(_boltz_model_path(prot_dir, "FQU82_00002"))
+
+    def test_boltz_is_a_predicted_model_not_experimental(self):
+        self.assertIn("BZ", PDB_MODEL_EXPERIMENTS)
+        self.assertEqual(classify_structure_experiment("BZ"), STRUCTURE_SOURCE_BOLTZ)
 
 
 class ComputeFolderPathTests(SimpleTestCase):

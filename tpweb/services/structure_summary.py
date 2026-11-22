@@ -32,7 +32,12 @@ from tpweb.services.pocket_geometry import filter_pdbresidueset_by_chain, volume
 from tpweb.services.structure_files import display_code
 
 
-_METHOD_MAP = {"EX": "Crystal structure", "AF": "AlphaFold DB model", "CF": "ColabFold model"}
+_METHOD_MAP = {
+    "EX": "Crystal structure",
+    "AF": "AlphaFold DB model",
+    "CF": "ColabFold model",
+    "BZ": "Boltz model",
+}
 _FPOCKET_INSPECTOR_PROPERTIES = [
     ("Volume", "Volume (Å³)"),
     ("Score", "FPocket ranking score (orders cavities; not the druggability)"),

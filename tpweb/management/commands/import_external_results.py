@@ -35,6 +35,7 @@ from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB
 from tpweb.services.structure_files import compute_folder_path as _compute_folder_path
+from tpweb.services.structure_sources import PDB_EXPERIMENT_BOLTZ
 
 
 # ---------------------------------------------------------------------------
@@ -97,6 +98,15 @@ def _iter_af_db_pdbs(prot_dir):
             if code.lower().endswith(".pdb"):
                 code = code[:-4]
             yield code.upper(), os.path.join(entry.path, filename)
+
+
+def _boltz_model_path(prot_dir, locus_tag):
+    """Top-ranked Boltz model shipped as <locus>/boltz_top1/BOLTZ_<locus>.cif[.gz]."""
+    for filename in (f"BOLTZ_{locus_tag}.cif", f"BOLTZ_{locus_tag}.cif.gz"):
+        path = os.path.join(prot_dir, "boltz_top1", filename)
+        if os.path.isfile(path):
+            return path
+    return None
 
 
 class Command(BaseCommand):
@@ -325,6 +335,7 @@ class Command(BaseCommand):
         pdb_ok = pdb_skip = pdb_miss = 0
         af_ok = af_fail = 0
         afdb_ok = afdb_skip = afdb_fail = afdb_link = 0
+        boltz_ok = boltz_skip = boltz_fail = 0
         pocket_ok = pocket_skip = pocket_fail = 0
         pocket_mode_skips = 0
         proteome_name = genome_name + Biodatabase.PROT_POSTFIX
@@ -457,6 +468,40 @@ class Command(BaseCommand):
                     afdb_fail += 1
                     self.stderr.write(f"  load AF DB model failed {locus_tag} {af_code}: {exc}")
 
+            boltz_cif = _boltz_model_path(prot_dir, locus_tag)
+            if boltz_cif is None:
+                continue
+            boltz_code = f"BOLTZ_{locus_tag}"
+            pdb = PDB.objects.filter(
+                code__iexact=boltz_code,
+                experiment=PDB_EXPERIMENT_BOLTZ,
+                deprecated=False,
+            ).first()
+            if pdb is not None:
+                boltz_skip += 1
+                if bioentry is not None and not dry_run:
+                    BioentryStructure.objects.get_or_create(bioentry=bioentry, pdb=pdb)
+                continue
+            if dry_run:
+                boltz_ok += 1
+                continue
+            try:
+                with open(os.devnull, "w") as devnull:
+                    call_command(
+                        "load_af_model",
+                        boltz_code,
+                        boltz_cif,
+                        locus_tag,
+                        experiment=PDB_EXPERIMENT_BOLTZ,
+                        datadir=datadir,
+                        stdout=devnull,
+                        stderr=devnull,
+                    )
+                boltz_ok += 1
+            except (Exception, SystemExit) as exc:
+                boltz_fail += 1
+                self.stderr.write(f"  load Boltz model failed {locus_tag}: {exc}")
+
         prefix = "[dry-run] " if dry_run else ""
         self.stdout.write(
             f"\n{prefix}PDB files   : {pdb_ok} copied, {pdb_skip} already present, {pdb_miss} missing"
@@ -464,6 +509,9 @@ class Command(BaseCommand):
         self.stdout.write(f"{prefix}Structures  : {af_ok} ColabFold loaded, {af_fail} failed")
         self.stdout.write(
             f"{prefix}AF DB models: {afdb_ok} loaded/planned, {afdb_skip} already present, {afdb_link} linked, {afdb_fail} failed"
+        )
+        self.stdout.write(
+            f"{prefix}Boltz models: {boltz_ok} loaded/planned, {boltz_skip} already present, {boltz_fail} failed"
         )
         self.stdout.write(
             f"{prefix}Pockets     : {pocket_ok} loaded, {pocket_skip} already present, {pocket_fail} failed"

@@ -236,6 +236,8 @@ def _build_predicted_structures(links, protein_length, primary_link=None, alt_li
             source_name = "ColabFold"
         elif experiment == "AF":
             source_name = "AlphaFold DB"
+        elif experiment == "BZ":
+            source_name = "Boltz"
         else:
             source_name = _structure_toggle_label(experiment) or "Predicted"
         is_primary = pdb.id == primary_pdb_id
