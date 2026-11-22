@@ -46,7 +46,9 @@
             : (mobileNav && mobileNav.offsetHeight > 0) ? mobileNav
             : null;
         var breadcrumb = document.querySelector(".tp-breadcrumb-bar");
-        var height = (nav ? nav.offsetHeight : 0) + (breadcrumb ? breadcrumb.offsetHeight : 0);
+        // On phones the breadcrumb scrolls away (ui-system.css), so it adds no offset.
+        var breadcrumbSticky = breadcrumb && getComputedStyle(breadcrumb).position === "sticky";
+        var height = (nav ? nav.offsetHeight : 0) + (breadcrumbSticky ? breadcrumb.offsetHeight : 0);
         document.documentElement.style.setProperty("--tp-sticky-chrome-h", height + "px");
     }
     measure();

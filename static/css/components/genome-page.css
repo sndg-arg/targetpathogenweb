@@ -112,6 +112,13 @@
 }
 
 @media (max-width: 640px) {
+    /* min-width: 0 on the copy let the action button squeeze the title
+       into a one-word column; stack them instead. */
+    .genome-hero-top {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
     .genome-hero-actions .btn,
     .genome-delete-actions .btn {
         width: 100%;

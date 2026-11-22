@@ -85,6 +85,9 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
    hairline (each card already opens with its own bold h2). */
 .protein-main {
     display: grid;
+    /* An implicit auto track grows to its widest child (a wide table) and
+       pushed every card off the screen on phones. */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--tp-space-7);
     min-width: 0;
 }

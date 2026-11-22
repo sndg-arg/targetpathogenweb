@@ -2120,3 +2120,15 @@ body.residue-modal-open {
     background: var(--tp-color-accent-line);
     opacity: 0.4;
 }
+
+/* Off-target hits table scrolls sideways on phones; keep E-values whole
+   and give the protein name room. */
+.pe-table td.pe-mono {
+    white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+    .pe-table td:first-child {
+        min-width: 9rem;
+    }
+}
