@@ -163,3 +163,39 @@ class SmallScoreDisplayTests(SimpleTestCase):
         spaced = SimpleNamespace(name="GRN Category", description="")
         self.assertEqual(column_help(spaced, {"grn_category": "Her text"}), "Her text")
         self.assertEqual(column_help(spaced), GATES_REGULATORY_HELP["grn_role"])
+
+
+class ConservationCategoryTests(SimpleTestCase):
+    def category(self, **raw):
+        return build_conservation_profile(raw)["category_label"]
+
+    def test_core_when_both_core_calls_are_true(self):
+        self.assertEqual(
+            self.category(core_roary="True", core_corecruncher="Core", soft_core_roary="False"),
+            "Core",
+        )
+
+    def test_soft_core_when_both_soft_calls_are_true(self):
+        self.assertEqual(
+            self.category(
+                core_roary="True",
+                core_corecruncher="False",
+                soft_core_roary="True",
+                soft_core_corecruncher="True",
+            ),
+            "Soft core",
+        )
+
+    def test_accessory_when_soft_calls_do_not_both_agree(self):
+        self.assertEqual(
+            self.category(
+                core_roary="False",
+                core_corecruncher="False",
+                softcore_roary="True",
+                **{"Soft Core Corecruncher": "False"},
+            ),
+            "Accessory",
+        )
+
+    def test_not_core_without_soft_core_data(self):
+        self.assertEqual(self.category(core_roary="False", core_corecruncher="True"), "Not core")

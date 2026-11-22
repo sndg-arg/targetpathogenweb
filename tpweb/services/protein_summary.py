@@ -533,17 +533,66 @@ def _truthy_score(value):
     return str(value or "").strip().lower() in {"true", "t", "yes", "y", "1"}
 
 
+def _conservation_call(value):
+    """True/False for a pan-genome call stored as True/False, Core/Accessory or 1/0."""
+    text = str(value or "").strip().lower()
+    try:
+        return float(text) >= 0.5
+    except ValueError:
+        return text in {"true", "t", "yes", "y", "core", "soft_core", "softcore"}
+
+
+def _soft_core_raw(raw_scores, tool):
+    """The soft-core custom column for one tool, whatever spelling it was
+    uploaded with (soft_core_roary, softcore_roary, "Soft Core Roary")."""
+    wanted = {f"soft_core_{tool}", f"softcore_{tool}"}
+    for name in raw_scores:
+        key = str(name).strip().lower().replace(" ", "_").replace("-", "_")
+        if key in wanted:
+            return _raw_score(raw_scores, name)
+    return ""
+
+
+CONSERVATION_LABELS = {
+    "core": "Core",
+    "soft_core": "Soft core",
+    "accessory": "Accessory",
+    "not_core": "Not core",
+}
+
+
 def build_conservation_profile(raw_scores):
+    """Core if both tools call it core; else soft core if both soft-core
+    columns say so; else accessory. Without soft-core data a non-core gene
+    stays "not core": calling it accessory could hide a soft-core gene."""
     roary_raw = _raw_score(raw_scores, "core_roary")
     corecruncher_raw = _raw_score(raw_scores, "core_corecruncher")
     if not roary_raw and not corecruncher_raw:
         return None
-    roary = _truthy_score(roary_raw)
-    corecruncher = _truthy_score(corecruncher_raw)
+    roary = _conservation_call(roary_raw)
+    corecruncher = _conservation_call(corecruncher_raw)
+    soft_roary_raw = _soft_core_raw(raw_scores, "roary")
+    soft_corecruncher_raw = _soft_core_raw(raw_scores, "corecruncher")
+    has_soft = bool(soft_roary_raw or soft_corecruncher_raw)
+    soft_roary = _conservation_call(soft_roary_raw)
+    soft_corecruncher = _conservation_call(soft_corecruncher_raw)
+    if roary and corecruncher:
+        category = "core"
+    elif soft_roary and soft_corecruncher:
+        category = "soft_core"
+    elif has_soft:
+        category = "accessory"
+    else:
+        category = "not_core"
     return {
         "roary": roary,
         "corecruncher": corecruncher,
-        "is_core": roary and corecruncher,
+        "is_core": category == "core",
+        "category": category,
+        "category_label": CONSERVATION_LABELS[category],
+        "has_soft": has_soft,
+        "soft_roary": soft_roary if soft_roary_raw else None,
+        "soft_corecruncher": soft_corecruncher if soft_corecruncher_raw else None,
         "roary_label": "true" if roary else "false",
         "corecruncher_label": "true" if corecruncher else "false",
     }
@@ -1103,41 +1152,57 @@ def build_prioritization(
 
     # Conservation
     if conservation_profile:
-        both = conservation_profile["roary"] == conservation_profile["corecruncher"]
+        category = conservation_profile["category"]
+        items = [
+            {
+                "label": "Core (Roary)",
+                "kind": "chip",
+                "value": conservation_profile["roary_label"].capitalize(),
+                "tone": "success" if conservation_profile["roary"] else "",
+                "note": "True = present in at least 99% of the genomes.",
+                "key": "core_roary",
+            },
+            {
+                "label": "Core (CoreCruncher)",
+                "kind": "chip",
+                "value": conservation_profile["corecruncher_label"].capitalize(),
+                "tone": "success" if conservation_profile["corecruncher"] else "",
+                "note": "Stricter check that adds phylogenetic evidence.",
+                "key": "core_corecruncher",
+            },
+        ]
+        for tool, label in (("roary", "Roary"), ("corecruncher", "CoreCruncher")):
+            call = conservation_profile[f"soft_{tool}"]
+            if call is not None:
+                items.append(
+                    {
+                        "label": f"Soft core ({label})",
+                        "kind": "chip",
+                        "value": "True" if call else "False",
+                        "tone": "success" if call else "",
+                    }
+                )
+        items[-1]["note"] = (
+            "Core when both core calls are True; otherwise soft core when both "
+            "soft-core calls are True; otherwise accessory."
+            if conservation_profile["has_soft"]
+            else "Core when both tools say so. No soft-core data for this genome yet."
+        )
         groups.append(
             {
                 "key": "conservation",
                 "title": "Conservation",
                 "question": "Is the gene present in every strain analyzed?",
-                "verdict": "Core gene" if conservation_profile["is_core"] else "Not a core gene",
-                "summary": "Core",
-                "summary_value": "True" if conservation_profile["is_core"] else "False",
-                "tone": "success" if conservation_profile["is_core"] else "warning",
-                "items": [
-                    {
-                        "label": "Roary",
-                        "kind": "chip",
-                        "value": conservation_profile["roary_label"].capitalize(),
-                        "tone": "success" if conservation_profile["roary"] else "",
-                        "note": "True = present in at least 99% of the genomes.",
-                        "key": "core_roary",
-                    },
-                    {
-                        "label": "CoreCruncher",
-                        "kind": "chip",
-                        "value": conservation_profile["corecruncher_label"].capitalize(),
-                        "tone": "success" if conservation_profile["corecruncher"] else "",
-                        "note": "Stricter check that adds phylogenetic evidence.",
-                        "key": "core_corecruncher",
-                    },
-                    {
-                        "label": "Agreement",
-                        "kind": "chip",
-                        "value": "Both tools agree" if both else "Tools disagree",
-                        "tone": "success" if both else "warning",
-                        "note": "A gene counts as core only when both say so.",
-                    },
-                ],
+                "verdict": {
+                    "core": "Core gene",
+                    "soft_core": "Soft-core gene",
+                    "accessory": "Accessory gene",
+                    "not_core": "Not a core gene",
+                }[category],
+                "summary": "Conservation",
+                "summary_value": conservation_profile["category_label"],
+                "tone": {"core": "success", "soft_core": "idle"}.get(category, "warning"),
+                "items": items,
             }
         )
 
@@ -1472,11 +1537,21 @@ def build_target_executive_summary(
                 "#section-target-profile",
             )
             signal_score += 1
+        elif conservation_profile.get("category") == "soft_core":
+            _append_summary_item(
+                strengths,
+                "Soft-core gene",
+                "Not core, but both pan-genome tools call it soft core.",
+                "good",
+                "#section-target-profile",
+            )
         else:
             _append_summary_item(
                 risks,
-                "Mixed conservation",
-                "Roary and CoreCruncher core calls disagree.",
+                "Accessory gene"
+                if conservation_profile.get("category") == "accessory"
+                else "Not a core gene",
+                "Missing from some of the strains analyzed.",
                 "watch",
                 "#section-target-profile",
             )

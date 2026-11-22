@@ -91,6 +91,7 @@ def build_target_evidence_record(assembly_name, accession):
         "core_roary": conservation.get("roary") or _value(raw_scores, "core_roary"),
         "core_corecruncher": conservation.get("corecruncher")
         or _value(raw_scores, "core_corecruncher"),
+        "conservation": conservation.get("category_label"),
         # build_metabolic_context returns None (not an empty dict) when the protein has no
         # GeneReactionLink rows at all -- distinguish that "no metabolic data loaded" case
         # from a real, computed "confirmed not a chokepoint" result. Both used to collapse
@@ -176,6 +177,7 @@ def format_target_audit(record):
                 ("DEG identity", record["deg_identity"]),
                 ("Roary core call", record["core_roary"]),
                 ("CoreCruncher core call", record["core_corecruncher"]),
+                ("Conservation (core / soft core / accessory)", record["conservation"]),
             ],
         )
     )
