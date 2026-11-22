@@ -133,6 +133,11 @@ class Command(BaseCommand):
             ),
         )
         parser.add_argument(
+            "--structures-only",
+            action="store_true",
+            help="Skip scores and the curated UniProt mapping (e.g. adding Boltz models later).",
+        )
+        parser.add_argument(
             "--pockets-mode",
             default="skip",
             choices=("skip", "gates-properties"),
@@ -203,22 +208,25 @@ class Command(BaseCommand):
         if not os.path.isfile(results_tsv):
             raise CommandError(f"Results TSV not found: {results_tsv}")
 
-        # --- Load scores ---
-        self.stdout.write(self.style.HTTP_INFO("Step 1/4 — Loading scores from TSV …"))
-        self._load_scores(
-            genome_name, results_tsv, datadir, overwrite, dry_run, fmt=options["format"]
-        )
+        if options["structures_only"]:
+            self.stdout.write("--structures-only: skipping scores and curated UniProt mapping.")
+        else:
+            # --- Load scores ---
+            self.stdout.write(self.style.HTTP_INFO("Step 1/4 — Loading scores from TSV …"))
+            self._load_scores(
+                genome_name, results_tsv, datadir, overwrite, dry_run, fmt=options["format"]
+            )
 
-        # --- Load curated UniProt mapping ---
-        self.stdout.write(self.style.HTTP_INFO("Step 2/4 — Loading curated UniProt mapping …"))
-        call_command(
-            "import_curated_uniprot",
-            genome_name,
-            results_tsv=results_tsv,
-            datadir=datadir,
-            overwrite=overwrite,
-            dry_run=dry_run,
-        )
+            # --- Load curated UniProt mapping ---
+            self.stdout.write(self.style.HTTP_INFO("Step 2/4 — Loading curated UniProt mapping …"))
+            call_command(
+                "import_curated_uniprot",
+                genome_name,
+                results_tsv=results_tsv,
+                datadir=datadir,
+                overwrite=overwrite,
+                dry_run=dry_run,
+            )
 
         # --- Load structures ---
         if structures_dir:
