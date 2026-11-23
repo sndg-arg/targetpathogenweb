@@ -146,7 +146,7 @@
                     <div class="toolbar-controls-left tp-ui-group">
                         <div class="per-page-control tp-ui-control" title="{% trans "Proteins per page" %}">
                             <span class="per-page-label">{% trans "Rows" %}</span>
-                            <select id="pageSizeSelect" name="pageSize" form="protein-search-form" class="per-page-select form-control tp-select--sm">
+                            <select id="pageSizeSelect" name="pageSize" form="protein-search-form" class="per-page-select form-control tp-select--sm" aria-label="{% trans 'Proteins per page' %}">
                                 <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
                                 <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
                                 <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>

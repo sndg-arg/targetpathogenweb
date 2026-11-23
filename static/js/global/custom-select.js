@@ -13,8 +13,15 @@
         return Array.from(document.querySelectorAll(".tp-select[data-tp-select-enhanced='1']"));
     }
 
+    // The menu node itself: on phones it sits in a bottom sheet while open,
+    // outside its wrapper.
+    function menuOf(wrapper) {
+        return wrapper.tpSelectMenu || wrapper.querySelector(".tp-select-menu");
+    }
+
     function getEnabledOptionButtons(wrapper) {
-        return Array.from(wrapper.querySelectorAll(".tp-select-option")).filter(function (button) {
+        const menu = menuOf(wrapper);
+        return Array.from(menu ? menu.querySelectorAll(".tp-select-option") : []).filter(function (button) {
             return button.getAttribute("aria-disabled") !== "true";
         });
     }
@@ -22,7 +29,7 @@
     function closeSelect(wrapper) {
         if (!wrapper || !wrapper.classList.contains("is-open")) return;
         const trigger = wrapper.querySelector(".tp-select-trigger");
-        const menu = wrapper.querySelector(".tp-select-menu");
+        const menu = menuOf(wrapper);
         wrapper.classList.remove("is-open");
         if (trigger) trigger.setAttribute("aria-expanded", "false");
         if (menu) {
@@ -88,13 +95,14 @@
     function openSelect(wrapper) {
         if (!wrapper || wrapper.classList.contains("is-disabled")) return;
         const trigger = wrapper.querySelector(".tp-select-trigger");
-        const menu = wrapper.querySelector(".tp-select-menu");
+        const menu = menuOf(wrapper);
         if (!trigger || !menu) return;
         closeAllSelects(wrapper);
         wrapper.classList.add("is-open");
         trigger.setAttribute("aria-expanded", "true");
         menu.hidden = false;
-        floatMenuInDialog(wrapper, trigger, menu);
+        // On phones the menu opens as a bottom sheet (bottom-sheet.js) instead.
+        if (!(window.TPSheet && window.TPSheet.isMobile())) floatMenuInDialog(wrapper, trigger, menu);
         window.requestAnimationFrame(function () {
             const selected = menu.querySelector(".tp-select-option.is-selected[aria-disabled='false']");
             if (selected) {
@@ -143,7 +151,7 @@
     function renderSelect(wrapper) {
         const select = wrapper.querySelector("select[data-tp-select-enhanced='1']");
         const trigger = wrapper.querySelector(".tp-select-trigger");
-        const menu = wrapper.querySelector(".tp-select-menu");
+        const menu = menuOf(wrapper);
         const label = trigger ? trigger.querySelector(".tp-select-label") : null;
         if (!select || !trigger || !menu || !label) return;
 
@@ -243,6 +251,7 @@
         wrapper.appendChild(select);
         wrapper.appendChild(trigger);
         wrapper.appendChild(menu);
+        wrapper.tpSelectMenu = menu;
         select.classList.add("tp-select-native");
 
         select.addEventListener("focus", function () {
@@ -333,6 +342,16 @@
         });
 
         renderSelect(wrapper);
+
+        if (window.TPSheet) {
+            const fieldLabel = (select.labels && select.labels[0]) || null;
+            window.TPSheet.register(menu, {
+                kind: "menu",
+                trigger: trigger,
+                title: fieldLabel ? fieldLabel.textContent.trim() : (select.getAttribute("aria-label") || ""),
+                close: function () { closeSelect(wrapper); }
+            });
+        }
 
         const observer = new MutationObserver(function () {
             renderSelect(wrapper);
