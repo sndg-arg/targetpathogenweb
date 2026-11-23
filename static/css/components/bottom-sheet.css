@@ -153,6 +153,22 @@
         overflow: visible;
     }
 
+    /* Thumb-sized controls inside sheets: 44px, never smaller. */
+    .tp-sheet {
+        --tp-ui-control-height: 44px;
+        --tp-ui-control-height-compact: 44px;
+    }
+
+    .tp-sheet .btn.tp-btn--ghost {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .tp-sheet .filter-chip,
+    .tp-sheet .tp-segmented-option {
+        min-height: 44px;
+    }
+
     /* Thumb-sized rows. */
     .tp-sheet-content .tp-select-option,
     .tp-sheet-content [role="option"],

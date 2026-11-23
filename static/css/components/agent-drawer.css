@@ -127,6 +127,18 @@
    button stops sitting on top of the last control on screen (Export CSV,
    Save scoring formula) with no way to scroll it clear. */
 @media (max-width: 720px) {
+    /* Thumb-sized controls (the drawer is a bottom sheet here). */
+    .tp-agent-drawer-close,
+    .tp-agent-drawer-icon-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .tp-agent-drawer-mode-toggle,
+    .tp-agent-drawer-suggestion {
+        min-height: 44px;
+    }
+
     .tp-agent-fab {
         right: 14px;
         bottom: 14px;

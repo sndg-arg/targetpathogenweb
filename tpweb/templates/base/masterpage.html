@@ -26,7 +26,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20261124-crumb">
-    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261104-focus">
+    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20261123-touch">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -1873,7 +1873,7 @@
 
     {% block head %}{% endblock %}
     {# After the page stylesheets: on phones it replaces their side-panel/dialog geometry. #}
-    <link rel="stylesheet" href="{% static 'css/components/bottom-sheet.css' %}?v=20261123-bar">
+    <link rel="stylesheet" href="{% static 'css/components/bottom-sheet.css' %}?v=20261123-touch">
 </head>
 <body class="{% block body_class %}{% endblock %}">
 <div id="tp-page-loader" class="tp-page-loader" role="status" aria-live="polite" aria-hidden="true">
@@ -2271,7 +2271,7 @@
         </div>
     </div>
 </template>
-<script src="{% static 'js/global/bottom-sheet.js' %}?v=20261123-lock"></script>
+<script src="{% static 'js/global/bottom-sheet.js' %}?v=20261123-touch"></script>
 <script src="{% static 'bundle.js' %}?v=20261113-nohbs"></script>
 {% if perms.tpweb.can_use_agent_chat %}
 <script src="{% static 'js/global/agent-drawer.js' %}?v=20260811-fab"></script>

@@ -120,7 +120,7 @@
             track = false;
             if (event.touches.length !== 1) return;
             var target = event.target;
-            if (target.closest && target.closest("[data-tp-sheet-nodrag], canvas, input[type='range']")) return;
+            if (target.closest && target.closest("[data-tp-sheet-nodrag], [draggable='true'], canvas, input[type='range']")) return;
             var touch = event.touches[0];
             var inTopStrip = touch.clientY - panel.getBoundingClientRect().top < DRAG_ZONE;
             var scroller = scrollableAncestor(target, panel);
@@ -231,9 +231,11 @@
         panel.setAttribute("aria-modal", "true");
         if (session.hadTabindex === null) panel.setAttribute("tabindex", "-1");
         panel.classList.add("is-sheet-entering");
-        panel.addEventListener("animationend", function clear() {
-            panel.classList.remove("is-sheet-entering");
-        }, { once: true });
+        var clearEntering = function () { panel.classList.remove("is-sheet-entering"); };
+        panel.addEventListener("animationend", clearEntering, { once: true });
+        // No animationend with reduced motion; a leftover class would replay
+        // the slide after a drag.
+        window.setTimeout(clearEntering, 400);
         session.unbindDrag = bindDrag(session);
         // The page may already have focused something inside (the
         // assistant's input). Otherwise focus the sheet itself, never a field:
