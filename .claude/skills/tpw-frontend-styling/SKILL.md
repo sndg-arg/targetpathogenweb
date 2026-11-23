@@ -114,6 +114,15 @@ Components (all on /design). There is no `.tp-ui-panel`/`.tp-ui-panel-head` any 
 - A menu, popover or tooltip sits `var(--tp-space-2)` from its trigger (`calc(100% + var(--tp-space-2))`).
   Inside a dialog, `custom-select.js` floats the select menu over it (fixed) instead of letting the
   scrolling dialog body clip it.
+- Phones (<= 720px): every overlay is a bottom sheet (`js/global/bottom-sheet.js` +
+  `components/bottom-sheet.css`, loaded after page CSS; desktop untouched). `.tp-modal` and
+  `.filters-drawer` register themselves; anything else opts in with `data-tp-sheet="dialog|full|menu"`
+  (+ `-open`, `-panel`, `-close`, `-trigger`, `-title`, `-scrim`; see the file header) or
+  `TPSheet.register()`. Menus move into a sheet while open: keep a direct reference to the menu node
+  (not `wrapper.querySelector`). Never build a per-page sheet. A page's main actions go in
+  `.tp-action-bar` (fixed thumb bar on phones). A `fixed` element breaks under an ancestor with a
+  kept transform: entrance animations use `backwards`, never `both`. /design "Phone" renders samples
+  in 390px frames.
 - Dark mode is only the token swap; a `.tp-dark` rule is for third-party/Bootstrap colors or the viewer, never a re-tint.
 - `.tp-card` only for repeated grid items (border, no shadow). Sections are never boxed.
 - `.tp-metrics` > `.metric-pill` (+ `--success|--warning|--danger|--link`) for every "number in a pill".
