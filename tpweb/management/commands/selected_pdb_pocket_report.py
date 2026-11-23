@@ -4,33 +4,19 @@ from django.core.management.base import BaseCommand, CommandError
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
+from tpweb.management.commands._shared import clean as _clean
+from tpweb.management.commands._shared import is_expected_no_pockets as _is_expected_no_pockets
+from tpweb.management.commands._shared import is_pdb_code as _is_pdb_code
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.pdb import PDBResidueSet
+from tpweb.services.structure_files import CHAIN_SUFFIX_RE
 
 
 SELECTED_FIELDS = (
     ("FPocket", "best_fpocket_structure", "Druggability", "fpocket_pocket", "FPocketPocket"),
     ("P2Rank", "best_p2rank_structure", "p2rank_probability", "p2rank_pocket", "P2RankPocket"),
 )
-
-
-def _clean(value):
-    if value is None:
-        return ""
-    value = str(value).strip()
-    if value.lower() in {"", "nan", "none", "null"}:
-        return ""
-    return value
-
-
-def _is_pdb_code(value):
-    value = _clean(value).upper()
-    return len(value) == 4 and value.isalnum()
-
-
-def _is_expected_no_pockets(method, pocket):
-    return method == "P2Rank" and _clean(pocket).lower() == "no_pockets"
 
 
 class Command(BaseCommand):
@@ -77,14 +63,16 @@ class Command(BaseCommand):
             )
             scores[spv.bioentry_id][spv.score_param.name] = _clean(value)
 
-        loaded = {}
+        # Selected code -> loaded structures: the bare PDB and any chain-isolated
+        # copy (6BQY_chain_A), which is where Gates pocket outputs get loaded.
+        loaded = defaultdict(set)
         pdb_ids = set()
         for link in BioentryStructure.objects.filter(
             bioentry_id__in=protein_ids,
             pdb__experiment="EX",
         ).select_related("pdb"):
-            code = _clean(link.pdb.code).upper()
-            loaded[(link.bioentry_id, code)] = link.pdb_id
+            code = CHAIN_SUFFIX_RE.sub("", _clean(link.pdb.code)).upper()
+            loaded[(link.bioentry_id, code)].add(link.pdb_id)
             pdb_ids.add(link.pdb_id)
 
         pockets_by_type = defaultdict(set)
@@ -120,8 +108,19 @@ class Command(BaseCommand):
                 total += 1
                 selected_pdbs.add(pdb_code)
                 combined_pdbs.add((protein_id, pdb_code))
-                pdb_db_id = loaded.get((protein_id, pdb_code))
-                if pdb_db_id is None:
+                score = scores.get(protein_id, {}).get(score_field, "-") or "-"
+                pocket = scores.get(protein_id, {}).get(pocket_field, "-") or "-"
+                loaded_ids = loaded.get((protein_id, pdb_code))
+                if not loaded_ids:
+                    # A no-pockets row (either method) needs no structure: the
+                    # pocket import skips it without loading one.
+                    if _clean(pocket).lower() == "no_pockets":
+                        expected_no_pockets += 1
+                        if len(expected_examples) < examples_limit:
+                            expected_examples.append(
+                                (accession, pdb_code, f"expected no pockets pocket={pocket}")
+                            )
+                        continue
                     missing_structure += 1
                     combined_missing.add((protein_id, pdb_code, method, "structure"))
                     if len(examples) < examples_limit:
@@ -129,11 +128,9 @@ class Command(BaseCommand):
                     continue
 
                 loaded_count += 1
-                if pdb_db_id in pockets_by_type[residue_set_name]:
+                if loaded_ids & pockets_by_type[residue_set_name]:
                     pocket_count += 1
                 else:
-                    score = scores.get(protein_id, {}).get(score_field, "-") or "-"
-                    pocket = scores.get(protein_id, {}).get(pocket_field, "-") or "-"
                     if _is_expected_no_pockets(method, pocket):
                         expected_no_pockets += 1
                         if len(expected_examples) < examples_limit:

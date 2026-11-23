@@ -20,6 +20,10 @@ class ScoreParam(models.Model):
         related_name="owned_score_params",
         on_delete=models.CASCADE,
     )
+    # No longer read: sharing an uploaded column is per genome now
+    # (CustomParamShare, see tpweb.services.custom_param_sharing). Migration
+    # 0092 turned every True here into project-member shares.
+    shared_with_gates = models.BooleanField(default=False)
 
     class Meta:
         constraints = [
@@ -53,7 +57,6 @@ class ScoreParam(models.Model):
 
     @staticmethod
     def initialize():
-
         from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
 
         ScoreFormula.objects.filter(name__startswith="GARDP").delete()
@@ -385,7 +388,7 @@ class ScoreParam(models.Model):
             category="Localization",
             name="Localization",
             type="CATEGORICAL",
-            description="Celular localization of the protein",
+            description="Cellular localization of the protein",
             default_operation="=",
             default_value="Unknown",
             user=None,
@@ -419,7 +422,7 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(
             score_param=sp,
             name="Periplasmic",
-            defaults={"description": "Protein located in periplasmatic space"},
+            defaults={"description": "Protein located in the periplasmic space"},
         )
         ScoreParamOptions.objects.get_or_create(
             score_param=sp, name="Unknown", defaults={"description": "Protein location not known"}
@@ -456,16 +459,19 @@ class ScoreParam(models.Model):
 
     @staticmethod
     def initialize_custom_param(tsv, user=None):
+        from tpweb.services.score_param_types import is_boolean_score_series
+
         # Ensure the DataFrame has exactly two columns (excluding the index)
         if len(tsv.columns) != 2:
             raise ValueError("The DataFrame should contain exactly two columns.")
         sp_name = tsv.columns[1]
         value_series = tsv.iloc[:, 1]
         numeric_series = None
-        try:
-            numeric_series = value_series.astype(float)
-        except (TypeError, ValueError):
-            numeric_series = None
+        if not is_boolean_score_series(value_series):
+            try:
+                numeric_series = value_series.astype(float)
+            except (TypeError, ValueError):
+                numeric_series = None
 
         score_param_type = "N" if numeric_series is not None else "C"
         sp = ScoreParam.objects.get_or_create(

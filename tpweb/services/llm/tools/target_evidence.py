@@ -5,7 +5,10 @@ from __future__ import annotations
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 
-from tpweb.services.assembly_workspace import score_single_protein
+from tpweb.services.assembly_workspace import (
+    EVIDENCE_CONVERGENCE_MAX_SCORE,
+    score_single_protein,
+)
 from tpweb.services.protein_summary import build_protein_executive_context
 
 
@@ -45,13 +48,14 @@ def build_target_evidence_record(assembly_name, accession):
     metabolic = metabolic_context or {}
     microbiome = context.get("microbiome_context") or {}
     conservation = context.get("conservation_profile") or {}
+    gates_priority = context.get("gates_metabolic_priority") or {}
     binders = context.get("binders") or {}
     binder_summary = binders.get("summary") or {}
 
     evidence_score = "not loaded"
-    evidence_max = "15"
+    evidence_max = f"{EVIDENCE_CONVERGENCE_MAX_SCORE:g}"
     if score_row is not None:
-        evidence_score = f"{round(score_row['score'], 1)}"
+        evidence_score = f"{round(score_row['score'], 2)}"
 
     reactions = metabolic.get("reactions") or []
     reaction_names = [r.get("reaction_id") for r in reactions[:4] if r.get("reaction_id")]
@@ -87,6 +91,7 @@ def build_target_evidence_record(assembly_name, accession):
         "core_roary": conservation.get("roary") or _value(raw_scores, "core_roary"),
         "core_corecruncher": conservation.get("corecruncher")
         or _value(raw_scores, "core_corecruncher"),
+        "conservation": conservation.get("category_label"),
         # build_metabolic_context returns None (not an empty dict) when the protein has no
         # GeneReactionLink rows at all -- distinguish that "no metabolic data loaded" case
         # from a real, computed "confirmed not a chokepoint" result. Both used to collapse
@@ -112,6 +117,11 @@ def build_target_evidence_record(assembly_name, accession):
         "centrality_percentile": metabolic.get("centrality_percentile"),
         "metabolic_sentence": metabolic.get("summary_sentence")
         or "No metabolic context loaded for this protein.",
+        # Gates-project pan-genome metabolic priority (S_gene/reaction_support/
+        # quadrant) -- a separate, curated score from the automatic centrality/
+        # chokepoint metrics above, only loaded for KP13/ATCC43816 so far.
+        "gates_priority": gates_priority.get("priority") or "not loaded",
+        "gates_quadrant": gates_priority.get("quadrant") or "not loaded",
         "reactions": reaction_names,
         "pathways": pathway_names,
         "direct_ligands": binder_summary.get("direct_count", 0),
@@ -167,6 +177,7 @@ def format_target_audit(record):
                 ("DEG identity", record["deg_identity"]),
                 ("Roary core call", record["core_roary"]),
                 ("CoreCruncher core call", record["core_corecruncher"]),
+                ("Conservation (core / soft core / accessory)", record["conservation"]),
             ],
         )
     )
@@ -183,6 +194,11 @@ def format_target_audit(record):
                     else "not loaded",
                 ),
                 ("Interpretation", record["metabolic_sentence"]),
+                (
+                    "Gr-ADI metabolic priority",
+                    record["gates_priority"],
+                ),
+                ("Gr-ADI quadrant", record["gates_quadrant"]),
                 (
                     "Reactions",
                     ", ".join(record["reactions"]) if record["reactions"] else "not loaded",

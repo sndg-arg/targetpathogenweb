@@ -6,14 +6,18 @@ STRUCTURE_SOURCE_NONE = "none"
 STRUCTURE_SOURCE_EXPERIMENTAL = "experimental"
 STRUCTURE_SOURCE_ALPHAFOLD = "alphafold"
 STRUCTURE_SOURCE_COLABFOLD = "colabfold"
+STRUCTURE_SOURCE_BOLTZ = "boltz"
 STRUCTURE_SOURCE_MODEL = "model"
 STRUCTURE_SOURCE_MIXED = "mixed"
 
 PDB_EXPERIMENT_ALPHAFOLD = "AF"
 PDB_EXPERIMENT_COLABFOLD = "CF"
+# Boltz models shipped with curated imports (structures/<locus>/boltz_top1/).
+PDB_EXPERIMENT_BOLTZ = "BZ"
 PDB_MODEL_EXPERIMENTS = (
     PDB_EXPERIMENT_ALPHAFOLD,
     PDB_EXPERIMENT_COLABFOLD,
+    PDB_EXPERIMENT_BOLTZ,
 )
 
 STRUCTURE_SOURCE_LABELS = {
@@ -21,6 +25,7 @@ STRUCTURE_SOURCE_LABELS = {
     STRUCTURE_SOURCE_EXPERIMENTAL: "Experimental",
     STRUCTURE_SOURCE_ALPHAFOLD: "AlphaFold DB model",
     STRUCTURE_SOURCE_COLABFOLD: "ColabFold model",
+    STRUCTURE_SOURCE_BOLTZ: "Boltz model",
     STRUCTURE_SOURCE_MODEL: "Model",
     STRUCTURE_SOURCE_MIXED: "Experimental + predicted",
 }
@@ -30,16 +35,18 @@ STRUCTURE_SOURCE_CHOICES = (
     (STRUCTURE_SOURCE_EXPERIMENTAL, "Experimental"),
     (STRUCTURE_SOURCE_ALPHAFOLD, "AlphaFold DB model"),
     (STRUCTURE_SOURCE_COLABFOLD, "ColabFold model"),
+    (STRUCTURE_SOURCE_BOLTZ, "Boltz model"),
     (STRUCTURE_SOURCE_MODEL, "Model"),
     (STRUCTURE_SOURCE_MIXED, "Experimental + predicted"),
 )
 
 
-_STRUCTURE_PREFERENCE = {"EX": 0, "AF": 1, "CF": 2}
+_STRUCTURE_PREFERENCE = {"EX": 0, "AF": 1, "CF": 2, "BZ": 3}
 _STRUCTURE_TOGGLE_LABELS = {
     "EX": "Crystal structure",
     "AF": "AlphaFold DB model",
     "CF": "ColabFold model",
+    "BZ": "Boltz model",
 }
 
 
@@ -80,7 +87,7 @@ def is_multichain(chain, structure_data=None):
     is blank (selector falls back to 'polymer', i.e. the whole file is
     shown unrestricted), fall back to counting distinct chains actually
     present in the loaded structure (`structure_data["chains"]`, already
-    computed by StructureView.pdb_structure from real residue data).
+    computed by structure_summary.pdb_structure from real residue data).
     """
     parts = chain_parts(chain)
     if parts:
@@ -143,6 +150,8 @@ def classify_structure_experiment(experiment):
         return STRUCTURE_SOURCE_COLABFOLD
     if normalized == PDB_EXPERIMENT_ALPHAFOLD or "ALPHAFOLD" in normalized:
         return STRUCTURE_SOURCE_ALPHAFOLD
+    if normalized == PDB_EXPERIMENT_BOLTZ or "BOLTZ" in normalized:
+        return STRUCTURE_SOURCE_BOLTZ
     return STRUCTURE_SOURCE_EXPERIMENTAL
 
 
@@ -174,6 +183,7 @@ def summarize_structure_sources(structures):
             STRUCTURE_SOURCE_EXPERIMENTAL,
             STRUCTURE_SOURCE_ALPHAFOLD,
             STRUCTURE_SOURCE_COLABFOLD,
+            STRUCTURE_SOURCE_BOLTZ,
             STRUCTURE_SOURCE_MODEL,
         )
         if source in source_keys

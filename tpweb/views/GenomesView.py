@@ -6,7 +6,14 @@ from tpweb.services.genomes import (
     build_genomes_queryset,
     summarize_genomes,
 )
-from tpweb.services.csv_exports import build_view_export_url, csv_response, xlsx_sections_response
+from tpweb.services.csv_exports import (
+    build_export_url,
+    build_view_export_url,
+    csv_response,
+    xlsx_sections_response,
+)
+from tpweb.services.assembly_workspace import build_assembly_workspace_metrics
+from tpweb.services.genome_workspace import hidden_restricted_genome_count
 from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genomes,
     get_pipeline_status,
@@ -17,13 +24,6 @@ from tpweb.services.pipeline_status import (
 class GenomesView(View):
     template_name = "search/genomes.html"
     tcolumns = GENOME_TABLE_COLUMNS
-
-    @staticmethod
-    def _build_export_url(request):
-        params = request.GET.copy()
-        params["export"] = "csv"
-        encoded = params.urlencode()
-        return f"?{encoded}" if encoded else "?export=csv"
 
     def get(self, request, *args, **kwargs):
         search_query = request.GET.get("search", "").strip()
@@ -63,7 +63,7 @@ class GenomesView(View):
                                 "Loaded experimental structures",
                                 genome_metrics["total_experimental"],
                             ],
-                            ["PDB xrefs", genome_metrics["total_pdb_xrefs"]],
+                            ["PDB entries cited by UniProt", genome_metrics["total_pdb_xrefs"]],
                             ["EC-annotated proteins", genome_metrics["total_ec_annotated"]],
                             [
                                 "Visible columns",
@@ -82,11 +82,21 @@ class GenomesView(View):
                 return xlsx_sections_response("genomes-view", sections)
             return csv_response("genomes", headers, rows)
 
+        # Target-oriented figures for the table (same numbers as each genome's
+        # overview, cached per genome there).
+        for genome in genomes_dto:
+            try:
+                genome["targets"] = build_assembly_workspace_metrics(genome["internal_name"])
+            except Exception:  # one broken genome must not take the list down
+                genome["targets"] = {}
+        show_essential = any(g["targets"].get("has_essentiality_data") for g in genomes_dto)
+
         return render(
             request,
             self.template_name,
             {
                 "genomes": genomes_dto,
+                "show_essential": show_essential,
                 "tcolumns": GenomesView.tcolumns,
                 "search_query": search_query,
                 "has_search": has_search,
@@ -97,7 +107,8 @@ class GenomesView(View):
                 "total_ec_annotated": genome_metrics["total_ec_annotated"],
                 "pipeline_status": pipeline_status,
                 "workspace_deleted": request.GET.get("workspace_deleted", "").strip(),
-                "export_url": self._build_export_url(request),
+                "export_url": build_export_url(request),
                 "view_export_url": build_view_export_url(request),
+                "hidden_restricted_count": hidden_restricted_genome_count(request.user),
             },
         )  # , {'form': form})

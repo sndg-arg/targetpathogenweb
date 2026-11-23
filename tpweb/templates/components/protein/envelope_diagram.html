@@ -1,0 +1,27 @@
+{% load i18n %}
+{# Gram-negative cell envelope; parts in `parts` light up. Shapes only, colors come from protein-page.css (.hc-*). #}
+<svg class="hc-cell hc-cell--envelope" viewBox="0 0 320 210" role="img" aria-label="{% trans 'Bacterial cell diagram highlighting where this protein is predicted' %}">
+    <g class="hc-part hc-part--extracellular{% if 'extracellular' in parts %} is-on{% endif %}">
+        <title>{% trans "Extracellular" %}</title>
+        <circle cx="300" cy="22" r="4"/><circle cx="310" cy="40" r="3"/><circle cx="286" cy="10" r="2.5"/>
+        <circle cx="14" cy="186" r="4"/><circle cx="8" cy="168" r="2.5"/>
+    </g>
+    <g class="hc-part hc-part--periplasm{% if 'periplasm' in parts %} is-on{% endif %}">
+        <title>{% trans "Periplasm" %}</title>
+        <path class="hc-fill" d="M101 28 H219 A77 77 0 0 1 219 182 H101 A77 77 0 0 1 101 28 Z"/>
+    </g>
+    <g class="hc-part hc-part--outermembrane{% if 'outermembrane' in parts %} is-on{% endif %}">
+        <title>{% trans "Outer membrane" %}</title>
+        <path class="hc-line hc-line--thick" d="M101 28 H219 A77 77 0 0 1 219 182 H101 A77 77 0 0 1 101 28 Z"/>
+    </g>
+    <g class="hc-part hc-part--cytoplasm{% if 'cytoplasm' in parts %} is-on{% endif %}">
+        <title>{% trans "Cytoplasm" %}</title>
+        <path class="hc-fill" d="M101 46 H219 A59 59 0 0 1 219 164 H101 A59 59 0 0 1 101 46 Z"/>
+        <path class="hc-line" d="M110 98 q14 -18 28 0 t28 0 t28 0 M120 118 q12 14 24 0 t24 0"/>
+        <circle cx="222" cy="86" r="4"/><circle cx="236" cy="122" r="4"/><circle cx="92" cy="128" r="4"/>
+    </g>
+    <g class="hc-part hc-part--membrane{% if 'membrane' in parts %} is-on{% endif %}">
+        <title>{% trans "Inner (cytoplasmic) membrane" %}</title>
+        <path class="hc-line hc-line--thick" d="M101 46 H219 A59 59 0 0 1 219 164 H101 A59 59 0 0 1 101 46 Z"/>
+    </g>
+</svg>

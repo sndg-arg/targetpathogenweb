@@ -2,6 +2,8 @@ from django.db.models import Q
 
 from bioseq.models.Biodatabase import Biodatabase
 
+from human_target.services.human_targets import HUMAN_BIODATABASE_NAME, HUMAN_GENOME_SLUG
+from tpweb.models.RestrictedGenome import RestrictedGenome
 from tpweb.services.workspace import (
     PUBLIC_WORKSPACE_USERNAME,
     workspace_slug_for_user,
@@ -9,6 +11,8 @@ from tpweb.services.workspace import (
 
 
 WORKSPACE_GENOME_DELIMITER = "__"
+# The Human Targets storage Biodatabase, by either name the views pass in.
+HUMAN_STORAGE_NAMES = {HUMAN_GENOME_SLUG, HUMAN_BIODATABASE_NAME}
 
 
 def is_workspace_genome_name(genome_name):
@@ -55,16 +59,39 @@ def build_workspace_genome_name(accession, user):
     return f"{workspace_slug_for_user(user)}{WORKSPACE_GENOME_DELIMITER}{cleaned_accession}"
 
 
+def user_can_view_restricted_genomes(user):
+    """Whether `user` is allowed to see genomes flagged in RestrictedGenome
+    (tpweb.can_view_restricted_genomes -- granted by default on approval,
+    see tpweb.services.user_approval, and individually revoked per user
+    from the /users "Edit" modal for tester/student accounts). A superuser
+    passes has_perm() automatically."""
+    return bool(user) and user.has_perm("tpweb.can_view_restricted_genomes")
+
+
 def visible_genome_name_filter(user):
     own_prefix = f"{workspace_slug_for_user(user)}{WORKSPACE_GENOME_DELIMITER}"
     public_prefix = f"{PUBLIC_WORKSPACE_USERNAME}{WORKSPACE_GENOME_DELIMITER}"
     visible = Q(name__startswith=public_prefix) | ~Q(name__contains=WORKSPACE_GENOME_DELIMITER)
     if own_prefix != public_prefix:
         visible |= Q(name__startswith=own_prefix)
+    if not user_can_view_restricted_genomes(user):
+        visible &= ~Q(name__in=RestrictedGenome.objects.values("genome_name"))
     return visible
 
 
 def user_can_access_genome_name(user, genome_name):
+    # Human Targets proteins live in a Biodatabase shaped like a genome's
+    # proteome, so /protein/<id>, structure and binder links reach them
+    # through the bacterial views: hold them to the Human Targets permission.
+    if genome_name in HUMAN_STORAGE_NAMES and not (
+        user and user.has_perm("tpweb.can_view_human_targets")
+    ):
+        return False
+    if (
+        not user_can_view_restricted_genomes(user)
+        and RestrictedGenome.objects.filter(genome_name=genome_name).exists()
+    ):
+        return False
     workspace_slug, _ = split_workspace_genome_name(genome_name)
     if not is_workspace_genome_name(genome_name):
         return True
@@ -116,3 +143,13 @@ def user_can_delete_genome_name(user, genome_name):
         "",
         PUBLIC_WORKSPACE_USERNAME,
     } and workspace_slug == workspace_slug_for_user(user)
+
+
+def hidden_restricted_genome_count(user):
+    """How many existing genomes `user` can't see because they're flagged
+    restricted (collaborator-only). Lets the Genomes page say "N more exist"
+    instead of silently showing a shorter list -- names are never exposed."""
+    if user_can_view_restricted_genomes(user):
+        return 0
+    restricted_names = RestrictedGenome.objects.values("genome_name")
+    return Biodatabase.objects.filter(name__in=restricted_names).count()

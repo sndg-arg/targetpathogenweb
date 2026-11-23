@@ -19,3 +19,8 @@ services:
     environment:
       - SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target
+  queue:
+    volumes:
+      # Local only: lets the dev queue run PSORTb/fpocket/p2rank with `docker run`.
+      # Never on Nodo0: the socket is root-equivalent on the host.
+      - /var/run/docker.sock:/var/run/docker.sock

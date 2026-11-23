@@ -1,13 +1,25 @@
+// Every representation here starts hidden; visible:false + lazy:true defers its
+// (main-thread) build to the first setVisibility(true) -- building dozens of
+// pocket surfaces up front froze the page while the structure loaded.
 {% for p in structure_data.pockets %}
     var fpocketResidueSele = activeChainSelector + " AND NOT STP AND NOT water AND ({{p.residue_ids|join:" OR "}})";
     sele = fpocketResidueSele;
     representations["{{p.name}}_apol"] = component.addRepresentation("surface", {
+        visible: false,
+        lazy: true,
         sele: sele,
         multipleBond: false,
         color: tpColor("--tp-color-structure-pocket-apolar"),
         opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
         side: "double",
-        opaqueBack: true
+        opaqueBack: true,
+        // See structure.html's __main_density surface repr: NGL's real
+        // runtime default for a "surface" repr is surfaceType:"ms" with
+        // useWorker:true (triangulated async in a Web Worker), and when
+        // that worker silently fails to spin up, the surface never gets
+        // built even though setVisibility(true) reports no error. Force
+        // main-thread computation so pocket surface overlays actually render.
+        useWorker: false
     });
     representations["{{p.name}}_apol"].sele = sele;
     pocketSurfaceKeys.push("{{p.name}}_apol");
@@ -17,12 +29,21 @@
 
     sele = fpocketResidueSele;
     representations["{{p.name}}_pol"] = component.addRepresentation("surface", {
+        visible: false,
+        lazy: true,
         sele: sele,
         multipleBond: false,
         color: tpColor("--tp-color-structure-pocket-polar"),
         opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
         side: "double",
-        opaqueBack: true
+        opaqueBack: true,
+        // See structure.html's __main_density surface repr: NGL's real
+        // runtime default for a "surface" repr is surfaceType:"ms" with
+        // useWorker:true (triangulated async in a Web Worker), and when
+        // that worker silently fails to spin up, the surface never gets
+        // built even though setVisibility(true) reports no error. Force
+        // main-thread computation so pocket surface overlays actually render.
+        useWorker: false
     });
     representations["{{p.name}}_pol"].sele = sele;
     pocketSurfaceKeys.push("{{p.name}}_pol");
@@ -36,6 +57,8 @@
     representations["{{p.name}}_apol"].setVisibility(false);
 
     representations["{{p.name}}_atm"] = component.addRepresentation("ball+stick", {
+        visible: false,
+        lazy: true,
         sele: fpocketResidueSele,
         color: tpColor("--tp-color-structure-pocket-polar")
     });
@@ -52,6 +75,8 @@
     registerShapeComponent("{{p.name}}_sph", fpocketCoreShape{{ forloop.counter }});
     {% else %}
     representations["{{p.name}}_sph"] = component.addRepresentation("spacefill", {
+        visible: false,
+        lazy: true,
         sele: fpocketResidueSele,
         color: tpColor("--tp-color-structure-pocket-apolar"),
         radiusScale: 0.7
@@ -66,6 +91,8 @@
     {% endif %}
 
     representations["{{p.name}}_lbl"] = component.addRepresentation("label", {
+        visible: false,
+        lazy: true,
         labelType: "text",
         labelText: residueLabelTextByAtomIndex,
         sele: activeChainSelector + " AND .CA AND ({{p.residue_ids|join:" OR "}})",
@@ -91,12 +118,21 @@
     var p2rankResidueSele = activeChainSelector + " AND NOT STP AND NOT water AND ({{p2.residue_ids|join:" OR "}})";
     sele = p2rankResidueSele;
     representations["p2_{{p2.name}}_apol"] = component.addRepresentation("surface", {
+        visible: false,
+        lazy: true,
         sele: sele,
         multipleBond: false,
         color: tpColor("--tp-color-structure-p2-apolar"),
         opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
         side: "double",
-        opaqueBack: true
+        opaqueBack: true,
+        // See structure.html's __main_density surface repr: NGL's real
+        // runtime default for a "surface" repr is surfaceType:"ms" with
+        // useWorker:true (triangulated async in a Web Worker), and when
+        // that worker silently fails to spin up, the surface never gets
+        // built even though setVisibility(true) reports no error. Force
+        // main-thread computation so pocket surface overlays actually render.
+        useWorker: false
     });
     representations["p2_{{p2.name}}_apol"].sele = sele;
     pocketSurfaceKeys.push("p2_{{p2.name}}_apol");
@@ -106,12 +142,21 @@
 
     sele = p2rankResidueSele;
     representations["p2_{{p2.name}}_pol"] = component.addRepresentation("surface", {
+        visible: false,
+        lazy: true,
         sele: sele,
         multipleBond: false,
         color: tpColor("--tp-color-structure-p2-polar"),
         opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
         side: "double",
-        opaqueBack: true
+        opaqueBack: true,
+        // See structure.html's __main_density surface repr: NGL's real
+        // runtime default for a "surface" repr is surfaceType:"ms" with
+        // useWorker:true (triangulated async in a Web Worker), and when
+        // that worker silently fails to spin up, the surface never gets
+        // built even though setVisibility(true) reports no error. Force
+        // main-thread computation so pocket surface overlays actually render.
+        useWorker: false
     });
     representations["p2_{{p2.name}}_pol"].sele = sele;
     pocketSurfaceKeys.push("p2_{{p2.name}}_pol");
@@ -125,6 +170,8 @@
     representations["p2_{{p2.name}}_apol"].setVisibility(false);
 
     representations["p2_{{p2.name}}_atm"] = component.addRepresentation("ball+stick", {
+        visible: false,
+        lazy: true,
         sele: p2rankResidueSele,
         color: tpColor("--tp-color-structure-p2-polar")
     });
@@ -141,6 +188,8 @@
     registerShapeComponent("p2_{{p2.name}}_sph", p2rankCoreShape{{ forloop.counter }});
     {% else %}
     representations["p2_{{p2.name}}_sph"] = component.addRepresentation("spacefill", {
+        visible: false,
+        lazy: true,
         sele: p2rankResidueSele,
         color: tpColor("--tp-color-structure-p2-apolar"),
         radiusScale: 0.7
@@ -155,6 +204,8 @@
     {% endif %}
 
     representations["p2_{{p2.name}}_lbl"] = component.addRepresentation("label", {
+        visible: false,
+        lazy: true,
         labelType: "text",
         labelText: residueLabelTextByAtomIndex,
         sele: activeChainSelector + " AND .CA AND ({{p2.residue_ids|join:" OR "}})",
@@ -179,6 +230,8 @@
 {% for rs in structure_data.residuesets %}
     sele = activeChainSelector + " AND ({{rs.residues|join:" OR "}})";
     representations["{{rs.name}}"] = component.addRepresentation("ball+stick", {
+        visible: false,
+        lazy: true,
         sele: sele
     });
     visible["{{rs.name}}"] = false;

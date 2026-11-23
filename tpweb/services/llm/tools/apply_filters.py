@@ -71,7 +71,9 @@ APPLY_FILTERS = ToolDefinition(
                                 "add_numeric_filter: filter a numeric field by range (needs "
                                 "score_param_id, numeric_operation, value, and value_max for "
                                 "'between'). add_special_filter: filter by EC or GO term (needs "
-                                "special_kind='ec'|'go' and special_value). remove_filter: remove a "
+                                "special_kind='ec'|'go' and special_value; for EC, special_value "
+                                "is a class '1'..'7', a code prefix like '2.7.1', or 'any' for "
+                                "every protein with any EC number). remove_filter: remove a "
                                 "previously-added filter (needs filter_option_id)."
                             ),
                         },
@@ -105,14 +107,24 @@ CLEAR_FILTERS = ToolDefinition(
 )
 
 
+def _short(text, limit=160):
+    text = " ".join(str(text or "").split())
+    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
+
+
 def build_list_available_filters_entry(user):
     def run(_input):
         score_params = visible_score_params_queryset(user).prefetch_related("choices")
         lines = []
         for score_param in score_params:
+            # Descriptions included so the model can tell e.g. that hit_in_deg=Y (a match
+            # in the Database of Essential Genes) is what "essential" means -- with bare
+            # "Y"/"N" option names it once filtered essential proteins with N instead.
+            description = _short(score_param.description)
             if is_categorical_score_param(score_param):
                 option_parts = [
                     f"{option.name} (filter_option_id={option.pk})"
+                    + (f" = {_short(option.description, 90)}" if option.description else "")
                     for option in score_param.choices.all()[:20]
                 ]
                 extra_count = max(0, score_param.choices.count() - len(option_parts))
@@ -123,11 +135,13 @@ def build_list_available_filters_entry(user):
                     continue
                 lines.append(
                     f"- {score_param.name} [{score_param.category}, categorical]: {options}"
+                    + (f" -- {description}" if description else "")
                 )
             else:
                 lines.append(
                     f"- {score_param.name} [{score_param.category}, numeric, "
                     f"score_param_id={score_param.pk}]"
+                    + (f" -- {description}" if description else "")
                 )
         if not lines:
             return "No filterable fields are available for this genome."
@@ -159,7 +173,7 @@ def build_apply_filters_entry(request, user):
             return "All filters cleared. The protein list currently shows every protein in this genome."
 
         grouped = grouped_selected_parameters(selected_parameters, humanize=True)
-        summary = "; ".join(f"{name}: {values}" for name, values in grouped.items())
+        summary = "; ".join(f"{name}: {values}" for name, values in grouped)
         return f"Filters applied. Active filters: {summary}"
 
     return ToolEntry(definition=APPLY_FILTERS, run=run)

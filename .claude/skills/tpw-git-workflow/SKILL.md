@@ -28,14 +28,27 @@ stage it explicitly by name like any other intentionally-changed file.
 
 ## Commit message
 
-Concise, explains *why* the change was made, not just what changed. **Do not add a
-`Co-Authored-By: Claude` trailer** — the user asked for commits in this repo to not carry that
-line. Pass the message via a heredoc, per standard git-commit discipline.
+**Do not add a `Co-Authored-By: Claude` trailer** — the user asked for commits in this repo to
+not carry that line.
 
-## Push behavior
+**Write titles like the other humans committing to this repo, not like an AI assistant
+narrating itself.** Look at `git log --oneline -20` before writing one if unsure of the register.
+This repo's real style: short, single-line, imperative, specific about *what* changed —
+`Fix template access to xref attributes (no underscore prefix allowed)`, `Add a Redis service to
+the cluster stack for shared caching`, `Show P2RANK Probability alongside Druggability in the
+default column set`. That's the whole commit most of the time — no body.
 
-Push after committing without re-asking each time — this has been the established convention for
-this repo/session. This does **not** extend to force-pushing or amending a commit that's already
-been pushed — those remain "ask first" actions regardless of this convention, per the general
-git-safety rules (never skip hooks, never force-push without explicit request, never amend
-published history).
+Avoid the tells that mark a commit as AI-written: multi-paragraph bodies that explain and justify
+the reasoning at length, a "Why:" or "Verified:" scaffold, hedging ("this should be safe because
+Cd..."), or restating the diff in prose. If a body is genuinely warranted (a non-obvious root
+cause, a decision future-you would otherwise re-litigate), keep it to 1-3 short lines — not a
+essay. Default to title-only.
+
+## Commit and push only when asked
+
+Since 2026-10-14 the user commits and pushes on request only: finish the change, verify it,
+and leave it uncommitted in the working tree with a summary of the touched files. Commit or
+push only when the user says so in that moment ("commiteá", "pusheá", "subilo"). This
+replaces the earlier "push after committing without re-asking" convention. Force-pushing or
+amending an already-pushed commit stays "ask first" regardless (never skip hooks, never
+force-push without explicit request, never amend published history).

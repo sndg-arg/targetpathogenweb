@@ -27,6 +27,15 @@ from tpweb.services.workspace import (
 
 logger = logging.getLogger(__name__)
 
+# Which remote tool actually owns a SLURM "waiting for resources" message, by
+# stage number -- classify_slurm_resource_message's own default ("InterProScan")
+# is only correct for stage 10. Without this, the banner said "InterProScan is
+# waiting for resources" even while stage 16 (ColabFold) was the one queued.
+_REMOTE_STAGE_TOOL_LABELS = {
+    10: "InterProScan",
+    16: "ColabFold",
+}
+
 ARGENTINA_TZ = timezone(timedelta(hours=-3))
 PIPELINE_STATUS_CACHE_TTL_SECONDS = float(os.getenv("TPW_PIPELINE_STATUS_CACHE_TTL_SECONDS", "4"))
 _PIPELINE_STATUS_CACHE: dict = {
@@ -239,7 +248,12 @@ def _active_stage_from_pipeline_run(run):
     latest_stage_event = None
     latest_failed_event = None
     latest_info_event = None
+    # Every completed stage, task-tracked or not: direct runs (stages run
+    # inline, no task id) never reach latest_by_task below.
+    last_completed_stage = None
     for event in stage_events:
+        if event.stage_number is not None and event.status == "completed":
+            last_completed_stage = max(last_completed_stage or 0, event.stage_number)
         if event.stage_number is not None:
             latest_stage_event = event
         if event.status == "failed" and event.stage_number is not None:
@@ -286,6 +300,7 @@ def _active_stage_from_pipeline_run(run):
             "latest_stage_event": latest_stage_event,
             "stages_completed": tuple(sorted(completed_stages)),
             "stages_active": tuple(sorted(active_stages)),
+            "last_completed_stage": last_completed_stage,
         }
 
     if latest_failed_event is not None:
@@ -298,6 +313,7 @@ def _active_stage_from_pipeline_run(run):
             "latest_stage_event": latest_stage_event,
             "stages_completed": tuple(sorted(completed_stages)),
             "stages_active": tuple(sorted(active_stages)),
+            "last_completed_stage": last_completed_stage,
         }
 
     return {
@@ -310,7 +326,23 @@ def _active_stage_from_pipeline_run(run):
         "latest_stage_event": latest_stage_event,
         "stages_completed": tuple(sorted(completed_stages)),
         "stages_active": tuple(sorted(active_stages)),
+        "last_completed_stage": last_completed_stage,
     }
+
+
+def _curated_import_finished_after(run):
+    """Whether a curated import for the run's genome finished after the run started."""
+    from tpweb.models import CuratedImportJob
+
+    genome = str(run.internal_accession or "").strip()
+    if not genome:
+        return False
+    jobs = CuratedImportJob.objects.filter(
+        genome_name=genome, status=CuratedImportJob.STATUS_FINISHED
+    )
+    if run.started_at:
+        jobs = jobs.filter(finished_at__gte=run.started_at)
+    return jobs.exists()
 
 
 def _status_from_pipeline_run(run):
@@ -328,11 +360,18 @@ def _status_from_pipeline_run(run):
     genome_upload = getattr(run, "genome_upload", None)
     if genome_upload is not None:
         workspace_owner_id = getattr(genome_upload, "owner_id", None)
-        if workspace_owner_id:
-            workspace_slug = f"user-{workspace_owner_id}"
-    if workspace_slug is None and genome_accession:
-        prefix = genome_accession.split("__", 1)[0].strip().lower()
-        workspace_slug = prefix or None
+    # The internal accession is always "<workspace-slug>__<accession>" (see
+    # build_workspace_genome_name) -- trust that over reconstructing the slug
+    # from genome_upload.owner_id, which always produces "user-<pk>" even for
+    # an upload tagged to the shared "public" workspace user (there's no
+    # single "public" pk to slug from). Left to the owner_id branch, a public
+    # upload's own progress reads as "someone else's workspace" to everyone,
+    # including the superuser who made it public -- sanitize_pipeline_status_for_user
+    # below then strips the stage/genome info and shows a generic "pipeline busy".
+    if genome_accession and "__" in genome_accession:
+        workspace_slug = genome_accession.split("__", 1)[0].strip().lower() or None
+    elif workspace_owner_id:
+        workspace_slug = f"user-{workspace_owner_id}"
     status_data["workspace_slug"] = workspace_slug
     status_data["workspace_owner_id"] = workspace_owner_id
     status_data["last_updated"] = _format_pipeline_timestamp(
@@ -365,11 +404,28 @@ def _status_from_pipeline_run(run):
         status_data["running"] = False
         status_data["state_label"] = "Last pipeline run finished"
         status_data["state_class"] = "finished"
+        status_data["progress_percent"] = 100
+        status_data["stages_active"] = ()
+        last_stage = active_info.get("last_completed_stage") or PIPELINE_STAGE_TOTAL
+        if last_stage < PIPELINE_STAGE_TOTAL and _curated_import_finished_after(run):
+            # The run only loaded the genome; a curated import brought in the
+            # rest, so the genome is complete.
+            status_data["state_label"] = "Finished (curated import)"
+            status_data["stage_current"] = PIPELINE_STAGE_TOTAL
+            status_data["stage_label"] = "Curated results imported"
+            status_data["stages_completed"] = tuple(range(1, PIPELINE_STAGE_TOTAL + 1))
+            return PipelineStatus(**status_data)
+        if last_stage < PIPELINE_STAGE_TOTAL:
+            # A run with --skip-stages (e.g. only loading a genome before a
+            # curated import) ends early: report where it really stopped.
+            status_data["stage_current"] = last_stage
+            status_data["stage_label"] = (
+                f"{STAGE_LABELS.get(last_stage, '')} (later stages skipped)".strip()
+            )
+            return PipelineStatus(**status_data)
         status_data["stage_current"] = PIPELINE_STAGE_TOTAL
         status_data["stage_label"] = STAGE_LABELS.get(PIPELINE_STAGE_TOTAL)
-        status_data["progress_percent"] = 100
         status_data["stages_completed"] = tuple(range(1, PIPELINE_STAGE_TOTAL + 1))
-        status_data["stages_active"] = ()
         return PipelineStatus(**status_data)
 
     if run.status == run.STATUS_FAILED:
@@ -397,7 +453,10 @@ def _status_from_pipeline_run(run):
             active_app,
         )
         info_message = str(getattr(info_event, "message", "") or "").strip()
-        friendly_info = classify_slurm_resource_message(info_message, running=True)
+        tool_label = _REMOTE_STAGE_TOOL_LABELS.get(stage_number, "InterProScan")
+        friendly_info = classify_slurm_resource_message(
+            info_message, running=True, tool_label=tool_label
+        )
         if friendly_info:
             status_data["activity_label"] = friendly_info
     elif run.status == run.STATUS_SUBMITTED:

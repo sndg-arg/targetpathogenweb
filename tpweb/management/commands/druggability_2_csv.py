@@ -7,6 +7,7 @@ from Bio import (
     BiopythonExperimentalWarning,
 )
 from django.core.management.base import BaseCommand
+from django.core.management import call_command
 from tqdm import tqdm
 import pandas as pd
 
@@ -86,6 +87,10 @@ class Command(BaseCommand):
             csv_path, sep="\t", index=False
         )  # Save the DataFrame to a CSV file without including the index column
         print(f"DataFrame saved to {csv_path} ({len(df)} rows)")
+        call_command("index_p2rank_scores", accession, apply=True, stdout=self.stdout)
+        call_command("index_colabfold_scores", accession, apply=True, stdout=self.stdout)
+        call_command("index_pocket_size_outlier", accession, stdout=self.stdout)
+        call_command("index_pocket_consensus", accession, stdout=self.stdout)
 
     def _druggability_values(self, links, property_instance):
         # Looped per-link rather than one combined pdb_id__in=[...] query --

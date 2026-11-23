@@ -1,0 +1,26 @@
+{% load i18n %}
+{# Membrane topology (tpweb/services/topology_diagram.py): the chain crossing the membrane once per helix. Colors from protein-page.css (.tm-*). #}
+<figure class="tm-figure">
+    <svg class="tm-diagram" width="{{ topo.width }}" height="{{ topo.height }}" style="max-width: {{ topo.width }}px" viewBox="0 {{ topo.view_y }} {{ topo.width }} {{ topo.height }}" role="img" aria-label="{% blocktrans count count=topo.count %}Membrane topology: {{ count }} transmembrane segment{% plural %}Membrane topology: {{ count }} transmembrane segments{% endblocktrans %}">
+        <text class="tm-side" x="0" y="{{ topo.side_out_y }}">{{ topo.outside_label }}</text>
+        <text class="tm-side" x="0" y="{{ topo.side_in_y }}">{{ topo.inside_label }}</text>
+        <rect class="tm-membrane" x="0" y="{{ topo.membrane_y }}" width="{{ topo.width }}" height="{{ topo.membrane_h }}"/>
+        <line class="tm-lipid" x1="0" x2="{{ topo.width }}" y1="{{ topo.membrane_y }}" y2="{{ topo.membrane_y }}"/>
+        <line class="tm-lipid" x1="0" x2="{{ topo.width }}" y1="{{ topo.membrane_y|add:topo.membrane_h }}" y2="{{ topo.membrane_y|add:topo.membrane_h }}"/>
+        <path class="tm-chain" d="{{ topo.path }}" pathLength="1"/>
+        {% if topo.n_domain %}<ellipse class="tm-domain" cx="{{ topo.n_domain.cx }}" cy="{{ topo.n_domain.cy }}" rx="{{ topo.n_domain.rx }}" ry="{{ topo.n_domain.ry }}"><title>{{ topo.n_domain.title }}</title></ellipse>{% endif %}
+        {% if topo.c_domain %}<ellipse class="tm-domain" cx="{{ topo.c_domain.cx }}" cy="{{ topo.c_domain.cy }}" rx="{{ topo.c_domain.rx }}" ry="{{ topo.c_domain.ry }}"><title>{{ topo.c_domain.title }}</title></ellipse>{% endif %}
+        {% for helix in topo.helices %}
+        <rect class="tm-helix" x="{{ helix.x }}" y="{{ helix.y }}" width="{{ helix.w }}" height="{{ helix.h }}" rx="5"><title>{{ helix.title }}</title></rect>
+        {% endfor %}
+        <text class="tm-terminus" x="{{ topo.n.x }}" y="{{ topo.n.y }}" text-anchor="middle">N</text>
+        <text class="tm-terminus" x="{{ topo.c.x }}" y="{{ topo.c.y }}" text-anchor="middle">C</text>
+        {% if topo.n_domain %}<text class="tm-domain-size" x="{{ topo.n_domain.cx }}" y="{{ topo.n.y|add:'14' }}" text-anchor="middle">{{ topo.n_domain.residues }} aa</text>{% endif %}
+        {% if topo.c_domain %}<text class="tm-domain-size" x="{{ topo.c_domain.cx }}" y="{{ topo.c.y|add:'14' }}" text-anchor="middle">{{ topo.c_domain.residues }} aa</text>{% endif %}
+    </svg>
+    <figcaption class="tm-caption">
+        {% blocktrans count count=topo.count %}{{ count }} transmembrane segment{% plural %}{{ count }} transmembrane segments{% endblocktrans %}
+        · N {% if topo.n_side == "outside" %}{{ topo.outside_label|lower }}{% else %}{{ topo.inside_label|lower }}{% endif %}
+        · C {% if topo.c_side == "outside" %}{{ topo.outside_label|lower }}{% else %}{{ topo.inside_label|lower }}{% endif %}
+    </figcaption>
+</figure>

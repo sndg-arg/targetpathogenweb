@@ -19,8 +19,6 @@ Requirements:
         conda install -c conda-forge -c bioconda colabfold
 """
 
-import gzip
-import math
 import os
 import shutil
 import subprocess
@@ -29,6 +27,9 @@ import tempfile
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+
+from tpweb.management.commands._shared import read_fasta
+from tpweb.services.structure_files import compute_folder_path
 
 
 DEFAULT_COLABFOLD_BIN = os.getenv("TPW_COLABFOLD_BIN", "colabfold_batch")
@@ -69,9 +70,7 @@ class Command(BaseCommand):
         num_models = options["num_models"]
 
         # Resolve folder path (same convention as run_pipeline_direct.py)
-        acclen = len(genome)
-        folder_name = genome[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
-        folder_path = os.path.join(datadir, folder_name, genome)
+        folder_path = compute_folder_path(datadir, genome)
         alphafold_dir = os.path.join(folder_path, "alphafold")
 
         # Read all protein sequences from FASTA
@@ -80,7 +79,7 @@ class Command(BaseCommand):
             self.stderr.write(f"FASTA file not found: {faa_path}")
             return
 
-        sequences = self._read_fasta(faa_path)
+        sequences = read_fasta(faa_path)
         self.stdout.write(f"Total proteins in FASTA: {len(sequences)}")
 
         # Find proteins that already have a structure PDB
@@ -156,28 +155,6 @@ class Command(BaseCommand):
             )
 
     # ------------------------------------------------------------------
-
-    def _read_fasta(self, faa_gz_path):
-        """Read gzipped FASTA, return {locus_tag: sequence}."""
-        sequences = {}
-        current_tag = None
-        current_seq = []
-
-        with gzip.open(faa_gz_path, "rt") as fh:
-            for line in fh:
-                line = line.strip()
-                if line.startswith(">"):
-                    if current_tag and current_seq:
-                        sequences[current_tag] = "".join(current_seq)
-                    current_tag = line[1:].split()[0]
-                    current_seq = []
-                else:
-                    current_seq.append(line)
-
-        if current_tag and current_seq:
-            sequences[current_tag] = "".join(current_seq)
-
-        return sequences
 
     def _run_colabfold(self, colabfold_bin, input_fasta, output_dir, num_recycles, num_models):
         """

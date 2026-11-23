@@ -1,0 +1,251 @@
+/* ── Bottom sheet (see /design and js/global/bottom-sheet.js). On phones
+   every dialog, drawer and menu slides up from the bottom: rounded top,
+   a handle, swipe down / tap outside / Escape to close. Loaded after the
+   page stylesheets so it wins over their side-panel and centered-dialog
+   geometry. Everything is inside the phone query: desktop is untouched. ── */
+
+@media (max-width: 720px) {
+    .tp-sheet {
+        position: fixed;
+        top: auto;
+        right: 0;
+        bottom: var(--tp-sheet-keyboard, 0px);
+        left: 0;
+        width: auto;
+        min-width: 0;
+        max-width: none;
+        height: auto;
+        max-height: calc(var(--tp-sheet-viewport, 100dvh) - var(--tp-space-8));
+        margin: 0;
+        padding-top: var(--tp-space-4);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        border: 1px solid var(--tp-color-border-soft);
+        border-bottom: 0;
+        border-radius: var(--tp-radius-md) var(--tp-radius-md) 0 0;
+        background: var(--tp-color-surface);
+        box-shadow: var(--tp-shadow-lg);
+        overscroll-behavior: contain;
+        transform: translateY(100%);
+        transition: transform var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+    }
+
+    /* In-place panels keep the layer their page gave them (a drawer stays
+       under a dialog); menu sheets get the top one from .tp-sheet-root. */
+    .tp-sheet:focus {
+        outline: none;
+    }
+
+    /* Filters, columns, scoring, the assistant: nearly the whole screen. */
+    .tp-sheet--full {
+        height: calc(var(--tp-sheet-viewport, 100dvh) - var(--tp-space-6));
+        max-height: none;
+    }
+
+    .tp-sheet.is-sheet-open,
+    .tp-sheet--menu {
+        transform: none;
+    }
+
+    .tp-sheet.is-sheet-entering {
+        animation: tp-sheet-up var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+    }
+
+    .tp-sheet.is-sheet-dragging {
+        transition: none;
+        animation: none;
+    }
+
+    /* The handle. Purely visual: the whole top strip is draggable. */
+    .tp-sheet::before {
+        content: "";
+        position: absolute;
+        top: var(--tp-space-2);
+        left: 50%;
+        width: var(--tp-space-7);
+        height: 4px;
+        margin-left: calc(var(--tp-space-7) / -2);
+        border-radius: var(--tp-radius-pill);
+        background: var(--tp-color-border-strong);
+        pointer-events: none;
+    }
+
+    .tp-sheet-backdrop {
+        position: fixed;
+        inset: 0;
+        background: var(--tp-color-scrim);
+        animation: tp-sheet-fade var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+    }
+
+    /* Dialogs: the .tp-modal layer is just the backdrop now. */
+    .tp-modal.is-open {
+        animation: tp-sheet-fade var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+    }
+
+    /* Menu sheet (custom select, pickers, presets): title + close, then the
+       list the page already built, moved in while open. */
+    .tp-sheet-root {
+        position: fixed;
+        inset: 0;
+        z-index: 2100;
+    }
+
+    .tp-sheet--menu {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .tp-sheet-head {
+        display: flex;
+        align-items: center;
+        gap: var(--tp-space-3);
+        flex: 0 0 auto;
+        padding: var(--tp-space-1) var(--tp-space-2) var(--tp-space-1) var(--tp-space-5);
+        border-bottom: 1px solid var(--tp-color-border-soft);
+    }
+
+    .tp-sheet-title {
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+        overflow: hidden;
+        color: var(--tp-color-text-primary);
+        font-size: var(--tp-font-size-md);
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .tp-sheet-title[hidden] + .tp-sheet-close {
+        margin-left: auto;
+    }
+
+    .btn.tp-btn.tp-sheet-close {
+        flex: 0 0 auto;
+        width: 44px;
+        height: 44px;
+        justify-content: center;
+    }
+
+    .tp-sheet-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: var(--tp-space-2) var(--tp-space-3) var(--tp-space-3);
+    }
+
+    /* A moved-in menu drops its dropdown geometry (some pages position
+       theirs inline from script, hence !important). */
+    .tp-sheet-content {
+        position: static !important;
+        inset: auto !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        transform: none !important;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        overflow: visible;
+    }
+
+    /* Thumb-sized controls inside sheets: 44px, never smaller. */
+    .tp-sheet {
+        --tp-ui-control-height: 44px;
+        --tp-ui-control-height-compact: 44px;
+    }
+
+    .tp-sheet .btn.tp-btn--ghost {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .tp-sheet .filter-chip,
+    .tp-sheet .tp-segmented-option {
+        min-height: 44px;
+    }
+
+    /* Thumb-sized rows. */
+    .tp-sheet-content .tp-select-option,
+    .tp-sheet-content [role="option"],
+    .tp-sheet-content [role^="menuitem"],
+    .tp-sheet-content li > a,
+    .tp-sheet-content li > button {
+        min-height: 44px;
+    }
+
+    /* Scroll lock while a sheet is open: the page stays where it was. */
+    html.tp-sheet-locked {
+        overflow: hidden;
+        scrollbar-gutter: stable;
+    }
+
+    html.tp-sheet-locked body {
+        overflow: hidden;
+    }
+
+    /* The assistant button would float over an open sheet. */
+    .tp-sheet-locked .tp-agent-fab,
+    .tp-sheet-locked .tp-agent-fab-ring {
+        visibility: hidden;
+    }
+
+    /* Thumb bar: a page's main actions, fixed at the bottom of the screen. */
+    .tp-action-bar {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1020;
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(0, 1fr);
+        gap: var(--tp-space-2);
+        margin: 0;
+        padding: var(--tp-space-2) var(--tp-space-3) calc(var(--tp-space-2) + env(safe-area-inset-bottom, 0px));
+        border-top: 1px solid var(--tp-color-border-soft);
+        background: var(--tp-color-surface);
+        box-shadow: var(--tp-shadow-sm);
+    }
+
+    /* Equal columns; the page sets its buttons to thumb height (44px). */
+    .tp-action-bar .btn.tp-btn {
+        min-width: 0;
+        min-height: 44px;
+        justify-content: center;
+    }
+
+    /* Room for the bar under the page, and the assistant button above it. */
+    body:has(.tp-action-bar) .tp-main {
+        padding-bottom: calc(var(--tp-space-8) * 3);
+    }
+
+    body:has(.tp-action-bar) .tp-agent-fab,
+    body:has(.tp-action-bar) .tp-agent-fab-ring {
+        bottom: calc(var(--tp-space-8) + var(--tp-space-7) + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+@keyframes tp-sheet-up {
+    from { transform: translateY(100%); }
+    to { transform: none; }
+}
+
+@keyframes tp-sheet-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (max-width: 720px) and (prefers-reduced-motion: reduce) {
+    .tp-sheet,
+    .tp-sheet.is-sheet-entering,
+    .tp-sheet-backdrop,
+    .tp-modal.is-open {
+        transition: none;
+        animation: none;
+    }
+}

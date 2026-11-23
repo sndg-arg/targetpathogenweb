@@ -14,3 +14,9 @@ from django.core.wsgi import get_wsgi_application
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tpwebconfig.settings")
 
 application = get_wsgi_application()
+
+# Import the URLconf (and every view/service module it pulls in, ~5 s) while
+# the gunicorn worker boots, not inside the first request it serves.
+from django.urls import get_resolver  # noqa: E402
+
+get_resolver().check()

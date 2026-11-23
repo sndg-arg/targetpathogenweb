@@ -1,10 +1,11 @@
 /* ── Annotation explorer — EC tree · GO terms ── */
 
 .explorer-page {
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    color: var(--tp-ink);
+    font-family: var(--tp-font-body);
+    color: var(--tp-color-text-primary);
     margin: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--tp-space-4);
 }
 
@@ -12,458 +13,356 @@
 .explorer-page h2,
 .explorer-page h3,
 .explorer-page h4 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-family: var(--tp-font-head);
     font-weight: 600;
-    letter-spacing: 0.2px;
+    letter-spacing: 0;
 }
-.explorer-page h1 { font-weight: 700; }
-
-/* ── Hero ── */
-
-/* No longer boxed via .tp-page-hero -- sits directly on the page
-   background (see tpw-editorial-redesign), so it needs its own padding
-   now instead of inheriting that shared class's. */
-.explorer-hero {
-    padding: 20px 18px;
-}
+.explorer-page h1 { font-weight: 600; }
 
 .explorer-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    margin: 6px 0 10px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    gap: var(--tp-space-2);
 }
 
-.explorer-hero h1 {
-    margin: 0;
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-heading-lg);
-    line-height: 1.1;
-}
-
-.explorer-subtitle {
-    margin: 10px 0 0;
-    color: var(--tp-color-text-secondary);
-    max-width: 980px;
-    font-size: 1rem;
-    line-height: 1.42;
-}
-
-.explorer-meta {
-    margin-top: 14px;
-}
-
-/* ── Cards ── */
-
-/* Kept boxed on purpose -- a single workbench/tool card, not a stack of
-   page sections. Margin aligns its border with the 18px text inset the
-   unboxed hero above it uses. */
-.explorer-card {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface);
-    padding: 18px;
-    margin: 0 18px;
-}
-
-/* ── Workbench ── */
+/* ── Workbench ──
+   Two columns sitting directly on the page (no card box, see
+   tpw-editorial-redesign): the EC chart on the left, the list of terms on
+   the right. GO has no hierarchy to draw, so its list takes the full width. */
 
 .explorer-workbench {
     display: grid;
-    grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.68fr);
-    gap: 0;
-    padding: 0;
-    overflow: hidden;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: var(--tp-space-8);
+    margin: 0 var(--tp-space-5);
+    padding-top: var(--tp-space-5);
+    border-top: 1px solid var(--tp-color-border-soft);
 }
 
-.explorer-workbench-main,
-.explorer-workbench-side {
+.explorer-workbench--list {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 960px;
+}
+
+.explorer-chart,
+.explorer-terms {
     min-width: 0;
 }
 
-.explorer-workbench-main {
-    padding: 18px;
+/* The chart stays in view while the list scrolls next to it. */
+.explorer-chart {
+    position: sticky;
+    top: calc(var(--tp-sticky-chrome-h, 0px) + var(--tp-space-4));
+    align-self: start;
 }
-
-.explorer-workbench-side {
-    border-left: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface-soft);
-    padding: 18px;
-    display: grid;
-    align-content: start;
-    gap: 16px;
-}
-
-/* ── Empty state ── */
-
-.explorer-empty-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
-    gap: 14px;
-}
-
-.explorer-empty-card {
-    min-height: 0;
-}
-
-.explorer-empty-state {
-    border: 1px dashed var(--tp-color-border);
-    border-radius: 14px;
-    background: var(--tp-color-surface);
-    padding: 18px;
-    display: grid;
-    gap: 10px;
-}
-
-.explorer-empty-state h2 {
-    margin: 0;
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-heading-sm);
-}
-
-.explorer-empty-state p {
-    margin: 0;
-    color: var(--tp-color-text-secondary);
-    line-height: 1.45;
-    max-width: 64ch;
-}
-
-.explorer-empty-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 4px;
-}
-
-.explorer-empty-facts {
-    display: grid;
-    gap: 10px;
-    align-content: start;
-}
-
-/* ── Fact cards (empty state sidebar) ── */
-
-.explorer-fact-list {
-    display: grid;
-    gap: 10px;
-}
-
-.explorer-fact {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-surface);
-    padding: 14px;
-    display: grid;
-    gap: 4px;
-}
-
-.explorer-fact-label {
-    color: var(--tp-color-text-muted);
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-
-.explorer-fact-value {
-    color: var(--tp-color-brand-900);
-    font-size: 1rem;
-    font-weight: 600;
-    line-height: 1.3;
-}
-
-/* ── Plot ── */
-
-.explorer-plot-shell {
-    min-height: 540px;
-}
-
-.explorer-plot-fallback {
-    display: grid;
-    gap: 8px;
-    align-content: center;
-    justify-items: start;
-    min-height: 220px;
-    padding: 18px;
-    border: 1px dashed var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-surface-soft);
-}
-
-.explorer-plot-fallback[hidden] {
-    display: none;
-}
-
-.explorer-plot-fallback p {
-    margin: 0;
-    color: var(--tp-color-text-secondary);
-    line-height: 1.45;
-    max-width: 56ch;
-}
-
-/* ── Section heads ── */
 
 .explorer-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 10px;
+    margin-bottom: var(--tp-space-4);
 }
 
 .explorer-head h2 {
     margin: 0;
     color: var(--tp-color-brand-900);
-    font-size: 1.02rem;
-    letter-spacing: 0.01em;
+    font-size: var(--tp-font-size-lg);
 }
 
 .explorer-head p {
-    margin: 4px 0 0;
+    margin: var(--tp-space-1) 0 0;
+    max-width: var(--tp-measure);
     color: var(--tp-color-text-muted);
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
 }
 
-/* ── Selection panel ── */
-
-.explorer-selection {
-    display: grid;
-    gap: 16px;
+.explorer-plot-shell {
+    min-height: 520px;
 }
 
-.explorer-selection-card {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-surface);
-    padding: 12px;
-    transition: border-color 160ms ease;
-}
-
-.explorer-selection-card.is-empty {
-    border-style: dashed;
-    background: var(--tp-color-surface-soft);
-}
-
-.explorer-selection-card.is-empty .explorer-action-link {
-    display: none;
-}
-
-.explorer-selection-card.is-active {
-    border-color: color-mix(in srgb, var(--tp-color-brand-600) 60%, var(--tp-color-border));
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--tp-color-brand-300) 34%, transparent);
-}
-
-.explorer-selection-card h3 {
-    margin: 0 0 4px;
-    color: var(--tp-color-brand-900);
-    font-size: 1rem;
-}
-
-.explorer-selection-card p {
+.explorer-plot-fallback {
     margin: 0;
     color: var(--tp-color-text-secondary);
-    line-height: 1.4;
+}
+
+/* ── Selection ──
+   One line that always sits above the list: what is selected, its parent
+   classes, and the one action (open those proteins). A left accent bar,
+   not a box (plain text never gets its own rounded container). */
+
+.explorer-selection {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tp-space-3);
+    margin-bottom: var(--tp-space-3);
+    padding: var(--tp-space-2) 0 var(--tp-space-2) var(--tp-space-3);
+    border-left: 3px solid var(--tp-color-border);
+    transition: border-color 140ms ease;
+}
+
+.explorer-selection.is-active {
+    border-left-color: var(--tp-color-border-strong);
+}
+
+.explorer-selection-text {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.explorer-selection-accession {
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-head);
+    font-weight: 600;
+}
+
+.explorer-selection.is-empty .explorer-selection-accession {
+    color: var(--tp-color-text-muted);
+    font-weight: 500;
+}
+
+.explorer-selection-name {
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.35;
 }
 
 .explorer-selection-path {
-    display: none;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--tp-color-border-soft);
-}
-
-.explorer-selection-path.is-visible {
-    display: grid;
-    gap: 6px;
-}
-
-.explorer-selection-path-label {
     color: var(--tp-color-text-muted);
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.35;
 }
 
-.explorer-selection-path-items {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+.explorer-selection.is-empty .explorer-action-link {
+    display: none !important;
 }
 
-.explorer-selection-path-item {
-    display: inline-flex;
-    align-items: center;
-    min-height: 26px;
-    padding: 0 10px;
-    border: 1px solid var(--tp-color-border);
-    border-radius: 999px;
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-brand-900);
-    font-size: 0.88rem;
-    line-height: 1.2;
+.explorer-action-link {
+    flex: 0 0 auto;
 }
 
 /* ── Search ── */
 
 .explorer-search {
     width: 100%;
+    margin-bottom: var(--tp-space-2);
 }
 
-/* ── Side panels ── */
+/* ── Term list ──
+   Rows, not a table: id + name on the left, the protein count and a thin
+   proportional bar on the right. Wraps instead of scrolling sideways. */
 
-.explorer-side-panel {
-    display: grid;
-    gap: 10px;
-}
-
-.explorer-side-panel + .explorer-side-panel {
-    padding-top: 16px;
+.explorer-term-list {
+    max-height: 560px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--tp-color-border-strong) transparent;
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
-/* ── Annotation table ── */
+.explorer-workbench--list .explorer-term-list {
+    max-height: 640px;
+}
 
-.explorer-table-shell {
-    height: 340px;
-    min-height: 340px;
-    scrollbar-gutter: stable;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 14px;
-    background: var(--tp-color-surface);
+.explorer-annotation-row {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.explorer-term {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "id    count"
+        "name  count"
+        "bar   bar";
+    column-gap: var(--tp-space-3);
+    row-gap: 2px;
+    width: 100%;
+    padding: var(--tp-space-3) var(--tp-space-2);
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 140ms ease;
+}
+
+.explorer-term:hover,
+.explorer-term:focus-visible {
+    background: var(--tp-color-surface-soft);
+    outline: none;
+}
+
+.explorer-term:focus-visible {
+    box-shadow: var(--tp-focus-outline);
+}
+
+.explorer-term-id {
+    grid-area: id;
+    color: var(--tp-color-text-primary);
+    font-family: var(--tp-font-mono);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.explorer-term-name {
+    grid-area: name;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.explorer-term-count {
+    grid-area: count;
+    align-self: center;
+    color: var(--tp-color-text-primary);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.explorer-term-bar {
+    grid-area: bar;
+    height: 2px;
+    margin-top: var(--tp-space-2);
+    background: var(--tp-color-surface-muted);
+    border-radius: var(--tp-radius-xs);
     overflow: hidden;
 }
 
-.explorer-table-shell > .tp-table-shell__scroll,
-.explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll {
-    height: calc(340px - 52px);
-    max-height: calc(340px - 52px);
-    overflow-y: scroll !important;
-    overflow-x: auto !important;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-gutter: stable;
+.explorer-term-bar > span {
+    display: block;
+    height: 100%;
+    min-width: 2px;
+    background: var(--tp-color-brand-300);
 }
 
-.explorer-table-shell table {
-    margin-bottom: 0;
+.explorer-annotation-row.is-active .explorer-term {
+    background: var(--tp-color-brand-100);
+    box-shadow: inset 3px 0 0 var(--tp-color-brand-600);
 }
 
-.explorer-table-shell thead th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: var(--tp-color-surface-soft);
+.explorer-annotation-row.is-active .explorer-term-id {
+    color: var(--tp-color-brand-800);
 }
 
-.explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar,
-.explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll::-webkit-scrollbar {
-    width: 13px;
-}
-
-.explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar-track,
-.explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll::-webkit-scrollbar-track {
-    background: var(--tp-color-surface-muted);
-    border-radius: 999px;
-}
-
-.explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar-thumb,
-.explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll::-webkit-scrollbar-thumb {
+.explorer-annotation-row.is-active .explorer-term-bar > span {
     background: var(--tp-color-brand-600);
-    border-radius: 999px;
-    border: 2px solid var(--tp-color-surface-muted);
 }
 
 .explorer-table-empty {
     display: none;
-    margin-top: 10px;
+    margin: var(--tp-space-3) 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
 }
 
 .explorer-table-empty.is-visible {
     display: block;
 }
 
-.explorer-annotation-row.is-active {
-    background: var(--tp-color-surface-soft);
+/* ── Empty state ── */
+
+.explorer-empty {
+    margin: 0 var(--tp-space-5);
+    padding-top: var(--tp-space-5);
+    border-top: 1px solid var(--tp-color-border-soft);
+    max-width: var(--tp-measure);
 }
 
-.explorer-annotation-row.is-active strong {
+.explorer-empty h2 {
+    margin: 0;
     color: var(--tp-color-brand-900);
+    font-size: var(--tp-font-size-lg);
 }
 
-/* ── Select button in table ── */
-
-.explorer-table-shell .explorer-select-btn,
-.explorer-table-shell .js-select-annotation {
-    appearance: none;
-    -webkit-appearance: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 92px;
-    padding: 0.52rem 0.95rem;
-    border-radius: 10px;
-    border: 1.5px solid var(--tp-color-border) !important;
-    font-weight: 500;
-    color: var(--tp-color-brand-900) !important;
-    background: var(--tp-color-surface-soft) !important;
+.explorer-empty p {
+    margin: var(--tp-space-2) 0 0;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.5;
 }
 
-.explorer-table-shell .explorer-select-btn.is-active,
-.explorer-table-shell .js-select-annotation.is-active {
-    color: var(--tp-color-brand-900);
-    border-color: var(--tp-color-brand-300);
-    background: var(--tp-color-brand-050);
-}
-
-.explorer-table-shell .explorer-select-btn:hover,
-.explorer-table-shell .explorer-select-btn:focus-visible,
-.explorer-table-shell .js-select-annotation:hover,
-.explorer-table-shell .js-select-annotation:focus-visible {
-    border-color: var(--tp-color-brand-300) !important;
-    background: var(--tp-color-brand-050) !important;
-    color: var(--tp-color-brand-900) !important;
-}
-
-.explorer-action-link {
-    margin-top: 10px;
+.explorer-empty-actions {
+    margin-top: var(--tp-space-4);
 }
 
 /* ── Animations ── */
 
 .explorer-hero,
-.explorer-card {
-    animation: explorer-enter 0.34s ease both;
+.explorer-workbench,
+.explorer-empty {
+    animation: explorer-enter 0.34s ease backwards;
 }
 
-.explorer-card { animation-delay: 0.04s; }
+.explorer-workbench,
+.explorer-empty { animation-delay: 0.04s; }
 
 @keyframes explorer-enter {
     from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: none; }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .explorer-hero,
+    .explorer-workbench,
+    .explorer-empty,
+    .explorer-term,
+    .explorer-selection {
+        animation: none;
+        transition: none;
+    }
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 980px) {
-    .explorer-workbench,
-    .explorer-empty-layout {
-        grid-template-columns: 1fr;
+    .explorer-workbench {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--tp-space-6);
     }
 
-    .explorer-workbench-side {
-        border-left: 0;
-        border-top: 1px solid var(--tp-color-border-soft);
+    .explorer-chart {
+        position: static;
     }
 
-    .explorer-hero {
-        padding: 18px 16px 16px;
+    .explorer-plot-shell {
+        min-height: 380px;
     }
+
+}
+
+@media (max-width: 560px) {
+    .explorer-selection {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* EC / GO switch in the hero (the GO explorer had no link anywhere). */
+.explorer-kind-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--tp-space-1) var(--tp-space-2);
+    margin: var(--tp-space-3) 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.explorer-kind-link {
+    color: var(--tp-color-link);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.explorer-kind-link:hover,
+.explorer-kind-link:focus-visible {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
 }
