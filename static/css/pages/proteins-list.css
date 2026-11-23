@@ -3626,6 +3626,42 @@ body.is-resizing-column * {
         min-height: 44px;
     }
 
+    /* In the sheets: thumb-sized controls, one line per column row (the
+       order number repeats the list order), no sideways scroll from the
+       hidden formula help. */
+    .columns-drag-handle,
+    .columns-icon-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .columns-row {
+        flex-wrap: nowrap;
+    }
+
+    #columns-visible-list .columns-order-index {
+        display: none;
+    }
+
+    .drawer-advanced-link {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    .filter-explorer-link,
+    .filter-param-bulk-toggle {
+        min-height: 44px;
+    }
+
+    .scoring-drawer-body {
+        overflow-x: hidden;
+    }
+
+    .scoring-formula-help {
+        max-width: calc(100vw - var(--tp-space-8) * 2);
+    }
+
     .toolbar-controls-left .toolbar-action-btn__title {
         font-size: var(--tp-font-size-sm);
     }
