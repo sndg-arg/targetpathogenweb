@@ -697,6 +697,27 @@ a.filter-pill .filter-pill-remove {
     }
 }
 
+/* Phones: only "Protein" stays pinned ("#" scrolls under it), so the
+   evidence columns keep most of the width. */
+@media (max-width: 767.98px) {
+    .protein-table thead th:nth-child(2),
+    .protein-table tbody td:nth-child(2),
+    .protein-table-floating-head .protein-table thead th:nth-child(2) {
+        position: sticky;
+        left: 0;
+        box-shadow: inset -1px 0 0 var(--tp-color-border-soft);
+    }
+
+    .protein-table tbody td:nth-child(2) {
+        z-index: 1;
+        background-color: inherit;
+    }
+
+    .protein-table thead th:nth-child(2) {
+        z-index: calc(var(--tp-table-sticky-z) + 1);
+    }
+}
+
 .protein-table thead th:nth-child(3),
 .protein-table tbody td:nth-child(3) {
     min-width: 320px;
@@ -2173,9 +2194,11 @@ a.filter-pill .filter-pill-remove {
     margin: 0;
 }
 
+/* backwards, not both: a kept end transform would make this card the
+   containing block of the phone thumb bar (fixed) inside it. */
 .proteins-hero,
 .toolbar-card {
-    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) backwards;
 }
 
 .toolbar-card {
@@ -3583,23 +3606,24 @@ body.is-resizing-column * {
     color: var(--tp-color-primary);
 }
 
-/* Phones: Filters, Scoring and Columns as one row of three compact
-   buttons (the groups dissolve into the row; the meta line drops). */
-@media (max-width: 640px) {
-    .toolbar-workbench {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: var(--tp-space-2);
-    }
-
+/* Phones: Filters, Scoring and Columns as one thumb bar fixed at the
+   bottom (.tp-action-bar, bottom-sheet.css); the groups dissolve into it
+   and the meta line drops. */
+@media (max-width: 720px) {
     .toolbar-workbench__group {
         display: contents;
     }
 
     .toolbar-controls-left .toolbar-action-btn {
         min-width: 0;
+        min-height: 44px;
         align-items: center;
         padding-inline: var(--tp-space-2);
+    }
+
+    .toolbar-filter-split {
+        min-width: 0;
+        min-height: 44px;
     }
 
     .toolbar-controls-left .toolbar-action-btn__title {

@@ -5,7 +5,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261124-mobile">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261124-bar">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -153,7 +153,7 @@
                                 <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
                             </select>
                         </div>
-                        <div class="toolbar-workbench" aria-label="{% trans 'Protein list controls' %}">
+                        <div class="toolbar-workbench tp-action-bar" aria-label="{% trans 'Protein list controls' %}">
                             <div class="toolbar-workbench__group toolbar-workbench__group--primary" aria-label="{% trans 'Filtering and ranking' %}">
                                 {% if filter_presets %}
                                 <div class="toolbar-filter-split" id="toolbar-presets-wrap">

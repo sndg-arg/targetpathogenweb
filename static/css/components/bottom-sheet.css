@@ -185,7 +185,9 @@
         bottom: 0;
         left: 0;
         z-index: 1020;
-        display: flex;
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(0, 1fr);
         gap: var(--tp-space-2);
         margin: 0;
         padding: var(--tp-space-2) var(--tp-space-3) calc(var(--tp-space-2) + env(safe-area-inset-bottom, 0px));
@@ -194,8 +196,8 @@
         box-shadow: var(--tp-shadow-sm);
     }
 
+    /* Equal columns; the page sets its buttons to thumb height (44px). */
     .tp-action-bar .btn.tp-btn {
-        flex: 1 1 0;
         min-width: 0;
         min-height: 44px;
         justify-content: center;

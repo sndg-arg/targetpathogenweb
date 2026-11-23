@@ -8,7 +8,7 @@
 {% block head %}
     {# Same page CSS as the pathogen protein table: same hero, toolbar, table and pagination. #}
     <link rel="stylesheet" href="{% static 'css/pages/human-protein-list.css' %}?v=20261023">
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261124-mobile">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261124-bar">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -76,7 +76,7 @@
                             {% for option in page_sizes %}<option value="{{ option }}"{% if option == page_size %} selected{% endif %}>{{ option }}</option>{% endfor %}
                         </select>
                     </div>
-                    <div class="toolbar-workbench" aria-label="{% trans 'Protein list controls' %}">
+                    <div class="toolbar-workbench tp-action-bar" aria-label="{% trans 'Protein list controls' %}">
                         <div class="toolbar-workbench__group toolbar-workbench__group--primary">
                             <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn" title="{% trans 'Narrow the table by evidence: structure, ligands, drugs, disease, expression.' %}">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
