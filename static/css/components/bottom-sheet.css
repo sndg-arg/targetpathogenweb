@@ -162,6 +162,16 @@
         min-height: 44px;
     }
 
+    /* Scroll lock while a sheet is open: the page stays where it was. */
+    html.tp-sheet-locked {
+        overflow: hidden;
+        scrollbar-gutter: stable;
+    }
+
+    html.tp-sheet-locked body {
+        overflow: hidden;
+    }
+
     /* The assistant button would float over an open sheet. */
     .tp-sheet-locked .tp-agent-fab,
     .tp-sheet-locked .tp-agent-fab-ring {

@@ -180,7 +180,8 @@
                                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
                                         {% if active_preset_name %}<span class="toolbar-filter-split__dot" aria-hidden="true"></span>{% endif %}
                                     </button>
-                                    <div class="toolbar-presets-dropdown" id="toolbar-presets-dropdown" hidden>
+                                    <div class="toolbar-presets-dropdown" id="toolbar-presets-dropdown" hidden
+                                         data-tp-sheet="menu" data-tp-sheet-trigger="#open-presets-btn" data-tp-sheet-title="{% trans 'Saved presets' %}">
                                         <ul class="tpd-list" role="list">
                                             {% for preset in filter_presets %}
                                             <li class="tpd-row{% if preset.is_last_applied %} tpd-row--active{% endif %}">

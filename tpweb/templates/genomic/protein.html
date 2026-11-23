@@ -356,7 +356,8 @@
                                 {% if primary_structure_detail_label %}<span class="structure-picker-detail" id="structure-picker-detail">{{ primary_structure_detail_label }}</span>{% endif %}
                                 <span class="structure-picker-chevron" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
                             </button>
-                            <ul class="structure-picker-menu" id="structure-picker-menu" role="listbox" hidden>
+                            <ul class="structure-picker-menu" id="structure-picker-menu" role="listbox" hidden
+                                data-tp-sheet="menu" data-tp-sheet-trigger="#structure-picker-btn" data-tp-sheet-title="{% trans 'Structure' %}">
                                 <li class="structure-picker-item is-active" role="option" aria-selected="true" data-slot="primary">
                                     <span class="structure-picker-item-label">{{ primary_structure_label }}</span>
                                     {% if primary_structure_detail_label %}<span class="structure-picker-item-detail">{{ primary_structure_detail_label }}</span>{% endif %}
@@ -369,7 +370,8 @@
                         </div>
                         {% endif %}
                         {% if structure_download_sources %}
-                        <details class="structure-download-menu js-structure-download-menu">
+                        <details class="structure-download-menu js-structure-download-menu"
+                                 data-tp-sheet="menu" data-tp-sheet-panel=".structure-download-list" data-tp-sheet-title="{% trans 'Structures + pockets' %}">
                             <summary class="btn tp-btn tp-btn--secondary tp-btn-with-icon structure-action-btn"
                                      title="{% trans 'Structure files with their FPocket and P2Rank pockets (TSV) and a PyMOL script for each, as a ZIP' %}">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>

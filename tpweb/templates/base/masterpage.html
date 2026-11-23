@@ -1873,7 +1873,7 @@
 
     {% block head %}{% endblock %}
     {# After the page stylesheets: on phones it replaces their side-panel/dialog geometry. #}
-    <link rel="stylesheet" href="{% static 'css/components/bottom-sheet.css' %}?v=20261123-nav">
+    <link rel="stylesheet" href="{% static 'css/components/bottom-sheet.css' %}?v=20261123-lock">
 </head>
 <body class="{% block body_class %}{% endblock %}">
 <div id="tp-page-loader" class="tp-page-loader" role="status" aria-live="polite" aria-hidden="true">
@@ -2271,7 +2271,7 @@
         </div>
     </div>
 </template>
-<script src="{% static 'js/global/bottom-sheet.js' %}?v=20261123-sheet"></script>
+<script src="{% static 'js/global/bottom-sheet.js' %}?v=20261123-lock"></script>
 <script src="{% static 'bundle.js' %}?v=20261113-nohbs"></script>
 {% if perms.tpweb.can_use_agent_chat %}
 <script src="{% static 'js/global/agent-drawer.js' %}?v=20260811-fab"></script>

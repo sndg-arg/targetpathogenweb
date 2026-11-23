@@ -38,7 +38,8 @@
                         <span class="sv-struct-picker-label" id="sv-struct-picker-label">{% for s in all_structures %}{% if s.is_active %}{{ s.short_method }}{% if s.display_code %} · {{ s.display_code }}{% endif %}{% endif %}{% endfor %}</span>
                         <svg class="sv-struct-picker-chevron" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
                     </button>
-                    <ul class="sv-struct-picker-menu" id="sv-struct-picker-menu" role="listbox" hidden>
+                    <ul class="sv-struct-picker-menu" id="sv-struct-picker-menu" role="listbox" hidden
+                        data-tp-sheet="menu" data-tp-sheet-trigger="#sv-struct-picker-btn" data-tp-sheet-title="{% trans 'Structure' %}">
                         {% for s in all_structures %}
                         <li class="sv-struct-picker-item{% if s.is_active %} is-active{% endif %}"
                             role="option" aria-selected="{% if s.is_active %}true{% else %}false{% endif %}"
@@ -64,7 +65,8 @@
                         <span class="sv-struct-picker-label">{% trans "Compare" %}<span class="sv-overlay-count" id="sv-overlay-count" hidden></span></span>
                         <svg class="sv-struct-picker-chevron" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
                     </button>
-                    <ul class="sv-struct-picker-menu" id="sv-overlay-menu" role="menu" hidden>
+                    <ul class="sv-struct-picker-menu" id="sv-overlay-menu" role="menu" hidden
+                        data-tp-sheet="menu" data-tp-sheet-trigger="#sv-overlay-btn" data-tp-sheet-title="{% trans 'Compare' %}">
                         {% for s in all_structures %}
                         <li class="sv-struct-picker-item sv-overlay-item" role="menuitemcheckbox" aria-checked="false"
                             data-overlay-id="{{ s.id }}"{% if s.is_active %} hidden{% endif %}>
@@ -196,7 +198,8 @@
                     <span class="sv-struct-picker-label"><span class="sv-color-picker-key">{% trans "Color" %}</span> <span id="sv-color-label">{% trans "Uniform" %}</span></span>
                     <svg class="sv-struct-picker-chevron" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
                 </button>
-                <div class="sv-struct-picker-menu sv-color-menu" id="sv-color-menu" role="menu" hidden>
+                <div class="sv-struct-picker-menu sv-color-menu" id="sv-color-menu" role="menu" hidden
+                     data-tp-sheet="menu" data-tp-sheet-trigger="#sv-color-btn" data-tp-sheet-title="{% trans 'Color' %}">
                     <button type="button" class="sv-struct-picker-item sv-color-option js-structure-color" role="menuitemradio" data-color-mode="flat" aria-pressed="false" title="{% trans 'Uniform color for the whole structure.' %}">{% trans "Uniform" %}</button>
                     <button type="button" class="sv-struct-picker-item sv-color-option js-structure-color" role="menuitemradio" data-color-mode="chainname" aria-pressed="false" title="{% trans 'Color each chain differently.' %}">{% trans "By chain" %}</button>
                     <button type="button" class="sv-struct-picker-item sv-color-option js-structure-color" role="menuitemradio" data-color-mode="sstruc" aria-pressed="false" title="{% trans 'Color by secondary structure (helix/sheet/coil).' %}">{% trans "By structure" %}</button>

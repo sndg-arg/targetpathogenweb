@@ -111,7 +111,8 @@
 
         {{ pipeline_status|json_script:"home-pipeline-status-initial" }}
 
-        <div class="pipeline-info-backdrop" id="pipeline-info-modal" aria-hidden="true">
+        <div class="pipeline-info-backdrop" id="pipeline-info-modal" aria-hidden="true"
+             data-tp-sheet="dialog" data-tp-sheet-panel=".pipeline-info-panel" data-tp-sheet-close="#pipeline-info-close">
             <div class="pipeline-info-panel" role="dialog" aria-modal="true" aria-labelledby="pipeline-info-title">
                 <div class="pipeline-info-head">
                     <div>

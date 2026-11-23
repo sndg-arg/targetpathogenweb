@@ -40,7 +40,6 @@
 
     var stack = [];
     var entries = [];
-    var lockedY = 0;
     var lastPointerTarget = null;
 
     function isMobile() {
@@ -53,29 +52,22 @@
         return (root && root.querySelector(value)) || document.querySelector(value);
     }
 
-    // ── Scroll lock: pin the body where it is so the page neither scrolls
-    // behind the sheet nor jumps when it closes. ──
+    // ── Scroll lock: overflow hidden on the page (bottom-sheet.css) keeps the
+    // scroll position, so nothing jumps and no scroll event fires (pages close
+    // their menus on scroll). Touches outside the open sheet can't drag the
+    // page either, for browsers that ignore overflow on touch. ──
     function lockScroll() {
-        lockedY = window.scrollY;
-        var style = document.body.style;
-        style.position = "fixed";
-        style.top = -lockedY + "px";
-        style.left = "0";
-        style.right = "0";
-        style.width = "100%";
         document.documentElement.classList.add("tp-sheet-locked");
     }
 
     function unlockScroll() {
-        var style = document.body.style;
-        style.position = style.top = style.left = style.right = style.width = "";
         document.documentElement.classList.remove("tp-sheet-locked");
-        var html = document.documentElement;
-        var behavior = html.style.scrollBehavior;
-        html.style.scrollBehavior = "auto";
-        window.scrollTo(0, lockedY);
-        html.style.scrollBehavior = behavior;
     }
+
+    document.addEventListener("touchmove", function (event) {
+        var top = stack[stack.length - 1];
+        if (top && event.cancelable && !top.panel.contains(event.target)) event.preventDefault();
+    }, { passive: false });
 
     // ── Virtual keyboard: sheets sit on top of it, not behind it. ──
     function syncViewport() {
