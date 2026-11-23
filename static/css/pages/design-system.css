@@ -443,3 +443,33 @@ a.ds-card {
         font-size: 3.5rem;
     }
 }
+
+/* Phone samples: a phone-width frame; inside it the real phone rules apply.
+   These only place the samples. */
+.ds-phone {
+    display: block;
+    width: 390px;
+    max-width: 100%;
+    height: 520px;
+    border: 1px solid var(--tp-color-border);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface-soft);
+}
+
+.ds-phone--bar {
+    height: 120px;
+}
+
+.ds-phone-body {
+    min-height: 100vh;
+    margin: 0;
+    padding: 0 !important;
+    background: var(--tp-color-surface-soft);
+}
+
+.ds-phone-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: var(--tp-space-2);
+}

@@ -5,9 +5,9 @@
 
 {% block head %}
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261124-mobile">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20261124-bar">
     <link rel="stylesheet" href="{% static 'css/components/protein-page.css' %}?v=20261124-mobile">
-    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261023-p4">
+    <link rel="stylesheet" href="{% static 'css/pages/design-system.css' %}?v=20261123-phone">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -44,6 +44,7 @@
         <a class="quick-nav-link" href="#color">Color</a>
         <a class="quick-nav-link" href="#typography">Typography</a>
         <a class="quick-nav-link" href="#components">Components</a>
+        <a class="quick-nav-link" href="#phone">Phone</a>
     </nav>
 
     {# ───────────────────────────── Color ───────────────────────────── #}
@@ -640,8 +641,125 @@
         </div>
     </section>
 
+    {# ─────────────────────────────── Phone ──────────────────────────────── #}
+    {# Each sample renders in a phone-width frame with the site's own #}
+    {# stylesheets, so it shows exactly what a phone gets. #}
+    <section class="ds-chapter tp-quick-nav-target" id="phone">
+        <header class="ds-chapter-head">
+            <h2>Phone</h2>
+            <nav class="ds-index" aria-label="Phone"><a href="#p-sheets">Sheets</a><a href="#p-bar">Thumb bar</a></nav>
+        </header>
+
+        <div class="ds-comp" id="p-sheets">
+            <h3>Sheets</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix ds-matrix--top">
+                <thead><tr><th>Dialog</th><th>Menu</th><th>Panel</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><template data-ds-phone="Dialog on a phone">
+                            <div class="tp-modal is-open">
+                                <div class="tp-modal-panel tp-modal-panel--sm tp-sheet is-sheet-open" role="img" aria-label="Example dialog">
+                                    <div class="tp-modal-head">
+                                        <p class="tp-modal-title">Revoke access?</p>
+                                        <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close" tabindex="-1" aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button>
+                                    </div>
+                                    <div class="tp-modal-body"><p class="ds-modal-text">This person will lose access immediately.</p></div>
+                                    <div class="tp-modal-actions">
+                                        <button type="button" class="btn tp-btn tp-btn--secondary" tabindex="-1">Cancel</button>
+                                        <button type="button" class="btn tp-btn tp-btn--danger" tabindex="-1">Revoke access</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template></td>
+                        <td><template data-ds-phone="Menu on a phone">
+                            <div class="tp-sheet-root">
+                                <div class="tp-sheet-backdrop"></div>
+                                <div class="tp-sheet tp-sheet--menu" role="img" aria-label="Example menu">
+                                    <div class="tp-sheet-head">
+                                        <p class="tp-sheet-title">Genome</p>
+                                        <button type="button" class="btn tp-btn tp-btn--ghost tp-sheet-close" tabindex="-1" aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button>
+                                    </div>
+                                    <div class="tp-sheet-body">
+                                        <div class="tp-select-menu tp-sheet-content"><button type="button" class="tp-select-option is-selected" tabindex="-1">KpATCC43816</button><button type="button" class="tp-select-option" tabindex="-1">KpKP13</button><button type="button" class="tp-select-option" tabindex="-1">AbATCC19606</button><button type="button" class="tp-select-option" tabindex="-1" aria-disabled="true">ST11 VA569</button></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template></td>
+                        <td><template data-ds-phone="Panel on a phone">
+                            <div class="tp-sheet-backdrop"></div>
+                            <div class="tp-modal-panel tp-sheet tp-sheet--full is-sheet-open" role="img" aria-label="Example panel">
+                                <div class="tp-modal-head">
+                                    <p class="tp-modal-title">Filters</p>
+                                    <button type="button" class="btn tp-btn tp-btn--ghost tp-btn--sm tp-modal-close" tabindex="-1" aria-label="Close"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button>
+                                </div>
+                                <div class="tp-modal-body ds-phone-chips">
+                                    <span class="filter-chip filter-chip--active"><span class="filter-chip-label">Cytoplasmic</span><span class="filter-chip-glyph" aria-hidden="true">&times;</span></span>
+                                    <span class="filter-chip"><span class="filter-chip-label">Periplasmic</span></span>
+                                    <span class="filter-chip filter-chip--favorable"><span class="filter-chip-label">Essential</span></span>
+                                    <span class="filter-chip filter-chip--risk"><span class="filter-chip-label">Human hit</span></span>
+                                    <span class="filter-chip"><span class="filter-chip-label">Druggable pocket</span></span>
+                                </div>
+                                <div class="tp-modal-actions">
+                                    <button type="button" class="btn tp-btn tp-btn--secondary" tabindex="-1">Clear</button>
+                                    <button type="button" class="btn tp-btn tp-btn--primary" tabindex="-1">Apply filters</button>
+                                </div>
+                            </div>
+                        </template></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <div class="ds-comp" id="p-bar">
+            <h3>Thumb bar</h3>
+            <div class="ds-matrix-wrap">
+            <table class="ds-matrix ds-matrix--top">
+                <thead><tr><th>Protein list</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><template data-ds-phone="Thumb bar on a phone" data-ds-phone-size="bar">
+                            <div class="tp-action-bar" role="img" aria-label="Example thumb bar">
+                                <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon" tabindex="-1"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span><span>Filters</span></button>
+                                <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon" tabindex="-1"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/calculator.html" %}</span><span>Scoring</span></button>
+                                <button type="button" class="btn tp-btn tp-btn--secondary tp-btn-with-icon" tabindex="-1"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/columns.html" %}</span><span>Columns</span></button>
+                            </div>
+                        </template></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </section>
+
 </div>
 
+<script>
+(function () {
+    // Phone samples: each <template data-ds-phone> renders in a phone-width
+    // frame with this page's own stylesheets, so the phone rules apply for real.
+    var styles = Array.from(document.querySelectorAll("head link[rel='stylesheet'], head style")).map(function (node) {
+        return node.outerHTML;
+    }).join("");
+    var frames = [];
+    document.querySelectorAll("template[data-ds-phone]").forEach(function (template) {
+        var frame = document.createElement("iframe");
+        frame.className = "ds-phone" + (template.getAttribute("data-ds-phone-size") === "bar" ? " ds-phone--bar" : "");
+        frame.title = template.getAttribute("data-ds-phone");
+        frame.setAttribute("tabindex", "-1");
+        template.parentNode.insertBefore(frame, template);
+        frames.push({ frame: frame, html: template.innerHTML });
+    });
+    function render() {
+        var theme = document.documentElement.className;
+        frames.forEach(function (item) {
+            item.frame.srcdoc = "<!DOCTYPE html><html class=\"" + theme + "\"><head><base href=\"" + location.href + "\">"
+                + styles + "</head><body class=\"ds-phone-body\">" + item.html + "</body></html>";
+        });
+    }
+    render();
+    new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+})();
+</script>
 <script src="{% static 'js/global/quick-nav.js' %}?v=20261015"></script>
 <script>
 (function () {
