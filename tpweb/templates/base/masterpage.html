@@ -1010,6 +1010,23 @@
             }
         }
 
+        /* Phones: the menu is a bottom sheet (bottom-sheet.js), in the bar's colors. */
+        @media (max-width: 720px) {
+            .tp-topbar-mobile .navbar-collapse.tp-sheet {
+                margin: 0;
+                padding: var(--tp-space-5) var(--tp-space-3) calc(var(--tp-space-3) + env(safe-area-inset-bottom, 0px));
+                overflow-y: auto;
+                border: 1px solid var(--tp-nav-line);
+                border-bottom: 0;
+                border-radius: var(--tp-radius-md) var(--tp-radius-md) 0 0;
+                background: var(--tp-color-nav-900);
+            }
+
+            .tp-topbar-mobile .navbar-collapse.tp-sheet::before {
+                background: var(--tp-nav-line-strong);
+            }
+        }
+
         @media (min-width: 992px) {
             body {
                 padding-top: var(--tp-topbar-h);
@@ -1856,7 +1873,7 @@
 
     {% block head %}{% endblock %}
     {# After the page stylesheets: on phones it replaces their side-panel/dialog geometry. #}
-    <link rel="stylesheet" href="{% static 'css/components/bottom-sheet.css' %}?v=20261123-sheet">
+    <link rel="stylesheet" href="{% static 'css/components/bottom-sheet.css' %}?v=20261123-nav">
 </head>
 <body class="{% block body_class %}{% endblock %}">
 <div id="tp-page-loader" class="tp-page-loader" role="status" aria-live="polite" aria-hidden="true">
@@ -2012,7 +2029,7 @@
                 aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarCollapse">
+        <div class="collapse navbar-collapse" id="navbarCollapse" data-tp-sheet="dialog" data-tp-sheet-open="show" data-tp-sheet-close=".navbar-toggler" data-tp-sheet-trigger=".navbar-toggler" data-tp-sheet-scrim>
             {% with url_name=request.resolver_match.url_name %}
             <ul class="navbar-nav mr-auto mb-2 mb-md-0">
                 <li class="nav-item">

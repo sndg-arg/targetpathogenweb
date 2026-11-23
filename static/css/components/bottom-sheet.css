@@ -162,6 +162,12 @@
         min-height: 44px;
     }
 
+    /* The assistant button would float over an open sheet. */
+    .tp-sheet-locked .tp-agent-fab,
+    .tp-sheet-locked .tp-agent-fab-ring {
+        visibility: hidden;
+    }
+
     /* Thumb bar: a page's main actions, fixed at the bottom of the screen. */
     .tp-action-bar {
         position: fixed;
