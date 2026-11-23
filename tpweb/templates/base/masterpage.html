@@ -1855,6 +1855,8 @@
     </style>
 
     {% block head %}{% endblock %}
+    {# After the page stylesheets: on phones it replaces their side-panel/dialog geometry. #}
+    <link rel="stylesheet" href="{% static 'css/components/bottom-sheet.css' %}?v=20261123-sheet">
 </head>
 <body class="{% block body_class %}{% endblock %}">
 <div id="tp-page-loader" class="tp-page-loader" role="status" aria-live="polite" aria-hidden="true">
@@ -2239,6 +2241,20 @@
 </aside>
 {% endif %}
 
+{# Menu sheet shell for bottom-sheet.js (phones): title, close, then the menu moved in. #}
+<template id="tp-sheet-template">
+    <div class="tp-sheet-root">
+        <div class="tp-sheet-backdrop"></div>
+        <div class="tp-sheet tp-sheet--menu" role="dialog" aria-modal="true">
+            <div class="tp-sheet-head">
+                <p class="tp-sheet-title"></p>
+                <button type="button" class="btn tp-btn tp-btn--ghost tp-sheet-close" aria-label="{% trans 'Close' %}"><span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span></button>
+            </div>
+            <div class="tp-sheet-body"></div>
+        </div>
+    </div>
+</template>
+<script src="{% static 'js/global/bottom-sheet.js' %}?v=20261123-sheet"></script>
 <script src="{% static 'bundle.js' %}?v=20261113-nohbs"></script>
 {% if perms.tpweb.can_use_agent_chat %}
 <script src="{% static 'js/global/agent-drawer.js' %}?v=20260811-fab"></script>
